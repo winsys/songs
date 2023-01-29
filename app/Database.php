@@ -14,7 +14,7 @@ class Database
             $conf['db']['pass'],
             $conf['db']['database'],
             $conf['db']['port'] ) or die('Invalid database connection parameters!');
-        $this->f_handle->set_charset("utf8_general_ci");
+        $this->f_handle->set_charset("utf8mb4_general_ci");
         $this->error = '';
     }
 
