@@ -8,14 +8,22 @@ class Database
     public function __construct()
     {
         $conf = Info::get('config');
-        $this->f_handle = mysqli_connect(
+        $ii = mysqli_init();
+        mysqli_options($ii, MYSQLI_READ_DEFAULT_FILE, '/etc/mysql/mysql.conf.d/mysqld.cnf');
+
+        if (mysqli_real_connect(
+            $ii,
             $conf['db']['host'],
             $conf['db']['login'],
             $conf['db']['pass'],
             $conf['db']['database'],
-            $conf['db']['port'] ) or die('Invalid database connection parameters!');
-        $this->f_handle->set_charset("utf8mb4_general_ci");
-        $this->error = '';
+            $conf['db']['port'],
+            '/var/run/mysqld/mysqld.sock' ))
+        {
+            $this->f_handle = $ii;
+            $this->f_handle->set_charset("utf8");
+            $this->error = '';
+        } else $this->error = mysqli_connect_error();
     }
 
     public function select($q)
