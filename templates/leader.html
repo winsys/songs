@@ -1,0 +1,82 @@
+<style>
+    .purchase-list {
+        max-height: calc(100vh - 100px);
+        overflow: auto;
+    }
+    .prod-list-item {
+        position: relative;
+        margin-top: 5px;
+        margin-left: 0px;
+        padding-bottom: 3px;
+        padding-right: 12px;
+        border-bottom: 1px solid #d0d0d0;
+    }
+    .new-list-item {
+        padding-left: 12px;
+        padding-right: 5px;
+    }
+    .new-list-btn {
+        padding-right: 12px;
+        padding-left: 0px;
+    }
+    .item-text {
+        font-size: 12pt;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+    }
+    input[type=number] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+        margin: 0;
+    }
+</style>
+
+<div ng-controller="Leader" class="container">
+
+    <div style="position: absolute; width: 100%; text-align: left; padding-left: 12px; z-index: 1000">
+    </div>
+
+    <div class="row">
+
+        <!-- Search input -->
+        <div class="col-xs-12 new-list-item"
+             style="margin-top: 15px">
+            <angucomplete-alt id="ccf6"
+                              placeholder="название или номер"
+                              pause="100"
+                              local-data=songList
+                              search-fields="dispName"
+                              title-field="dispName"
+                              selected-object="selectedItem"
+                              minlength="3"
+                              input-class="form-control">
+            </angucomplete-alt>
+        </div>
+
+        <div class="col-xs-12 col-sm-12 purchase-list"
+             style="margin-top: 20px">
+
+            <div class="row prod-list-item"
+                 ng-repeat="listItem in favorites"
+                 ng-swipe-left="clearFavorites()"
+                 ng-swipe-right="clearFavorites()">
+                    <span class="col-xs-10 item-text">{{ listItem.dispName }}</span>
+                    <img class="col-xs-2"
+                         ng-attr-id="{{ 'img' + listItem.ID }}"
+                         ng-src="{{ listItem.imageName }}"
+                         ng-click="openFullscreen(listItem.ID, listItem.NUM)"/>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script src="/js/leader.js?v=10021" type="text/javascript"></script>
+
+<script type="text/javascript">
+    function forceFullScreen(){}
+</script>

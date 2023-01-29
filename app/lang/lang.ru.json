@@ -1,0 +1,56 @@
+{
+	"global_title": "Покупки",
+	"global_cancel": "Отменить",
+	"global_deletion": "УДАЛЕНИЕ",
+	"global_delete": "Удалить",
+	"global_save": "Сохранить",
+	"global_yes": "Да",
+
+	"login_title": "Покупки",
+	"login_lbl_login": "Логин",
+	"login_lbl_pass": "Пароль",
+	"login_btn_enter": "Войти",
+	"login_reg_family": "Зарегистрировать семью",
+	"login_msg_error": "Ошибока в логине или пароле!",
+	"login_user_manual": "Руководство пользователя",
+
+	"reg_title": "Регистрация",
+	"reg_family": "Семья",
+	"reg_full_name": "Ваше полное имя",
+	"reg_name": "Имя",
+	"reg_short_name": "краткое имя",
+	"reg_login": "Логин",
+	"reg_login_plh": "имя пользователя",
+	"reg_pass": "Пароль",
+	"reg_pass_plh": "введите пароль",
+	"reg_pass_repeat": "Повторите пароль",
+	"reg_pass_repeat_plh": "введите пароль ещё раз",
+	"reg_success_register": "Регистрация произведена успешно!",
+	"reg_btn_register": "Зарегистрировать",
+
+	"pur_what_to_buy_plh": "что ещё купить?",
+	"pur_add_to_list": "В список",
+	"pur_will_take": "возьму",
+	"pur_ordered_by": "Заказал",
+	"pur_bought": "Купил",
+	"pur_all_family": "Вся семья",
+	"pur_categories": "Категории товаров",
+	"pur_purchases_list": "Каталог товаров",
+	"pur_exit": "Выйти",
+
+	"go_to_purchases": "к покупкам",
+	"new_family_member": "Новый член семьи",
+
+	"cat_catalog": "Каталог покупок",
+	"cat_save_changes": "Сохранить изменения",
+
+	"edit_user_info": "Информация о пользователе",
+
+	"fam_family": "Семья",
+	"fam_add_family_member": "Добавить члена семьи",
+
+	"cost_dialog_price_label": "Цена:",
+	"cost_save_without_cost": "Сохранить без цены",
+	"cost_save": "Сохранить"
+
+}

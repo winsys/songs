@@ -1,0 +1,27 @@
+<style>
+    .fs {
+        max-width: 100%;
+        max-height: 100%;
+        bottom: 0;
+        left: 0;
+        margin: auto;
+        overflow: auto;
+        position: fixed;
+        right: 0;
+        top: 0;
+        -o-object-fit: contain;
+        object-fit: contain;
+    }
+</style>
+<div ng-controller="Musician" class="container">
+
+    <div>
+        <img id="img0"
+             class="fs"
+             ng-click="toggleFullscreen()"
+             ng-src="{{imgName}}"/>
+    </div>
+
+</div>
+
+<script src="/js/musician.js" type="text/javascript"></script>
