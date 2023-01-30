@@ -82,14 +82,15 @@ app.controller('Leader', function ($scope, $http, $timeout)
                     nextItem = $scope.favorites[0]
                 }
         }
-
-        $http({ method: "POST", url: "/ajax", data: {command: 'clear_image' } }).then(
-            function success(respond){
-                $http({ method: "POST", url: "/ajax", data: {command: 'set_image', image_num: nextItem.NUM } }).then(
-                    function success(respond){
-                        document.getElementById('img'+nextItem.ID).requestFullscreen();
-                    });
-            });
+        if( nextItem !== curItem ){
+            $http({ method: "POST", url: "/ajax", data: {command: 'clear_image' } }).then(
+                function success(respond){
+                    $http({ method: "POST", url: "/ajax", data: {command: 'set_image', image_num: nextItem.NUM } }).then(
+                        function success(respond){
+                            document.getElementById('img'+nextItem.ID).requestFullscreen();
+                        });
+                });
+        }
     };
 
 
@@ -110,13 +111,15 @@ app.controller('Leader', function ($scope, $http, $timeout)
             }
         }
 
-        $http({ method: "POST", url: "/ajax", data: {command: 'clear_image' } }).then(
-            function success(respond){
-                $http({ method: "POST", url: "/ajax", data: {command: 'set_image', image_num: prevItem.NUM } }).then(
-                    function success(respond){
-                        document.getElementById('img'+prevItem.ID).requestFullscreen();
-                    });
-            });
+        if( prevItem !== curItem ) {
+            $http({method: "POST", url: "/ajax", data: {command: 'clear_image'}}).then(
+                function success(respond) {
+                    $http({method: "POST", url: "/ajax", data: {command: 'set_image', image_num: prevItem.NUM}}).then(
+                        function success(respond) {
+                            document.getElementById('img' + prevItem.ID).requestFullscreen();
+                        });
+                });
+        }
     };
 
 
