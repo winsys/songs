@@ -50,10 +50,8 @@ app.controller('Leader', function ($scope, $http, $timeout)
         }else{
             $http({ method: "POST", url: "/ajax", data: {command: 'clear_image' } }).then(
                 function success(respond){
-                    if (document.exitFullscreen) {
-                        document.exitFullscreen();
-                        $scope.fullScreen = false;
-                    }
+                    document.exitFullscreen();
+                    $scope.fullScreen = false;
                 });
         }
     }
@@ -85,16 +83,11 @@ app.controller('Leader', function ($scope, $http, $timeout)
                 }
         }
 
-        if (document.exitFullscreen){
-            document.exitFullscreen();
-            $scope.fullScreen = false;
-        }
         $http({ method: "POST", url: "/ajax", data: {command: 'clear_image' } }).then(
             function success(respond){
                 $http({ method: "POST", url: "/ajax", data: {command: 'set_image', image_num: nextItem.NUM } }).then(
                     function success(respond){
                         document.getElementById('img'+nextItem.ID).requestFullscreen();
-                        $scope.fullScreen = true;
                     });
             });
     };
@@ -117,16 +110,11 @@ app.controller('Leader', function ($scope, $http, $timeout)
             }
         }
 
-        if (document.exitFullscreen){
-            document.exitFullscreen();
-            $scope.fullScreen = false;
-        }
         $http({ method: "POST", url: "/ajax", data: {command: 'clear_image' } }).then(
             function success(respond){
                 $http({ method: "POST", url: "/ajax", data: {command: 'set_image', image_num: prevItem.NUM } }).then(
                     function success(respond){
                         document.getElementById('img'+prevItem.ID).requestFullscreen();
-                        $scope.fullScreen = true;
                     });
             });
     };
