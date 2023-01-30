@@ -32,6 +32,10 @@
         appearance: textfield;
         margin: 0;
     }
+    .search-box {
+        height: auto;
+        font-size: large;
+    }
 </style>
 
 <div ng-controller="Leader" class="container">
@@ -43,7 +47,7 @@
 
         <!-- Search input -->
         <div class="col-xs-12 new-list-item"
-             style="margin-top: 15px">
+             style="margin-top: 55px">
             <angucomplete-alt id="ccf6"
                               placeholder="название или номер"
                               pause="100"
@@ -51,8 +55,8 @@
                               search-fields="dispName"
                               title-field="dispName"
                               selected-object="selectedItem"
-                              minlength="3"
-                              input-class="form-control">
+                              minlength="2"
+                              input-class="form-control search-box">
             </angucomplete-alt>
         </div>
 
@@ -60,17 +64,40 @@
              style="margin-top: 20px">
 
             <div class="row prod-list-item"
-                 ng-repeat="listItem in favorites"
-                 ng-swipe-left="clearFavorites()"
-                 ng-swipe-right="clearFavorites()">
-                    <span class="col-xs-10 item-text">{{ listItem.dispName }}</span>
+                 ng-repeat="listItem in favorites">
+                    <span class="btn btn-danger col-xs-1" ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">&nbsp;X&nbsp;</span>
+                    <span class="col-xs-9 item-text">{{ listItem.dispName }}</span>
                     <img class="col-xs-2"
                          ng-attr-id="{{ 'img' + listItem.ID }}"
                          ng-src="{{ listItem.imageName }}"
+                         ng-swipe-left="showNextItem(listItem)"
+                         ng-swipe-right="showPrevItem(listItem)"
                          ng-click="openFullscreen(listItem.ID, listItem.NUM)"/>
+            </div>
+            <div>
+                <button class="btn btn-primary" style="margin-top: 30px" ng-click="clearFavorites()">Очистить список</button>
             </div>
         </div>
 
+    </div>
+
+    <div id="confirmation-dialog">
+        <div class="modal fade confirmation-dialog" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h4 class="modal-title">{{ confirmationDialogConfig.title }}</h4>
+                    </div>
+                    <div class="modal-body">
+                        <div class="span5"><strong>{{ confirmationDialogConfig.message }}</strong></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
+                        <button type="button" ng-repeat="button in confirmationDialogConfig.buttons" ng-click="button.action()" class="btn btn-primary">{{ button.label }}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 </div>
