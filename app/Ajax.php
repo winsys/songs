@@ -18,7 +18,7 @@ class Ajax
 
     private static function get_favorites()
     {
-        $sql = "SELECT l.*, concat(l.num, ' - ',l.name) as dispName, concat('/images/',l.num, '.jpg') as imageName FROM favorites f left join song_list l ON l.ID=f.SONGID";
+        $sql = "SELECT f.ID as FID, l.*, concat(l.num, ' - ',l.name) as dispName, concat('/images/',l.num, '.jpg') as imageName FROM favorites f left join song_list l ON l.ID=f.SONGID ORDER BY FID";
         $list = Info::get('db')->select($sql);
         return json_encode($list);
     }
@@ -29,6 +29,14 @@ class Ajax
         Info::get('db')->exec($sql);
         return '';
     }
+
+    private static function delete_favorite_item()
+    {
+        $sql = "DELETE FROM favorites WHERE ID=".self::$args['id'];
+        Info::get('db')->exec($sql);
+        return '';
+    }
+
 
     private static function set_image()
     {
