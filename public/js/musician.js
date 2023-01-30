@@ -7,15 +7,9 @@ app.controller('Musician', function ($scope, $http, $timeout)
         $http({ method: "POST", url: "/ajax", data: {command: 'get_image' } }).then(
             function success(respond){
                 if( respond.data.length > 0 ){
-                    if(!$scope.fullScreen){
                         $scope.imgName = respond.data[0].image;
-                        $scope.fullScreen = true;
-                    }
                 }else{
-                    if($scope.fullScreen){
                         $scope.imgName = '/icon-192.png';
-                        $scope.fullScreen = false;
-                    }
                 }
             },
         );
