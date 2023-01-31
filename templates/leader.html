@@ -45,13 +45,10 @@
 
 <div ng-controller="Leader" class="container">
 
-    <div style="position: absolute; width: 100%; text-align: left; padding-left: 12px; z-index: 1000">
-    </div>
-
     <div class="row">
 
         <!-- Search input -->
-        <div class="col-xs-12 new-list-item"
+        <div class="col-s-12 col-md-12 new-list-item"
              style="margin-top: 55px; margin-bottom: 30px">
             <angucomplete-alt id="ccf6"
                               placeholder="название или номер"
@@ -65,21 +62,21 @@
             </angucomplete-alt>
         </div>
 
-        <div class="col-xs-12 col-sm-12 purchase-list"
-             style="margin-top: 20px">
+        <div class="col-sm-12  col-md-12 purchase-list"
+             style="margin-top: 20px; overflow: hidden">
 
             <div class="row prod-list-item"
                  ng-repeat="listItem in favorites">
-                    <span class="btn btn-danger col-xs-1" ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">&nbsp;X&nbsp;</span>
-                    <span class="col-xs-9 item-text">{{ listItem.dispName }}</span>
-                    <img class="col-xs-2"
+                    <span class="btn btn-danger col-sm-1" ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">&nbsp;X&nbsp;</span>
+                    <span class="col-sm-8 col-md-8 item-text">{{ listItem.dispName }}</span>
+                    <img class="col-sm-3 col-md-3"
                          ng-attr-id="{{ 'img' + listItem.ID }}"
                          ng-src="{{ listItem.imageName }}"
                          ng-click="openFullscreen(listItem.ID, listItem.NUM)"/>
             </div>
-            <div>
-                <button class="btn btn-primary" style="margin-top: 30px" ng-click="clearFavorites()">Очистить список</button>
-            </div>
+        </div>
+        <div style="margin-bottom: 100px">
+            <button class="btn btn-warning btn-lg" style="margin-top: 30px; font-size: 12pt" ng-click="clearFavorites()">Очистить список</button>
         </div>
 
     </div>
@@ -89,14 +86,21 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h4 class="modal-title">{{ confirmationDialogConfig.title }}</h4>
+                        <h3 class="modal-title">{{ confirmationDialogConfig.title }}</h3>
                     </div>
                     <div class="modal-body">
-                        <div class="span5"><strong>{{ confirmationDialogConfig.message }}</strong></div>
+                        <div class="span5" style="font-size: 12pt"><strong>{{ confirmationDialogConfig.message }}</strong></div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Отмена</button>
-                        <button type="button" ng-repeat="button in confirmationDialogConfig.buttons" ng-click="button.action()" class="btn btn-primary">{{ button.label }}</button>
+                        <button type="button"
+                                style="font-size: 12pt"
+                                class="btn btn-default btn-lg"
+                                data-dismiss="modal">Отмена</button>
+                        <button type="button"
+                                style="font-size: 12pt"
+                                ng-repeat="button in confirmationDialogConfig.buttons"
+                                ng-click="button.action()"
+                                class="btn btn-warning btn-lg">&nbsp;&nbsp;&nbsp;{{ button.label }}&nbsp;&nbsp;&nbsp;</button>
                     </div>
                 </div>
             </div>

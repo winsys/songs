@@ -82,7 +82,7 @@ app.controller('Leader', function ($scope, $http, $timeout)
     $scope.confirmationDialog = function(msg, callback) {
         $scope.confirmationDialogConfig = {
             title: 'УДАЛЕНИЕ',
-            message: 'Удалить "' + msg + '"? Вы уверены?',
+            message: 'Удалить [' + msg + ']?',
             buttons: [{
                 label: 'Да',
                 action: callback
