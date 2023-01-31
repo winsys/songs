@@ -20,7 +20,7 @@
         padding-left: 0px;
     }
     .item-text {
-        font-size: 12pt;
+        font-size: 18pt;
         display: inline-block;
         vertical-align: middle;
     }
@@ -34,7 +34,12 @@
     }
     .search-box {
         height: auto;
-        font-size: large;
+        font-size: 18pt;
+    }
+    .angucomplete-row {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        font-size: 16pt !important;
     }
 </style>
 
@@ -47,7 +52,7 @@
 
         <!-- Search input -->
         <div class="col-xs-12 new-list-item"
-             style="margin-top: 55px">
+             style="margin-top: 55px; margin-bottom: 30px">
             <angucomplete-alt id="ccf6"
                               placeholder="название или номер"
                               pause="100"
@@ -70,8 +75,6 @@
                     <img class="col-xs-2"
                          ng-attr-id="{{ 'img' + listItem.ID }}"
                          ng-src="{{ listItem.imageName }}"
-                         ng-swipe-left="showNextItem(listItem)"
-                         ng-swipe-right="showPrevItem(listItem)"
                          ng-click="openFullscreen(listItem.ID, listItem.NUM)"/>
             </div>
             <div>

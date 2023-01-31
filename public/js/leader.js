@@ -28,7 +28,6 @@ app.controller('Leader', function ($scope, $http, $timeout)
         }
     };
 
-
     $scope.reloadFavorites = function()
     {
         $http({ method: "POST", url: "/ajax", data: {command: 'get_favorites' } }).then(
@@ -67,61 +66,6 @@ app.controller('Leader', function ($scope, $http, $timeout)
                 $scope.showDialog(false);
             });
     };
-
-    $scope.showNextItem = function(curItem){
-        if(!$scope.fullScreen) return;
-
-        let nextItem = curItem;
-
-        let index = $scope.favorites.indexOf(curItem);
-        if($scope.favorites.length > 1) {
-            if (index >= 0)
-                if (index < $scope.favorites.length - 1) {
-                    nextItem = $scope.favorites[index + 1]
-                } else {
-                    nextItem = $scope.favorites[0]
-                }
-        }
-        if( nextItem !== curItem ){
-            $http({ method: "POST", url: "/ajax", data: {command: 'clear_image' } }).then(
-                function success(respond){
-                    $http({ method: "POST", url: "/ajax", data: {command: 'set_image', image_num: nextItem.NUM } }).then(
-                        function success(respond){
-                            document.getElementById('img'+nextItem.ID).requestFullscreen();
-                        });
-                });
-        }
-    };
-
-
-
-    $scope.showPrevItem = function(curItem){
-
-        if(!$scope.fullScreen) return;
-
-        let prevItem = curItem;
-
-        if($scope.favorites.length > 1)
-        {
-            let index = $scope.favorites.indexOf(curItem);
-            if(index > 0) {
-                prevItem = $scope.favorites[index - 1]
-            } else {
-                prevItem = $scope.favorites[$scope.favorites.length - 1]
-            }
-        }
-
-        if( prevItem !== curItem ) {
-            $http({method: "POST", url: "/ajax", data: {command: 'clear_image'}}).then(
-                function success(respond) {
-                    $http({method: "POST", url: "/ajax", data: {command: 'set_image', image_num: prevItem.NUM}}).then(
-                        function success(respond) {
-                            document.getElementById('img' + prevItem.ID).requestFullscreen();
-                        });
-                });
-        }
-    };
-
 
     $scope.deleteFavoriteItem = function(fav_id, fav_title){
         $scope.confirmationDialog(fav_title, function(){
