@@ -9,7 +9,7 @@ app.controller('Musician', function ($scope, $http, $timeout)
                 if( respond.data.length > 0 ){
                         $scope.imgName = respond.data[0].image;
                 }else{
-                        $scope.imgName = '/icon-192.png';
+                        $scope.imgName = '/field_small.jpg';
                 }
             },
         );
