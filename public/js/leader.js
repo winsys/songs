@@ -1,11 +1,12 @@
 app.controller('Leader', function ($scope, $http, $timeout)
 {
+    $scope.listId = 1;
     $scope.songList = [];
     $scope.favorites = [];
     $scope.fullScreen = false;
 
     $scope.reloadSongList = function(){
-        $http({ method: "POST", url: "/ajax", data: {command: 'get_song_list' } }).then(
+        $http({ method: "POST", url: "/ajax", data: {command: 'get_song_list', list_id: $scope.listId } }).then(
             function success(respond){
                 $scope.songList = respond.data;
             },
@@ -41,9 +42,9 @@ app.controller('Leader', function ($scope, $http, $timeout)
 
     $scope.openFullscreen = function(elemId, img_num) {
         if(!$scope.fullScreen){
-            $http({ method: "POST", url: "/ajax", data: {command: 'set_image', image_num: img_num } }).then(
+            $http({ method: "POST", url: "/ajax", data: {command: 'set_image', image_num: img_num, list_id: $scope.listId } }).then(
                 function success(respond){
-                    document.getElementById('img'+elemId).requestFullscreen();
+                    document.getElementById(elemId).requestFullscreen();
                     $scope.fullScreen = true;
                 });
         }else{
@@ -78,6 +79,41 @@ app.controller('Leader', function ($scope, $http, $timeout)
         });
     };
 
+    /**
+     * Song full list popup
+     */
+    $scope.listConfig = {};
+    $scope.openList = function(callback) {
+        $scope.listConfig = {
+            buttons: [{
+                label: 'Выбрать',
+                action: callback
+            }]
+        };
+        $scope.showList(true);
+    };
+
+    $scope.showList = function(flag) {
+        jQuery("#list-popup .modal").modal(flag ? 'show' : 'hide');
+    };
+
+    $scope.addSongToFavorites = function( songId ){
+
+        $http({ method: "POST", url: "/ajax", data: {command: 'add_to_favorites', id: songId } }).then(
+            function success(respond){
+                $scope.reloadFavorites();
+            },
+            function error(erespond){
+                console.log('Ajax call error: ',erespond)
+            });
+
+    };
+
+
+
+    /**
+     * Confirmation dialog
+     */
     $scope.confirmationDialogConfig = {};
     $scope.confirmationDialog = function(msg, callback) {
         $scope.confirmationDialogConfig = {
@@ -95,6 +131,10 @@ app.controller('Leader', function ($scope, $http, $timeout)
         jQuery("#confirmation-dialog .modal").modal(flag ? 'show' : 'hide');
     };
 
+    $scope.setList = function( listId ){
+        $scope.listId = listId;
+        $scope.reloadSongList();
+    }
 
     $scope.reloadSongList();
     $scope.reloadFavorites();
