@@ -41,8 +41,12 @@
         padding-bottom: 10px;
         font-size: 16pt !important;
     }
-    .btn-selected {
+    .btn-selected, btn-list:active {
         background-color: #d9ffd9;
+    }
+    .btn-list:focus {
+        background-color: #d9ffd9;
+        outline: none;
     }
 </style>
 
@@ -51,13 +55,13 @@
     <div class="row">
         <div class="col-xs-4 col-s-4 col-md-4"
              style="margin-top: 20pt">
-            <button class="btn btn-sm btn-default search-box"
+            <button class="btn btn-sm btn-default search-box btn-list"
                     ng-class="listId == 1 ? 'btn-selected' : ''"
                     style="width: 100%" ng-click="setList(1)" >Донецкий</button>
         </div>
         <div class="col-xs-4 col-s-4 col-md-4"
              style="margin-top: 20pt">
-            <button class="btn btn-sm btn-default search-box"
+            <button class="btn btn-sm btn-default search-box btn-list"
                     ng-class="listId == 2 ? 'btn-selected' : ''"
                     style="width: 100%" ng-click="setList(2)">Московский</button>
         </div>
@@ -95,11 +99,12 @@
                          ng-src="{{ listItem.imageName }}"
                          ng-click="openFullscreen(listItem.LISTID + 'img' + listItem.ID, listItem.NUM)"/>
             </div>
-        </div>
-        <div style="margin-bottom: 100px">
-            <button class="btn btn-warning btn-lg" style="margin-top: 30px; font-size: 12pt" ng-click="clearFavorites()">Очистить список</button>
-        </div>
 
+            <div style="margin-bottom: 100px">
+                <button class="btn btn-warning btn-lg" style="margin-top: 30px; font-size: 12pt" ng-click="clearFavorites()">Очистить список</button>
+            </div>
+
+        </div>
     </div>
 
     <div id="list-popup">
