@@ -20,6 +20,7 @@ app.controller('Leader', function ($scope, $http, $timeout)
         if( typeof item !== 'undefined' ){
             $http({ method: "POST", url: "/ajax", data: {command: 'add_to_favorites', id: item.originalObject.ID } }).then(
                 function success(respond){
+                    alert('List: '+$scope.listId+'  Id: '+item.originalObject.ID);
                     $scope.reloadFavorites();
                     $scope.$broadcast('angucomplete-alt:clearInput');
                 },
@@ -101,6 +102,7 @@ app.controller('Leader', function ($scope, $http, $timeout)
 
         $http({ method: "POST", url: "/ajax", data: {command: 'add_to_favorites', id: songId } }).then(
             function success(respond){
+                alert('List: '+$scope.listId+'  Id: '+songId);
                 $scope.reloadFavorites();
             },
             function error(erespond){
