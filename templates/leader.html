@@ -60,41 +60,38 @@
             <button class="btn btn-sm btn-primary search-box" style="width: 100%" ng-click="openList()">Весь список</button>
         </div>
     </div>
-    <div class="row">
 
-        <!-- Search input -->
-        <div class="col-s-12 col-md-12 col-xs-12"
-             style="margin-top: 20pt; margin-bottom: 30px">
-            <angucomplete-alt id="ccf6"
-                              placeholder="название или номер"
-                              pause="100"
-                              local-data=songList
-                              search-fields="dispName"
-                              title-field="dispName"
-                              selected-object="selectedItem"
-                              minlength="2"
-                              input-class="form-control search-box">
-            </angucomplete-alt>
-        </div>
-
-        <div class="col-sm-12  col-md-12 purchase-list"
-             style="margin-top: 20px; overflow: hidden">
-
-            <div class="row prod-list-item"
-                 ng-repeat="listItem in favorites">
-                    <span class="btn btn-danger col-sm-1" ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">&nbsp;X&nbsp;</span>
-                    <span class="col-sm-8 col-md-8 item-text">{{ listItem.dispName }}</span>
-                    <img class="col-sm-3 col-md-3"
-                         ng-attr-id="{{ listItem.LISTID + 'img' + listItem.ID }}"
-                         ng-src="{{ listItem.imageName }}"
-                         ng-click="openFullscreen(listItem.LISTID + 'img' + listItem.ID, listItem.NUM)"/>
-            </div>
-
-        </div>
-		
+    <!-- Search input -->
+    <div class="col-s-12 col-md-12 col-xs-12"
+         style="margin-top: 20pt; margin-bottom: 30px">
+        <angucomplete-alt id="ccf6"
+                          placeholder="название или номер"
+                          pause="100"
+                          local-data=songList
+                          search-fields="dispName"
+                          title-field="dispName"
+                          selected-object="selectedItem"
+                          minlength="2"
+                          input-class="form-control search-box">
+        </angucomplete-alt>
     </div>
 
-	<div class="row" style="margin-bottom: 100px">
+    <div class="col-sm-12  col-md-12 purchase-list"
+         style="margin-top: 20px; overflow: hidden">
+
+        <div class="row prod-list-item"
+             ng-repeat="listItem in favorites">
+                <span class="btn btn-danger col-sm-1" ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">&nbsp;X&nbsp;</span>
+                <span class="col-sm-8 col-md-8 item-text">{{ listItem.dispName }}</span>
+                <img class="col-sm-3 col-md-3"
+                     ng-attr-id="{{ listItem.LISTID + 'img' + listItem.ID }}"
+                     ng-src="{{ listItem.imageName }}"
+                     ng-click="openFullscreen(listItem.LISTID + 'img' + listItem.ID, listItem.NUM)"/>
+        </div>
+
+    </div>
+		
+	<div style="margin-bottom: 100px">
 		<button class="btn btn-warning btn-lg" style="margin-top: 30px; font-size: 12pt" ng-click="clearFavorites()">Очистить список</button>
 	</div>
 
