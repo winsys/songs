@@ -81,9 +81,9 @@
                     <span class="btn btn-danger col-sm-1" ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">&nbsp;X&nbsp;</span>
                     <span class="col-sm-8 col-md-8 item-text">{{ listItem.dispName }}</span>
                     <img class="col-sm-3 col-md-3"
-                         ng-attr-id="{{ listItem.LISTID + 'img' + listItem.ID }}"
+                         ng-attr-id="{{ 'img' + listItem.ID }}"
                          ng-src="{{ listItem.imageName }}"
-                         ng-click="openFullscreen(listItem.LISTID + 'img' + listItem.ID, listItem.NUM)"/>
+                         ng-click="openFullscreen('img' + listItem.ID, listItem.NUM, listItem.LISTID)"/>
             </div>
 
         </div>

@@ -18,7 +18,10 @@ class Ajax
 
     private static function get_favorites()
     {
-        $sql = "SELECT f.ID as FID, l.*, concat(l.num, ' - ',l.name) as dispName, concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName FROM favorites f left join song_list l ON l.ID=f.SONGID ORDER BY FID";
+        $sql = "SELECT f.ID as FID, l.*, concat(l.num, ' - ',l.name) as dispName, 
+                        concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName FROM favorites f 
+                left join song_list l ON l.ID=f.SONGID 
+                ORDER BY FID";
         $list = Info::get('db')->select($sql);
         return json_encode($list);
     }
@@ -40,7 +43,9 @@ class Ajax
 
     private static function set_image()
     {
-        Info::get('db')->exec("insert into current (image) values ('/images/".self::$args['list_id']."/".mysqli_escape_string(Info::get('dbh'), self::$args['image_num']).".jpg')");
+        Info::get('db')->exec("insert into current (image) values ('/images/".
+            mysqli_escape_string(Info::get('dbh'), self::$args['list_id'])."/".
+            mysqli_escape_string(Info::get('dbh'), self::$args['image_num']).".jpg')");
         return '';
     }
 

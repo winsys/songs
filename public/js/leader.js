@@ -40,9 +40,14 @@ app.controller('Leader', function ($scope, $http, $timeout)
             });
     };
 
-    $scope.openFullscreen = function(elemId, img_num) {
+    $scope.openFullscreen = function(elemId, img_num, list_id) {
         if(!$scope.fullScreen){
-            $http({ method: "POST", url: "/ajax", data: {command: 'set_image', image_num: img_num, list_id: $scope.listId } }).then(
+            $http({ method: "POST",
+                    url: "/ajax",
+                    data: { command: 'set_image',
+                            image_num: img_num,
+                            list_id: list_id }
+            }).then(
                 function success(respond){
                     document.getElementById(elemId).requestFullscreen();
                     $scope.fullScreen = true;
