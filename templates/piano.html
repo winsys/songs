@@ -1,0 +1,151 @@
+<style>
+    .prod-list-item {
+        position: relative;
+        margin-top: 5px;
+        margin-left: 0px;
+        padding-bottom: 3px;
+        padding-right: 12px;
+        border-bottom: 1px solid #d0d0d0;
+    }
+    .item-text {
+        font-size: 18pt;
+        display: inline-block;
+        vertical-align: middle;
+    }
+    input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+    }
+    input[type=number] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+        margin: 0;
+    }
+    .search-box {
+        height: 32pt;
+        font-size: 18pt;
+    }
+    .angucomplete-row {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        font-size: 16pt !important;
+    }
+
+    .btn-selected, .btn-list:active, .btn-list:focus, .btn-list:hover {
+        background-color: #d9ffd9;
+        outline: none;
+    }
+</style>
+
+<div ng-controller="Piano" class="container">
+
+    <div class="row">
+        <div class="col-xs-4 col-s-4 col-md-4"
+             style="margin-top: 20pt">
+            <button class="btn btn-sm btn-default search-box btn-list"
+                    ng-class="listId == 1 ? 'btn-selected' : ''"
+                    style="width: 100%" ng-click="setList(1)" >Донецкий</button>
+        </div>
+        <div class="col-xs-4 col-s-4 col-md-4"
+             style="margin-top: 20pt">
+            <button class="btn btn-sm btn-default search-box btn-list"
+                    ng-class="listId == 2 ? 'btn-selected' : ''"
+                    style="width: 100%" ng-click="setList(2)">Московский</button>
+        </div>
+        <div class="col-xs-3 col-s-3 col-md-3 pull-right"
+             style="margin-top: 20pt">
+            <button class="btn btn-sm btn-primary search-box" style="width: 100%" ng-click="openList()">Весь список</button>
+        </div>
+    </div>
+
+    <!-- Search input -->
+    <div class="row">
+        <div class="col-s-12 col-md-12 col-xs-12"
+             style="margin-top: 20pt; margin-bottom: 30px">
+            <angucomplete-alt id="ccf6"
+                              placeholder="название или номер"
+                              pause="100"
+                              local-data=songList
+                              search-fields="dispName"
+                              title-field="dispName"
+                              selected-object="selectedItem"
+                              minlength="2"
+                              input-class="form-control search-box">
+            </angucomplete-alt>
+        </div>
+
+        <div class="col-sm-12  col-md-12"
+             style="margin-top: 20px; overflow: hidden">
+
+            <div class="row prod-list-item"
+                 ng-repeat="listItem in favorites">
+                    <span class="btn btn-danger col-sm-1" ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">&nbsp;X&nbsp;</span>
+                    <span class="col-sm-8 col-md-8 item-text">{{ listItem.dispName }}</span>
+                    <img class="col-sm-3 col-md-3"
+                         ng-attr-id="{{ 'img' + listItem.ID }}"
+                         ng-src="{{ listItem.imageName }}"
+                         ng-click="openFullscreen('img' + listItem.ID, listItem.NUM, listItem.LISTID)"/>
+            </div>
+
+        </div>
+
+        <div style="margin-bottom: 100px">
+            <button class="btn btn-warning btn-lg" style="margin-top: 30px; font-size: 12pt" ng-click="clearFavorites()">Очистить список</button>
+        </div>
+    </div>
+
+
+    <div id="list-popup">
+        <div class="modal fade list-popup" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="row"
+                             style="padding-top: 10px; padding-bottom: 10px; border-bottom: #204d74 solid 1px"
+                             ng-repeat="song in songList">
+                            <div class="col-xs-9 col-s-9 col-md-9" style="font-size: 16pt">
+                                {{ song.dispName }}
+                            </div>
+                            <div class="col-xs-3 col-s-3 col-md-3">
+                                <button class="btn btn-lg" style="font-size: 16pt" ng-click="addSongToFavorites(song.ID)">Выбрать</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <div id="confirmation-dialog">
+        <div class="modal fade confirmation-dialog" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3 class="modal-title">{{ confirmationDialogConfig.title }}</h3>
+                    </div>
+                    <div class="modal-body">
+                        <div class="span5" style="font-size: 12pt"><strong>{{ confirmationDialogConfig.message }}</strong></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button"
+                                style="font-size: 12pt"
+                                class="btn btn-default btn-lg"
+                                data-dismiss="modal">Отмена</button>
+                        <button type="button"
+                                style="font-size: 12pt"
+                                ng-repeat="button in confirmationDialogConfig.buttons"
+                                ng-click="button.action()"
+                                class="btn btn-warning btn-lg">&nbsp;&nbsp;&nbsp;{{ button.label }}&nbsp;&nbsp;&nbsp;</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="/js/piano.js?v=10025" type="text/javascript"></script>
+
+<script type="text/javascript">
+    function forceFullScreen(){}
+</script>
