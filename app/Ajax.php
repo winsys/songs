@@ -16,10 +16,26 @@ class Ajax
         return '';
     }
 
+    private static function add_to_piano_favorites()
+    {
+        Info::get('db')->exec("insert into piano_favorites (SONGID) values (".mysqli_escape_string(Info::get('dbh'), self::$args['id']).")");
+        return '';
+    }
+
     private static function get_favorites()
     {
         $sql = "SELECT f.ID as FID, l.*, concat(l.num, ' - ',l.name) as dispName, 
                         concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName FROM favorites f 
+                left join song_list l ON l.ID=f.SONGID 
+                ORDER BY FID";
+        $list = Info::get('db')->select($sql);
+        return json_encode($list);
+    }
+
+    private static function get_piano_favorites()
+    {
+        $sql = "SELECT f.ID as FID, l.*, concat(l.num, ' - ',l.name) as dispName, 
+                        concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName FROM piano_favorites f 
                 left join song_list l ON l.ID=f.SONGID 
                 ORDER BY FID";
         $list = Info::get('db')->select($sql);
@@ -33,9 +49,24 @@ class Ajax
         return '';
     }
 
+    private static function clear_piano_favorites()
+    {
+        $sql = "DELETE FROM piano_favorites";
+        Info::get('db')->exec($sql);
+        return '';
+    }
+
     private static function delete_favorite_item()
     {
         $sql = "DELETE FROM favorites WHERE ID=".self::$args['id'];
+        Info::get('db')->exec($sql);
+        return '';
+    }
+
+
+    private static function delete_piano_favorite_item()
+    {
+        $sql = "DELETE FROM piano_favorites WHERE ID=".self::$args['id'];
         Info::get('db')->exec($sql);
         return '';
     }
