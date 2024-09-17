@@ -1,4 +1,4 @@
-app.controller('Leader', function ($scope, $http, $timeout)
+app.controller('Leader', function ($scope, $http)
 {
     $scope.listId = 1;
     $scope.songList = [];
@@ -15,11 +15,11 @@ app.controller('Leader', function ($scope, $http, $timeout)
             });
     };
 
-    $scope.selectedItem = function(item, index)
+    $scope.selectedItem = function(item)
     {
         if( typeof item !== 'undefined' ){
             $http({ method: "POST", url: "/ajax", data: {command: 'add_to_favorites', id: item.originalObject.ID } }).then(
-                function success(respond){
+                function success(){
                     $scope.reloadFavorites();
                     $scope.$broadcast('angucomplete-alt:clearInput');
                 },
@@ -48,13 +48,13 @@ app.controller('Leader', function ($scope, $http, $timeout)
                             image_num: img_num,
                             list_id: list_id }
             }).then(
-                function success(respond){
+                function success(){
                     document.getElementById(elemId).requestFullscreen();
                     $scope.fullScreen = true;
                 });
         }else{
             $http({ method: "POST", url: "/ajax", data: {command: 'clear_image' } }).then(
-                function success(respond){
+                function success(){
                     document.exitFullscreen();
                     $scope.fullScreen = false;
                 });
@@ -65,7 +65,7 @@ app.controller('Leader', function ($scope, $http, $timeout)
         if($scope.favorites.length > 0)
             $scope.confirmationDialog("Список выбранных песен", function() {
                 $http({method: "POST", url: "/ajax", data: {command: 'clear_favorites'}}).then(
-                    function success(respond) {
+                    function success() {
                         $scope.reloadFavorites();
                     },
                 );
@@ -76,7 +76,7 @@ app.controller('Leader', function ($scope, $http, $timeout)
     $scope.deleteFavoriteItem = function(fav_id, fav_title){
         $scope.confirmationDialog(fav_title, function(){
             $http({ method: "POST", url: "/ajax", data: {command: 'delete_favorite_item', id: fav_id } }).then(
-                function success(respond){
+                function success(){
                     $scope.reloadFavorites();
                 },
             );
@@ -105,7 +105,7 @@ app.controller('Leader', function ($scope, $http, $timeout)
     $scope.addSongToFavorites = function( songId ){
 
         $http({ method: "POST", url: "/ajax", data: {command: 'add_to_favorites', id: songId } }).then(
-            function success(respond){
+            function success(){
                 $scope.reloadFavorites();
             },
             function error(erespond){
