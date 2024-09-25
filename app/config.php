@@ -6,6 +6,6 @@ return array(
         'login' => 'songs',
         'pass' => 'local123',
         'database' => 'songs',
-        'port' => '53306',
+        'port' => '33306',
     ),
 );
