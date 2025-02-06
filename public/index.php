@@ -5,6 +5,7 @@ error_reporting(E_ALL);
 include '../app/Info.php';
 include "../app/Database.php";
 include "../app/Ajax.php";
+include "../app/Security.php";
 include "../app/App.php";
 
 session_start();

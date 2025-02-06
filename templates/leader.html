@@ -105,7 +105,7 @@
                     <img class="col-sm-3 col-md-3"
                          ng-attr-id="{{ 'img' + listItem.ID }}"
                          ng-src="{{ listItem.imageName }}"
-                         ng-click="openFullscreen('img' + listItem.ID, listItem.NUM, listItem.LISTID)"/>
+                         ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"/>
             </div>
 
         </div>
@@ -191,7 +191,7 @@
 
 </div>
 
-<script src="/js/leader.js?v=10025" type="text/javascript"></script>
+<script src="/js/leader.js?v=10027" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}

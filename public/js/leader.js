@@ -40,16 +40,17 @@ app.controller('Leader', function ($scope, $http)
             });
     };
 
-    $scope.openFullscreen = function(elemId, img_num, list_id) {
+    $scope.openFullscreen = function(elemId, img_num, list_id, song_id) {
         if(!$scope.fullScreen){
             $http({ method: "POST",
                     url: "/ajax",
                     data: { command: 'set_image',
                             image_num: img_num,
-                            list_id: list_id }
+                            list_id: list_id,
+                            song_id: song_id }
             }).then(
                 function success(){
-                    document.getElementById(elemId).requestFullscreen();
+                    document.getElementById('img'+elemId).requestFullscreen();
                     $scope.fullScreen = true;
                 });
         }else{
