@@ -22,25 +22,53 @@ class App
      */
     private function selectRoute($route)
     {
-        if (count($route) == 0){
-            header("Location: /index");
+        if (count($route) == 0) {
+            if( !Security::isLoggedIn() ){
+                header("Location: /login");
+            } else {
+                header("Location: /index/".$_SESSION['userId']);
+            }
             exit;
         }
+
+        if ($route[0] == 'logout') {
+            Security::doLogout();
+            header("Location: /login");
+            exit;
+        }
+
+        if( !Security::isLoggedIn() )
+        {
+            if( Security::loginRequest() ) {
+                if (Security::doLogin()) {
+                    if (Security::isLoggedIn()) {
+                        header("Location: /index/".$_SESSION['userId']);
+                        exit;
+                    }
+                }
+            }
+            $this->render('login');
+            exit;
+        }
+
         switch ($route[0]) {
             case 'ajax':
                 $cmds = json_decode(file_get_contents('php://input'), true);
                 echo Ajax::execute($cmds);
                 break;
+            case 'text':
+                $this->render($route[0], $route[1], 'text_layout');
+                break;
             default:
-                // render action
-                $this->render($route[0]);
+                $this->render($route[0], $route[1]);
+                break;
         }
     }
 
     /**
      * RENDERER
      */
-    private function render($view, $param = null)
+    private function render($view, $param = null, $layout = null)
     {
         $userId = $param;
         $viewFile = '../templates/'.$view.'.html';
@@ -54,7 +82,7 @@ class App
             $pageContent = 'no content';
         }
 
-        $layoutFile = '../templates/layout.html';
+        $layoutFile = is_null($layout) ? '../templates/layout.html' : '../templates/'.$layout.'.html';
 
         ob_start();
         include $layoutFile;

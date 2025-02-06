@@ -1,37 +1,13 @@
-app.controller('Leader', function ($scope, $http)
+app.controller('Tech', function ($scope, $http)
 {
     $scope.listId = 1;
     $scope.songList = [];
     $scope.favorites = [];
     $scope.fullScreen = false;
 
-    $scope.reloadSongList = function(){
-        $http({ method: "POST", url: "/ajax", data: {command: 'get_song_list', list_id: $scope.listId } }).then(
-            function success(respond){
-                $scope.songList = respond.data;
-            },
-            function error(erespond){
-                console.log('Ajax call error: ', erespond)
-            });
-    };
-
-    $scope.selectedItem = function(item)
-    {
-        if( typeof item !== 'undefined' ){
-            $http({ method: "POST", url: "/ajax", data: {command: 'add_to_favorites', id: item.originalObject.ID } }).then(
-                function success(){
-                    $scope.reloadFavorites();
-                    $scope.$broadcast('angucomplete-alt:clearInput');
-                },
-                function error(erespond){
-                    console.log('Ajax call error: ',erespond)
-                });
-        }
-    };
-
     $scope.reloadFavorites = function()
     {
-        $http({ method: "POST", url: "/ajax", data: {command: 'get_favorites' } }).then(
+        $http({ method: "POST", url: "/ajax", data: {command: 'get_favorites_with_text' } }).then(
             function success(respond){
                 $scope.favorites = respond.data;
             },
@@ -40,7 +16,7 @@ app.controller('Leader', function ($scope, $http)
             });
     };
 
-    $scope.openFullscreen = function(elemId, img_num, list_id, song_id) {
+    $scope.setTextChapter = function(elemId, img_num, list_id, song_id) {
         if(!$scope.fullScreen){
             $http({ method: "POST",
                     url: "/ajax",
@@ -62,47 +38,9 @@ app.controller('Leader', function ($scope, $http)
         }
     }
 
-    $scope.clearFavorites = function(){
-        if($scope.favorites.length > 0)
-            $scope.confirmationDialog("Список выбранных песен", function() {
-                $http({method: "POST", url: "/ajax", data: {command: 'clear_favorites'}}).then(
-                    function success() {
-                        $scope.reloadFavorites();
-                    },
-                );
-                $scope.showDialog(false);
-            });
-    };
-
-    $scope.deleteFavoriteItem = function(fav_id, fav_title){
-        $scope.confirmationDialog(fav_title, function(){
-            $http({ method: "POST", url: "/ajax", data: {command: 'delete_favorite_item', id: fav_id } }).then(
-                function success(){
-                    $scope.reloadFavorites();
-                },
-            );
-            $scope.showDialog(false);
-        });
-    };
-
     /**
      * Song full list popup
      */
-    $scope.listConfig = {};
-    $scope.openList = function(callback) {
-        $scope.listConfig = {
-            buttons: [{
-                label: 'Выбрать',
-                action: callback
-            }]
-        };
-        $scope.showList(true);
-    };
-
-    $scope.showList = function(flag) {
-        jQuery("#list-popup .modal").modal(flag ? 'show' : 'hide');
-    };
-
     $scope.addSongToFavorites = function( songId ){
 
         $http({ method: "POST", url: "/ajax", data: {command: 'add_to_favorites', id: songId } }).then(

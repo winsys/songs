@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ru" ng-app="TextApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1">
+    <title>Текст</title>
+    <script src="/js/angular.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+        }
+        #text-container {
+            width: 90vw;
+            height: 90vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #text {
+            width: 100%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body ng-controller="TextController" ng-click="enterFullscreen()">
+<div id="text-container">
+    <div id="text" ng-style="{'font-size': fontSize + 'px'}">{{ text }}</div>
+</div>
+
+<script>
+    angular.module('TextApp', [])
+        .controller('TextController', function($scope, $http, $timeout) {
+            $scope.text = "Загрузка...";
+            $scope.fontSize = 10;
+
+            $scope.enterFullscreen = function() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                }
+            };
+
+            function adjustTextSize() {
+                $timeout(function() {
+                    const container = document.getElementById("text-container");
+                    const textElement = document.getElementById("text");
+
+                    let maxSize = 200, currentSize = 10;
+                    textElement.style.fontSize = currentSize + "px";
+
+                    // Уменьшаем размер шрифта, если текст не помещается
+                    while (currentSize < maxSize &&
+                    textElement.scrollHeight <= container.clientHeight &&
+                    textElement.scrollWidth <= container.clientWidth) {
+                        currentSize++;
+                        textElement.style.fontSize = currentSize + "px";
+                    }
+
+                    // Если шрифт слишком большой для текста, уменьшаем его
+                    while (textElement.scrollHeight > container.clientHeight || textElement.scrollWidth > container.clientWidth) {
+                        currentSize--;
+                        textElement.style.fontSize = currentSize + "px";
+                    }
+
+
+                    $scope.fontSize = currentSize;
+                    $scope.$apply();
+                }, 0);
+            }
+
+            function fetchText() {
+                $http.post('/ajax', { command: "get_text" })
+                    .then(function(response) {
+                        if (Array.isArray(response.data) && response.data.length === 0) {
+                            $scope.text = "";  // Очищаем текст
+                        } else {
+                            if ($scope.text !== response.data[0].text) {
+                                $scope.text = response.data[0].text;
+                                adjustTextSize();
+                            }
+                        }
+                    })
+                    .finally(function() {
+                        $timeout(fetchText, 1000);
+                    });
+            }
+
+            angular.element(window).on('load resize', adjustTextSize);
+            fetchText();
+        });
+</script>
+</body>
+</html>

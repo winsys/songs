@@ -1,21 +1,41 @@
 <div class="container">
-
+    <script>
+        userId = <?php echo $_SESSION["userId"] ?>;
+    </script>
     <div class="row">
 
         <div class="col-xs-9 col-sm-9 col-md-9 col-lg-9" style="width:80%; left: 10%">
-            <h1 style="text-align: center; margin-top: 100px">Выберите режим</h1>
-            <div class="row" style="padding-top: 100px">
+            <div class="row" style="padding-top: 20px">
+                <li style="text-align: center;
+                        box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+                        width: 100%; font-size: 12pt"
+                    class="btn btn-default btn-lg noHover">Группа пользователей: <?php echo $_SESSION['userName'] ?></li>
+            </div>
+            <h1 style="text-align: center; margin-top: 50px">Выберите режим</h1>
+            <div class="row" style="padding-top: 50px">
                 <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
                         class="btn btn-primary btn-lg"
-                        onclick="window.location.href='/leader'">Ведущий</button>
-                <p><br><br><br></p>
+                        onclick="window.location.href='/leader/'+userId">Ведущий</button>
+                <p><br><br></p>
                 <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
                         class="btn btn-primary btn-lg"
-                        onclick="window.location.href='/piano'">Пианист</button>
-                <p><br><br><br></p>
+                        onclick="window.location.href='/piano/'+userId">Пианист</button>
+                <p><br><br></p>
                 <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
                         class="btn btn-primary btn-lg"
-                        onclick="window.location.href='/musician'">Музыкант</button>
+                        onclick="window.location.href='/musician/'+userId">Музыкант</button>
+                <p><br><br></p>
+                <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
+                        class="btn btn-primary btn-lg"
+                        onclick="window.location.href='/text/'+userId">Слова песни</button>
+                <p><br><br></p>
+                <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
+                        class="btn btn-primary btn-lg"
+                        onclick="window.location.href='/tech/'+userId">Технический режим</button>
+                <p><br><br></p>
+                <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
+                        class="btn btn-warning btn-lg"
+                        onclick="window.location.href='/logout'">Выйти</button>
             </div>
         </div>
 
