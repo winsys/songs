@@ -1,132 +1,103 @@
 app.controller('Tech', function ($scope, $http)
 {
-    $scope.listId = 1;
     $scope.songList = [];
     $scope.favorites = [];
     $scope.fullScreen = false;
+    $scope.preparedChapters = [];
+    $scope.showingSong = null;
+    $scope.showingChapter = null;
 
     $scope.reloadFavorites = function()
     {
-        $http({ method: "POST", url: "/ajax", data: {command: 'get_favorites_with_text' } }).then(
+        $http({ method: "POST", url: "/ajax", data: {command: 'get_image' } }).then(
             function success(respond){
-                $scope.favorites = respond.data;
+                $scope.current = respond.data;
+                if ($scope.current.length === 0){
+                    $scope.curImage = null;
+                    $scope.curChapter = null;
+                } else {
+                    $scope.curImage = $scope.current[0].image;
+                    $scope.curChapter = $scope.current[0].text;
+                }
+                $http({ method: "POST", url: "/ajax", data: {command: 'get_favorites_with_text' } }).then(
+                    function success(respond){
+                        $scope.favorites = respond.data;
+                        angular.forEach($scope.favorites, function(value, key){
+                            if(($scope.curImage) && (value.imageName == $scope.curImage)) {
+                                $scope.showingSong = value;
+                                $scope.preparedChapters = value.TEXT.split("\r\n");
+                                angular.forEach($scope.preparedChapters, function (value, key) {
+                                    if (value === $scope.curChapter) {
+                                        $scope.showingChapter = value;
+                                    }
+                                });
+                            }
+                    })},
+                    function error(erespond){
+                        console.log('Ajax call error: ',erespond)
+                    });
             },
             function error(erespond){
                 console.log('Ajax call error: ',erespond)
             });
     };
 
-    $scope.setTextChapter = function(elemId, img_num, list_id, song_id) {
-        if(!$scope.fullScreen){
+    $scope.prepareText = function(aText, favoriteItem) {
+        if( $scope.showingSong === favoriteItem ){
+            $scope.showingSong = null;
+            $scope.preparedChapters = [];
+            $scope.showingChapter = null;
             $http({ method: "POST",
-                    url: "/ajax",
-                    data: { command: 'set_image',
-                            image_num: img_num,
-                            list_id: list_id,
-                            song_id: song_id }
+                url: "/ajax",
+                data: { command: 'clear_image' }
+            });
+        } else {
+            $http({ method: "POST",
+                url: "/ajax",
+                data: { command: 'clear_image' }
+            });
+            $scope.showingSong = favoriteItem;
+            $scope.preparedChapters = aText.split("\r\n");
+            $scope.showingChapter = null;
+            $http({ method: "POST",
+                url: "/ajax",
+                data: { command: 'set_tech_image',
+                        image_name: $scope.showingSong.imageName }
+            });
+        }
+    }
+
+
+    $scope.toggleCurrentTextChapter = function(chapterText) {
+        if ( $scope.showingChapter === chapterText ) {
+            $http({ method: "POST",
+                url: "/ajax",
+                data: { command: 'set_text',
+                    image_name: $scope.showingSong.imageName,
+                    text: '' }
             }).then(
                 function success(){
-                    document.getElementById('img'+elemId).requestFullscreen();
-                    $scope.fullScreen = true;
+                    $scope.showingChapter = null;
                 });
-        }else{
-            $http({ method: "POST", url: "/ajax", data: {command: 'clear_image' } }).then(
+        } else {
+            $http({ method: "POST",
+                url: "/ajax",
+                data: { command: 'set_text',
+                    image_name: $scope.showingSong.imageName,
+                    text: chapterText }
+            }).then(
                 function success(){
-                    document.exitFullscreen();
-                    $scope.fullScreen = false;
+                    $scope.showingChapter = chapterText;
                 });
         }
     }
 
-    /**
-     * Song full list popup
-     */
-    $scope.addSongToFavorites = function( songId ){
 
-        $http({ method: "POST", url: "/ajax", data: {command: 'add_to_favorites', id: songId } }).then(
-            function success(){
-                $scope.reloadFavorites();
-            },
-            function error(erespond){
-                console.log('Ajax call error: ',erespond)
-            });
-
-    };
-
-
-
-    /**
-     * Confirmation dialog
-     */
-    $scope.confirmationDialogConfig = {};
-    $scope.confirmationDialog = function(msg, callback) {
-        $scope.confirmationDialogConfig = {
-            title: 'УДАЛЕНИЕ',
-            message: 'Удалить [' + msg + ']?',
-            buttons: [{
-                label: 'Да',
-                action: callback
-            }]
-        };
-        $scope.showDialog(true);
-    };
-
-    $scope.showDialog = function(flag) {
-        jQuery("#confirmation-dialog .modal").modal(flag ? 'show' : 'hide');
-    };
-
-
-    /**
-     * Add song popup
-     */
-    $scope.addConfig = {};
-    $scope.addSong = function(callback) {
-        $scope.addConfig = {
-            image: null,
-            buttons: [{ label: 'Сделато фото',
-                        action: callback
-                      },
-                      {
-                        label: 'Сохранить',
-                        action: callback
-                      }]
-        };
-        $scope.addSongPopup(true);
-    };
-
-    $scope.addSongPopup = function(flag) {
-        jQuery("#add-song-popup .modal").modal(flag ? 'show' : 'hide');
-    };
-
-    $scope.uploadPhoto = function(fm)
-    {
-        var input = $('#imageCapDialog');
-        var reader = new FileReader();
-        reader.onload = function(){
-            $http({
-                method: "PUT",
-                url: $scope._ROOT + "image/" + fm.file.name + "/" + $scope.curQuestion.protocol_record_id,
-                data: reader.result
-            }).then(
-                function success(respond)
-                {
-                    $scope.curQuestion.photos.push(respond.data.result);
-                },
-                function error(erespond){
-                    console.log('API call error: '+erespond)
-                });
-        };
-        reader.readAsDataURL(input[0].files[0]);
-    };
-
-
-
-    $scope.setList = function( listId ){
+    $scope.selectActiveSong = function( favoritesObject ){
         $scope.listId = listId;
         $scope.reloadSongList();
     }
 
-    $scope.reloadSongList();
     $scope.reloadFavorites();
 });
 

@@ -90,23 +90,16 @@ class Ajax
 
     private static function set_image()
     {
-        $txt = Info::get('db')->select("select TEXT from song_list where ID=".self::$args['song_id']);
-        Info::get('db')->exec("insert into current (groupId, image, text) values ({$_SESSION['userId']}, '/images/".
+        Info::get('db')->exec("insert into current (groupId, image) values ({$_SESSION['userId']}, '/images/".
             mysqli_escape_string(Info::get('dbh'), self::$args['list_id'])."/".
-            mysqli_escape_string(Info::get('dbh'), self::$args['image_num']).".jpg', \"{$txt[0]['TEXT']}\")");
+            mysqli_escape_string(Info::get('dbh'), self::$args['image_num']).".jpg')");
         return '';
     }
 
     private static function get_image()
     {
-        $img = Info::get('db')->select("select image from current where groupId=".$_SESSION['userId']);
+        $img = Info::get('db')->select("select image, text from current where groupId=".$_SESSION['userId']);
         return json_encode($img);
-    }
-
-    private static function get_text()
-    {
-        $txt = Info::get('db')->select("select text from current where groupId=".$_SESSION['userId']);
-        return json_encode($txt);
     }
 
     private static function get_whole_text()
@@ -116,12 +109,19 @@ class Ajax
         return json_encode($txt[0]);
     }
 
+    private static function set_tech_image()
+    {
+        $image_name = self::$args['image_name'];
+        Info::get('db')->exec("insert into current (groupId, image) 
+                                values ({$_SESSION['userId']}, \"{$image_name}\")");
+        return '';
+    }
+
     private static function set_text()
     {
         $text = mysqli_escape_string(Info::get('dbh'), self::$args['text']);
-        $image = "/images/".mysqli_escape_string(Info::get('dbh'), self::$args['list_id'])."/".
-            mysqli_escape_string(Info::get('dbh'), self::$args['image_num']).".jpg";
-        Info::get('db')->exec("update current set text=\"{$text}\" WHERE groupId={$_SESSION['userId']} and image=\"{$image}\"");
+        $image_name = self::$args['image_name'];
+        Info::get('db')->exec("update current set text=\"{$text}\" WHERE groupId={$_SESSION['userId']} and image=\"{$image_name}\"");
         return '';
     }
 
