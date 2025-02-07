@@ -3,7 +3,7 @@
 class Database
 {
     private $f_handle;
-    private $error;
+    private $errors = 'none';
 
     public function __construct()
     {

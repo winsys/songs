@@ -20,6 +20,27 @@
         appearance: textfield;
         margin: 0;
     }
+    .text-chapter {
+        width: 97%;
+        padding: 10px;
+        border: solid 1px silver;
+        border-radius: 10px;
+        margin: 10px;
+    }
+    .song-name {
+        width: 97%;
+        padding: 20px;
+        border: solid 1px silver;
+        border-radius: 20px;
+        margin: 20px;
+        margin-left: 0px;
+    }
+    .box-selected {
+        background-color: #DdDdDd;
+    }
+    .chapter-selected {
+        background-color: #c5f5c5;
+    }
     .search-box {
         height: 32pt;
         font-size: 18pt;
@@ -44,7 +65,7 @@
                 <li style="text-align: center;
                         box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
                         width: 100%; font-size: 12pt"
-                    class="btn btn-default btn-lg noHover">Текущие песни для группы: <?php echo $_SESSION['userName'] ?></li>
+                    class="btn btn-default btn-lg noHover">Текущие песни для церкви: <?php echo $_SESSION['userName'] ?></li>
             </div>
         </div>
     </div>
@@ -54,120 +75,32 @@
         <div class="col-sm-6 col-md-6 col-lg-6"
              style="margin-top: 20px; overflow: hidden">
 
-            <div class="row"
-                 ng-repeat="listItem in favorites">
+            <div class="row song-name"
+                 ng-repeat="listItem in favorites"
+                 ng-class="{'box-selected': showingSong === listItem}"
+                 ng-click="prepareText(listItem.TEXT, listItem)">
 
                 <span class="col-sm-12 col-md-12 col-lg-12 item-text">{{ listItem.dispName }}</span>
                 <img class="col-sm-3 col-md-3"
-                     ng-src="{{ listItem.imageName }}"
-                     ng-click="prepareText(listItem.TEXT, listItem.imageName)"/>
-
-
-                <span class="btn btn-danger col-sm-1" ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">&nbsp;X&nbsp;</span>
-                    <span class="col-sm-8 col-md-8 item-text">{{ listItem.dispName }}</span>
-                    <img class="col-sm-3 col-md-3"
-                         ng-attr-id="{{ 'img' + listItem.ID }}"
-                         ng-src="{{ listItem.imageName }}"
-                         ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"/>
-
-                </div>
+                     ng-src="{{ listItem.imageName }}"/>
             </div>
+        </div>
+        <div class="col-sm-6 col-md-6 col-lg-6"
+             style="margin-top: 30px; overflow: hidden">
 
-            <div class="row prod-list-item"
-                 ng-repeat="listItem in favorites">
-                    <span class="btn btn-danger col-sm-1" ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">&nbsp;X&nbsp;</span>
-                    <span class="col-sm-8 col-md-8 item-text">{{ listItem.dispName }}</span>
-                    <img class="col-sm-3 col-md-3"
-                         ng-attr-id="{{ 'img' + listItem.ID }}"
-                         ng-src="{{ listItem.imageName }}"
-                         ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"/>
+            <div class="row"
+                 ng-repeat="chapter in preparedChapters">
+
+                <span class="col-sm-12 col-md-12 col-lg-12 text-chapter"
+                      ng-class="{'chapter-selected': showingChapter === chapter}"
+                      ng-click="toggleCurrentTextChapter(chapter)">{{ chapter }}</span>
             </div>
-
         </div>
 
-        <div style="margin-bottom: 100px">
-            <button class="btn btn-warning btn-lg" style="margin-top: 30px; font-size: 12pt" ng-click="clearFavorites()">Очистить список</button>
-        </div>
     </div>
 
-
-    <div id="list-popup">
-        <div class="modal fade list-popup" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-body">
-                        <div class="row"
-                             style="padding-top: 10px; padding-bottom: 10px; border-bottom: #204d74 solid 1px"
-                             ng-repeat="song in songList">
-                            <div class="col-xs-9 col-s-9 col-md-9" style="font-size: 16pt">
-                                {{ song.dispName }}
-                            </div>
-                            <div class="col-xs-3 col-s-3 col-md-3">
-                                <button class="btn btn-lg" style="font-size: 16pt" ng-click="addSongToFavorites(song.ID)">Выбрать</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <div id="add-song-popup">
-        <div class="modal fade add-song-popup" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-xs-9 col-s-9 col-md-9" style="font-size: 16pt">
-                                <input capture
-                                       accept="image/*"
-                                       id="imageCapDialog"
-                                       type="file"
-                                       ng-model="addConfig.image"
-                                       change="uploadPhoto(addConfig)" />
-                            </div>
-                            <div class="col-xs-3 col-s-3 col-md-3">
-                                <button class="btn btn-lg" style="font-size: 16pt" ng-click="addSongToFavorites(song.ID)">Выбрать</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <div id="confirmation-dialog">
-        <div class="modal fade confirmation-dialog" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 class="modal-title">{{ confirmationDialogConfig.title }}</h3>
-                    </div>
-                    <div class="modal-body">
-                        <div class="span5" style="font-size: 12pt"><strong>{{ confirmationDialogConfig.message }}</strong></div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button"
-                                style="font-size: 12pt"
-                                class="btn btn-default btn-lg"
-                                data-dismiss="modal">Отмена</button>
-                        <button type="button"
-                                style="font-size: 12pt"
-                                ng-repeat="button in confirmationDialogConfig.buttons"
-                                ng-click="button.action()"
-                                class="btn btn-warning btn-lg">&nbsp;&nbsp;&nbsp;{{ button.label }}&nbsp;&nbsp;&nbsp;</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
 </div>
 
 <script src="/js/tech.js?v=10023" type="text/javascript"></script>
 
-<script type="text/javascript">
-    function forceFullScreen(){}
-</script>
