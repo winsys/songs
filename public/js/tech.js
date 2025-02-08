@@ -131,6 +131,10 @@ app.controller('Tech', function ($scope, $http)
             $scope.confirmationDialog("Список выбранных песен", function() {
                 $http({method: "POST", url: "/ajax", data: {command: 'clear_favorites'}}).then(
                     function success() {
+                        $http({ method: "POST",
+                            url: "/ajax",
+                            data: { command: 'clear_image' }
+                        });
                         $scope.reloadFavorites();
                     },
                 );
