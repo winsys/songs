@@ -112,6 +112,7 @@ class Ajax
     private static function set_tech_image()
     {
         $image_name = self::$args['image_name'];
+        Info::get('db')->exec("delete from current where groupId=".$_SESSION['userId']);
         Info::get('db')->exec("insert into current (groupId, image) 
                                 values ({$_SESSION['userId']}, \"{$image_name}\")");
         return '';
