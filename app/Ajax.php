@@ -6,7 +6,7 @@ class Ajax
 
     private static function get_song_list()
     {
-        $list = Info::get('db')->select("select *, concat(NUM, '   ',NAME) as dispName from song_list where LISTID = ".self::$args['list_id']." order by NUM");
+        $list = Info::get('db')->select("select *, concat(NUM, '   ',NAME) as dispName, TEXT from song_list where LISTID = ".self::$args['list_id']." order by NUM");
         return json_encode($list);
     }
 
