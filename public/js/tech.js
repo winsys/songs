@@ -80,6 +80,7 @@ app.controller('Tech', function ($scope, $http)
 
 
     $scope.toggleCurrentTextChapter = function(chapterText) {
+        console.log($scope.showingSong);
         if ( $scope.showingChapter === chapterText ) {
             $http({ method: "POST",
                 url: "/ajax",
@@ -92,7 +93,7 @@ app.controller('Tech', function ($scope, $http)
                 });
         } else {
             let preparedText = chapterText.substring(0, chapterText.length - 4);
-            preparedText = preparedText.replace(/\$+/g, '');
+            preparedText = preparedText.replace(/\$+/g, '') + "\r\n\r\n" + $scope.showingSong.NAME;
             $http({ method: "POST",
                 url: "/ajax",
                 data: { command: 'set_text',
