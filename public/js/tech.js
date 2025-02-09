@@ -29,6 +29,7 @@ app.controller('Tech', function ($scope, $http)
                 if ($scope.current.length === 0){
                     $scope.curImage = null;
                     $scope.curChapter = null;
+                    $scope.preparedChapters = [];
                 } else {
                     $scope.curImage = $scope.current[0].image;
                     $scope.curChapter = $scope.current[0].text;
@@ -90,11 +91,13 @@ app.controller('Tech', function ($scope, $http)
                     $scope.showingChapter = null;
                 });
         } else {
+            let preparedText = chapterText.substring(0, chapterText.length - 4);
+            preparedText = preparedText.replace(/\$+/g, '');
             $http({ method: "POST",
                 url: "/ajax",
                 data: { command: 'set_text',
                     image_name: $scope.showingSong.imageName,
-                    text: chapterText }
+                    text: preparedText }
             }).then(
                 function success(){
                     $scope.showingChapter = chapterText;
@@ -135,6 +138,7 @@ app.controller('Tech', function ($scope, $http)
                             url: "/ajax",
                             data: { command: 'clear_image' }
                         });
+                        $scope.preparedChapters = [];
                         $scope.reloadFavorites();
                     },
                 );
