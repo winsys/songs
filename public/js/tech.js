@@ -93,12 +93,13 @@ app.controller('Tech', function ($scope, $http)
                 });
         } else {
             let preparedText = chapterText.substring(0, chapterText.length - 4);
-            preparedText = preparedText.replace(/\$+/g, '') + "\r\n\r\n" + $scope.showingSong.NAME;
+            preparedText = preparedText.replace(/\$+/g, '');
             $http({ method: "POST",
                 url: "/ajax",
                 data: { command: 'set_text',
                     image_name: $scope.showingSong.imageName,
-                    text: preparedText }
+                    text: preparedText,
+                    song_name: $scope.showingSong.NAME }
             }).then(
                 function success(){
                     $scope.showingChapter = chapterText;
