@@ -1,6 +1,5 @@
 app.controller('Tech', function ($scope, $http)
 {
-
     $scope.listId = 1;
     $scope.songList = [];
     $scope.favorites = [];
@@ -78,9 +77,7 @@ app.controller('Tech', function ($scope, $http)
         }
     }
 
-
     $scope.toggleCurrentTextChapter = function(chapterText) {
-        console.log($scope.showingSong);
         if ( $scope.showingChapter === chapterText ) {
             $http({ method: "POST",
                 url: "/ajax",
@@ -92,13 +89,11 @@ app.controller('Tech', function ($scope, $http)
                     $scope.showingChapter = null;
                 });
         } else {
-            let preparedText = chapterText.substring(0, chapterText.length - 4);
-            preparedText = preparedText.replace(/\$+/g, '');
             $http({ method: "POST",
                 url: "/ajax",
                 data: { command: 'set_text',
                     image_name: $scope.showingSong.imageName,
-                    text: preparedText,
+                    text: chapterText,
                     song_name: $scope.showingSong.NAME }
             }).then(
                 function success(){
@@ -152,6 +147,13 @@ app.controller('Tech', function ($scope, $http)
         $scope.confirmationDialog(fav_title, function(){
             $http({ method: "POST", url: "/ajax", data: {command: 'delete_favorite_item', id: fav_id } }).then(
                 function success(){
+                    $http({ method: "POST",
+                        url: "/ajax",
+                        data: { command: 'clear_image' }
+                    });
+                    $scope.showingSong = null;
+                    $scope.preparedChapters = [];
+                    $scope.showingChapter = null;
                     $scope.reloadFavorites();
                 },
             );
