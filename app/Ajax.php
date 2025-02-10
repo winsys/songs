@@ -41,7 +41,7 @@ class Ajax
                         concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName, f.SONGID, l.TEXT FROM favorites f 
                 left join song_list l ON l.ID=f.SONGID
                 where f.groupId={$_SESSION['userId']}                                                                        
-                ORDER BY FID";
+                ORDER BY FID DESC";
         $list = Info::get('db')->select($sql);
         return json_encode($list);
     }
@@ -98,7 +98,7 @@ class Ajax
 
     private static function get_image()
     {
-        $img = Info::get('db')->select("select image, text from current where groupId=".$_SESSION['userId']);
+        $img = Info::get('db')->select("select image, text, song_name from current where groupId=".$_SESSION['userId']);
         return json_encode($img);
     }
 
@@ -122,7 +122,8 @@ class Ajax
     {
         $text = mysqli_escape_string(Info::get('dbh'), self::$args['text']);
         $image_name = self::$args['image_name'];
-        Info::get('db')->exec("update current set text=\"{$text}\" WHERE groupId={$_SESSION['userId']} and image=\"{$image_name}\"");
+        $song_name = self::$args['song_name'];
+        Info::get('db')->exec("update current set text=\"{$text}\", song_name=\"{$song_name}\" WHERE groupId={$_SESSION['userId']} and image=\"{$image_name}\"");
         return '';
     }
 
