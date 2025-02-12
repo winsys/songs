@@ -1,4 +1,4 @@
-app.controller('Tech', function ($scope, $http)
+app.controller('Tech', function ($scope, $http, $interval)
 {
     $scope.listId = 1;
     $scope.songList = [];
@@ -24,20 +24,22 @@ app.controller('Tech', function ($scope, $http)
     {
         $http({ method: "POST", url: "/ajax", data: {command: 'get_image' } }).then(
             function success(respond){
-                $scope.current = respond.data;
-                if ($scope.current.length === 0){
+                let current = respond.data;
+                if (current.length === 0){
                     $scope.curImage = null;
                     $scope.curChapter = null;
                     $scope.preparedChapters = [];
                 } else {
-                    $scope.curImage = $scope.current[0].image;
-                    $scope.curChapter = $scope.current[0].text;
+                    if( $scope.curImage !== current[0].image || $scope.curChapter !== current[0].text ){
+                        $scope.curImage = current[0].image;
+                        $scope.curChapter = current[0].text;
+                    }
                 }
                 $http({ method: "POST", url: "/ajax", data: {command: 'get_favorites_with_text' } }).then(
                     function success(respond){
                         $scope.favorites = respond.data;
                         angular.forEach($scope.favorites, function(value, key){
-                            if(($scope.curImage) && (value.imageName == $scope.curImage)) {
+                            if(($scope.curImage) && (value.imageName === $scope.curImage)) {
                                 $scope.showingSong = value;
                                 $scope.preparedChapters = splitText(value.TEXT);
                                 angular.forEach($scope.preparedChapters, function (value, key) {
@@ -242,5 +244,9 @@ app.controller('Tech', function ($scope, $http)
     }
 
     $scope.reloadFavorites();
+
+    $interval(function() {
+        $scope.reloadFavorites();
+    }, 1000);
 });
 
