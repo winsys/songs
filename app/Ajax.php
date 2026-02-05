@@ -28,7 +28,7 @@ class Ajax
         $sql = "SELECT f.ID as FID, l.*, concat(l.num, ' - ',l.name) as dispName, 
                         concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName, f.SONGID FROM favorites f 
                 left join song_list l ON l.ID=f.SONGID
-                where f.groupId={$_SESSION['userId']}                                                                        
+                where f.groupId={$_SESSION['userId']}
                 ORDER BY FID";
         $list = Info::get('db')->select($sql);
         return json_encode($list);
@@ -37,11 +37,12 @@ class Ajax
 
     private static function get_favorites_with_text()
     {
-        $sql = "SELECT f.ID as FID, l.*, concat(l.num, ' - ',l.name) as dispName, 
+        $sql = "SELECT f.ID as FID, l.*, concat(l.num, ' - ',l.name) as dispName, n.LIST_NAME as bookName,
                         concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName, f.SONGID, l.TEXT FROM favorites f 
                 left join song_list l ON l.ID=f.SONGID
-                where f.groupId={$_SESSION['userId']}                                                                        
-                ORDER BY FID DESC";
+                left join list_names n ON n.LIST_ID=l.LISTID
+                where f.groupId={$_SESSION['userId']}";
+	$sql = $sql.($_SESSION['userId'] == 2 ? " ORDER BY FID DESC" : " ORDER BY FID");
         $list = Info::get('db')->select($sql);
         return json_encode($list);
     }
