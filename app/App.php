@@ -59,6 +59,15 @@ class App
             case 'text':
                 $this->render($route[0], $route[1], 'text_layout');
                 break;
+            case 'text2':
+                $this->render($route[0], $route[1], 'text_layout_20');
+                break;
+            case 'text25':
+                $this->render($route[0], $route[1], 'text_layout_25');
+                break;
+            case 'text30':
+                $this->render($route[0], $route[1], 'text_layout_30');
+                break;
             default:
                 $this->render($route[0], $route[1]);
                 break;
