@@ -44,7 +44,7 @@
         }
 
         #title {
-            font-size: 20px;
+            font-size: 30px;
             font-weight: bold;
             text-align: center;
             white-space: nowrap;
@@ -69,6 +69,7 @@
             $scope.text = "Загрузка...";
             $scope.songName = "...";
             $scope.fontSize = 10;
+            $scope.fontMaxSize = 64;
 
             $scope.enterFullscreen = function() {
                 if (!document.fullscreenElement) {
@@ -81,7 +82,7 @@
                     const container = document.getElementById("text-container");
                     const textElement = document.getElementById("text");
 
-                    let maxSize = 200, currentSize = 10;
+                    let maxSize = 100, currentSize = 10;
                     textElement.style.fontSize = currentSize + "px";
 
                     // Уменьшаем размер шрифта, если текст не помещается
@@ -99,6 +100,7 @@
                     }
 
 
+		    if (currentSize > $scope.fontMaxSize) currentSize = $scope.fontMaxSize;
                     $scope.fontSize = currentSize;
                     $scope.$apply();
                 }, 0);
@@ -115,7 +117,9 @@
                             if ($scope.srcText !== response.data[0].text) {
                                 $scope.srcText = response.data[0].text;
                                 let preparedText = response.data[0].text.substring(0, response.data[0].text.length - 4);
+				preparedText = preparedText.replace("$ $", "\r\n-----\r\n");
                                 $scope.text = preparedText.replace(/\$(\*{5,})\$/g, (match, stars) => "·".repeat(stars.length));
+				$scope.text = $scope.text.replace("$", "");
                                 $scope.songName = response.data[0].song_name;
                                 adjustTextSize();
                             }

@@ -36,8 +36,11 @@ app.controller('Text', function ($scope, $http, $timeout)
 
     function fetchText() {
         $http({ method: "POST", url: "/ajax", data: {command: 'get_image' } }).then(function(response) {
-            if ($scope.text !== response.data[0].text) {
-                $scope.text = response.data[0].text;
+	    let tmpText = response.data[0].text;
+	    tmpText.replace("$ $", "\r\n---------\r\n");
+            if ($scope.text !== tmpText) {
+
+                $scope.text = tmpText;
                 $timeout(adjustTextSize, 0);
             }
         }).finally(function() {
