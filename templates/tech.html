@@ -21,9 +21,17 @@
         border: solid 1px silver;
         border-radius: 10px;
         margin: 10px;
+        cursor: pointer;
+        transition: background-color 0.2s;
+        user-select: none; /* Prevent text selection during Ctrl+Click */
+    }
+    .text-chapter:hover {
+        background-color: #f0f0f0;
     }
     .chapter-selected {
         background-color: #c5f5c5;
+        border-color: #4caf50;
+        font-weight: bold;
     }
     .songlist-btn {
         height: 24pt;
@@ -204,8 +212,8 @@
                  ng-repeat="chapter in preparedChapters">
 
                 <span class="col-sm-12 col-md-12 col-lg-12 text-chapter"
-                      ng-class="{'chapter-selected': showingChapter === chapter}"
-                      ng-click="toggleCurrentTextChapter(chapter)">{{ chapter }}</span>
+                      ng-class="{'chapter-selected': selectedChapters.indexOf(chapter) > -1}"
+                      ng-click="toggleCurrentTextChapter(chapter, $event)">{{ chapter }}</span>
             </div>
         </div>
     </div>

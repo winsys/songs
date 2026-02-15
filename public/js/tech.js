@@ -7,6 +7,7 @@ app.controller('Tech', function ($scope, $http, $interval)
     $scope.preparedChapters = [];
     $scope.showingSong = null;
     $scope.showingChapter = null;
+    $scope.selectedChapters = [];
 
     function splitText(src){
         if(src){
@@ -63,6 +64,7 @@ app.controller('Tech', function ($scope, $http, $interval)
             $scope.showingSong = null;
             $scope.preparedChapters = [];
             $scope.showingChapter = null;
+            $scope.selectedChapters = [];
             $http({ method: "POST",
                 url: "/ajax",
                 data: { command: 'clear_image' }
@@ -71,6 +73,7 @@ app.controller('Tech', function ($scope, $http, $interval)
             $scope.showingSong = favoriteItem;
             splitText(aText);
             $scope.showingChapter = null;
+            $scope.selectedChapters = [];
             $http({ method: "POST",
                 url: "/ajax",
                 data: { command: 'set_tech_image',
@@ -79,28 +82,72 @@ app.controller('Tech', function ($scope, $http, $interval)
         }
     }
 
-    $scope.toggleCurrentTextChapter = function(chapterText) {
-        if ( $scope.showingChapter === chapterText ) {
-            $http({ method: "POST",
-                url: "/ajax",
-                data: { command: 'set_text',
-                    image_name: $scope.showingSong.imageName,
-                    text: '' }
-            }).then(
-                function success(){
+    $scope.toggleCurrentTextChapter = function(chapterText, $event) {
+        var ctrlKey = $event.ctrlKey || $event.metaKey; // metaKey for Mac Cmd key
+
+        if (ctrlKey) {
+            // Multi-select mode with Ctrl
+            var index = $scope.selectedChapters.indexOf(chapterText);
+            if (index > -1) {
+                // Deselect if already selected
+                $scope.selectedChapters.splice(index, 1);
+            } else {
+                // Add to selection
+                $scope.selectedChapters.push(chapterText);
+            }
+
+            // Combine all selected chapters
+            var combinedText = $scope.selectedChapters.join('\r\n');
+
+            if ($scope.selectedChapters.length === 0) {
+                // Clear if nothing selected
+                $http({ method: "POST",
+                    url: "/ajax",
+                    data: { command: 'set_text',
+                        image_name: $scope.showingSong.imageName,
+                        text: '' }
+                }).then(function success(){
                     $scope.showingChapter = null;
                 });
-        } else {
-            $http({ method: "POST",
-                url: "/ajax",
-                data: { command: 'set_text',
-                    image_name: $scope.showingSong.imageName,
-                    text: chapterText,
-                    song_name: $scope.showingSong.NAME }
-            }).then(
-                function success(){
-                    $scope.showingChapter = chapterText;
+            } else {
+                // Send combined text
+                $http({ method: "POST",
+                    url: "/ajax",
+                    data: { command: 'set_text',
+                        image_name: $scope.showingSong.imageName,
+                        text: combinedText,
+                        song_name: $scope.showingSong.NAME }
+                }).then(function success(){
+                    $scope.showingChapter = combinedText;
                 });
+            }
+        } else {
+            // Single select mode (original behavior)
+            $scope.selectedChapters = [];
+
+            if ( $scope.showingChapter === chapterText ) {
+                $http({ method: "POST",
+                    url: "/ajax",
+                    data: { command: 'set_text',
+                        image_name: $scope.showingSong.imageName,
+                        text: '' }
+                }).then(
+                    function success(){
+                        $scope.showingChapter = null;
+                    });
+            } else {
+                $scope.selectedChapters = [chapterText];
+                $http({ method: "POST",
+                    url: "/ajax",
+                    data: { command: 'set_text',
+                        image_name: $scope.showingSong.imageName,
+                        text: chapterText,
+                        song_name: $scope.showingSong.NAME }
+                }).then(
+                    function success(){
+                        $scope.showingChapter = chapterText;
+                    });
+            }
         }
     }
 
