@@ -183,8 +183,16 @@ class Ajax
             if (!file_exists($uploadDir)) {
                 mkdir($uploadDir, 0777, true);
             }
-            
-            $targetFile = $uploadDir . $song['NUM'] . '.jpg';
+
+            // Ensure UTF-8 encoding for filename with Cyrillic characters
+            $filename = $song['NUM'] . '.jpg';
+
+            // Convert to UTF-8 if needed
+            if (mb_detect_encoding($filename, 'UTF-8', true) === false) {
+                $filename = mb_convert_encoding($filename, 'UTF-8');
+            }
+
+            $targetFile = $uploadDir . $filename;
             
             if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
                 return json_encode(['status' => 'success']);
