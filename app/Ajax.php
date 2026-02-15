@@ -159,8 +159,9 @@ class Ajax
     {
         $songId = mysqli_escape_string(Info::get('dbh'), self::$args['id']);
         $text = mysqli_escape_string(Info::get('dbh'), self::$args['text']);
+        $name = mysqli_escape_string(Info::get('dbh'), self::$args['name']);
         
-        Info::get('db')->exec("UPDATE song_list SET TEXT = '{$text}' WHERE ID = {$songId}");
+        Info::get('db')->exec("UPDATE song_list SET TEXT = '{$text}', NAME = '{$name}' WHERE ID = {$songId}");
         return json_encode(['status' => 'success']);
     }
 

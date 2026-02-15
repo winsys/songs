@@ -84,6 +84,12 @@
     .edit-button {
         margin-right: 10px;
     }
+    .enlarged-image-popup .modal-dialog {
+        margin: 30px auto;
+    }
+    .enlarged-image-popup img {
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
 </style>
 
 <div ng-controller="Tech" class="container">
@@ -290,39 +296,85 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
                     <h3 class="modal-title">{{ editConfig.title }}</h3>
                 </div>
                 <div class="modal-body">
+                    <!-- Song Title -->
                     <div class="row">
                         <div class="col-xs-12">
-                            <h4>{{ editConfig.songName }}</h4>
+                            <label style="font-size: 12pt; font-weight: bold;">Название:</label>
+                            <input type="text" 
+                                   ng-model="editConfig.songName" 
+                                   class="form-control"
+                                   style="font-size: 14pt; margin-top: 5px;">
                         </div>
                     </div>
-                    <div class="row" style="margin-top: 15px;">
+                    
+                    <!-- Song Text -->
+                    <div class="row" style="margin-top: 20px;">
                         <div class="col-xs-12">
-                            <label>Текст песни:</label>
+                            <label style="font-size: 12pt; font-weight: bold;">Текст песни:</label>
                             <textarea ng-model="editConfig.songText" 
-                                      rows="10" 
+                                      rows="12" 
                                       class="form-control"
-                                      style="font-size: 14pt; width: 100%;">
+                                      style="font-size: 14pt; width: 100%; margin-top: 5px; font-family: monospace;">
                             </textarea>
                         </div>
                     </div>
+                    
+                    <!-- Image Section -->
+                    <div class="row" style="margin-top: 20px;">
+                        <div class="col-xs-12">
+                            <label style="font-size: 12pt; font-weight: bold;">Изображение:</label>
+                        </div>
+                    </div>
+                    
+                    <!-- Current Image -->
+                    <div class="row" style="margin-top: 10px;" ng-if="!editConfig.previewImage">
+                        <div class="col-xs-12">
+                            <div style="text-align: center; padding: 10px; border: 1px solid #ddd; border-radius: 5px;">
+                                <p style="font-size: 10pt; color: gray;">Текущее изображение:</p>
+                                <img ng-src="{{ editConfig.currentImage }}" 
+                                     style="max-width: 100%; max-height: 400px; border-radius: 5px;" />
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Preview New Image -->
+                    <div class="row" style="margin-top: 10px;" ng-if="editConfig.previewImage">
+                        <div class="col-xs-12">
+                            <div style="text-align: center; padding: 10px; border: 2px solid #5cb85c; border-radius: 5px; background-color: #f0fff0;">
+                                <p style="font-size: 10pt; color: #5cb85c; font-weight: bold;">Новое изображение (предпросмотр):</p>
+                                <img ng-src="{{ editConfig.previewImage }}" 
+                                     style="max-width: 100%; max-height: 400px; border-radius: 5px; cursor: pointer;"
+                                     ng-click="$scope.editConfig.enlargedView = true" />
+                                <button class="btn btn-warning btn-sm" 
+                                        ng-click="clearImagePreview()"
+                                        style="margin-top: 10px;">
+                                    Отменить выбор изображения
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Upload Button -->
                     <div class="row" style="margin-top: 15px;">
                         <div class="col-xs-12">
-                            <label>Изображение:</label>
                             <input type="file" 
                                    id="imageUpload" 
                                    accept="image/*" 
-                                   ng-model="editConfig.newImage" />
-                            <button class="btn btn-primary" 
-                                    ng-click="uploadImage()"
-                                    style="margin-top: 10px;">
-                                Загрузить изображение
+                                   onchange="angular.element(this).scope().previewImage()"
+                                   style="display: none;" />
+                            <button class="btn btn-info btn-lg" 
+                                    onclick="document.getElementById('imageUpload').click()"
+                                    style="width: 100%;">
+                                📷 Выбрать новое изображение
                             </button>
                         </div>
                     </div>
                 </div>
+                
                 <div class="modal-footer">
                     <button type="button" 
                             class="btn btn-default btn-lg" 
@@ -330,9 +382,9 @@
                         Отмена
                     </button>
                     <button type="button" 
-                            class="btn btn-primary btn-lg" 
+                            class="btn btn-success btn-lg" 
                             ng-click="saveSongEdits()">
-                        Сохранить
+                        💾 Сохранить все изменения
                     </button>
                 </div>
             </div>
@@ -340,5 +392,22 @@
     </div>
 </div>
 
-<script src="/js/tech.js?v=10023" type="text/javascript"></script>
+<!-- Enlarged Image View Modal -->
+<div id="enlarged-image-popup">
+    <div class="modal fade enlarged-image-popup" role="dialog" ng-if="editConfig.previewImage">
+        <div class="modal-dialog modal-lg" style="width: 90%; max-width: 1200px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" style="font-size: 30pt;">&times;</button>
+                    <h3 class="modal-title">Полный размер изображения</h3>
+                </div>
+                <div class="modal-body" style="text-align: center;">
+                    <img ng-src="{{ editConfig.previewImage }}" 
+                         style="max-width: 100%; max-height: 80vh;" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 
+<script src="/js/tech.js?v=10023" type="text/javascript"></script>
