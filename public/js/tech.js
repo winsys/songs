@@ -254,8 +254,11 @@ $scope.editFavorite = function(listItem) {
         title: 'Редактирование песни',
         songId: listItem.ID,
         songText: listItem.TEXT,
-        songName: listItem.dispName,
-        image: listItem.imageName
+        songName: listItem.NAME,  // Original name without number
+        songNum: listItem.NUM,
+        dispName: listItem.dispName,
+        currentImage: listItem.imageName,
+        previewImage: null
     };
     $scope.showEditDialog(true);
 };
@@ -264,19 +267,51 @@ $scope.showEditDialog = function(flag) {
     jQuery("#edit-song-popup .modal").modal(flag ? 'show' : 'hide');
 };
 
+// Preview image before upload
+$scope.previewImage = function() {
+    var fileInput = document.getElementById('imageUpload');
+    var file = fileInput.files[0];
+    
+    if (file) {
+        var reader = new FileReader();
+        reader.onload = function(e) {
+            $scope.$apply(function() {
+                $scope.editConfig.previewImage = e.target.result;
+            });
+        };
+        reader.readAsDataURL(file);
+    }
+};
+
+$scope.clearImagePreview = function() {
+    $scope.editConfig.previewImage = null;
+    document.getElementById('imageUpload').value = '';
+};
+
 $scope.saveSongEdits = function() {
+    // First save text and title
     $http({ 
         method: "POST", 
         url: "/ajax", 
         data: {
             command: 'update_song',
             id: $scope.editConfig.songId,
-            text: $scope.editConfig.songText
+            text: $scope.editConfig.songText,
+            name: $scope.editConfig.songName
         }
     }).then(
         function success() {
-            $scope.reloadFavorites();
-            $scope.showEditDialog(false);
+            // If image was selected, upload it
+            var fileInput = document.getElementById('imageUpload');
+            if (fileInput.files.length > 0) {
+                $scope.uploadImage(function() {
+                    $scope.reloadFavorites();
+                    $scope.showEditDialog(false);
+                });
+            } else {
+                $scope.reloadFavorites();
+                $scope.showEditDialog(false);
+            }
         },
         function error(erespond) {
             console.log('Ajax call error: ', erespond);
@@ -284,20 +319,24 @@ $scope.saveSongEdits = function() {
     );
 };
 
-$scope.uploadImage = function() {
+$scope.uploadImage = function(callback) {
     var fileInput = document.getElementById('imageUpload');
     var file = fileInput.files[0];
     var formData = new FormData();
     formData.append('image', file);
     formData.append('command', 'upload_song_image');
     formData.append('song_id', $scope.editConfig.songId);
+    formData.append('list_id', $scope.editConfig.songNum.split('/')[0]);
     
     $http.post('/ajax', formData, {
         transformRequest: angular.identity,
         headers: {'Content-Type': undefined}
     }).then(
         function success() {
-            $scope.reloadFavorites();
+            if (callback) callback();
+        },
+        function error(erespond) {
+            console.log('Image upload error: ', erespond);
         }
     );
 };
