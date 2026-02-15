@@ -172,10 +172,23 @@ class Ajax
 
     private static function upload_song_image()
     {
+        // Log for debugging
+        error_log("upload_song_image called");
+        error_log("POST data: " . print_r($_POST, true));
+        error_log("FILES data: " . print_r($_FILES, true));
+
+        if (!isset($_POST['song_id'])) {
+            return json_encode(['status' => 'error', 'message' => 'No song_id provided']);
+        }
+
         $songId = mysqli_escape_string(Info::get('dbh'), $_POST['song_id']);
-        
+
         // Get song details for proper path
         $song = Info::get('db')->get("SELECT LISTID, NUM FROM song_list WHERE ID = {$songId}");
+
+        if (!$song) {
+            return json_encode(['status' => 'error', 'message' => 'Song not found']);
+        }
         
         if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
             $uploadDir = __DIR__ . '/../public/images/' . $song['LISTID'] . '/';
@@ -193,12 +206,29 @@ class Ajax
             }
 
             $targetFile = $uploadDir . $filename;
-            
+
+            error_log("Attempting to save file to: " . $targetFile);
+
             if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
-                return json_encode(['status' => 'success']);
+                error_log("File uploaded successfully");
+                return json_encode([
+                    'status' => 'success',
+                    'path' => '/images/' . $song['LISTID'] . '/' . $filename
+                ]);
+            } else {
+                error_log("move_uploaded_file failed");
+                return json_encode(['status' => 'error', 'message' => 'Failed to move uploaded file']);
             }
         }
-        
-        return json_encode(['status' => 'error', 'message' => 'Upload failed']);
+
+        $errorMsg = 'Upload failed';
+        if (isset($_FILES['image'])) {
+            $errorMsg .= ' - Error code: ' . $_FILES['image']['error'];
+        } else {
+            $errorMsg .= ' - No file received';
+        }
+
+        error_log($errorMsg);
+        return json_encode(['status' => 'error', 'message' => $errorMsg]);
     }
 }
