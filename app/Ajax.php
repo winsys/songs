@@ -154,4 +154,37 @@ class Ajax
             return json_encode(array('status'=>false, 'message'=>Info::get('db')->errors()));
         }
     }
+
+    private static function update_song()
+    {
+        $songId = mysqli_escape_string(Info::get('dbh'), self::$args['id']);
+        $text = mysqli_escape_string(Info::get('dbh'), self::$args['text']);
+        
+        Info::get('db')->exec("UPDATE song_list SET TEXT = '{$text}' WHERE ID = {$songId}");
+        return json_encode(['status' => 'success']);
+    }
+
+    private static function upload_song_image()
+    {
+        $songId = mysqli_escape_string(Info::get('dbh'), $_POST['song_id']);
+        
+        // Get song details for proper path
+        $song = Info::get('db')->get("SELECT LISTID, NUM FROM song_list WHERE ID = {$songId}");
+        
+        if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+            $uploadDir = __DIR__ . '/../public/images/' . $song['LISTID'] . '/';
+            
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+            
+            $targetFile = $uploadDir . $song['NUM'] . '.jpg';
+            
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
+                return json_encode(['status' => 'success']);
+            }
+        }
+        
+        return json_encode(['status' => 'error', 'message' => 'Upload failed']);
+    }
 }

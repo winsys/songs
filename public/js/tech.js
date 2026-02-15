@@ -248,5 +248,58 @@ app.controller('Tech', function ($scope, $http, $interval)
     $interval(function() {
         $scope.reloadFavorites();
     }, 1000);
+
+$scope.editFavorite = function(listItem) {
+    $scope.editConfig = {
+        title: 'Редактирование песни',
+        songId: listItem.ID,
+        songText: listItem.TEXT,
+        songName: listItem.dispName,
+        image: listItem.imageName
+    };
+    $scope.showEditDialog(true);
+};
+
+$scope.showEditDialog = function(flag) {
+    jQuery("#edit-song-popup .modal").modal(flag ? 'show' : 'hide');
+};
+
+$scope.saveSongEdits = function() {
+    $http({ 
+        method: "POST", 
+        url: "/ajax", 
+        data: {
+            command: 'update_song',
+            id: $scope.editConfig.songId,
+            text: $scope.editConfig.songText
+        }
+    }).then(
+        function success() {
+            $scope.reloadFavorites();
+            $scope.showEditDialog(false);
+        },
+        function error(erespond) {
+            console.log('Ajax call error: ', erespond);
+        }
+    );
+};
+
+$scope.uploadImage = function() {
+    var fileInput = document.getElementById('imageUpload');
+    var file = fileInput.files[0];
+    var formData = new FormData();
+    formData.append('image', file);
+    formData.append('command', 'upload_song_image');
+    formData.append('song_id', $scope.editConfig.songId);
+    
+    $http.post('/ajax', formData, {
+        transformRequest: angular.identity,
+        headers: {'Content-Type': undefined}
+    }).then(
+        function success() {
+            $scope.reloadFavorites();
+        }
+    );
+};
 });
 
