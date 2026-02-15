@@ -53,7 +53,12 @@ class App
 
         switch ($route[0]) {
             case 'ajax':
-                $cmds = json_decode(file_get_contents('php://input'), true);
+                // Handle file uploads differently (uses $_POST instead of php://input)
+                if (!empty($_FILES)) {
+                    $cmds = $_POST;
+                } else {
+                    $cmds = json_decode(file_get_contents('php://input'), true);
+                }
                 echo Ajax::execute($cmds);
                 break;
             case 'text':
