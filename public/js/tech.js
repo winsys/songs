@@ -289,6 +289,9 @@ $scope.clearImagePreview = function() {
 };
 
 $scope.saveSongEdits = function() {
+    // Convert \n to \r\n for proper verse splitting
+    var textWithCRLF = $scope.editConfig.songText.replace(/\r?\n/g, '\r\n');
+    
     // First save text and title
     $http({ 
         method: "POST", 
@@ -296,7 +299,7 @@ $scope.saveSongEdits = function() {
         data: {
             command: 'update_song',
             id: $scope.editConfig.songId,
-            text: $scope.editConfig.songText,
+            text: textWithCRLF,  // Send with CRLF
             name: $scope.editConfig.songName
         }
     }).then(

@@ -158,7 +158,12 @@ class Ajax
     private static function update_song()
     {
         $songId = mysqli_escape_string(Info::get('dbh'), self::$args['id']);
-        $text = mysqli_escape_string(Info::get('dbh'), self::$args['text']);
+        
+        // Preserve CRLF line breaks - don't strip them
+        $text = self::$args['text'];
+        // Escape for SQL but keep line breaks
+        $text = mysqli_escape_string(Info::get('dbh'), $text);
+        
         $name = mysqli_escape_string(Info::get('dbh'), self::$args['name']);
         
         Info::get('db')->exec("UPDATE song_list SET TEXT = '{$text}', NAME = '{$name}' WHERE ID = {$songId}");
