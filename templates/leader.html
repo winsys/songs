@@ -34,6 +34,140 @@
         background-color: #d9ffd9;
         outline: none;
     }
+
+    /* Responsive button text sizing */
+    .btn-list, .btn-primary, .btn-warning {
+        white-space: normal;
+        word-wrap: break-word;
+        line-height: 1.2;
+        overflow: hidden;
+    }
+
+    /* Mobile responsive styles */
+    @media (max-width: 768px) {
+        .search-box {
+            height: 38px;
+            font-size: 13pt;
+            padding: 6px 8px;
+        }
+
+        .item-text {
+            font-size: 14pt;
+        }
+
+        .angucomplete-row {
+            font-size: 14pt !important;
+        }
+
+        .col-xs-3, .col-xs-4, .col-xs-5 {
+            margin-bottom: 8px;
+        }
+
+        .modal-dialog {
+            margin: 10px;
+            width: auto;
+        }
+
+        .btn {
+            min-height: 44px;
+            padding: 8px 6px;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .prod-list-item .btn-danger {
+            font-size: 12pt;
+        }
+    }
+
+    @media (max-width: 600px) {
+        .search-box {
+            font-size: 11pt;
+            height: 36px;
+            padding: 5px 4px;
+        }
+
+        .btn {
+            font-size: 11pt;
+            padding: 6px 4px;
+        }
+    }
+
+    @media (max-width: 480px) {
+        .search-box {
+            font-size: 9pt;
+            height: 34px;
+            padding: 4px 3px;
+        }
+
+        .item-text {
+            font-size: 11pt;
+        }
+
+        .modal-body {
+            font-size: 13pt;
+        }
+
+        .btn {
+            padding: 6px 3px;
+            font-size: 9pt;
+            min-height: 40px;
+        }
+
+        /* Even smaller for very tight spaces */
+        .col-xs-3 .btn, .col-xs-4 .btn, .col-xs-5 .btn {
+            font-size: 8pt;
+        }
+
+        .pull-right {
+            float: none !important;
+        }
+    }
+
+    @media (max-width: 380px) {
+        .search-box {
+            font-size: 8pt;
+            height: 32px;
+            padding: 3px 2px;
+        }
+
+        .btn {
+            font-size: 7.5pt;
+            padding: 5px 2px;
+        }
+
+        .col-xs-3 .btn, .col-xs-4 .btn, .col-xs-5 .btn {
+            font-size: 7pt;
+        }
+    }
+
+    /* Landscape orientation */
+    @media (max-height: 500px) and (orientation: landscape) {
+        .search-box {
+            height: 32px;
+            font-size: 10pt;
+        }
+
+        .btn {
+            font-size: 10pt;
+        }
+
+        [class*="col-"] {
+            margin-top: 8pt !important;
+        }
+    }
+
+    /* Special handling for long text buttons */
+    @media (max-width: 480px) {
+        .btn-list {
+            font-size: 8.5pt;
+            padding: 4px 2px;
+            line-height: 1.1;
+        }
+    }
 </style>
 
 <div ng-controller="Leader" class="container">
@@ -64,7 +198,7 @@
         <div class="col-xs-4 col-s-4 col-md-4"
              style="margin-top: 20pt">
             <button class="btn btn-sm btn-default search-box btn-list"
-                        ng-class="listId == 4 ? 'btn-selected' : ''"
+                    ng-class="listId == 4 ? 'btn-selected' : ''"
                     style="width: 100%" ng-click="setList(4)">Сольные (Рига)</button>
         </div>
         <div class="col-xs-5 col-s-5 col-md-5"
@@ -100,12 +234,12 @@
 
             <div class="row prod-list-item"
                  ng-repeat="listItem in favorites">
-                    <span class="btn btn-danger col-sm-1" ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">&nbsp;X&nbsp;</span>
-                    <span class="col-sm-8 col-md-8 item-text">{{ listItem.dispName }}</span>
-                    <img class="col-sm-3 col-md-3"
-                         ng-attr-id="{{ 'img' + listItem.ID }}"
-                         ng-src="{{ listItem.imageName }}"
-                         ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"/>
+                <span class="btn btn-danger col-sm-1" ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">&nbsp;X&nbsp;</span>
+                <span class="col-sm-8 col-md-8 item-text">{{ listItem.dispName }}</span>
+                <img class="col-sm-3 col-md-3"
+                     ng-attr-id="{{ 'img' + listItem.ID }}"
+                     ng-src="{{ listItem.imageName }}"
+                     ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"/>
             </div>
 
         </div>
