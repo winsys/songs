@@ -96,8 +96,10 @@ app.controller('Tech', function ($scope, $http, $interval)
                 $scope.selectedChapters.push(chapterText);
             }
 
-            // Combine all selected chapters
-            var combinedText = $scope.selectedChapters.join('\r\n');
+            // Combine all selected chapters, removing verse numbers (the part after last newline that looks like "(N)")
+            var combinedText = $scope.selectedChapters.map(function(chapter) {
+                return chapter.replace(/\n\(\d+\)$/, '');
+            }).join('\r\n');
 
             if ($scope.selectedChapters.length === 0) {
                 // Clear if nothing selected
@@ -137,11 +139,13 @@ app.controller('Tech', function ($scope, $http, $interval)
                     });
             } else {
                 $scope.selectedChapters = [chapterText];
+                // Remove verse number before sending
+                var cleanText = chapterText.replace(/\n\(\d+\)$/, '');
                 $http({ method: "POST",
                     url: "/ajax",
                     data: { command: 'set_text',
                         image_name: $scope.showingSong.imageName,
-                        text: chapterText,
+                        text: cleanText,
                         song_name: $scope.showingSong.NAME }
                 }).then(
                     function success(){
