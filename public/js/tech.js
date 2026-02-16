@@ -99,7 +99,7 @@ app.controller('Tech', function ($scope, $http, $interval)
             // Combine all selected chapters, removing verse numbers (the part after last newline that looks like "(N)")
             var combinedText = $scope.selectedChapters.map(function(chapter) {
                 return chapter.replace(/\n\(\d+\)$/, '');
-            }).join('\r\n');
+            }).join('\r\n- - - - -\r\n');
 
             if ($scope.selectedChapters.length === 0) {
                 // Clear if nothing selected

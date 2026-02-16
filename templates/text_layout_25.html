@@ -117,7 +117,7 @@
                         } else {
                             if ($scope.srcText !== response.data[0].text) {
                                 $scope.srcText = response.data[0].text;
-                                let preparedText = response.data[0].text.substring(0, response.data[0].text.length - 4);
+                                let preparedText = response.data[0].text.substring(0, response.data[0].text.length);
 				                preparedText = preparedText.replace("$ $", "\r\n-----\r\n");
                                 $scope.text = preparedText.replace(/\$(\*{5,})\$/g, (match, stars) => "·".repeat(stars.length));
                                 $scope.text = $scope.text.replace("$", "");
