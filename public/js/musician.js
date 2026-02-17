@@ -27,22 +27,31 @@ app.controller('Musician', function ($scope, $http)
         }
     }
 
-    const socket = new WebSocket("wss://" + window.location.host + "/ws");
+    function initSocket() {
+        const socket = new WebSocket("wss://" + window.location.host + "/ws");
 
-    socket.onmessage = function(event) {
-        let data = JSON.parse(event.data);
+        socket.onmessage = function(event) {
+            let data = JSON.parse(event.data);
 
-        console.log(event.data);
+            console.log(event.data);
 
-        if (data.type === 'update_needed') {
-            // Как только получили сигнал — обновляем данные
-            $scope.$apply(function() {
-                $scope.checkImage();
-            });
-        }
-    };
+            if (data.type === 'update_needed') {
+                $scope.$apply(function() {
+                    $scope.checkImage();
+                });
+            }
+        };
+
+        socket.onclose = function(event) {
+            setTimeout(initSocket, 2000);
+        };
+
+        socket.onopen = function(event) {
+            setInterval(() => { socket.send(JSON.stringify({type: 'ping'})); }, 30000);
+        };
+    }
 
     $scope.checkImage();
-
+    initSocket();
 });
 
