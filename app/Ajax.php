@@ -13,12 +13,14 @@ class Ajax
     private static function add_to_favorites()
     {
         Info::get('db')->exec("insert into favorites (groupId, SONGID) values ({$_SESSION['userId']},".mysqli_escape_string(Info::get('dbh'), self::$args['id']).")");
+        self::updateSocket();
         return '';
     }
 
     private static function add_to_piano_favorites()
     {
         Info::get('db')->exec("insert into piano_favorites (groupId, SONGID) values ({$_SESSION['userId']},".mysqli_escape_string(Info::get('dbh'), self::$args['id']).")");
+        self::updateSocket();
         return '';
     }
 
@@ -63,6 +65,7 @@ class Ajax
     {
         $sql = "DELETE FROM favorites WHERE groupId={$_SESSION['userId']}";
         Info::get('db')->exec($sql);
+        self::updateSocket();
         return '';
     }
 
@@ -70,6 +73,7 @@ class Ajax
     {
         $sql = "DELETE FROM piano_favorites WHERE groupId={$_SESSION['userId']}";
         Info::get('db')->exec($sql);
+        self::updateSocket();
         return '';
     }
 
@@ -77,6 +81,7 @@ class Ajax
     {
         $sql = "DELETE FROM favorites WHERE ID=".self::$args['id'];
         Info::get('db')->exec($sql);
+        self::updateSocket();
         return '';
     }
 
@@ -85,6 +90,7 @@ class Ajax
     {
         $sql = "DELETE FROM piano_favorites WHERE ID=".self::$args['id'];
         Info::get('db')->exec($sql);
+        self::updateSocket();
         return '';
     }
 
@@ -94,6 +100,7 @@ class Ajax
         Info::get('db')->exec("insert into current (groupId, image) values ({$_SESSION['userId']}, '/images/".
             mysqli_escape_string(Info::get('dbh'), self::$args['list_id'])."/".
             mysqli_escape_string(Info::get('dbh'), self::$args['image_num']).".jpg')");
+        self::updateSocket();
         return '';
     }
 
@@ -116,6 +123,7 @@ class Ajax
         Info::get('db')->exec("delete from current where groupId=".$_SESSION['userId']);
         Info::get('db')->exec("insert into current (groupId, image) 
                                 values ({$_SESSION['userId']}, \"{$image_name}\")");
+        self::updateSocket();
         return '';
     }
 
@@ -125,6 +133,7 @@ class Ajax
         $image_name = self::$args['image_name'];
         $song_name = self::$args['song_name'];
         Info::get('db')->exec("update current set text=\"{$text}\", song_name=\"{$song_name}\" WHERE groupId={$_SESSION['userId']} and image=\"{$image_name}\"");
+        self::updateSocket();
         return '';
     }
 
@@ -132,6 +141,7 @@ class Ajax
     private static function clear_image()
     {
         Info::get('db')->exec("delete from current where groupId=".$_SESSION['userId']);
+        self::updateSocket();
         return '';
     }
 
@@ -167,6 +177,7 @@ class Ajax
         $name = mysqli_escape_string(Info::get('dbh'), self::$args['name']);
         
         Info::get('db')->exec("UPDATE song_list SET TEXT = '{$text}', NAME = '{$name}' WHERE ID = {$songId}");
+        self::updateSocket();
         return json_encode(['status' => 'success']);
     }
 
@@ -211,6 +222,7 @@ class Ajax
 
             if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
                 error_log("File uploaded successfully");
+                self::updateSocket();
                 return json_encode([
                     'status' => 'success',
                     'path' => '/images/' . $song['LISTID'] . '/' . $filename
@@ -230,5 +242,16 @@ class Ajax
 
         error_log($errorMsg);
         return json_encode(['status' => 'error', 'message' => $errorMsg]);
+    }
+
+    private static function updateSocket()
+    {
+        $err1 = '';
+        $err2 = '';
+        $instance = stream_socket_client("tcp://127.0.0.1:2346", $err1, $err2);
+        if ($instance) {
+            fwrite($instance, json_encode(['type' => 'update_needed']) . "\n");
+            fclose($instance);
+        }
     }
 }

@@ -1,4 +1,4 @@
-app.controller('Musician', function ($scope, $http, $timeout)
+app.controller('Musician', function ($scope, $http)
 {
     $scope.fullScreen = false;
     $scope.imgName = '/icon-192.png';
@@ -27,14 +27,22 @@ app.controller('Musician', function ($scope, $http, $timeout)
         }
     }
 
-    // Server polling, refresh every 5 sec
-    $scope.start = function myhandler()
-    {
-        $scope.checkImage();
-        $timeout(myhandler, 1000);
+    const socket = new WebSocket("wss://" + window.location.host + ":2345");
+
+    socket.onmessage = function(event) {
+        let data = JSON.parse(event.data);
+
+        console.log(event.data);
+
+        if (data.type === 'update_needed') {
+            // Как только получили сигнал — обновляем данные
+            $scope.$apply(function() {
+                $scope.checkImage();
+            });
+        }
     };
 
-    $scope.start();
+    $scope.checkImage();
 
 });
 

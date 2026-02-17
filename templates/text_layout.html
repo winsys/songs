@@ -124,11 +124,23 @@
                                 adjustTextSize();
                             }
                         }
-                    })
-                    .finally(function() {
-                        $timeout(fetchText, 1000);
                     });
             }
+
+            const socket = new WebSocket("wss://" + window.location.host + ":2345");
+
+            socket.onmessage = function(event) {
+                let data = JSON.parse(event.data);
+
+                console.log(event.data);
+
+                if (data.type === 'update_needed') {
+                    // Как только получили сигнал — обновляем данные
+                    $scope.$apply(function() {
+                        fetchText();
+                    });
+                }
+            };
 
             angular.element(window).on('load resize', adjustTextSize);
             fetchText();
