@@ -114,35 +114,44 @@
                             $scope.text = "";
                             $scope.songName = "";
                         } else {
-                            if ($scope.srcText !== response.data[0].text) {
-                                $scope.srcText = response.data[0].text;
-                                let preparedText = response.data[0].text.substring(0, response.data[0].text.length);
-				                preparedText = preparedText.replace("$ $", "\r\n-----\r\n");
-                                $scope.text = preparedText.replace(/\$(\*{5,})\$/g, (match, stars) => "·".repeat(stars.length));
-				                $scope.text = $scope.text.replace("$", "");
-                                $scope.songName = response.data[0].song_name;
-                                adjustTextSize();
-                            }
+                            $scope.srcText = response.data[0].text;
+                            let preparedText = response.data[0].text.substring(0, response.data[0].text.length);
+                            preparedText = preparedText.replace("$ $", "\r\n-----\r\n");
+                            $scope.text = preparedText.replace(/\$(\*{5,})\$/g, (match, stars) => "·".repeat(stars.length));
+                            $scope.text = $scope.text.replace("$", "");
+                            $scope.songName = response.data[0].song_name;
+                            adjustTextSize();
                         }
                     });
             }
 
-            const socket = new WebSocket("wss://" + window.location.host + "/ws");
+            function initSocket() {
+                const socket = new WebSocket("wss://" + window.location.host + "/ws");
 
-            socket.onmessage = function(event) {
-                let data = JSON.parse(event.data);
+                socket.onmessage = function(event) {
+                    let data = JSON.parse(event.data);
 
-                console.log(event.data);
+                    console.log(event.data);
 
-                if (data.type === 'update_needed') {
-                    // Как только получили сигнал — обновляем данные
-                    $scope.$apply(function() {
-                        fetchText();
-                    });
-                }
-            };
+                    if (data.type === 'update_needed') {
+                        // Как только получили сигнал — обновляем данные
+                        $scope.$apply(function() {
+                            fetchText();
+                        });
+                    }
+                };
+
+                socket.onclose = function(event) {
+                    setTimeout(initSocket, 2000);
+                };
+
+                socket.onopen = function(event) {
+                    setInterval(() => { socket.send(JSON.stringify({type: 'ping'})); }, 30000);
+                };
+            }
 
             angular.element(window).on('load resize', adjustTextSize);
+            initSocket();
             fetchText();
         });
 </script>
