@@ -396,7 +396,7 @@ app.controller('Tech', function ($scope, $http)
         );
     };
 
-    const socket = new WebSocket("wss://" + window.location.host + ":2345");
+    const socket = new WebSocket("wss://" + window.location.host + "/ws");
 
     console.log(socket);
 

@@ -27,7 +27,7 @@ app.controller('Musician', function ($scope, $http)
         }
     }
 
-    const socket = new WebSocket("wss://" + window.location.host + ":2345");
+    const socket = new WebSocket("wss://" + window.location.host + "/ws");
 
     socket.onmessage = function(event) {
         let data = JSON.parse(event.data);
