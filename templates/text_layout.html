@@ -134,7 +134,6 @@
                     console.log(event.data);
 
                     if (data.type === 'update_needed') {
-                        // Как только получили сигнал — обновляем данные
                         $scope.$apply(function() {
                             fetchText();
                         });
