@@ -23,7 +23,7 @@ $ws_worker->onWorkerStart = function($ws_worker)
 
     $inner_worker->onMessage = function(TcpConnection $connection, $data) use ($ws_worker)
     {
-        $clean_data = trim(data);
+        $clean_data = trim($data);
         foreach ($ws_worker->connections as $client_connection) {
             $client_connection->send($clean_data);
         }
