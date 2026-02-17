@@ -1,0 +1,21 @@
+{
+    "name": "pavel/songs",
+    "description": "Worship songs selection site",
+    "type": "project",
+    "require": {
+        "workerman/workerman": "^4.1"
+    },
+    "license": "GPL",
+    "autoload": {
+        "psr-4": {
+            "Songs\\": "app/"
+        }
+    },
+    "authors": [
+        {
+            "name": "pavel",
+            "email": "pavelpetsevitch@gmail.com"
+        }
+    ]
+}
+
