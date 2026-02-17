@@ -7,7 +7,7 @@ app.controller('Musician', function ($scope, $http)
         $http({ method: "POST", url: "/ajax", data: {command: 'get_image' } }).then(
             function success(respond){
                 if( respond.data.length > 0 ){
-                        $scope.imgName = respond.data[0].image;
+                        $scope.imgName = respond.data[0].image + '?t=' + new Date().getTime();
                 }else{
                         $scope.imgName = '/field_small.jpg';
                 }
