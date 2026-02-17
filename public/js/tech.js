@@ -1,4 +1,4 @@
-app.controller('Tech', function ($scope, $http, $interval)
+app.controller('Tech', function ($scope, $http)
 {
     $scope.listId = 1;
     $scope.songList = [];
@@ -107,7 +107,8 @@ app.controller('Tech', function ($scope, $http, $interval)
                     url: "/ajax",
                     data: { command: 'set_text',
                         image_name: $scope.showingSong.imageName,
-                        text: '' }
+                        text: '',
+                        song_name: '' }
                 }).then(function success(){
                     $scope.showingChapter = null;
                 });
@@ -132,6 +133,7 @@ app.controller('Tech', function ($scope, $http, $interval)
                     url: "/ajax",
                     data: { command: 'set_text',
                         image_name: $scope.showingSong.imageName,
+                        song_name: '',
                         text: '' }
                 }).then(
                     function success(){
@@ -294,105 +296,124 @@ app.controller('Tech', function ($scope, $http, $interval)
         $scope.reloadSongList();
     }
 
-    $scope.reloadFavorites();
 
-    $interval(function() {
-        $scope.reloadFavorites();
-    }, 1000);
-
-$scope.editFavorite = function(listItem) {
-    $scope.editConfig = {
-        title: 'Редактирование песни',
-        songId: listItem.ID,
-        songText: listItem.TEXT,
-        songName: listItem.NAME,  // Original name without number
-        songNum: listItem.NUM,
-        dispName: listItem.dispName,
-        currentImage: listItem.imageName,
-        previewImage: null
-    };
-    $scope.showEditDialog(true);
-};
-
-$scope.showEditDialog = function(flag) {
-    jQuery("#edit-song-popup .modal").modal(flag ? 'show' : 'hide');
-};
-
-// Preview image before upload
-$scope.previewImage = function() {
-    var fileInput = document.getElementById('imageUpload');
-    var file = fileInput.files[0];
-    
-    if (file) {
-        var reader = new FileReader();
-        reader.onload = function(e) {
-            $scope.$apply(function() {
-                $scope.editConfig.previewImage = e.target.result;
-            });
+    // $interval(function() {
+    //     $scope.reloadFavorites();
+    // }, 1000);
+    //
+    $scope.editFavorite = function(listItem) {
+        $scope.editConfig = {
+            title: 'Редактирование песни',
+            songId: listItem.ID,
+            songText: listItem.TEXT,
+            songName: listItem.NAME,  // Original name without number
+            songNum: listItem.NUM,
+            dispName: listItem.dispName,
+            currentImage: listItem.imageName,
+            previewImage: null
         };
-        reader.readAsDataURL(file);
-    }
-};
+        $scope.showEditDialog(true);
+    };
 
-$scope.clearImagePreview = function() {
-    $scope.editConfig.previewImage = null;
-    document.getElementById('imageUpload').value = '';
-};
+    $scope.showEditDialog = function(flag) {
+        jQuery("#edit-song-popup .modal").modal(flag ? 'show' : 'hide');
+    };
 
-$scope.saveSongEdits = function() {
-    // Convert \n to \r\n for proper verse splitting
-    var textWithCRLF = $scope.editConfig.songText.replace(/\r?\n/g, '\r\n');
-    
-    // First save text and title
-    $http({ 
-        method: "POST", 
-        url: "/ajax", 
-        data: {
-            command: 'update_song',
-            id: $scope.editConfig.songId,
-            text: textWithCRLF,  // Send with CRLF
-            name: $scope.editConfig.songName
+    // Preview image before upload
+    $scope.previewImage = function() {
+        var fileInput = document.getElementById('imageUpload');
+        var file = fileInput.files[0];
+
+        if (file) {
+            var reader = new FileReader();
+            reader.onload = function(e) {
+                $scope.$apply(function() {
+                    $scope.editConfig.previewImage = e.target.result;
+                });
+            };
+            reader.readAsDataURL(file);
         }
-    }).then(
-        function success() {
-            // If image was selected, upload it
-            var fileInput = document.getElementById('imageUpload');
-            if (fileInput.files.length > 0) {
-                $scope.uploadImage(function() {
+    };
+
+    $scope.clearImagePreview = function() {
+        $scope.editConfig.previewImage = null;
+        document.getElementById('imageUpload').value = '';
+    };
+
+    $scope.saveSongEdits = function() {
+        // Convert \n to \r\n for proper verse splitting
+        var textWithCRLF = $scope.editConfig.songText.replace(/\r?\n/g, '\r\n');
+
+        // First save text and title
+        $http({
+            method: "POST",
+            url: "/ajax",
+            data: {
+                command: 'update_song',
+                id: $scope.editConfig.songId,
+                text: textWithCRLF,  // Send with CRLF
+                name: $scope.editConfig.songName
+            }
+        }).then(
+            function success() {
+                // If image was selected, upload it
+                var fileInput = document.getElementById('imageUpload');
+                if (fileInput.files.length > 0) {
+                    $scope.uploadImage(function() {
+                        $scope.reloadFavorites();
+                        $scope.showEditDialog(false);
+                    });
+                } else {
                     $scope.reloadFavorites();
                     $scope.showEditDialog(false);
-                });
-            } else {
-                $scope.reloadFavorites();
-                $scope.showEditDialog(false);
+                }
+            },
+            function error(erespond) {
+                console.log('Ajax call error: ', erespond);
             }
-        },
-        function error(erespond) {
-            console.log('Ajax call error: ', erespond);
-        }
-    );
-};
+        );
+    };
 
-$scope.uploadImage = function(callback) {
-    var fileInput = document.getElementById('imageUpload');
-    var file = fileInput.files[0];
-    var formData = new FormData();
-    formData.append('image', file);
-    formData.append('command', 'upload_song_image');
-    formData.append('song_id', $scope.editConfig.songId);
-    formData.append('list_id', $scope.editConfig.songNum.split('/')[0]);
-    
-    $http.post('/ajax', formData, {
-        transformRequest: angular.identity,
-        headers: {'Content-Type': undefined}
-    }).then(
-        function success() {
-            if (callback) callback();
-        },
-        function error(erespond) {
-            console.log('Image upload error: ', erespond);
+    $scope.uploadImage = function(callback) {
+        var fileInput = document.getElementById('imageUpload');
+        var file = fileInput.files[0];
+        var formData = new FormData();
+        formData.append('image', file);
+        formData.append('command', 'upload_song_image');
+        formData.append('song_id', $scope.editConfig.songId);
+        formData.append('list_id', $scope.editConfig.songNum.split('/')[0]);
+
+        $http.post('/ajax', formData, {
+            transformRequest: angular.identity,
+            headers: {'Content-Type': undefined}
+        }).then(
+            function success() {
+                if (callback) callback();
+            },
+            function error(erespond) {
+                console.log('Image upload error: ', erespond);
+            }
+        );
+    };
+
+    const socket = new WebSocket("wss://" + window.location.host + ":2345");
+
+    console.log(socket);
+
+    socket.onmessage = function(event) {
+        let data = JSON.parse(event.data);
+
+        console.log(event.data);
+
+        if (data.type === 'update_needed') {
+            // Как только получили сигнал — обновляем данные
+            $scope.$apply(function() {
+                $scope.reloadFavorites();
+            });
         }
-    );
-};
+    };
+
+    $scope.reloadFavorites();
+
 });
 

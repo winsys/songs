@@ -181,8 +181,6 @@ app.controller('Leader', function ($scope, $http)
         reader.readAsDataURL(input[0].files[0]);
     };
 
-
-
     $scope.setList = function( listId ){
         $scope.listId = listId;
         $scope.reloadSongList();
