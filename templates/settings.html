@@ -1,0 +1,238 @@
+<style>
+    .settings-section {
+        margin: 30px 0;
+        padding: 20px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background-color: #f9f9f9;
+    }
+    .settings-label {
+        font-weight: bold;
+        font-size: 11pt;
+        margin-bottom: 8px;
+        display: block;
+    }
+    .settings-input {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 11pt;
+    }
+    .color-picker-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .color-preview {
+        width: 40px;
+        height: 40px;
+        border: 2px solid #ccc;
+        border-radius: 5px;
+    }
+    .checkbox-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .checkbox-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .save-btn {
+        width: 100%;
+        padding: 15px;
+        font-size: 14pt;
+        font-weight: bold;
+        margin-top: 30px;
+    }
+</style>
+
+<div ng-controller="Settings" class="container">
+    <div class="row">
+        <div class="col-xs-12" style="margin-top: 20px;">
+            <h2 style="text-align: center;">⚙️ Настройки пользователя</h2>
+        </div>
+    </div>
+
+    <!-- Display Name -->
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="settings-section">
+                <label class="settings-label">1. Отображаемое имя:</label>
+                <input type="text"
+                       class="settings-input"
+                       ng-model="settings.display_name"
+                       placeholder="Введите имя для отображения">
+            </div>
+        </div>
+    </div>
+
+    <!-- Favorites Order -->
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="settings-section">
+                <label class="settings-label">2. Порядок избранных песен:</label>
+                <select class="settings-input" ng-model="settings.favorites_order">
+                    <option value="latest_bottom">Последние добавленные внизу</option>
+                    <option value="latest_top">Последние добавленные сверху</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <!-- Available Song Lists -->
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="settings-section">
+                <label class="settings-label">3. Доступные списки песен:</label>
+                <div class="checkbox-list">
+                    <div class="checkbox-item" ng-repeat="list in availableLists">
+                        <input type="checkbox"
+                               id="list_{{list.LIST_ID}}"
+                               ng-model="selectedLists[list.LIST_ID]">
+                        <label for="list_{{list.LIST_ID}}" style="margin: 0; cursor: pointer;">
+                            {{list.LIST_NAME}}
+                        </label>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Placeholder Image -->
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="settings-section">
+                <label class="settings-label">4. Фоновое изображение (placeholder):</label>
+                <div ng-if="settings.placeholder_image" style="margin-bottom: 10px;">
+                    <img ng-src="{{settings.placeholder_image}}"
+                         style="max-width: 200px; max-height: 150px; border: 1px solid #ccc; border-radius: 5px;">
+                </div>
+                <input type="file"
+                       id="placeholderUpload"
+                       accept="image/*"
+                       onchange="angular.element(this).scope().uploadPlaceholderImage()"
+                       class="settings-input">
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Display Settings -->
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="settings-section">
+                <h4 style="margin-top: 0;">Основной дисплей (Text Display)</h4>
+
+                <!-- Main Background Color -->
+                <div style="margin-bottom: 15px;">
+                    <label class="settings-label">5. Цвет фона:</label>
+                    <div class="color-picker-container">
+                        <input type="color"
+                               ng-model="settings.main_bg_color"
+                               style="width: 60px; height: 40px; cursor: pointer;">
+                        <span>{{settings.main_bg_color}}</span>
+                        <div class="color-preview" ng-style="{'background-color': settings.main_bg_color}"></div>
+                    </div>
+                </div>
+
+                <!-- Main Font -->
+                <div style="margin-bottom: 15px;">
+                    <label class="settings-label">6. Шрифт:</label>
+                    <select class="settings-input" ng-model="settings.main_font">
+                        <option value="Arial">Arial</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Tahoma">Tahoma</option>
+                    </select>
+                </div>
+
+                <!-- Main Font Color -->
+                <div style="margin-bottom: 15px;">
+                    <label class="settings-label">7. Цвет шрифта:</label>
+                    <div class="color-picker-container">
+                        <input type="color"
+                               ng-model="settings.main_font_color"
+                               style="width: 60px; height: 40px; cursor: pointer;">
+                        <span>{{settings.main_font_color}}</span>
+                        <div class="color-preview" ng-style="{'background-color': settings.main_font_color}"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Streaming Display Settings -->
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="settings-section">
+                <h4 style="margin-top: 0;">Стриминговый дисплей (Streaming Display)</h4>
+
+                <!-- Streaming Background Color -->
+                <div style="margin-bottom: 15px;">
+                    <label class="settings-label">8. Цвет фона:</label>
+                    <div class="color-picker-container">
+                        <input type="color"
+                               ng-model="settings.streaming_bg_color"
+                               style="width: 60px; height: 40px; cursor: pointer;">
+                        <span>{{settings.streaming_bg_color}}</span>
+                        <div class="color-preview" ng-style="{'background-color': settings.streaming_bg_color}"></div>
+                    </div>
+                </div>
+
+                <!-- Streaming Font -->
+                <div style="margin-bottom: 15px;">
+                    <label class="settings-label">9. Шрифт:</label>
+                    <select class="settings-input" ng-model="settings.streaming_font">
+                        <option value="Arial">Arial</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Tahoma">Tahoma</option>
+                    </select>
+                </div>
+
+                <!-- Streaming Font Color -->
+                <div style="margin-bottom: 15px;">
+                    <label class="settings-label">10. Цвет шрифта:</label>
+                    <div class="color-picker-container">
+                        <input type="color"
+                               ng-model="settings.streaming_font_color"
+                               style="width: 60px; height: 40px; cursor: pointer;">
+                        <span>{{settings.streaming_font_color}}</span>
+                        <div class="color-preview" ng-style="{'background-color': settings.streaming_font_color}"></div>
+                    </div>
+                </div>
+
+                <!-- Streaming Height Percent -->
+                <div style="margin-bottom: 15px;">
+                    <label class="settings-label">11. Процент высоты экрана для текста ({{settings.streaming_height_percent}}%):</label>
+                    <input type="range"
+                           min="20"
+                           max="100"
+                           ng-model="settings.streaming_height_percent"
+                           class="settings-input"
+                           style="cursor: pointer;">
+                    <small style="color: gray;">Текст будет масштабирован для заполнения указанного процента высоты экрана</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Save Button -->
+    <div class="row">
+        <div class="col-xs-12">
+            <button class="btn btn-success save-btn" ng-click="saveSettings()">
+                💾 Сохранить все настройки
+            </button>
+        </div>
+    </div>
+
+    <div style="margin-bottom: 100px;"></div>
+</div>
+
+<script src="/js/settings.js?v=10001" type="text/javascript"></script>

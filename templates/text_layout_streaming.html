@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="ru" ng-app="TextApp">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1">
+    <title>Стриминг</title>
+    <script src="/js/angular.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            background-color: black;
+            color: white;
+            font-family: Arial, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            text-align: center;
+            overflow: hidden;
+            transition: background-color 0.3s, color 0.3s;
+        }
+
+        #wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            width: 95vw;
+            height: 100vh;
+        }
+
+        #text-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+        }
+
+        #text {
+            width: 100%;
+            word-wrap: break-word;
+            white-space: pre-wrap;
+            overflow: hidden;
+            text-align: center;
+        }
+
+        #title {
+            font-size: 20px;
+            font-weight: bold;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-top: 20px;
+            max-width: 90vw;
+        }
+
+        /* Placeholder image styling */
+        #placeholder-image {
+            max-width: 90vw;
+            max-height: 90vh;
+            object-fit: contain;
+        }
+    </style>
+</head>
+<body ng-controller="TextController" ng-click="enterFullscreen()">
+<div id="wrapper">
+    <!-- Show placeholder image when no text -->
+    <img id="placeholder-image"
+         ng-if="!text && placeholderImage"
+         ng-src="{{placeholderImage}}"
+         alt="Placeholder">
+
+    <!-- Show text when available -->
+    <div id="text-container" ng-if="text" ng-style="{'height': containerHeight + 'vh'}">
+        <div id="text" ng-style="{'font-size': fontSize + 'px'}">{{ text }}</div>
+    </div>
+    <div id="title" ng-if="text" class="ng-binding">{{ songName }}</div>
+</div>
+
+<script>
+    angular.module('TextApp', [])
+        .controller('TextController', function($scope, $http, $timeout) {
+            $scope.text = "";
+            $scope.songName = "";
+            $scope.fontSize = 10;
+            $scope.containerHeight = 80;
+            $scope.userSettings = null;
+            $scope.placeholderImage = null;
+
+            $scope.enterFullscreen = function() {
+                if (!document.fullscreenElement) {
+                    document.documentElement.requestFullscreen();
+                }
+            };
+
+            function applyUserSettings(settings) {
+                if (settings) {
+                    $scope.userSettings = settings;
+                    const body = document.body;
+                    const textElement = document.getElementById("text");
+
+                    // Apply streaming display settings
+                    body.style.backgroundColor = settings.streaming_bg_color || '#000000';
+                    body.style.color = settings.streaming_font_color || '#FFFFFF';
+                    body.style.fontFamily = settings.streaming_font || 'Arial';
+
+                    if (textElement) {
+                        textElement.style.fontFamily = settings.streaming_font || 'Arial';
+                    }
+
+                    // Set container height based on percentage
+                    $scope.containerHeight = settings.streaming_height_percent || 100;
+
+                    // Set placeholder image
+                    $scope.placeholderImage = settings.placeholder_image;
+                }
+            }
+
+            function adjustTextSize() {
+                $timeout(function() {
+                    if (!$scope.text) return;
+
+                    const container = document.getElementById("text-container");
+                    const textElement = document.getElementById("text");
+
+                    if (!container || !textElement) return;
+
+                    let maxSize = 200, currentSize = 10;
+                    textElement.style.fontSize = currentSize + "px";
+
+                    // Increase font size until text fits the container height
+                    while (currentSize < maxSize &&
+                           textElement.scrollHeight <= container.clientHeight &&
+                           textElement.scrollWidth <= container.clientWidth) {
+                        currentSize++;
+                        textElement.style.fontSize = currentSize + "px";
+                    }
+
+                    // Decrease if too large
+                    while (textElement.scrollHeight > container.clientHeight ||
+                           textElement.scrollWidth > container.clientWidth) {
+                        currentSize--;
+                        if (currentSize < 10) break;
+                        textElement.style.fontSize = currentSize + "px";
+                    }
+
+                    $scope.fontSize = currentSize;
+                    $scope.$apply();
+                }, 100);
+            }
+
+            function fetchText() {
+                $http.post('/ajax', { command: "get_image" })
+                    .then(function(response) {
+                        if (Array.isArray(response.data) && response.data.length === 0) {
+                            $scope.srcText = "";
+                            $scope.text = "";
+                            $scope.songName = "";
+
+                            // Load settings even when no text to show placeholder
+                            $http.post('/ajax', { command: "get_user_settings" })
+                                .then(function(settingsResponse) {
+                                    if (settingsResponse.data) {
+                                        applyUserSettings(settingsResponse.data);
+                                    }
+                                });
+                        } else {
+                            // Apply user settings if available
+                            if (response.data[0].user_settings) {
+                                applyUserSettings(response.data[0].user_settings);
+                            }
+
+                            $scope.srcText = response.data[0].text;
+                            let preparedText = response.data[0].text.substring(0, response.data[0].text.length);
+                            preparedText = preparedText.replace("$ $", "\r\n-----\r\n");
+                            $scope.text = preparedText.replace(/\$(\*{5,})\$/g, (match, stars) => "·".repeat(stars.length));
+                            $scope.text = $scope.text.replace("$", "");
+                            $scope.songName = response.data[0].song_name;
+
+                            adjustTextSize();
+                        }
+                    });
+            }
+
+            function initSocket() {
+                const socket = new WebSocket("wss://" + window.location.host + "/ws");
+
+                socket.onmessage = function(event) {
+                    let data = JSON.parse(event.data);
+
+                    console.log(event.data);
+
+                    if (data.type === 'update_needed') {
+                        $scope.$apply(function() {
+                            fetchText();
+                        });
+                    }
+                };
+
+                socket.onclose = function(event) {
+                    setTimeout(initSocket, 2000);
+                };
+
+                socket.onopen = function(event) {
+                    setInterval(() => { socket.send(JSON.stringify({type: 'ping'})); }, 30000);
+                };
+            }
+
+            angular.element(window).on('load resize', adjustTextSize);
+            initSocket();
+            fetchText();
+        });
+</script>
+</body>
+</html>
