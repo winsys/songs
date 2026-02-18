@@ -16,6 +16,7 @@
             justify-content: center;
             height: 100vh;
             text-align: center;
+            transition: background-color 0.3s, color 0.3s;
         }
 
         #wrapper {
@@ -53,14 +54,28 @@
             margin-top: 10px;
             max-width: 90vw;
         }
+
+        /* Placeholder image styling */
+        #placeholder-image {
+            max-width: 90vw;
+            max-height: 90vh;
+            object-fit: contain;
+        }
     </style>
 </head>
 <body ng-controller="TextController" ng-click="enterFullscreen()">
 <div id="wrapper">
-    <div id="text-container">
+    <!-- Show placeholder image when no text -->
+    <img id="placeholder-image"
+         ng-if="!text && placeholderImage"
+         ng-src="{{placeholderImage}}"
+         alt="Placeholder">
+
+    <!-- Show text when available -->
+    <div id="text-container" ng-if="text">
         <div id="text" ng-style="{'font-size': fontSize + 'px'}">{{ text }}</div>
     </div>
-    <div id="title" class="ng-binding">{{ songName }}</div>
+    <div id="title" ng-if="text" class="ng-binding">{{ songName }}</div>
 </div>
 
 <script>
@@ -70,12 +85,34 @@
             $scope.songName = "";
             $scope.fontSize = 10;
             $scope.fontMaxSize = 64;
+            $scope.userSettings = null;
+            $scope.placeholderImage = null;
 
             $scope.enterFullscreen = function() {
                 if (!document.fullscreenElement) {
                     document.documentElement.requestFullscreen();
                 }
             };
+
+            function applyUserSettings(settings) {
+                if (settings) {
+                    $scope.userSettings = settings;
+                    const body = document.body;
+                    const textElement = document.getElementById("text");
+
+                    // Apply main display settings
+                    body.style.backgroundColor = settings.main_bg_color || '#000000';
+                    body.style.color = settings.main_font_color || '#FFFFFF';
+                    body.style.fontFamily = settings.main_font || 'Arial';
+
+                    if (textElement) {
+                        textElement.style.fontFamily = settings.main_font || 'Arial';
+                    }
+
+                    // Set placeholder image
+                    $scope.placeholderImage = settings.placeholder_image;
+                }
+            }
 
             function adjustTextSize() {
                 $timeout(function() {
@@ -114,6 +151,11 @@
                             $scope.text = "";
                             $scope.songName = "";
                         } else {
+                            // Apply user settings if available
+                            if (response.data[0].user_settings) {
+                                applyUserSettings(response.data[0].user_settings);
+                            }
+
                             $scope.srcText = response.data[0].text;
                             let preparedText = response.data[0].text.substring(0, response.data[0].text.length);
                             preparedText = preparedText.replace("$ $", "\r\n-----\r\n");

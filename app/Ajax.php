@@ -39,12 +39,19 @@ class Ajax
 
     private static function get_favorites_with_text()
     {
+        $userId = $_SESSION['userId'];
+
+        // Get user settings for favorites order
+        $settings = Info::get('db')->get("SELECT favorites_order FROM user_settings WHERE user_id = {$userId}");
+        $order = ($settings && $settings['favorites_order'] === 'latest_top') ? 'DESC' : 'ASC';
+
         $sql = "SELECT f.ID as FID, l.*, concat(l.num, ' - ',l.name) as dispName, n.LIST_NAME as bookName,
                         concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName, f.SONGID, l.TEXT, l.TEXT_LT, l.TEXT_EN FROM favorites f
                 left join song_list l ON l.ID=f.SONGID
                 left join list_names n ON n.LIST_ID=l.LISTID
-                where f.groupId={$_SESSION['userId']}";
-	$sql = $sql.($_SESSION['userId'] == 2 ? " ORDER BY FID DESC" : " ORDER BY FID");
+                where f.groupId={$userId}
+                ORDER BY FID {$order}";
+
         $list = Info::get('db')->select($sql);
         return json_encode($list);
     }
@@ -106,7 +113,17 @@ class Ajax
 
     private static function get_image()
     {
-        $img = Info::get('db')->select("select image, text, song_name from current where groupId=".$_SESSION['userId']);
+        $userId = $_SESSION['userId'];
+        $img = Info::get('db')->select("select image, text, song_name from current where groupId=".$userId);
+
+        // Get user settings
+        $settings = Info::get('db')->get("SELECT * FROM user_settings WHERE user_id = {$userId}");
+
+        // Add settings to response
+        if (count($img) > 0) {
+            $img[0]['user_settings'] = $settings;
+        }
+
         return json_encode($img);
     }
 
@@ -257,5 +274,120 @@ class Ajax
             fwrite($instance, json_encode(['type' => 'update_needed']) . "\n");
             fclose($instance);
         }
+    }
+
+    private static function get_all_song_lists()
+    {
+        $lists = Info::get('db')->select("SELECT LIST_ID, LIST_NAME FROM list_names ORDER BY LIST_ID");
+        return json_encode($lists);
+    }
+
+    private static function get_user_settings()
+    {
+        $userId = $_SESSION['userId'];
+        $settings = Info::get('db')->get("SELECT * FROM user_settings WHERE user_id = {$userId}");
+
+        if (!$settings) {
+            // Return defaults if no settings exist
+            $settings = [
+                'user_id' => $userId,
+                'display_name' => $_SESSION['userName'],
+                'favorites_order' => 'latest_bottom',
+                'available_lists' => '1,2,3,4,5,6',
+                'placeholder_image' => null,
+                'main_bg_color' => '#000000',
+                'main_font' => 'Arial',
+                'main_font_color' => '#FFFFFF',
+                'streaming_bg_color' => '#000000',
+                'streaming_font' => 'Arial',
+                'streaming_font_color' => '#FFFFFF',
+                'streaming_height_percent' => 100
+            ];
+        }
+
+        return json_encode($settings);
+    }
+
+    private static function save_user_settings()
+    {
+        $userId = $_SESSION['userId'];
+        $settings = self::$args['settings'];
+
+        // Escape values
+        $displayName = mysqli_escape_string(Info::get('dbh'), $settings['display_name']);
+        $favoritesOrder = mysqli_escape_string(Info::get('dbh'), $settings['favorites_order']);
+        $availableLists = mysqli_escape_string(Info::get('dbh'), $settings['available_lists']);
+        $placeholderImage = mysqli_escape_string(Info::get('dbh'), $settings['placeholder_image']);
+        $mainBgColor = mysqli_escape_string(Info::get('dbh'), $settings['main_bg_color']);
+        $mainFont = mysqli_escape_string(Info::get('dbh'), $settings['main_font']);
+        $mainFontColor = mysqli_escape_string(Info::get('dbh'), $settings['main_font_color']);
+        $streamingBgColor = mysqli_escape_string(Info::get('dbh'), $settings['streaming_bg_color']);
+        $streamingFont = mysqli_escape_string(Info::get('dbh'), $settings['streaming_font']);
+        $streamingFontColor = mysqli_escape_string(Info::get('dbh'), $settings['streaming_font_color']);
+        $streamingHeightPercent = intval($settings['streaming_height_percent']);
+
+        // Check if settings exist
+        $existing = Info::get('db')->get("SELECT user_id FROM user_settings WHERE user_id = {$userId}");
+
+        if ($existing) {
+            // Update existing settings
+            Info::get('db')->exec("
+                UPDATE user_settings SET
+                    display_name = '{$displayName}',
+                    favorites_order = '{$favoritesOrder}',
+                    available_lists = '{$availableLists}',
+                    placeholder_image = '{$placeholderImage}',
+                    main_bg_color = '{$mainBgColor}',
+                    main_font = '{$mainFont}',
+                    main_font_color = '{$mainFontColor}',
+                    streaming_bg_color = '{$streamingBgColor}',
+                    streaming_font = '{$streamingFont}',
+                    streaming_font_color = '{$streamingFontColor}',
+                    streaming_height_percent = {$streamingHeightPercent}
+                WHERE user_id = {$userId}
+            ");
+        } else {
+            // Insert new settings
+            Info::get('db')->exec("
+                INSERT INTO user_settings (
+                    user_id, display_name, favorites_order, available_lists, placeholder_image,
+                    main_bg_color, main_font, main_font_color,
+                    streaming_bg_color, streaming_font, streaming_font_color, streaming_height_percent
+                ) VALUES (
+                    {$userId}, '{$displayName}', '{$favoritesOrder}', '{$availableLists}', '{$placeholderImage}',
+                    '{$mainBgColor}', '{$mainFont}', '{$mainFontColor}',
+                    '{$streamingBgColor}', '{$streamingFont}', '{$streamingFontColor}', {$streamingHeightPercent}
+                )
+            ");
+        }
+
+        return json_encode(['status' => 'success']);
+    }
+
+    private static function upload_placeholder_image()
+    {
+        if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
+            $uploadDir = __DIR__ . '/../public/images/placeholders/';
+
+            if (!file_exists($uploadDir)) {
+                mkdir($uploadDir, 0777, true);
+            }
+
+            $userId = $_SESSION['userId'];
+            $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
+            $filename = 'placeholder_' . $userId . '.' . $extension;
+            $targetFile = $uploadDir . $filename;
+
+            if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
+                return json_encode([
+                    'status' => 'success',
+                    'path' => '/images/placeholders/' . $filename
+                ]);
+            } else {
+                return json_encode(['status' => 'error', 'message' => 'Failed to move uploaded file']);
+            }
+        }
+
+        return json_encode(['status' => 'error', 'message' => 'No file uploaded']);
     }
 }

@@ -72,3 +72,23 @@ CREATE TABLE IF NOT EXISTS `users` (
     ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.
+
+-- Dumping structure for table songs.user_settings
+CREATE TABLE IF NOT EXISTS `user_settings` (
+    `user_id` int(11) NOT NULL,
+    `display_name` varchar(255) DEFAULT NULL,
+    `favorites_order` enum('latest_top','latest_bottom') DEFAULT 'latest_bottom',
+    `available_lists` varchar(255) DEFAULT NULL,
+    `placeholder_image` varchar(255) DEFAULT NULL,
+    `main_bg_color` varchar(20) DEFAULT '#000000',
+    `main_font` varchar(100) DEFAULT 'Arial',
+    `main_font_color` varchar(20) DEFAULT '#FFFFFF',
+    `streaming_bg_color` varchar(20) DEFAULT '#000000',
+    `streaming_font` varchar(100) DEFAULT 'Arial',
+    `streaming_font_color` varchar(20) DEFAULT '#FFFFFF',
+    `streaming_height_percent` int(11) DEFAULT '100',
+    PRIMARY KEY (`user_id`),
+    CONSTRAINT `fk_user_settings_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`ID`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Data exporting was unselected.
