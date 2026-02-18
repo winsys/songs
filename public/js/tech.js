@@ -9,11 +9,19 @@ app.controller('Tech', function ($scope, $http)
     $scope.showingChapter = null;
     $scope.selectedChapters = [];
 
-    function splitText(src){
+    function splitText(src, srcLt){
         if(src){
-            $scope.preparedChapters = src.split("\r\n");
-            angular.forEach($scope.preparedChapters, function(value, key){
-                $scope.preparedChapters[key] = value + '\n(' + key + ')';
+            var ruChapters = src.split("\r\n");
+            var ltChapters = srcLt ? srcLt.split("\r\n") : [];
+
+            $scope.preparedChapters = [];
+            angular.forEach(ruChapters, function(value, key){
+                // Combine Russian and Lithuanian verses if Lithuanian exists
+                var combinedVerse = value;
+                if(ltChapters[key]){
+                    combinedVerse = value + '\r\n- - - - - - - -\r\n' + ltChapters[key];
+                }
+                $scope.preparedChapters[key] = combinedVerse + '\n(' + key + ')';
             });
         }else{
             $scope.preparedChapters = [];
@@ -42,7 +50,7 @@ app.controller('Tech', function ($scope, $http)
                         angular.forEach($scope.favorites, function(value, key){
                             if(($scope.curImage) && (value.imageName === $scope.curImage)) {
                                 $scope.showingSong = value;
-                                $scope.preparedChapters = splitText(value.TEXT);
+                                $scope.preparedChapters = splitText(value.TEXT, value.TEXT_LT);
                                 angular.forEach($scope.preparedChapters, function (value, key) {
                                     if (value === $scope.curChapter) {
                                         $scope.showingChapter = value;
@@ -71,7 +79,7 @@ app.controller('Tech', function ($scope, $http)
             });
         } else {
             $scope.showingSong = favoriteItem;
-            splitText(aText);
+            splitText(aText, favoriteItem.TEXT_LT);
             $scope.showingChapter = null;
             $scope.selectedChapters = [];
             $http({ method: "POST",
@@ -306,6 +314,7 @@ app.controller('Tech', function ($scope, $http)
             title: 'Редактирование песни',
             songId: listItem.ID,
             songText: listItem.TEXT,
+            songTextLt: listItem.TEXT_LT || '',
             songName: listItem.NAME,  // Original name without number
             songNum: listItem.NUM,
             dispName: listItem.dispName,
@@ -343,6 +352,7 @@ app.controller('Tech', function ($scope, $http)
     $scope.saveSongEdits = function() {
         // Convert \n to \r\n for proper verse splitting
         var textWithCRLF = $scope.editConfig.songText.replace(/\r?\n/g, '\r\n');
+        var textLtWithCRLF = $scope.editConfig.songTextLt ? $scope.editConfig.songTextLt.replace(/\r?\n/g, '\r\n') : '';
 
         // First save text and title
         $http({
@@ -352,6 +362,7 @@ app.controller('Tech', function ($scope, $http)
                 command: 'update_song',
                 id: $scope.editConfig.songId,
                 text: textWithCRLF,  // Send with CRLF
+                text_lt: textLtWithCRLF,  // Send Lithuanian text with CRLF
                 name: $scope.editConfig.songName
             }
         }).then(

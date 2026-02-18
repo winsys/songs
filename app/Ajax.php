@@ -40,7 +40,7 @@ class Ajax
     private static function get_favorites_with_text()
     {
         $sql = "SELECT f.ID as FID, l.*, concat(l.num, ' - ',l.name) as dispName, n.LIST_NAME as bookName,
-                        concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName, f.SONGID, l.TEXT FROM favorites f 
+                        concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName, f.SONGID, l.TEXT, l.TEXT_LT FROM favorites f
                 left join song_list l ON l.ID=f.SONGID
                 left join list_names n ON n.LIST_ID=l.LISTID
                 where f.groupId={$_SESSION['userId']}";
@@ -168,15 +168,18 @@ class Ajax
     private static function update_song()
     {
         $songId = mysqli_escape_string(Info::get('dbh'), self::$args['id']);
-        
+
         // Preserve CRLF line breaks - don't strip them
         $text = self::$args['text'];
         // Escape for SQL but keep line breaks
         $text = mysqli_escape_string(Info::get('dbh'), $text);
-        
+
         $name = mysqli_escape_string(Info::get('dbh'), self::$args['name']);
-        
-        Info::get('db')->exec("UPDATE song_list SET TEXT = '{$text}', NAME = '{$name}' WHERE ID = {$songId}");
+
+        // Handle Lithuanian text if provided
+        $textLt = isset(self::$args['text_lt']) ? mysqli_escape_string(Info::get('dbh'), self::$args['text_lt']) : '';
+
+        Info::get('db')->exec("UPDATE song_list SET TEXT = '{$text}', TEXT_LT = '{$textLt}', NAME = '{$name}' WHERE ID = {$songId}");
         self::updateSocket();
         return json_encode(['status' => 'success']);
     }

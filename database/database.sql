@@ -54,6 +54,7 @@ CREATE TABLE IF NOT EXISTS `song_list` (
     `NUM` varchar(255) NOT NULL,
     `NAME` varchar(255) NOT NULL,
     `TEXT` text,
+    `TEXT_LT` text,
     PRIMARY KEY (`ID`)
     ) ENGINE=InnoDB AUTO_INCREMENT=3262 DEFAULT CHARSET=utf8;
 
