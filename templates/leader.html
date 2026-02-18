@@ -43,6 +43,12 @@
         overflow: hidden;
     }
 
+    .songlist-btn {
+        height: 24pt;
+        font-size: 14pt;
+        border-radius: 5px;
+    }
+
     /* Mobile responsive styles */
     @media (max-width: 768px) {
         .search-box {
@@ -174,42 +180,20 @@
 
     <div class="row">
         <div class="col-xs-3 col-s-3 col-md-3"
+             ng-repeat="list in visibleSongLists"
              style="margin-top: 20pt">
-            <button class="btn btn-sm btn-default search-box btn-list"
-                    ng-class="listId == 1 ? 'btn-selected' : ''"
-                    style="width: 100%" ng-click="setList(1)" >Донецк</button>
-        </div>
-        <div class="col-xs-3 col-s-3 col-md-3"
-             style="margin-top: 20pt">
-            <button class="btn btn-sm btn-default search-box btn-list"
-                    ng-class="listId == 2 ? 'btn-selected' : ''"
-                    style="width: 100%" ng-click="setList(2)">Москва</button>
-        </div>
-        <div class="col-xs-3 col-s-3 col-md-3"
-             style="margin-top: 20pt">
-            <button class="btn btn-sm btn-default search-box btn-list"
-                    ng-class="listId == 3 ? 'btn-selected' : ''"
-                    style="width: 100%" ng-click="setList(3)">Вильнюс</button>
+            <button class="btn btn-sm btn-default search-box btn-list songlist-btn"
+                    ng-class="listId == list.LIST_ID ? 'btn-selected' : ''"
+                    style="width: 100%"
+                    ng-click="setList(list.LIST_ID)">{{list.LIST_NAME}}</button>
         </div>
         <div class="col-xs-3 col-s-3 col-md-3 pull-right"
              style="margin-top: 20pt">
-            <button class="btn btn-sm btn-primary search-box" style="width: 100%" ng-click="openList()">Весь список</button>
-        </div>
-        <div class="col-xs-4 col-s-4 col-md-4"
-             style="margin-top: 20pt">
-            <button class="btn btn-sm btn-default search-box btn-list"
-                    ng-class="listId == 4 ? 'btn-selected' : ''"
-                    style="width: 100%" ng-click="setList(4)">Сольные (Рига)</button>
-        </div>
-        <div class="col-xs-5 col-s-5 col-md-5"
-             style="margin-top: 20pt">
-            <button class="btn btn-sm btn-default search-box btn-list"
-                    ng-class="listId == 5 ? 'btn-selected' : ''"
-                    style="width: 100%" ng-click="setList(5)">Сольные (Вильнюс)</button>
+            <button class="btn btn-sm btn-primary search-box songlist-btn" style="width: 100%" ng-click="openList()">Весь список</button>
         </div>
         <div class="col-xs-3 col-s-3 col-md-3 pull-right"
              style="margin-top: 20pt">
-            <button class="btn btn-sm btn-warning search-box" style="width: 100%" ng-click="addSong()" disabled>&#x2190; Добавить</button>
+            <button class="btn btn-sm btn-warning search-box songlist-btn" style="width: 100%" ng-click="addSong()" disabled>Добавить песню</button>
         </div>
     </div>
 
