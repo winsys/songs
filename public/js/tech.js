@@ -9,18 +9,50 @@ app.controller('Tech', function ($scope, $http)
     $scope.showingChapter = null;
     $scope.selectedChapters = [];
 
-    function splitText(src, srcLt){
+    // Language selection state (RU enabled by default)
+    $scope.languages = {
+        ru: true,
+        lt: false,
+        en: false
+    };
+
+    // Toggle language selection
+    $scope.toggleLanguage = function(lang) {
+        $scope.languages[lang] = !$scope.languages[lang];
+        // If all are disabled, re-enable RU
+        if (!$scope.languages.ru && !$scope.languages.lt && !$scope.languages.en) {
+            $scope.languages.ru = true;
+        }
+        // Refresh the prepared chapters if a song is selected
+        if ($scope.showingSong) {
+            splitText($scope.showingSong.TEXT, $scope.showingSong.TEXT_LT, $scope.showingSong.TEXT_EN);
+        }
+    };
+
+    function splitText(src, srcLt, srcEn){
         if(src){
             var ruChapters = src.split("\r\n");
             var ltChapters = srcLt ? srcLt.split("\r\n") : [];
+            var enChapters = srcEn ? srcEn.split("\r\n") : [];
 
             $scope.preparedChapters = [];
             angular.forEach(ruChapters, function(value, key){
-                // Combine Russian and Lithuanian verses if Lithuanian exists
-                var combinedVerse = value;
-                if(ltChapters[key]){
-                    combinedVerse = value + '\r\n- - - - - - - -\r\n' + ltChapters[key];
+                // Build combined verse based on selected languages
+                var verseParts = [];
+
+                if($scope.languages.ru && value) {
+                    verseParts.push(value);
                 }
+                if($scope.languages.lt && ltChapters[key]) {
+                    verseParts.push(ltChapters[key]);
+                }
+                if($scope.languages.en && enChapters[key]) {
+                    verseParts.push(enChapters[key]);
+                }
+
+                // Join with dashed line separator
+                var combinedVerse = verseParts.join('\r\n- - - - - - - -\r\n');
+
                 $scope.preparedChapters[key] = combinedVerse + '\n(' + key + ')';
             });
         }else{
@@ -50,7 +82,7 @@ app.controller('Tech', function ($scope, $http)
                         angular.forEach($scope.favorites, function(value, key){
                             if(($scope.curImage) && (value.imageName === $scope.curImage)) {
                                 $scope.showingSong = value;
-                                $scope.preparedChapters = splitText(value.TEXT, value.TEXT_LT);
+                                $scope.preparedChapters = splitText(value.TEXT, value.TEXT_LT, value.TEXT_EN);
                                 angular.forEach($scope.preparedChapters, function (value, key) {
                                     if (value === $scope.curChapter) {
                                         $scope.showingChapter = value;
@@ -79,7 +111,7 @@ app.controller('Tech', function ($scope, $http)
             });
         } else {
             $scope.showingSong = favoriteItem;
-            splitText(aText, favoriteItem.TEXT_LT);
+            splitText(aText, favoriteItem.TEXT_LT, favoriteItem.TEXT_EN);
             $scope.showingChapter = null;
             $scope.selectedChapters = [];
             $http({ method: "POST",
@@ -315,6 +347,7 @@ app.controller('Tech', function ($scope, $http)
             songId: listItem.ID,
             songText: listItem.TEXT,
             songTextLt: listItem.TEXT_LT || '',
+            songTextEn: listItem.TEXT_EN || '',
             songName: listItem.NAME,  // Original name without number
             songNum: listItem.NUM,
             dispName: listItem.dispName,
@@ -353,6 +386,7 @@ app.controller('Tech', function ($scope, $http)
         // Convert \n to \r\n for proper verse splitting
         var textWithCRLF = $scope.editConfig.songText.replace(/\r?\n/g, '\r\n');
         var textLtWithCRLF = $scope.editConfig.songTextLt ? $scope.editConfig.songTextLt.replace(/\r?\n/g, '\r\n') : '';
+        var textEnWithCRLF = $scope.editConfig.songTextEn ? $scope.editConfig.songTextEn.replace(/\r?\n/g, '\r\n') : '';
 
         // First save text and title
         $http({
@@ -363,6 +397,7 @@ app.controller('Tech', function ($scope, $http)
                 id: $scope.editConfig.songId,
                 text: textWithCRLF,  // Send with CRLF
                 text_lt: textLtWithCRLF,  // Send Lithuanian text with CRLF
+                text_en: textEnWithCRLF,  // Send English text with CRLF
                 name: $scope.editConfig.songName
             }
         }).then(

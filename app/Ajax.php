@@ -40,7 +40,7 @@ class Ajax
     private static function get_favorites_with_text()
     {
         $sql = "SELECT f.ID as FID, l.*, concat(l.num, ' - ',l.name) as dispName, n.LIST_NAME as bookName,
-                        concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName, f.SONGID, l.TEXT, l.TEXT_LT FROM favorites f
+                        concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName, f.SONGID, l.TEXT, l.TEXT_LT, l.TEXT_EN FROM favorites f
                 left join song_list l ON l.ID=f.SONGID
                 left join list_names n ON n.LIST_ID=l.LISTID
                 where f.groupId={$_SESSION['userId']}";
@@ -176,10 +176,11 @@ class Ajax
 
         $name = mysqli_escape_string(Info::get('dbh'), self::$args['name']);
 
-        // Handle Lithuanian text if provided
+        // Handle Lithuanian and English texts if provided
         $textLt = isset(self::$args['text_lt']) ? mysqli_escape_string(Info::get('dbh'), self::$args['text_lt']) : '';
+        $textEn = isset(self::$args['text_en']) ? mysqli_escape_string(Info::get('dbh'), self::$args['text_en']) : '';
 
-        Info::get('db')->exec("UPDATE song_list SET TEXT = '{$text}', TEXT_LT = '{$textLt}', NAME = '{$name}' WHERE ID = {$songId}");
+        Info::get('db')->exec("UPDATE song_list SET TEXT = '{$text}', TEXT_LT = '{$textLt}', TEXT_EN = '{$textEn}', NAME = '{$name}' WHERE ID = {$songId}");
         self::updateSocket();
         return json_encode(['status' => 'success']);
     }
