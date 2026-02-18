@@ -110,11 +110,25 @@
                     <img ng-src="{{settings.placeholder_image}}"
                          style="max-width: 200px; max-height: 150px; border: 1px solid #ccc; border-radius: 5px;">
                 </div>
-                <input type="file"
-                       id="placeholderUpload"
-                       accept="image/*"
-                       onchange="angular.element(this).scope().uploadPlaceholderImage()"
-                       class="settings-input">
+
+                <!-- Default Image Selection -->
+                <div style="margin-bottom: 15px;">
+                    <label class="settings-label" style="font-size: 10pt; font-weight: normal;">Выберите изображение по умолчанию:</label>
+                    <select class="settings-input"
+                            ng-model="settings.placeholder_image">
+                        <option ng-repeat="img in placeholderImages" value="{{img.path}}">{{img.name}}</option>
+                    </select>
+                </div>
+
+                <!-- Upload New Image -->
+                <div>
+                    <label class="settings-label" style="font-size: 10pt; font-weight: normal;">Или загрузите новое изображение:</label>
+                    <input type="file"
+                           id="placeholderUpload"
+                           accept="image/*"
+                           onchange="angular.element(this).scope().uploadPlaceholderImage()"
+                           class="settings-input">
+                </div>
             </div>
         </div>
     </div>

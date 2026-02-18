@@ -17,6 +17,10 @@ app.controller('Settings', function ($scope, $http)
 
     $scope.availableLists = [];
     $scope.selectedLists = {};
+    $scope.placeholderImages = [
+        { path: '/field_small.jpg', name: 'field_small.jpg (по умолчанию)' },
+        { path: '/icon-192.png', name: 'icon-192.png' }
+    ];
 
     // Load available song lists
     $scope.loadAvailableLists = function() {
@@ -67,7 +71,21 @@ app.controller('Settings', function ($scope, $http)
                 function success(response) {
                     if (response.data.path) {
                         $scope.settings.placeholder_image = response.data.path;
+
+                        // Add to list if not already present
+                        var exists = $scope.placeholderImages.some(function(img) {
+                            return img.path === response.data.path;
+                        });
+                        if (!exists) {
+                            var filename = response.data.path.split('/').pop();
+                            $scope.placeholderImages.push({
+                                path: response.data.path,
+                                name: filename
+                            });
+                        }
+
                         alert('Изображение загружено успешно!');
+                        fileInput.value = '';
                     }
                 },
                 function error(erespond) {
