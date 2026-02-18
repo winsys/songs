@@ -136,11 +136,6 @@ app.controller('Tech', function ($scope, $http)
                 $scope.selectedChapters.push(chapterText);
             }
 
-            // Combine all selected chapters, removing verse numbers (the part after last newline that looks like "(N)")
-            var combinedText = $scope.selectedChapters.map(function(chapter) {
-                return chapter.replace(/\n\(\d+\)$/, '');
-            }).join('\r\n'); // .join('\r\n- - - - -\r\n');
-
             if ($scope.selectedChapters.length === 0) {
                 // Clear if nothing selected
                 $http({ method: "POST",
@@ -153,6 +148,50 @@ app.controller('Tech', function ($scope, $http)
                     $scope.showingChapter = null;
                 });
             } else {
+                // Group verses by language
+                var ruChapters = $scope.showingSong.TEXT ? $scope.showingSong.TEXT.split("\r\n") : [];
+                var ltChapters = $scope.showingSong.TEXT_LT ? $scope.showingSong.TEXT_LT.split("\r\n") : [];
+                var enChapters = $scope.showingSong.TEXT_EN ? $scope.showingSong.TEXT_EN.split("\r\n") : [];
+
+                var languageParts = [];
+
+                // Extract verse indices from selected chapters
+                var verseIndices = $scope.selectedChapters.map(function(chapter) {
+                    var match = chapter.match(/\n\((\d+)\)$/);
+                    return match ? parseInt(match[1]) : -1;
+                }).filter(function(idx) { return idx >= 0; });
+
+                // Collect all verses for each language
+                if ($scope.languages.ru) {
+                    var ruVerses = verseIndices.map(function(idx) {
+                        return ruChapters[idx];
+                    }).filter(function(v) { return v; });
+                    if (ruVerses.length > 0) {
+                        languageParts.push(ruVerses.join('\r\n'));
+                    }
+                }
+
+                if ($scope.languages.lt) {
+                    var ltVerses = verseIndices.map(function(idx) {
+                        return ltChapters[idx];
+                    }).filter(function(v) { return v; });
+                    if (ltVerses.length > 0) {
+                        languageParts.push(ltVerses.join('\r\n'));
+                    }
+                }
+
+                if ($scope.languages.en) {
+                    var enVerses = verseIndices.map(function(idx) {
+                        return enChapters[idx];
+                    }).filter(function(v) { return v; });
+                    if (enVerses.length > 0) {
+                        languageParts.push(enVerses.join('\r\n'));
+                    }
+                }
+
+                // Join language groups with dashed separator
+                var combinedText = languageParts.join('\r\n- - - - - - - -\r\n');
+
                 // Send combined text
                 $http({ method: "POST",
                     url: "/ajax",
