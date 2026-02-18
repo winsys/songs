@@ -1,7 +1,24 @@
 app.controller('Musician', function ($scope, $http)
 {
     $scope.fullScreen = false;
-    $scope.imgName = '/icon-192.png';
+    $scope.imgName = '/field_small.jpg';
+    $scope.placeholderImage = '/field_small.jpg';
+
+    // Load placeholder image from settings
+    $scope.loadPlaceholderImage = function() {
+        $http({ method: "POST", url: "/ajax", data: {command: 'get_user_settings' } }).then(
+            function success(respond){
+                if (respond.data && respond.data.placeholder_image) {
+                    $scope.placeholderImage = respond.data.placeholder_image;
+                } else {
+                    $scope.placeholderImage = '/field_small.jpg';
+                }
+            },
+            function error(erespond){
+                $scope.placeholderImage = '/field_small.jpg';
+            }
+        );
+    };
 
     $scope.checkImage = function(){
         $http({ method: "POST", url: "/ajax", data: {command: 'get_image' } }).then(
@@ -9,7 +26,7 @@ app.controller('Musician', function ($scope, $http)
                 if( respond.data.length > 0 ){
                         $scope.imgName = respond.data[0].image + '?t=' + new Date().getTime();
                 }else{
-                        $scope.imgName = '/field_small.jpg';
+                        $scope.imgName = $scope.placeholderImage;
                 }
             },
         );
@@ -51,6 +68,7 @@ app.controller('Musician', function ($scope, $http)
         };
     }
 
+    $scope.loadPlaceholderImage();
     $scope.checkImage();
     initSocket();
 });
