@@ -47,6 +47,11 @@ app.controller('Settings', function ($scope, $http)
                             $scope.selectedLists[id] = true;
                         });
                     }
+
+                    // Ensure streaming_height_percent is a number
+                    if ($scope.settings.streaming_height_percent) {
+                        $scope.settings.streaming_height_percent = parseInt($scope.settings.streaming_height_percent, 10);
+                    }
                 }
             },
             function error(erespond){
