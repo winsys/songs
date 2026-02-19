@@ -101,34 +101,36 @@
             }
 
             function adjustTextSize() {
-                const container = document.getElementById("text-container");
-                const textElement = document.getElementById("text");
+                $timeout(function() {
+                    const container = document.getElementById("text-container");
+                    const textElement = document.getElementById("text");
 
-                if (!container || !textElement) return;
+                    if (!container || !textElement) return;
 
-                let maxSize = 100, currentSize = 10;
-                textElement.style.fontSize = currentSize + "px";
-
-                // Increase font size until text no longer fits
-                while (currentSize < maxSize &&
-                textElement.scrollHeight <= container.clientHeight &&
-                textElement.scrollWidth <= container.clientWidth) {
-                    currentSize++;
+                    let maxSize = 100, currentSize = 10;
                     textElement.style.fontSize = currentSize + "px";
-                }
 
-                // Decrease if text overflows
-                while (textElement.scrollHeight > container.clientHeight || textElement.scrollWidth > container.clientWidth) {
-                    currentSize--;
-                    textElement.style.fontSize = currentSize + "px";
-                    if (currentSize <= 1) break; // Safety check
-                }
+                    // Increase font size until text no longer fits
+                    while (currentSize < maxSize &&
+                    textElement.scrollHeight <= container.clientHeight &&
+                    textElement.scrollWidth <= container.clientWidth) {
+                        currentSize++;
+                        textElement.style.fontSize = currentSize + "px";
+                    }
 
-                if (currentSize > $scope.fontMaxSize) currentSize = $scope.fontMaxSize;
-                $scope.fontSize = currentSize;
-                if (!$scope.$$phase) {
-                    $scope.$apply();
-                }
+                    // Decrease if text overflows
+                    while (textElement.scrollHeight > container.clientHeight || textElement.scrollWidth > container.clientWidth) {
+                        currentSize--;
+                        textElement.style.fontSize = currentSize + "px";
+                        if (currentSize <= 1) break; // Safety check
+                    }
+
+                    if (currentSize > $scope.fontMaxSize) currentSize = $scope.fontMaxSize;
+                    $scope.fontSize = currentSize;
+                    if (!$scope.$$phase) {
+                        $scope.$apply();
+                    }
+                }, 0);
             }
 
             function fetchText() {

@@ -423,7 +423,25 @@ app.controller('Tech', function ($scope, $http)
             songNum: listItem.NUM,
             dispName: listItem.dispName,
             currentImage: listItem.imageName,
-            previewImage: null
+            previewImage: null,
+            isNewSong: false
+        };
+        $scope.showEditDialog(true);
+    };
+
+    $scope.addNewSong = function() {
+        $scope.editConfig = {
+            title: 'Добавление новой песни',
+            songId: null,
+            songText: '',
+            songTextLt: '',
+            songTextEn: '',
+            songName: '',
+            songNum: null,
+            dispName: '',
+            currentImage: null,
+            previewImage: null,
+            isNewSong: true
         };
         $scope.showEditDialog(true);
     };
@@ -459,36 +477,75 @@ app.controller('Tech', function ($scope, $http)
         var textLtWithCRLF = $scope.editConfig.songTextLt ? $scope.editConfig.songTextLt.replace(/\r?\n/g, '\r\n') : '';
         var textEnWithCRLF = $scope.editConfig.songTextEn ? $scope.editConfig.songTextEn.replace(/\r?\n/g, '\r\n') : '';
 
-        // First save text and title
-        $http({
-            method: "POST",
-            url: "/ajax",
-            data: {
-                command: 'update_song',
-                id: $scope.editConfig.songId,
-                text: textWithCRLF,  // Send with CRLF
-                text_lt: textLtWithCRLF,  // Send Lithuanian text with CRLF
-                text_en: textEnWithCRLF,  // Send English text with CRLF
-                name: $scope.editConfig.songName
-            }
-        }).then(
-            function success() {
-                // If image was selected, upload it
-                var fileInput = document.getElementById('imageUpload');
-                if (fileInput.files.length > 0) {
-                    $scope.uploadImage(function() {
+        if ($scope.editConfig.isNewSong) {
+            // Create new song
+            $http({
+                method: "POST",
+                url: "/ajax",
+                data: {
+                    command: 'create_song',
+                    list_id: $scope.listId,
+                    text: textWithCRLF,
+                    text_lt: textLtWithCRLF,
+                    text_en: textEnWithCRLF,
+                    name: $scope.editConfig.songName
+                }
+            }).then(
+                function success(response) {
+                    // Set the songId and songNum from the response
+                    $scope.editConfig.songId = response.data.song_id;
+                    $scope.editConfig.songNum = $scope.listId + '/' + response.data.num;
+
+                    // If image was selected, upload it
+                    var fileInput = document.getElementById('imageUpload');
+                    if (fileInput.files.length > 0) {
+                        $scope.uploadImage(function() {
+                            // Add the new song to favorites
+                            $scope.addSongToFavorites($scope.editConfig.songId);
+                            $scope.showEditDialog(false);
+                        });
+                    } else {
+                        // Add the new song to favorites
+                        $scope.addSongToFavorites($scope.editConfig.songId);
+                        $scope.showEditDialog(false);
+                    }
+                },
+                function error(erespond) {
+                    console.log('Ajax call error: ', erespond);
+                }
+            );
+        } else {
+            // Update existing song
+            $http({
+                method: "POST",
+                url: "/ajax",
+                data: {
+                    command: 'update_song',
+                    id: $scope.editConfig.songId,
+                    text: textWithCRLF,
+                    text_lt: textLtWithCRLF,
+                    text_en: textEnWithCRLF,
+                    name: $scope.editConfig.songName
+                }
+            }).then(
+                function success() {
+                    // If image was selected, upload it
+                    var fileInput = document.getElementById('imageUpload');
+                    if (fileInput.files.length > 0) {
+                        $scope.uploadImage(function() {
+                            $scope.reloadFavorites();
+                            $scope.showEditDialog(false);
+                        });
+                    } else {
                         $scope.reloadFavorites();
                         $scope.showEditDialog(false);
-                    });
-                } else {
-                    $scope.reloadFavorites();
-                    $scope.showEditDialog(false);
+                    }
+                },
+                function error(erespond) {
+                    console.log('Ajax call error: ', erespond);
                 }
-            },
-            function error(erespond) {
-                console.log('Ajax call error: ', erespond);
-            }
-        );
+            );
+        }
     };
 
     $scope.uploadImage = function(callback) {

@@ -202,6 +202,46 @@ class Ajax
         return json_encode(['status' => 'success']);
     }
 
+    private static function create_song()
+    {
+        $listId = mysqli_escape_string(Info::get('dbh'), self::$args['list_id']);
+
+        // Preserve CRLF line breaks - don't strip them
+        $text = mysqli_escape_string(Info::get('dbh'), self::$args['text']);
+        $name = mysqli_escape_string(Info::get('dbh'), self::$args['name']);
+
+        // Handle Lithuanian and English texts if provided
+        $textLt = isset(self::$args['text_lt']) ? mysqli_escape_string(Info::get('dbh'), self::$args['text_lt']) : '';
+        $textEn = isset(self::$args['text_en']) ? mysqli_escape_string(Info::get('dbh'), self::$args['text_en']) : '';
+
+        // Insert the song to get the auto-generated ID
+        Info::get('db')->exec("INSERT INTO song_list (LISTID, NUM, NAME, TEXT, TEXT_LT, TEXT_EN) VALUES ({$listId}, '', '{$name}', '{$text}', '{$textLt}', '{$textEn}')");
+
+        // Get the newly created song's ID
+        $newSongId = Info::get('db')->insert_id();
+
+        // Generate NUM based on the ID
+        $baseNum = (string)$newSongId;
+        $num = $baseNum;
+        $suffix = 1;
+
+        // Check if NUM already exists in this song list and add suffix if needed
+        while (true) {
+            $existing = Info::get('db')->get("SELECT ID FROM song_list WHERE LISTID = {$listId} AND NUM = '{$num}' AND ID != {$newSongId}");
+            if (!$existing) {
+                break;
+            }
+            $num = $baseNum . '_' . $suffix;
+            $suffix++;
+        }
+
+        // Update the NUM field
+        Info::get('db')->exec("UPDATE song_list SET NUM = '{$num}' WHERE ID = {$newSongId}");
+
+        self::updateSocket();
+        return json_encode(['status' => 'success', 'song_id' => $newSongId, 'num' => $num]);
+    }
+
     private static function upload_song_image()
     {
         // Log for debugging
