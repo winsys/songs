@@ -65,12 +65,6 @@
 </head>
 <body ng-controller="TextController" ng-click="enterFullscreen()">
 <div id="wrapper">
-    <!-- Show placeholder image when no text -->
-    <img id="placeholder-image"
-         ng-if="!text && placeholderImage"
-         ng-src="{{placeholderImage}}"
-         alt="Placeholder">
-
     <!-- Show text when available -->
     <div id="text-container" ng-if="text">
         <div id="text" ng-style="{'font-size': fontSize + 'px'}">{{ text }}</div>
@@ -86,7 +80,6 @@
             $scope.fontSize = 10;
             $scope.fontMaxSize = 64;
             $scope.userSettings = null;
-            $scope.placeholderImage = null;
 
             $scope.enterFullscreen = function() {
                 if (!document.fullscreenElement) {
@@ -108,9 +101,6 @@
                     if (textElement) {
                         textElement.style.fontFamily = settings.main_font || 'Arial';
                     }
-
-                    // Set placeholder image
-                    $scope.placeholderImage = settings.placeholder_image;
                 }
             }
 

@@ -311,15 +311,30 @@ app.controller('Tech', function ($scope, $http)
 
     $scope.deleteFavoriteItem = function(fav_id, fav_title){
         $scope.confirmationDialog(fav_title, function(){
+            // Find the item being deleted
+            var deletingItem = null;
+            angular.forEach($scope.favorites, function(item) {
+                if (item.FID === fav_id) {
+                    deletingItem = item;
+                }
+            });
+
+            // Check if we're deleting the currently displayed song
+            var isDeletingCurrentSong = ($scope.showingSong && deletingItem &&
+                                         $scope.showingSong.FID === deletingItem.FID);
+
             $http({ method: "POST", url: "/ajax", data: {command: 'delete_favorite_item', id: fav_id } }).then(
                 function success(){
-                    $http({ method: "POST",
-                        url: "/ajax",
-                        data: { command: 'clear_image' }
-                    });
-                    $scope.showingSong = null;
-                    $scope.preparedChapters = [];
-                    $scope.showingChapter = null;
+                    // Only clear the image if we're deleting the currently displayed song
+                    if (isDeletingCurrentSong) {
+                        $http({ method: "POST",
+                            url: "/ajax",
+                            data: { command: 'clear_image' }
+                        });
+                        $scope.showingSong = null;
+                        $scope.preparedChapters = [];
+                        $scope.showingChapter = null;
+                    }
                     $scope.reloadFavorites();
                 },
             );
@@ -405,7 +420,14 @@ app.controller('Tech', function ($scope, $http)
     $scope.setList = function( listId ){
         $scope.listId = listId;
         $scope.reloadSongList();
-    }
+    };
+
+    // Watch for listId changes to reload song list for search
+    $scope.$watch('listId', function(newVal, oldVal) {
+        if (newVal !== oldVal) {
+            $scope.reloadSongList();
+        }
+    });
 
 
     // $interval(function() {
@@ -589,6 +611,7 @@ app.controller('Tech', function ($scope, $http)
 
     $scope.loadSongLists();
     $scope.reloadFavorites();
+    $scope.reloadSongList();
 
 });
 
