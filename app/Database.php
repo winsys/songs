@@ -62,6 +62,11 @@ class Database
         return true;
     }
 
+    public function insert_id()
+    {
+        return $this->f_handle->insert_id;
+    }
+
     public function db_handle()
     {
         return $this->f_handle;
