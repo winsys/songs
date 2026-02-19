@@ -183,9 +183,10 @@
                 };
             }
 
-            angular.element(window).on('load resize', adjustTextSize);
-            initSocket();
             fetchText();
+            initSocket();
+
+            angular.element(window).on('load resize', adjustTextSize);
         });
 </script>
 </body>
