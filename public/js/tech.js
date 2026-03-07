@@ -1,5 +1,3 @@
-var app = angular.module('app', ['angucomplete-alt']);
-
 app.controller('Tech', function ($scope, $http, $timeout)
 {
     // ── Songs mode state ──────────────────────────────────────
