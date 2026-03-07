@@ -305,6 +305,97 @@ class Ajax
         return json_encode(['status' => 'error', 'message' => $errorMsg]);
     }
 
+    // -----------------------------------------------------------
+    // Получить все переводы Библии
+    // -----------------------------------------------------------
+    private static function get_bible_translations()
+    {
+        $list = Info::get('db')->select(
+            "SELECT ID, NAME, LANG FROM bible_translations ORDER BY SORT_ORDER, ID"
+        );
+        return json_encode($list);
+    }
+
+    // -----------------------------------------------------------
+    // Получить все книги для указанного перевода
+    // Параметры: translation_id
+    // -----------------------------------------------------------
+    private static function get_bible_books()
+    {
+        $translationId = (int)self::$args['translation_id'];
+        $list = Info::get('db')->select(
+            "SELECT ID, BOOK_NUM, NAME, NAME_LT, NAME_EN
+             FROM bible_books
+             WHERE TRANSLATION_ID = {$translationId}
+             ORDER BY BOOK_NUM"
+        );
+        return json_encode($list);
+    }
+
+    // -----------------------------------------------------------
+    // Получить номера глав для книги
+    // Параметры: book_id
+    // -----------------------------------------------------------
+    private static function get_bible_chapters()
+    {
+        $bookId = (int)self::$args['book_id'];
+        $list = Info::get('db')->select(
+            "SELECT DISTINCT CHAPTER_NUM
+             FROM bible_verses
+             WHERE BOOK_ID = {$bookId}
+             ORDER BY CHAPTER_NUM"
+        );
+        return json_encode(array_map(function($row) {
+            return (int)$row['CHAPTER_NUM'];
+        }, $list));
+    }
+
+    // -----------------------------------------------------------
+    // Получить все стихи для книги + главы
+    // Параметры: book_id, chapter_num
+    // -----------------------------------------------------------
+    private static function get_bible_verses()
+    {
+        $bookId     = (int)self::$args['book_id'];
+        $chapterNum = (int)self::$args['chapter_num'];
+        $list = Info::get('db')->select(
+            "SELECT ID, VERSE_NUM, TEXT, TEXT_LT, TEXT_EN
+             FROM bible_verses
+             WHERE BOOK_ID = {$bookId} AND CHAPTER_NUM = {$chapterNum}
+             ORDER BY VERSE_NUM"
+        );
+        return json_encode($list);
+    }
+
+    // -----------------------------------------------------------
+    // Поиск стихов по тексту
+    // Параметры: translation_id, query
+    // -----------------------------------------------------------
+    private static function search_bible_verses()
+    {
+        $translationId = (int)self::$args['translation_id'];
+        $query = mysqli_escape_string(
+            Info::get('dbh'),
+            self::$args['query']
+        );
+
+        $list = Info::get('db')->select(
+            "SELECT v.ID, v.BOOK_ID, v.CHAPTER_NUM, v.VERSE_NUM,
+                    v.TEXT, v.TEXT_LT, v.TEXT_EN,
+                    b.NAME as BOOK_NAME, b.NAME_LT as BOOK_NAME_LT, b.NAME_EN as BOOK_NAME_EN
+             FROM bible_verses v
+             JOIN bible_books b ON b.ID = v.BOOK_ID
+             WHERE b.TRANSLATION_ID = {$translationId}
+               AND (v.TEXT LIKE '%{$query}%'
+                    OR v.TEXT_LT LIKE '%{$query}%'
+                    OR v.TEXT_EN LIKE '%{$query}%')
+             ORDER BY b.BOOK_NUM, v.CHAPTER_NUM, v.VERSE_NUM
+             LIMIT 200"
+        );
+        return json_encode($list);
+    }
+
+
     private static function updateSocket()
     {
         $err1 = '';
