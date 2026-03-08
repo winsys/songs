@@ -375,6 +375,7 @@
             <input type="text"
                    class="form-control"
                    style="font-size: 12pt;"
+                   placeholder="ГГГГ-ММ-ДД"
                    ng-model="sermon.date" />
         </div>
     </div>
@@ -464,10 +465,13 @@
 
             <!-- Toolbar -->
             <div class="editor-toolbar">
-                <!-- Text formatting -->
-                <button class="toolbar-btn" title="Жирный (Ctrl+B)" ng-click="execFmt('bold')"><b>B</b></button>
-                <button class="toolbar-btn" title="Подчёркнутый (Ctrl+U)" ng-click="execFmt('underline')"><u>U</u></button>
-                <button class="toolbar-btn" title="Курсив (Ctrl+I)" ng-click="execFmt('italic')"><i>I</i></button>
+                <!-- Text formatting: ng-mousedown + preventDefault keeps editor focus/selection intact -->
+                <button class="toolbar-btn" title="Жирный (Ctrl+B)"
+                        ng-mousedown="$event.preventDefault(); execFmt('bold')"><b>B</b></button>
+                <button class="toolbar-btn" title="Подчёркнутый (Ctrl+U)"
+                        ng-mousedown="$event.preventDefault(); execFmt('underline')"><u>U</u></button>
+                <button class="toolbar-btn" title="Курсив (Ctrl+I)"
+                        ng-mousedown="$event.preventDefault(); execFmt('italic')"><i>I</i></button>
 
                 <div class="toolbar-sep"></div>
 
@@ -475,25 +479,26 @@
                 <div class="color-picker-wrap" style="position:relative;">
                     <span style="font-size:9pt; color:#666;">Цвет:</span>
                     <span class="color-swatch" ng-style="{'background': currentColor}"
-                          ng-click="showColorPicker = !showColorPicker" title="Цвет текста"></span>
+                          ng-mousedown="$event.preventDefault(); toggleColorPicker()" title="Цвет текста"></span>
                     <div class="color-dropdown" ng-show="showColorPicker">
                         <span class="color-swatch" ng-repeat="c in colorPalette"
                               ng-style="{'background': c}"
-                              ng-click="applyColor(c)" title="{{ c }}"></span>
+                              ng-mousedown="$event.preventDefault(); applyColor(c)" title="{{ c }}"></span>
                     </div>
                 </div>
 
                 <div class="toolbar-sep"></div>
 
                 <!-- Clear formatting -->
-                <button class="toolbar-btn" title="Очистить форматирование" ng-click="execFmt('removeFormat')">✕ формат</button>
+                <button class="toolbar-btn" title="Очистить форматирование"
+                        ng-mousedown="$event.preventDefault(); execFmt('removeFormat')">✕ формат</button>
 
                 <div class="toolbar-sep"></div>
 
                 <!-- Upload image -->
-                <button class="toolbar-btn" title="Вставить изображение" ng-click="triggerImageUpload()">🖼 Фото</button>
-                <input type="file" id="sermon-image-input" accept="image/*" style="display:none;"
-                       onchange="angular.element(this).scope().onImageSelected(this)" />
+                <button class="toolbar-btn" title="Вставить изображение"
+                        ng-click="triggerImageUpload()">🖼 Фото</button>
+                <input type="file" id="sermon-image-input" accept="image/*" style="display:none;" />
 
                 <div style="flex:1;"></div>
 
@@ -506,7 +511,6 @@
             <!-- Editor area -->
             <div id="sermon-editor"
                  contenteditable="true"
-                 ng-click="hideColorPicker()"
                  spellcheck="false">
             </div>
 
