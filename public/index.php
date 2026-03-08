@@ -11,12 +11,17 @@ include "../app/App.php";
 // Keep sessions alive for 3 hours (10800 seconds).
 $sessionLifetime = 3 * 60 * 60;
 ini_set('session.gc_maxlifetime', $sessionLifetime);
-session_set_cookie_params([
-    'lifetime' => $sessionLifetime,
-    'path' => '/',
-    'httponly' => true,
-    'samesite' => 'Lax',
-]);
+
+// session_set_cookie_params with array syntax requires PHP 7.3+.
+// Use the old 5-argument form for compatibility with PHP 5.x / 7.0 / 7.1 / 7.2.
+session_set_cookie_params(
+    $sessionLifetime,   // lifetime
+    '/',                // path
+    '',                 // domain (empty = current)
+    false,              // secure
+    true                // httponly
+);
+
 session_start();
 
 Info::set('config', include '../app/config.php');

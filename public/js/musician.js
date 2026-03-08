@@ -23,12 +23,21 @@ app.controller('Musician', function ($scope, $http)
     $scope.checkImage = function(){
         $http({ method: "POST", url: "/ajax", data: {command: 'get_image' } }).then(
             function success(respond){
-                if( respond.data.length > 0 ){
-                        $scope.imgName = respond.data[0].image + '?t=' + new Date().getTime();
-                }else{
+                if (respond.data.length > 0) {
+                    var imagePath = respond.data[0].image || '';
+                    // Show placeholder for: sermon images, bible text marker, empty path
+                    var isSermonImage = (imagePath.indexOf('/sermon_images/') === 0);
+                    var isBible = (imagePath === '__bible__');
+                    var isEmpty = (imagePath === '');
+                    if (isSermonImage || isBible || isEmpty) {
                         $scope.imgName = $scope.placeholderImage;
+                    } else {
+                        $scope.imgName = imagePath + '?t=' + new Date().getTime();
+                    }
+                } else {
+                    $scope.imgName = $scope.placeholderImage;
                 }
-            },
+            }
         );
     };
 
@@ -49,9 +58,6 @@ app.controller('Musician', function ($scope, $http)
 
         socket.onmessage = function(event) {
             let data = JSON.parse(event.data);
-
-            console.log(event.data);
-
             if (data.type === 'update_needed') {
                 $scope.$apply(function() {
                     $scope.checkImage();
@@ -72,4 +78,3 @@ app.controller('Musician', function ($scope, $http)
     $scope.checkImage();
     initSocket();
 });
-

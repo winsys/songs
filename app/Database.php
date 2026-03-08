@@ -21,7 +21,7 @@ class Database
             '/var/run/mysqld/mysqld.sock' ))
         {
             $this->f_handle = $ii;
-            $this->f_handle->set_charset("utf8");
+            $this->f_handle->set_charset("utf8mb4");
             $this->error = '';
         } else $this->error = mysqli_connect_error();
     }

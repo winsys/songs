@@ -17,6 +17,7 @@
             height: 100vh;
             text-align: center;
             transition: background-color 0.3s, color 0.3s;
+            overflow: hidden;
         }
 
         #wrapper {
@@ -61,9 +62,24 @@
             max-height: 90vh;
             object-fit: contain;
         }
+
+        /* Sermon / tech image overlay — covers everything */
+        #overlay-image {
+            position: fixed;
+            top: 0; left: 0;
+            width: 100vw;
+            height: 100vh;
+            object-fit: contain;
+            background: black;
+            z-index: 10;
+        }
     </style>
 </head>
 <body ng-controller="TextController" ng-click="enterFullscreen()">
+
+<!-- Full-screen image overlay (sermon images, tech images) -->
+<img id="overlay-image" ng-show="overlayImageSrc" ng-src="{{ overlayImageSrc }}" />
+
 <div id="wrapper">
     <!-- Show text when available -->
     <div id="text-container" ng-if="text">
@@ -80,6 +96,7 @@
             $scope.fontSize = 10;
             $scope.fontMaxSize = 64;
             $scope.userSettings = null;
+            $scope.overlayImageSrc = "";
 
             $scope.enterFullscreen = function() {
                 if (!document.fullscreenElement) {
@@ -109,10 +126,11 @@
                     const container = document.getElementById("text-container");
                     const textElement = document.getElementById("text");
 
+                    if (!container || !textElement) return;
+
                     let maxSize = 100, currentSize = 10;
                     textElement.style.fontSize = currentSize + "px";
 
-                    // Уменьшаем размер шрифта, если текст не помещается
                     while (currentSize < maxSize &&
                     textElement.scrollHeight <= container.clientHeight &&
                     textElement.scrollWidth <= container.clientWidth) {
@@ -120,16 +138,14 @@
                         textElement.style.fontSize = currentSize + "px";
                     }
 
-                    // Если шрифт слишком большой для текста, уменьшаем его
                     while (textElement.scrollHeight > container.clientHeight || textElement.scrollWidth > container.clientWidth) {
                         currentSize--;
                         textElement.style.fontSize = currentSize + "px";
                     }
 
-
                     if (currentSize > $scope.fontMaxSize) currentSize = $scope.fontMaxSize;
-                            $scope.fontSize = currentSize;
-                            $scope.$apply();
+                    $scope.fontSize = currentSize;
+                    $scope.$apply();
                 }, 0);
             }
 
@@ -140,19 +156,42 @@
                             $scope.srcText = "";
                             $scope.text = "";
                             $scope.songName = "";
+                            $scope.overlayImageSrc = "";
                         } else {
-                            // Apply user settings if available
-                            if (response.data[0].user_settings) {
-                                applyUserSettings(response.data[0].user_settings);
+                            var row = response.data[0];
+
+                            // Apply user settings
+                            if (row.user_settings) {
+                                applyUserSettings(row.user_settings);
                             }
 
-                            $scope.srcText = response.data[0].text;
-                            let preparedText = response.data[0].text.substring(0, response.data[0].text.length);
-                            preparedText = preparedText.replace("$ $", "\r\n-----\r\n");
-                            $scope.text = preparedText.replace(/\$(\*{5,})\$/g, (match, stars) => "·".repeat(stars.length));
-                            $scope.text = $scope.text.replace("$", "");
-                            $scope.songName = response.data[0].song_name;
-                            adjustTextSize();
+                            // Image overlay: any image that is NOT the bible marker
+                            // and has no text is treated as a full-screen image
+                            var imagePath = row.image || '';
+
+                            // Only show full-screen image overlay for sermon images.
+                            // Song images (/images/...) must NEVER trigger the overlay —
+                            // they are handled by the musician screen, not the text screen.
+                            var isSermonImage = (imagePath.indexOf('/sermon_images/') === 0);
+
+                            if (isSermonImage) {
+                                // Sermon image — show full-screen overlay, hide text
+                                $scope.overlayImageSrc = imagePath;
+                                $scope.text = "";
+                                $scope.songName = "";
+                            } else {
+                                // Text mode (song verse or bible text)
+                                $scope.overlayImageSrc = "";
+                                if ($scope.srcText !== row.text) {
+                                    $scope.srcText = row.text;
+                                    let preparedText = (row.text || '').substring(0);
+                                    preparedText = preparedText.replace("$ $", "\r\n-----\r\n");
+                                    $scope.text = preparedText.replace(/\$(\*{5,})\$/g, (match, stars) => "·".repeat(stars.length));
+                                    $scope.text = $scope.text.replace("$", "");
+                                    $scope.songName = row.song_name;
+                                    adjustTextSize();
+                                }
+                            }
                         }
                     });
             }
@@ -162,9 +201,6 @@
 
                 socket.onmessage = function(event) {
                     let data = JSON.parse(event.data);
-
-                    console.log(event.data);
-
                     if (data.type === 'update_needed') {
                         $scope.$apply(function() {
                             fetchText();

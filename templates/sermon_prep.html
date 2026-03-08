@@ -1,19 +1,560 @@
-<div ng-controller="SermonPrep" class="container">
-    <div class="row">
-        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="width:100%">
-            <div class="row" style="padding-top: 20px">
-                <li style="text-align: center;
-                        box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
-                        width: 100%; font-size: 12pt"
-                    class="btn btn-default btn-lg noHover">Подготовка проповеди — <?php echo $_SESSION['userName'] ?></li>
-            </div>
+<style>
+    /* ===== Layout ===== */
+    .prep-header-row {
+        padding-top: 20px;
+    }
+    .prep-two-col {
+        display: flex;
+        gap: 10px;
+        margin-top: 14px;
+        align-items: flex-start;
+    }
+    .prep-bible-col {
+        width: 320px;
+        min-width: 220px;
+        flex-shrink: 0;
+    }
+    .prep-editor-col {
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* ===== Bible navigator (same style as tech.html) ===== */
+    .prep-panel {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        padding: 0;
+        height: 72vh;
+        overflow-y: auto;
+    }
+    .prep-panel-title {
+        font-size: 11pt;
+        font-weight: bold;
+        color: #555;
+        padding: 6px 12px 8px;
+        border-bottom: 1px solid #eee;
+        background: #fafafa;
+        border-radius: 8px 8px 0 0;
+        position: sticky;
+        top: 0;
+    }
+    .prep-list-item {
+        padding: 7px 12px;
+        cursor: pointer;
+        font-size: 10pt;
+        border-bottom: 1px solid #f5f5f5;
+        transition: background-color 0.12s;
+        user-select: none;
+    }
+    .prep-list-item:hover { background-color: #f0f0f0; }
+    .prep-list-item.selected { background-color: #d9ffd9; font-weight: bold; }
+    .prep-verse-item {
+        display: block;
+        box-sizing: border-box;
+        width: calc(100% - 16px);
+        padding: 8px 12px;
+        border: solid 1px silver;
+        border-radius: 8px;
+        margin: 5px 8px;
+        cursor: pointer;
+        font-size: 10pt;
+        white-space: pre-wrap;
+        word-break: break-word;
+        transition: background-color 0.15s;
+        user-select: none;
+    }
+    .prep-verse-item:hover { background-color: #f0f0f0; }
+    .prep-verse-item.verse-selected {
+        background-color: #c5f5c5;
+        border-color: #4caf50;
+        font-weight: bold;
+    }
+    .prep-bible-search {
+        width: 100%;
+        padding: 6px 10px;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        font-size: 10pt;
+        margin-bottom: 6px;
+        box-sizing: border-box;
+    }
+
+    /* ===== Toolbar ===== */
+    .editor-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 6px 8px;
+        background: #f5f5f5;
+        border: 1px solid #ddd;
+        border-radius: 8px 8px 0 0;
+        align-items: center;
+    }
+    .toolbar-btn {
+        padding: 4px 10px;
+        border: 1px solid #ccc;
+        background: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 12pt;
+        line-height: 1.4;
+        transition: background 0.1s;
+    }
+    .toolbar-btn:hover { background: #e8e8e8; }
+    .toolbar-btn.active { background: #337ab7; color: #fff; border-color: #2e6da4; }
+    .toolbar-sep {
+        width: 1px;
+        height: 24px;
+        background: #ccc;
+        margin: 0 2px;
+    }
+    .color-swatch {
+        width: 22px;
+        height: 22px;
+        border-radius: 3px;
+        border: 2px solid #ccc;
+        cursor: pointer;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+    .color-swatch:hover { border-color: #333; }
+    .color-picker-wrap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 3px;
+    }
+    .color-dropdown {
+        position: absolute;
+        top: 30px;
+        left: 0;
+        background: #fff;
+        border: 1px solid #ccc;
+        border-radius: 6px;
+        padding: 6px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        width: 130px;
+        z-index: 1000;
+        box-shadow: 0 3px 8px rgba(0,0,0,0.18);
+    }
+
+    /* ===== Contenteditable editor ===== */
+    #sermon-editor {
+        min-height: 62vh;
+        max-height: 72vh;
+        overflow-y: auto;
+        border: 1px solid #ddd;
+        border-top: none;
+        border-radius: 0 0 8px 8px;
+        padding: 12px 14px;
+        font-size: 12pt;
+        line-height: 1.7;
+        outline: none;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+    #sermon-editor:empty::before {
+        content: 'Начните писать заметки по теме проповеди...';
+        color: #bbb;
+        pointer-events: none;
+    }
+
+    /* ===== Bible citation chip ===== */
+    .bible-cite {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        background: #e8f4fd;
+        border: 1px solid #90caf9;
+        border-radius: 12px;
+        padding: 2px 10px 2px 8px;
+        font-size: 10pt;
+        color: #1565c0;
+        font-weight: 600;
+        cursor: pointer;
+        user-select: none;
+        white-space: nowrap;
+        vertical-align: middle;
+        margin: 1px 2px;
+        transition: background 0.15s;
+    }
+    .bible-cite:hover { background: #bbdefb; }
+    .bible-cite .cite-remove {
+        display: inline-block;
+        margin-left: 4px;
+        color: #999;
+        font-size: 11pt;
+        font-weight: 400;
+        cursor: pointer;
+        line-height: 1;
+    }
+    .bible-cite .cite-remove:hover { color: #e53935; }
+
+    /* ===== Sermon image wrap ===== */
+    .sermon-img-wrap {
+        display: inline-block;
+        position: relative;
+        margin: 4px 2px;
+        vertical-align: middle;
+        cursor: pointer;
+        border: 2px solid #ddd;
+        border-radius: 6px;
+        overflow: hidden;
+        background: #fafafa;
+    }
+    .sermon-img-wrap:hover { border-color: #337ab7; }
+    .sermon-img-thumb {
+        display: block;
+        max-width: 200px;
+        max-height: 150px;
+        object-fit: cover;
+    }
+    .sermon-img-remove {
+        position: absolute;
+        top: 3px;
+        right: 5px;
+        background: rgba(0,0,0,0.55);
+        color: #fff;
+        border-radius: 50%;
+        width: 20px;
+        height: 20px;
+        text-align: center;
+        line-height: 18px;
+        font-size: 12pt;
+        cursor: pointer;
+        display: none;
+    }
+    .sermon-img-wrap:hover .sermon-img-remove { display: block; }
+
+    /* ===== Sermon list ===== */
+    .sermon-list-item {
+        padding: 8px 12px;
+        border-bottom: 1px solid #f0f0f0;
+        cursor: pointer;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 10pt;
+        transition: background 0.12s;
+    }
+    .sermon-list-item:hover { background: #f5f5f5; }
+    .sermon-list-item.active { background: #e3f2fd; font-weight: bold; }
+    .sermon-list-date {
+        color: #888;
+        font-size: 9pt;
+        margin-left: 8px;
+    }
+
+    /* ===== Bottom panel ===== */
+    .prep-bottom {
+        margin-top: 10px;
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+    .save-status {
+        font-size: 9pt;
+        color: #888;
+        margin-left: 8px;
+    }
+    .save-status.saved { color: #388e3c; }
+    .save-status.saving { color: #f57c00; }
+
+    /* ===== Sermons sidebar (small panel) ===== */
+    .sermons-sidebar {
+        margin-top: 10px;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+    .sermons-sidebar-title {
+        background: #fafafa;
+        padding: 6px 12px;
+        font-weight: bold;
+        font-size: 10pt;
+        color: #555;
+        border-bottom: 1px solid #eee;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    /* ===== Bible navigator toggle (mobile) ===== */
+    .bible-toggle-btn {
+        display: none;
+    }
+    @media (max-width: 700px) {
+        .prep-two-col {
+            flex-direction: column;
+        }
+        .prep-bible-col {
+            width: 100%;
+            min-width: 0;
+        }
+        .bible-toggle-btn {
+            display: inline-block;
+        }
+        .prep-bible-col.collapsed .prep-bible-inner {
+            display: none;
+        }
+    }
+
+    /* ===== Translation buttons ===== */
+    .tr-btn {
+        font-size: 9pt;
+        padding: 3px 10px;
+        border-radius: 4px;
+        border: 1px solid #ccc;
+        background: #fff;
+        cursor: pointer;
+        margin-right: 4px;
+        margin-bottom: 4px;
+    }
+    .tr-btn.active-tr {
+        background: #337ab7;
+        color: #fff;
+        border-color: #2e6da4;
+    }
+
+    /* ===== Image fullscreen modal ===== */
+    #sermon-img-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.88);
+        justify-content: center;
+        align-items: center;
+    }
+    #sermon-img-modal.open {
+        display: flex;
+    }
+    #sermon-img-modal img {
+        max-width: 95vw;
+        max-height: 95vh;
+        object-fit: contain;
+        border-radius: 6px;
+    }
+    #sermon-img-modal .close-modal {
+        position: fixed;
+        top: 18px; right: 24px;
+        color: #fff;
+        font-size: 30pt;
+        cursor: pointer;
+        z-index: 10000;
+        line-height: 1;
+    }
+</style>
+
+<div ng-controller="SermonPrep" class="container" style="max-width: 1100px;">
+
+    <!-- Header -->
+    <div class="row prep-header-row">
+        <div class="col-xs-12">
+            <li style="text-align: center;
+                    box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
+                    width: 100%; font-size: 12pt"
+                class="btn btn-default btn-lg noHover">📖 Подготовка проповеди — <?php echo $_SESSION['userName'] ?></li>
         </div>
     </div>
 
-    <div class="row" style="margin-top: 40px; text-align: center;">
-        <h2>Режим «Подготовка проповеди»</h2>
-        <p style="color: gray;">Режим в разработке</p>
+    <!-- Title + Date row -->
+    <div class="row" style="margin-top: 14px;">
+        <div class="col-xs-7 col-sm-8">
+            <input type="text"
+                   class="form-control"
+                   style="font-size: 14pt; font-weight: bold;"
+                   placeholder="Название проповеди"
+                   ng-model="sermon.title" />
+        </div>
+        <div class="col-xs-5 col-sm-4">
+            <input type="text"
+                   class="form-control"
+                   style="font-size: 12pt;"
+                   placeholder="ГГГГ-ММ-ДД"
+                   ng-model="sermon.date" />
+        </div>
     </div>
-</div>
+
+    <!-- Two-column body -->
+    <div class="prep-two-col">
+
+        <!-- ===== Bible Navigator (left) ===== -->
+        <div class="prep-bible-col" ng-class="{collapsed: biblePanelCollapsed}">
+            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
+                <strong style="font-size:10pt; color:#555;">📚 Библия</strong>
+                <button class="btn btn-xs btn-default bible-toggle-btn"
+                        ng-click="biblePanelCollapsed = !biblePanelCollapsed">
+                    {{ biblePanelCollapsed ? '▼ Открыть' : '▲ Свернуть' }}
+                </button>
+            </div>
+
+            <div class="prep-bible-inner">
+
+                <!-- Translation buttons -->
+                <div style="margin-bottom:8px; display:flex; flex-wrap:wrap; gap:4px;">
+                    <button ng-repeat="tr in bibleTranslations"
+                            class="tr-btn"
+                            ng-class="{'active-tr': bibleTranslationId == tr.ID}"
+                            ng-click="setBibleTranslation(tr.ID)">{{ tr.NAME }}</button>
+                </div>
+
+                <!-- Book search -->
+                <input type="text"
+                       class="prep-bible-search"
+                       placeholder="Поиск книги..."
+                       ng-model="bookSearchQuery" />
+
+                <!-- Books panel -->
+                <div class="prep-panel" id="prep-books-panel" style="height:28vh;">
+                    <div class="prep-panel-title">Книги</div>
+                    <div class="prep-list-item"
+                         ng-repeat="book in getFilteredBooks()"
+                         ng-class="{selected: selectedBook && selectedBook.ID === book.ID}"
+                         ng-click="selectBook(book)">{{ getBookName(book) }}</div>
+                    <div ng-show="!bibleTranslationId" style="padding:10px; color:#aaa; font-size:9pt;">
+                        Выберите перевод
+                    </div>
+                </div>
+
+                <!-- Chapters panel -->
+                <div class="prep-panel" id="prep-chapters-panel" style="height:18vh; margin-top:6px;" ng-show="selectedBook">
+                    <div class="prep-panel-title">Главы</div>
+                    <div style="display:flex; flex-wrap:wrap; gap:4px; padding:8px;">
+                        <button class="btn btn-xs"
+                                ng-repeat="ch in bibleChapters"
+                                ng-class="selectedChapter == ch ? 'btn-success' : 'btn-default'"
+                                ng-click="selectChapter(ch)">{{ ch }}</button>
+                    </div>
+                </div>
+
+                <!-- Verses panel -->
+                <div class="prep-panel" id="prep-verses-panel" style="height:22vh; margin-top:6px;" ng-show="selectedChapter">
+                    <div class="prep-panel-title">
+                        Стихи
+                        <span ng-show="selectedBibleVerseNums.length > 0" style="color:#337ab7; font-size:9pt; font-weight:normal; margin-left:6px;">
+                            ({{ selectedBibleVerseNums.length }} выбр.)
+                        </span>
+                    </div>
+                    <span class="prep-verse-item"
+                          ng-repeat="v in preparedVerses"
+                          ng-class="{'verse-selected': selectedBibleVerseNums.indexOf(v.num) > -1}"
+                          ng-click="toggleVerse(v, $event)">{{ v.display }}</span>
+                    <div ng-show="preparedVerses.length === 0 && selectedChapter" style="padding:10px; color:#aaa; font-size:9pt;">
+                        Загрузка...
+                    </div>
+                </div>
+
+                <!-- Insert citation button -->
+                <button class="btn btn-success btn-sm"
+                        style="width:100%; margin-top:8px; font-size:10pt;"
+                        ng-disabled="selectedBibleVerseNums.length === 0"
+                        ng-click="insertBibleCitation()">
+                    📌 Вставить {{ selectedBibleVerseNums.length > 0 ? getRefLabel() : 'цитату' }}
+                </button>
+
+            </div><!-- /prep-bible-inner -->
+        </div><!-- /prep-bible-col -->
+
+        <!-- ===== Editor (right) ===== -->
+        <div class="prep-editor-col">
+
+            <!-- Toolbar -->
+            <div class="editor-toolbar">
+                <!-- Text formatting: ng-mousedown + preventDefault keeps editor focus/selection intact -->
+                <button class="toolbar-btn" title="Жирный (Ctrl+B)"
+                        ng-mousedown="$event.preventDefault(); execFmt('bold')"><b>B</b></button>
+                <button class="toolbar-btn" title="Подчёркнутый (Ctrl+U)"
+                        ng-mousedown="$event.preventDefault(); execFmt('underline')"><u>U</u></button>
+                <button class="toolbar-btn" title="Курсив (Ctrl+I)"
+                        ng-mousedown="$event.preventDefault(); execFmt('italic')"><i>I</i></button>
+
+                <div class="toolbar-sep"></div>
+
+                <!-- Color picker -->
+                <div class="color-picker-wrap" style="position:relative;">
+                    <span style="font-size:9pt; color:#666;">Цвет:</span>
+                    <span class="color-swatch" ng-style="{'background': currentColor}"
+                          ng-mousedown="$event.preventDefault(); toggleColorPicker()" title="Цвет текста"></span>
+                    <div class="color-dropdown" ng-show="showColorPicker">
+                        <span class="color-swatch" ng-repeat="c in colorPalette"
+                              ng-style="{'background': c}"
+                              ng-mousedown="$event.preventDefault(); applyColor(c)" title="{{ c }}"></span>
+                    </div>
+                </div>
+
+                <div class="toolbar-sep"></div>
+
+                <!-- Clear formatting -->
+                <button class="toolbar-btn" title="Очистить форматирование"
+                        ng-mousedown="$event.preventDefault(); execFmt('removeFormat')">✕ формат</button>
+
+                <div class="toolbar-sep"></div>
+
+                <!-- Upload image -->
+                <button class="toolbar-btn" title="Вставить изображение"
+                        ng-click="triggerImageUpload()">🖼 Фото</button>
+                <input type="file" id="sermon-image-input" accept="image/*" style="display:none;" />
+
+                <div style="flex:1;"></div>
+
+                <!-- Sermon list toggle -->
+                <button class="toolbar-btn" ng-click="showSermonList = !showSermonList" title="Список проповедей">
+                    📋 Список
+                </button>
+            </div>
+
+            <!-- Editor area -->
+            <div id="sermon-editor"
+                 contenteditable="true"
+                 spellcheck="false">
+            </div>
+
+            <!-- Bottom bar -->
+            <div class="prep-bottom">
+                <button class="btn btn-success btn-sm" ng-click="saveSermon()">💾 Сохранить</button>
+                <button class="btn btn-default btn-sm" ng-click="newSermon()">+ Новая проповедь</button>
+                <button class="btn btn-danger btn-sm" ng-show="sermon.id" ng-click="confirmDelete()">🗑 Удалить</button>
+                <span class="save-status" ng-class="{'saved': saveStatus === 'saved', 'saving': saveStatus === 'saving'}"
+                      ng-show="saveStatus">
+                    {{ saveStatus === 'saving' ? 'Сохранение...' : (saveStatus === 'saved' ? '✓ Сохранено' : '') }}
+                </span>
+            </div>
+
+            <!-- Sermon list panel -->
+            <div class="sermons-sidebar" ng-show="showSermonList" style="max-height:200px; overflow-y:auto;">
+                <div class="sermons-sidebar-title">
+                    <span>📋 Проповеди</span>
+                    <span ng-click="showSermonList=false" style="cursor:pointer; font-size:14pt; color:#999;">×</span>
+                </div>
+                <div ng-show="sermonList.length === 0" style="padding:10px; color:#aaa; font-size:9pt;">
+                    Нет сохранённых проповедей
+                </div>
+                <div class="sermon-list-item"
+                     ng-repeat="s in sermonList"
+                     ng-class="{active: sermon.id == s.ID}"
+                     ng-click="loadSermon(s.ID)">
+                    <span>{{ s.TITLE || '(без названия)' }}</span>
+                    <span class="sermon-list-date">{{ s.SERMON_DATE }}</span>
+                </div>
+            </div>
+
+        </div><!-- /prep-editor-col -->
+    </div><!-- /prep-two-col -->
+
+    <!-- Spacer -->
+    <div style="height:60px;"></div>
+
+    <!-- Fullscreen image modal -->
+    <div id="sermon-img-modal" ng-click="closeImgModal()">
+        <span class="close-modal">×</span>
+        <img ng-src="{{ modalImgSrc }}" ng-click="$event.stopPropagation()" />
+    </div>
+
+</div><!-- /container -->
 
 <script src="/js/sermon_prep.js?v=1" type="text/javascript"></script>
