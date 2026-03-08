@@ -61,8 +61,16 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
             scheduleAutoSave();
         });
 
+        // File input listener — avoids onchange="angular.element..." pattern
+        var fileInput = document.getElementById('sermon-image-input');
+        fileInput.addEventListener('change', function () {
+            $scope.$apply(function () {
+                $scope.onImageSelected(fileInput);
+            });
+        });
+
         // Close color picker when clicking outside toolbar
-        document.addEventListener('click', function (e) {
+        document.addEventListener('mousedown', function (e) {
             if (!e.target.closest('.color-picker-wrap')) {
                 $scope.$apply(function () { $scope.showColorPicker = false; });
             }
@@ -196,19 +204,22 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
     // ==========================================================
 
     $scope.execFmt = function (cmd) {
-        editorEl.focus();
+        // ng-mousedown with preventDefault keeps selection alive — just run the command
         document.execCommand(cmd, false, null);
     };
 
-    $scope.applyColor = function (color) {
-        $scope.currentColor = color;
-        $scope.showColorPicker = false;
-        editorEl.focus();
-        document.execCommand('foreColor', false, color);
+    $scope.toggleColorPicker = function () {
+        // Selection is still alive here (mousedown was prevented)
+        saveRange();
+        $scope.showColorPicker = !$scope.showColorPicker;
     };
 
-    $scope.hideColorPicker = function () {
+    $scope.applyColor = function (color) {
+        $scope.currentColor  = color;
         $scope.showColorPicker = false;
+        // Restore the selection that was saved when picker opened
+        restoreRange();
+        document.execCommand('foreColor', false, color);
     };
 
     // ==========================================================
