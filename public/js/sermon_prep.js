@@ -25,15 +25,6 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
     $scope.preparedVerses       = [];          // [{num, display}]
     $scope.selectedBibleVerseNums = [];        // verse numbers selected (int[])
 
-    // ── Messages panel state (sermon prep) ──────────────────────
-    $scope.prepMsgTitleQuery    = '';
-    $scope.prepMsgTextQuery     = '';
-    $scope.prepMsgResults       = [];
-    $scope.prepSelectedMessage  = null;
-    $scope.prepMsgParagraphs    = [];   // [{idx, text}]
-    $scope.prepSelectedParaIdx  = null;
-    var prepMsgSearchTimer      = null;
-
     // ── UI state ─────────────────────────────────────────────
     $scope.bookSearchQuery      = '';
     $scope.biblePanelCollapsed  = false;
@@ -54,31 +45,21 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
     // ── Auto-save timer ──────────────────────────────────────
     var autoSaveTimer = null;
 
+    // ── Messages panel state ─────────────────────────────────
+    $scope.leftPanelTab         = 'bible';
+    $scope.prepMsgTitleQuery    = '';
+    $scope.prepMsgTextQuery     = '';
+    $scope.prepMsgResults       = [];
+    $scope.prepSelectedMessage  = null;
+    $scope.prepMsgParagraphs    = [];
+    $scope.prepSelectedParaIdx  = null;
+    var prepMsgSearchTimer      = null;
+
     // ==========================================================
     // INIT
     // ==========================================================
 
     angular.element(document).ready(function () {
-        editorEl = document.getElementById('sermon-editor');
-
-        // Track cursor position whenever user interacts with editor
-        ['mouseup', 'keyup', 'touchend'].forEach(function (ev) {
-            editorEl.addEventListener(ev, saveRange);
-        });
-
-        // Trigger auto-save on content change
-        editorEl.addEventListener('input', function () {
-            scheduleAutoSave();
-        });
-
-        // File input listener — avoids onchange="angular.element..." pattern
-        var fileInput = document.getElementById('sermon-image-input');
-        fileInput.addEventListener('change', function () {
-            $scope.$apply(function () {
-                $scope.onImageSelected(fileInput);
-            });
-        });
-
         // Close color picker when clicking outside toolbar
         document.addEventListener('mousedown', function (e) {
             if (!e.target.closest('.color-picker-wrap')) {
@@ -86,7 +67,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
             }
         });
 
-        // Init: set default date (today + 1 day) and load data
+        // Set default date + load data (scope functions are ready here)
         $scope.$apply(function () {
             var d = new Date();
             d.setDate(d.getDate() + 1);
@@ -94,6 +75,35 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
             $scope.loadSermonList();
             $scope.loadBibleTranslations();
         });
+
+        // Defer editor init until Angular has rendered the DOM
+        $timeout(function () {
+            editorEl = document.getElementById('sermon-editor');
+            if (!editorEl) {
+                console.warn('sermon-editor not found in DOM');
+                return;
+            }
+
+            // Track cursor position
+            ['mouseup', 'keyup', 'touchend'].forEach(function (ev) {
+                editorEl.addEventListener(ev, saveRange);
+            });
+
+            // Auto-save on content change
+            editorEl.addEventListener('input', function () {
+                scheduleAutoSave();
+            });
+
+            // File input listener
+            var fileInput = document.getElementById('sermon-image-input');
+            if (fileInput) {
+                fileInput.addEventListener('change', function () {
+                    $scope.$apply(function () {
+                        $scope.onImageSelected(fileInput);
+                    });
+                });
+            }
+        }, 0);
     });
 
     function saveRange() {
@@ -626,7 +636,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
     };
 
     $scope.insertMessageCitation = function () {
-        if ($scope.prepSelectedParaIdx === null) return;
+        if ($scope.prepSelectedParaIdx === null || !editorEl) return;
 
         var para = null;
         for (var i = 0; i < $scope.prepMsgParagraphs.length; i++) {
@@ -656,7 +666,6 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
         };
 
         insertNodeAtCursor(span);
-
         $scope.prepSelectedParaIdx = null;
     };
 
