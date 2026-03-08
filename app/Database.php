@@ -29,9 +29,12 @@ class Database
     public function select($q)
     {
         $res = $this->f_handle->query($q);
+        if ($res === false) {
+            error_log('Database::select() SQL error: ' . $this->f_handle->error . ' | Query: ' . $q);
+            return array();
+        }
         $result = array();
-        while ($rec = $res->fetch_array(MYSQLI_ASSOC))
-        {
+        while ($rec = $res->fetch_array(MYSQLI_ASSOC)) {
             $result[] = $rec;
         }
         return $result;
@@ -40,8 +43,11 @@ class Database
     public function get($q)
     {
         $res = $this->f_handle->query($q);
-        $rec = $res->fetch_array();
-        return $rec;
+        if ($res === false) {
+            error_log('Database::get() SQL error: ' . $this->f_handle->error . ' | Query: ' . $q);
+            return null;
+        }
+        return $res->fetch_array(MYSQLI_ASSOC);
     }
 
 
