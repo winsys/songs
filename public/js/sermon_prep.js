@@ -165,7 +165,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
                 content: content
             }}).then(
             function (r) {
-                if (r.data && r.data.id) {
+                if (r.data && r.data.status === 'error') {
+                    console.error('save_sermon server error:', r.data.message);
+                    alert('Ошибка сохранения: ' + r.data.message);
+                    $scope.saveStatus = '';
+                    return;
+                }
+                if (r.data && r.data.id != null && r.data.id !== false) {
                     $scope.sermon.id = r.data.id;
                 }
                 $scope.saveStatus = 'saved';
@@ -173,7 +179,8 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
                 $timeout(function () { $scope.saveStatus = ''; }, 2500);
             },
             function (e) {
-                console.error('save_sermon error', e);
+                console.error('save_sermon HTTP error:', e);
+                alert('Ошибка сохранения (HTTP ' + (e.status || '?') + ')');
                 $scope.saveStatus = '';
             }
         );
