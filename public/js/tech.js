@@ -541,8 +541,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
 
     function sendBibleText(text, refLabel) {
         $http({ method: "POST", url: "/ajax",
-            data: { command: 'set_text',
-                image_name: '',
+            data: { command: 'set_bible_text',
                 text: text,
                 song_name: refLabel } });
     }

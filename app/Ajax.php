@@ -395,6 +395,33 @@ class Ajax
         return json_encode($list);
     }
 
+    // -----------------------------------------------------------
+    // Отправить стих Библии на экран.
+    // В отличие от set_text (который делает UPDATE по image_name),
+    // этот метод делает DELETE + INSERT — строка в current всегда
+    // будет создана, даже если её ещё нет.
+    // Параметры: text, song_name
+    // При пустом text — просто очищает экран.
+    // -----------------------------------------------------------
+    private static function set_bible_text()
+    {
+        $userId    = (int)$_SESSION['userId'];
+        $text      = mysqli_escape_string(Info::get('dbh'), self::$args['text']);
+        $song_name = mysqli_escape_string(Info::get('dbh'), self::$args['song_name']);
+
+        Info::get('db')->exec("DELETE FROM current WHERE groupId={$userId}");
+
+        if ($text !== '') {
+            Info::get('db')->exec(
+                "INSERT INTO current (groupId, image, text, song_name)
+                 VALUES ({$userId}, '__bible__', '{$text}', '{$song_name}')"
+            );
+        }
+
+        self::updateSocket();
+        return '';
+    }
+
 
     private static function updateSocket()
     {
