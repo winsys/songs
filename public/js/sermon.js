@@ -125,7 +125,10 @@ angular.module('Songs', [])
                     e.preventDefault();
                     activateElement(el);
                     var path = el.getAttribute('data-image-path');
-                    if (path) showImage(path);
+                    if (path) {
+                        showImage(path);
+                        sendImageToDisplay(path);
+                    }
                 };
             });
         }
@@ -141,7 +144,7 @@ angular.module('Songs', [])
         }
 
         // ==========================================================
-        // FETCH BIBLE VERSE & DISPLAY
+        // FETCH BIBLE VERSE, SHOW LOCALLY + SEND TO /text/ via Ajax
         // ==========================================================
 
         function fetchAndShowVerse(translationId, bookId, chapter, verseNum, refLabel) {
@@ -160,29 +163,42 @@ angular.module('Songs', [])
                 }
                 if (found) {
                     var text = verseNum + '. ' + (found.TEXT || '');
+                    // Update local right panel
                     showText(text, refLabel);
-                } else {
-                    showText('', refLabel);
+                    // Send to /text/ display (writes to `current`, triggers WebSocket)
+                    $http({ method: "POST", url: "/ajax", data: {
+                            command: 'set_bible_text',
+                            text: text,
+                            song_name: refLabel
+                        }});
                 }
             });
         }
 
+        function sendImageToDisplay(path) {
+            // set_tech_image expects image_name without leading slash, relative path
+            $http({ method: "POST", url: "/ajax", data: {
+                    command: 'set_tech_image',
+                    image_name: path
+                }});
+        }
+
         // ==========================================================
-        // SHOW TEXT / IMAGE ON RIGHT PANEL
+        // SHOW TEXT / IMAGE ON RIGHT PANEL (local preview only)
         // ==========================================================
 
         function showText(text, title) {
             $scope.displayImageSrc = '';
             $scope.displayText     = text;
             $scope.displayTitle    = title || '';
-            var imgEl = document.getElementById('display-image');
-            if (imgEl) imgEl.style.display = 'none';
-            $timeout(adjustDisplayFontSize, 30);
-            $timeout(applyDisplaySettings, 50);
+            // Single $timeout — let Angular render, then measure
+            $timeout(function () {
+                applyDisplaySettings();
+                adjustDisplayFontSize();
+            }, 0);
         }
 
         function showImage(path) {
-            // Called from native onclick — need $apply to update Angular bindings
             if ($scope.$$phase) {
                 $scope.displayImageSrc = path;
                 $scope.displayText     = '';
@@ -194,46 +210,34 @@ angular.module('Songs', [])
                     $scope.displayTitle    = '';
                 });
             }
-            $timeout(function () {
-                var imgEl = document.getElementById('display-image');
-                if (imgEl) {
-                    imgEl.style.display   = 'block';
-                    imgEl.style.maxWidth  = '100%';
-                    imgEl.style.maxHeight = '100%';
-                    imgEl.style.objectFit = 'contain';
-                }
-                applyDisplaySettings();
-            }, 50);
+            $timeout(applyDisplaySettings, 50);
         }
 
         // ==========================================================
-        // AUTO FONT SIZE (mirrors text_layout.html logic)
+        // AUTO FONT SIZE
         // ==========================================================
 
         function adjustDisplayFontSize() {
-            $timeout(function () {
-                var container = document.getElementById('display-text-container');
-                var textEl    = document.getElementById('display-text');
-                if (!container || !textEl) return;
+            var container = document.getElementById('display-text-container');
+            var textEl    = document.getElementById('display-text');
+            if (!container || !textEl) return;
 
-                var maxSize = 100, currentSize = 10;
+            var maxSize = 100, currentSize = 10;
+            textEl.style.fontSize = currentSize + 'px';
+
+            while (currentSize < maxSize &&
+            textEl.scrollHeight <= container.clientHeight &&
+            textEl.scrollWidth  <= container.clientWidth) {
+                currentSize++;
                 textEl.style.fontSize = currentSize + 'px';
-
-                while (currentSize < maxSize &&
-                textEl.scrollHeight <= container.clientHeight &&
-                textEl.scrollWidth  <= container.clientWidth) {
-                    currentSize++;
-                    textEl.style.fontSize = currentSize + 'px';
-                }
-                while ((textEl.scrollHeight > container.clientHeight ||
-                    textEl.scrollWidth  > container.clientWidth) && currentSize > 1) {
-                    currentSize--;
-                    textEl.style.fontSize = currentSize + 'px';
-                }
-
-                if (currentSize > 64) currentSize = 64;
-                $scope.displayFontSize = currentSize;
-            }, 0);
+            }
+            while ((textEl.scrollHeight > container.clientHeight ||
+                textEl.scrollWidth  > container.clientWidth) && currentSize > 1) {
+                currentSize--;
+                textEl.style.fontSize = currentSize + 'px';
+            }
+            if (currentSize > 64) currentSize = 64;
+            $scope.displayFontSize = currentSize;
         }
 
         angular.element(window).on('resize', function () {
