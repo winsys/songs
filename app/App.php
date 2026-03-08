@@ -2,31 +2,23 @@
 
 class App
 {
-
-    /**
-     * APP START
-     */
     public function run()
     {
-        if (isset($_REQUEST['route'])){
+        if (isset($_REQUEST['route'])) {
             $route = explode('/', $_REQUEST['route']);
-        }else{
+        } else {
             $route = array();
         }
         $this->selectRoute($route);
     }
 
-
-    /**
-     * ROUTER
-     */
     private function selectRoute($route)
     {
         if (count($route) == 0) {
-            if( !Security::isLoggedIn() ){
+            if (!Security::isLoggedIn()) {
                 header("Location: /login");
             } else {
-                header("Location: /index/".$_SESSION['userId']);
+                header("Location: " . Security::defaultRedirect());
             }
             exit;
         }
@@ -37,12 +29,11 @@ class App
             exit;
         }
 
-        if( !Security::isLoggedIn() )
-        {
-            if( Security::loginRequest() ) {
+        if (!Security::isLoggedIn()) {
+            if (Security::loginRequest()) {
                 if (Security::doLogin()) {
                     if (Security::isLoggedIn()) {
-                        header("Location: /index/".$_SESSION['userId']);
+                        header("Location: " . Security::defaultRedirect());
                         exit;
                     }
                 }
@@ -51,9 +42,15 @@ class App
             exit;
         }
 
+        // Access control
+        if (!Security::canAccess($route[0])) {
+            header("HTTP/1.1 403 Forbidden");
+            echo '403 — недостаточно прав доступа.';
+            exit;
+        }
+
         switch ($route[0]) {
             case 'ajax':
-                // Handle file uploads differently (uses $_POST instead of php://input)
                 if (!empty($_FILES)) {
                     $cmds = $_POST;
                 } else {
@@ -67,7 +64,6 @@ class App
             case 'text_stream':
                 $this->render($route[0], $route[1], 'text_layout_streaming');
                 break;
-            // Sermon presentation mode — standalone full-screen page
             case 'sermon':
                 $this->render($route[0], $route[1], 'sermon_layout');
                 break;
@@ -77,24 +73,22 @@ class App
         }
     }
 
-    /**
-     * RENDERER
-     */
     private function render($view, $param = null, $layout = null)
     {
-        $userId = $param;
-        $viewFile = '../templates/'.$view.'.html';
-        if (is_readable($viewFile))
-        {
+        $userId   = $param;
+        $viewFile = '../templates/' . $view . '.html';
+        if (is_readable($viewFile)) {
             ob_start();
             include $viewFile;
             $pageContent = ob_get_contents();
             ob_end_clean();
-        }else{
+        } else {
             $pageContent = 'no content';
         }
 
-        $layoutFile = is_null($layout) ? '../templates/layout.html' : '../templates/'.$layout.'.html';
+        $layoutFile = is_null($layout)
+            ? '../templates/layout.html'
+            : '../templates/' . $layout . '.html';
 
         ob_start();
         include $layoutFile;
@@ -103,5 +97,4 @@ class App
 
         echo $html;
     }
-
 }
