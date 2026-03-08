@@ -58,7 +58,7 @@ class Security {
     private static $roleRoutes = array(
         'admin'    => null,  // null = unrestricted
         'leader'   => array('index', 'ajax', 'leader', 'tech'),
-        'musician' => array('index', 'ajax', 'piano', 'musician'),
+        'musician' => array('index', 'ajax', 'musician'),
         'preacher' => array('index', 'ajax', 'sermon_prep', 'sermon'),
     );
 
