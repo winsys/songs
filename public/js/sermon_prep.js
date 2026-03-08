@@ -156,6 +156,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
 
     $scope.saveSermon = function () {
         var content = editorEl ? editorEl.innerHTML : '';
+        var isNew = !$scope.sermon.id;
         $scope.saveStatus = 'saving';
         $http({ method: "POST", url: "/ajax", data: {
                 command: 'save_sermon',
@@ -175,6 +176,10 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
                     $scope.sermon.id = r.data.id;
                 }
                 $scope.saveStatus = 'saved';
+                // For new sermons — open the list so user sees it was added
+                if (isNew) {
+                    $scope.showSermonList = true;
+                }
                 $scope.loadSermonList();
                 $timeout(function () { $scope.saveStatus = ''; }, 2500);
             },
@@ -326,33 +331,34 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
     $scope.insertBibleCitation = function () {
         if ($scope.selectedBibleVerseNums.length === 0) return;
 
-        var refLabel = $scope.getRefLabel();
         var nums = $scope.selectedBibleVerseNums.slice().sort(function(a,b){return a-b;});
+        var bookName = $scope.selectedBook ? $scope.getBookName($scope.selectedBook) : '';
 
-        var span = document.createElement('span');
-        span.className = 'bible-cite';
-        span.contentEditable = 'false';
-        span.setAttribute('data-translation-id', $scope.bibleTranslationId || '');
-        span.setAttribute('data-book-id', $scope.selectedBook ? $scope.selectedBook.ID : '');
-        span.setAttribute('data-book-name', $scope.selectedBook ? $scope.getBookName($scope.selectedBook) : '');
-        span.setAttribute('data-chapter', $scope.selectedChapter || '');
-        span.setAttribute('data-verse-nums', nums.join(','));
+        // Insert one chip per verse
+        nums.forEach(function (num) {
+            var refLabel = bookName + ' ' + $scope.selectedChapter + ':' + num;
 
-        span.innerHTML = '📖 ' + refLabel +
-            ' <span class="cite-remove" title="Удалить">×</span>';
+            var span = document.createElement('span');
+            span.className = 'bible-cite';
+            span.contentEditable = 'false';
+            span.setAttribute('data-translation-id', $scope.bibleTranslationId || '');
+            span.setAttribute('data-book-id', $scope.selectedBook ? $scope.selectedBook.ID : '');
+            span.setAttribute('data-book-name', bookName);
+            span.setAttribute('data-chapter', $scope.selectedChapter || '');
+            span.setAttribute('data-verse-nums', num);
+            span.setAttribute('data-ref-label', refLabel);
 
-        // Remove button inside citation
-        var removeBtn = span.querySelector('.cite-remove');
-        removeBtn.onclick = function (e) {
-            e.stopPropagation();
-            span.remove();
-            scheduleAutoSave();
-        };
+            span.innerHTML = '📖 ' + refLabel +
+                ' <span class="cite-remove" title="Удалить">×</span>';
 
-        // In Sermon mode this span will be clickable — store the reference
-        span.setAttribute('data-ref-label', refLabel);
+            span.querySelector('.cite-remove').onclick = function (e) {
+                e.stopPropagation();
+                span.remove();
+                scheduleAutoSave();
+            };
 
-        insertNodeAtCursor(span);
+            insertNodeAtCursor(span);
+        });
 
         // Clear verse selection after insert
         $scope.selectedBibleVerseNums = [];
