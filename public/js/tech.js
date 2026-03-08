@@ -28,8 +28,9 @@ app.controller('Tech', function ($scope, $http, $timeout)
     $scope.bibleSearchQuery     = '';
     var bibleSearchTimer        = null;
 
-    // ── Messages mode state ───────────────────────────────────
-    $scope.messageSearchQuery   = '';
+// ── Messages mode state ───────────────────────────────────
+    $scope.messageTitleQuery    = '';
+    $scope.messageTextQuery     = '';
     $scope.messageSearchResults = [];
     $scope.selectedMessage      = null;
     $scope.messageParagraphs    = [];
@@ -586,7 +587,10 @@ app.controller('Tech', function ($scope, $http, $timeout)
     $scope.searchMessages = function() {
         if (messageSearchTimer) $timeout.cancel(messageSearchTimer);
 
-        if (!$scope.messageSearchQuery || $scope.messageSearchQuery.length < 2) {
+        var titleQ = $scope.messageTitleQuery  || '';
+        var textQ  = $scope.messageTextQuery   || '';
+
+        if (titleQ.length < 2 && textQ.length < 2) {
             $scope.messageSearchResults = [];
             return;
         }
@@ -594,7 +598,8 @@ app.controller('Tech', function ($scope, $http, $timeout)
         messageSearchTimer = $timeout(function() {
             $http({ method: "POST", url: "/ajax", data: {
                     command: 'search_messages',
-                    query: $scope.messageSearchQuery
+                    title_query: titleQ,
+                    text_query:  textQ
                 }}).then(function(r) {
                 $scope.messageSearchResults = r.data;
             });

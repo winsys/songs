@@ -335,13 +335,21 @@
     <!-- ========================================================== -->
     <div ng-show="pageMode === 'messages'">
 
-        <!-- Double search: title + content -->
+        <!-- Two search boxes: title + text -->
         <div class="row">
-            <div class="col-xs-12" style="margin-top: 20pt; margin-bottom: 10px;">
+            <div class="col-xs-6" style="margin-top: 20pt; margin-bottom: 10px; padding-right: 5px;">
                 <input type="text"
                        class="form-control search-box"
-                       placeholder="Поиск по названию или тексту послания..."
-                       ng-model="messageSearchQuery"
+                       placeholder="Поиск по названию..."
+                       ng-model="messageTitleQuery"
+                       ng-change="searchMessages()"
+                       style="height: 32pt; font-size: 14pt;" />
+            </div>
+            <div class="col-xs-6" style="margin-top: 20pt; margin-bottom: 10px; padding-left: 5px;">
+                <input type="text"
+                       class="form-control search-box"
+                       placeholder="Поиск по тексту..."
+                       ng-model="messageTextQuery"
                        ng-change="searchMessages()"
                        style="height: 32pt; font-size: 14pt;" />
             </div>
@@ -356,23 +364,23 @@
                     <div class="bible-panel-title">📜 Послания</div>
 
                     <!-- Search results -->
-                    <div ng-show="messageSearchQuery.length >= 2">
+                    <div ng-show="messageTitleQuery.length >= 2 || messageTextQuery.length >= 2">
                         <div class="bible-list-item"
                              ng-repeat="msg in messageSearchResults"
                              ng-class="{'selected': selectedMessage && selectedMessage.ID === msg.ID}"
                              ng-click="selectMessage(msg)">
                             <strong style="font-size: 10pt;">{{ msg.TITLE }}</strong>
                             <span style="display:block; font-size: 9pt; color: #888;">
-                                {{ msg.CODE }}&nbsp;&nbsp;{{ msg.CITY ? ' · ' + msg.CITY : '' }}
+                            {{ msg.CODE }}&nbsp;&nbsp;{{ msg.CITY ? '· ' + msg.CITY : '' }}
                             </span>
                         </div>
-                        <div ng-show="messageSearchResults.length === 0 && messageSearchQuery.length >= 2"
+                        <div ng-show="messageSearchResults.length === 0"
                              style="padding: 12px; color: #999; font-size: 10pt;">
                             Ничего не найдено
                         </div>
                     </div>
 
-                    <div ng-show="!messageSearchQuery || messageSearchQuery.length < 2"
+                    <div ng-show="messageTitleQuery.length < 2 && messageTextQuery.length < 2"
                          style="padding: 12px; color: #999; font-size: 10pt;">
                         Введите минимум 2 символа для поиска
                     </div>

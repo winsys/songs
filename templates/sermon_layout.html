@@ -110,6 +110,37 @@
             color: #fff;
             box-shadow: 0 0 0 2px #1976d2;
         }
+
+        /* ===== Message cite chip (in notes) ===== */
+        #notes-body .message-cite {
+            display: inline-flex;
+            align-items: flex-start;
+            background: #2d1b3d;
+            border: 1px solid #7b1fa2;
+            border-radius: 10px;
+            padding: 4px 12px;
+            font-size: 10pt;
+            color: #ce93d8;
+            font-weight: normal;
+            cursor: pointer;
+            user-select: none;
+            white-space: pre-wrap;
+            word-break: break-word;
+            vertical-align: middle;
+            margin: 2px 3px;
+            transition: background 0.15s, border-color 0.15s;
+            max-width: 100%;
+        }
+        #notes-body .message-cite:hover { background: #3d1f52; border-color: #ab47bc; }
+        #notes-body .message-cite.active-cite {
+            background: #4a148c;
+            border-color: #e040fb;
+            color: #fff;
+            box-shadow: 0 0 0 2px #7b1fa2;
+        }
+        /* Hide the × remove button in sermon mode */
+        #notes-body .message-cite .cite-remove { display: none !important; }
+
         /* Hide the × remove button in sermon mode */
         #notes-body .cite-remove { display: none !important; }
 
