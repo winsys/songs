@@ -25,6 +25,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
     $scope.showingBibleVerse    = null;
     $scope.bibleSearchQuery     = '';
     $scope.bibleSearchResults   = [];
+    $scope.bibleSearchQuery     = '';
     var bibleSearchTimer        = null;
 
     // ── Page mode ─────────────────────────────────────────────
@@ -571,6 +572,18 @@ app.controller('Tech', function ($scope, $http, $timeout)
                     console.log('Bible search error: ', erespond);
                 });
         }, 400); // 400ms debounce
+    };
+
+    $scope.getFilteredBibleBooks = function() {
+        if (!$scope.bibleBookSearchQuery || $scope.bibleBookSearchQuery.length === 0) {
+            return $scope.bibleBooks;
+        }
+        var q = $scope.bibleBookSearchQuery.toLowerCase();
+        return $scope.bibleBooks.filter(function(book) {
+            return (book.NAME    && book.NAME.toLowerCase().indexOf(q)    >= 0) ||
+                (book.NAME_LT && book.NAME_LT.toLowerCase().indexOf(q) >= 0) ||
+                (book.NAME_EN && book.NAME_EN.toLowerCase().indexOf(q) >= 0);
+        });
     };
 
     /**
