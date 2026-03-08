@@ -331,9 +331,16 @@
     <!-- ========================================================== -->
     <div ng-show="pageMode === 'bible'">
 
-        <!-- Bible search input -->
+        <!-- Search row: book search + bible full-text search -->
         <div class="row">
-            <div class="col-xs-12" style="margin-top: 20pt; margin-bottom: 10px;">
+            <div class="col-sm-3 col-xs-4" style="margin-top: 20pt; margin-bottom: 10px; padding-right: 5px;">
+                <input type="text"
+                       class="form-control search-box"
+                       placeholder="Поиск книги..."
+                       ng-model="bibleBookSearchQuery"
+                       style="height: 32pt; font-size: 14pt;" />
+            </div>
+            <div class="col-sm-9 col-xs-8" style="margin-top: 20pt; margin-bottom: 10px; padding-left: 5px;">
                 <input type="text"
                        class="form-control search-box"
                        placeholder="Поиск в Библии..."
@@ -369,7 +376,7 @@
                 <div class="bible-panel">
                     <div class="bible-panel-title">📖 Книги</div>
                     <div class="bible-list-item"
-                         ng-repeat="book in bibleBooks"
+                         ng-repeat="book in getFilteredBibleBooks()"
                          ng-class="{'selected': selectedBibleBook && selectedBibleBook.ID === book.ID}"
                          ng-click="selectBibleBook(book)">
                         {{ getBibleBookName(book) }}
