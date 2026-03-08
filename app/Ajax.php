@@ -423,6 +423,170 @@ class Ajax
     }
 
 
+    /**
+     * ============================================================
+     * ИНСТРУКЦИЯ: Вставить ВСЁ что ниже в файл app/Ajax.php
+     *
+     * Найдите в app/Ajax.php метод updateSocket() — он выглядит так:
+     *
+     *     private static function updateSocket() { ... }
+     *
+     * Вставьте все методы ниже ПЕРЕД методом updateSocket().
+     * ============================================================
+     */
+
+    // -----------------------------------------------------------
+    // Получить список проповедей текущего пользователя
+    // -----------------------------------------------------------
+    private static function get_sermon_list()
+    {
+        $userId = (int)$_SESSION['userId'];
+        $list = Info::get('db')->select(
+            "SELECT ID, TITLE, SERMON_DATE, UPDATED_AT
+             FROM sermons
+             WHERE USER_ID = {$userId}
+             ORDER BY SERMON_DATE DESC, UPDATED_AT DESC"
+        );
+        return json_encode($list);
+    }
+
+    // -----------------------------------------------------------
+    // Получить одну проповедь (с полным CONTENT)
+    // Параметры: id
+    // -----------------------------------------------------------
+    private static function get_sermon()
+    {
+        $userId   = (int)$_SESSION['userId'];
+        $sermonId = (int)self::$args['id'];
+        $sermon = Info::get('db')->get(
+            "SELECT ID, TITLE, SERMON_DATE, CONTENT
+             FROM sermons
+             WHERE ID = {$sermonId} AND USER_ID = {$userId}"
+        );
+        return json_encode($sermon ?: null);
+    }
+
+    // -----------------------------------------------------------
+    // Создать или обновить проповедь
+    // Параметры: id (0 = новая), title, date, content
+    // Возвращает: { id: <id> }
+    // -----------------------------------------------------------
+    private static function save_sermon()
+    {
+        $userId   = (int)$_SESSION['userId'];
+        $sermonId = (int)(self::$args['id'] ?? 0);
+        $title    = mysqli_escape_string(Info::get('dbh'), self::$args['title']   ?? '');
+        $date     = mysqli_escape_string(Info::get('dbh'), self::$args['date']    ?? '');
+        $content  = mysqli_escape_string(Info::get('dbh'), self::$args['content'] ?? '');
+
+        $dateVal = ($date !== '') ? "'{$date}'" : 'NULL';
+
+        if ($sermonId > 0) {
+            $existing = Info::get('db')->get(
+                "SELECT ID FROM sermons WHERE ID = {$sermonId} AND USER_ID = {$userId}"
+            );
+            if ($existing) {
+                Info::get('db')->exec(
+                    "UPDATE sermons
+                     SET TITLE = '{$title}', SERMON_DATE = {$dateVal}, CONTENT = '{$content}'
+                     WHERE ID = {$sermonId} AND USER_ID = {$userId}"
+                );
+                return json_encode(['id' => $sermonId]);
+            }
+        }
+
+        Info::get('db')->exec(
+            "INSERT INTO sermons (USER_ID, TITLE, SERMON_DATE, CONTENT)
+             VALUES ({$userId}, '{$title}', {$dateVal}, '{$content}')"
+        );
+        $newId = mysqli_insert_id(Info::get('dbh'));
+        return json_encode(['id' => $newId]);
+    }
+
+    // -----------------------------------------------------------
+    // Удалить проповедь
+    // Параметры: id
+    // -----------------------------------------------------------
+    private static function delete_sermon()
+    {
+        $userId   = (int)$_SESSION['userId'];
+        $sermonId = (int)self::$args['id'];
+        Info::get('db')->exec(
+            "DELETE FROM sermons WHERE ID = {$sermonId} AND USER_ID = {$userId}"
+        );
+        return json_encode(['status' => 'ok']);
+    }
+
+    // -----------------------------------------------------------
+    // Загрузить изображение для проповеди
+    // Multipart/form-data: image file + command=upload_sermon_image
+    // Возвращает: { status: 'success', path: '/sermon_images/{userId}/{file}' }
+    //         или { status: 'error',   message: '...' }
+    // -----------------------------------------------------------
+    private static function upload_sermon_image()
+    {
+        $userId = (int)$_SESSION['userId'];
+
+        if (!isset($_FILES['image'])) {
+            return json_encode(['status' => 'error', 'message' => 'No file in $_FILES["image"]']);
+        }
+        if ($_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+            $codes = [
+                UPLOAD_ERR_INI_SIZE   => 'File too large (php.ini)',
+                UPLOAD_ERR_FORM_SIZE  => 'File too large (form)',
+                UPLOAD_ERR_PARTIAL    => 'Partial upload',
+                UPLOAD_ERR_NO_FILE    => 'No file uploaded',
+                UPLOAD_ERR_NO_TMP_DIR => 'No tmp dir',
+                UPLOAD_ERR_CANT_WRITE => 'Cannot write to disk',
+                UPLOAD_ERR_EXTENSION  => 'Blocked by extension',
+            ];
+            $code = $_FILES['image']['error'];
+            $msg  = isset($codes[$code]) ? $codes[$code] : "Error code {$code}";
+            return json_encode(['status' => 'error', 'message' => $msg]);
+        }
+
+        $ext     = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        if (!in_array($ext, $allowed)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid file type: ' . $ext]);
+        }
+
+        // __DIR__ is app/, so ../public/ is the web root
+        $uploadDir = __DIR__ . '/../public/sermon_images/' . $userId . '/';
+        if (!file_exists($uploadDir)) {
+            if (!mkdir($uploadDir, 0777, true)) {
+                return json_encode(['status' => 'error', 'message' => 'Cannot create upload dir: ' . $uploadDir]);
+            }
+        }
+
+        $filename   = uniqid('img_', true) . '.' . $ext;
+        $targetFile = $uploadDir . $filename;
+
+        if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
+            return json_encode([
+                'status' => 'success',
+                'path'   => '/sermon_images/' . $userId . '/' . $filename
+            ]);
+        }
+
+        return json_encode([
+            'status'  => 'error',
+            'message' => 'move_uploaded_file failed. Target: ' . $targetFile
+        ]);
+    }
+
+    /**
+     * ============================================================
+     * КОНЕЦ вставки.
+     *
+     * ТАКЖЕ убедитесь что:
+     * 1. Создана таблица sermons (файл migration_sermons.sql)
+     * 2. Папка sermon_images доступна для записи:
+     *      mkdir -p public/sermon_images && chmod 777 public/sermon_images
+     * ============================================================
+     */
+
+
     private static function updateSocket()
     {
         $err1 = '';

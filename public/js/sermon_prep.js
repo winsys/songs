@@ -158,12 +158,12 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
         var content = editorEl ? editorEl.innerHTML : '';
         $scope.saveStatus = 'saving';
         $http({ method: "POST", url: "/ajax", data: {
-            command: 'save_sermon',
-            id: $scope.sermon.id || 0,
-            title: $scope.sermon.title,
-            date: $scope.sermon.date,
-            content: content
-        }}).then(
+                command: 'save_sermon',
+                id: $scope.sermon.id || 0,
+                title: $scope.sermon.title,
+                date: $scope.sermon.date,
+                content: content
+            }}).then(
             function (r) {
                 if (r.data && r.data.id) {
                     $scope.sermon.id = r.data.id;
@@ -243,16 +243,18 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
             headers: { 'Content-Type': undefined }
         }).then(
             function (r) {
+                console.log('upload_sermon_image response:', r.data);
                 if (r.data && r.data.path) {
                     insertImageNode(r.data.path);
                 } else {
-                    alert('Ошибка загрузки изображения');
+                    var msg = (r.data && r.data.message) ? r.data.message : JSON.stringify(r.data);
+                    alert('Ошибка загрузки: ' + msg);
                 }
                 input.value = '';
             },
             function (e) {
-                console.error('upload_sermon_image error', e);
-                alert('Ошибка загрузки изображения');
+                console.error('upload_sermon_image HTTP error:', e);
+                alert('Ошибка загрузки (HTTP ' + (e.status || '?') + '): ' + (e.statusText || ''));
                 input.value = '';
             }
         );
@@ -477,8 +479,8 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
         var q = $scope.bookSearchQuery.toLowerCase();
         return $scope.bibleBooks.filter(function (b) {
             return (b.NAME && b.NAME.toLowerCase().indexOf(q) >= 0) ||
-                   (b.NAME_LT && b.NAME_LT.toLowerCase().indexOf(q) >= 0) ||
-                   (b.NAME_EN && b.NAME_EN.toLowerCase().indexOf(q) >= 0);
+                (b.NAME_LT && b.NAME_LT.toLowerCase().indexOf(q) >= 0) ||
+                (b.NAME_EN && b.NAME_EN.toLowerCase().indexOf(q) >= 0);
         });
     };
 
@@ -502,10 +504,10 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
         $scope.selectedBibleVerseNums = [];
 
         $http({ method: "POST", url: "/ajax", data: {
-            command: 'get_bible_verses',
-            book_id: $scope.selectedBook.ID,
-            chapter_num: ch
-        }}).then(function (r) {
+                command: 'get_bible_verses',
+                book_id: $scope.selectedBook.ID,
+                chapter_num: ch
+            }}).then(function (r) {
             $scope.rawVerses = r.data;
             $scope.preparedVerses = r.data.map(function (v) {
                 return { num: parseInt(v.VERSE_NUM), display: v.VERSE_NUM + '. ' + (v.TEXT || '') };
