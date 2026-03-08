@@ -384,19 +384,6 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
         $scope.selectedBibleVerseNums = [];
     };
 
-    // Message citations
-        editorEl.querySelectorAll('.message-cite').forEach(function (span) {
-            var removeBtn = span.querySelector('.cite-remove');
-            if (removeBtn) {
-                removeBtn.onclick = function (e) {
-                    e.stopPropagation();
-                    span.remove();
-                    scheduleAutoSave();
-                };
-            }
-        });
-
-
     // ==========================================================
     // DOM UTILITY: insert node at saved cursor position
     // ==========================================================
@@ -438,6 +425,18 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
 
         // Bible citations
         editorEl.querySelectorAll('.bible-cite').forEach(function (span) {
+            var removeBtn = span.querySelector('.cite-remove');
+            if (removeBtn) {
+                removeBtn.onclick = function (e) {
+                    e.stopPropagation();
+                    span.remove();
+                    scheduleAutoSave();
+                };
+            }
+        });
+
+        // Message citations
+        editorEl.querySelectorAll('.message-cite').forEach(function (span) {
             var removeBtn = span.querySelector('.cite-remove');
             if (removeBtn) {
                 removeBtn.onclick = function (e) {
