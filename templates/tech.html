@@ -363,7 +363,7 @@
                              ng-click="selectMessage(msg)">
                             <strong style="font-size: 10pt;">{{ msg.TITLE }}</strong>
                             <span style="display:block; font-size: 9pt; color: #888;">
-                                {{ msg.CODE }}{{ msg.CITY ? ' · ' + msg.CITY : '' }}{{ msg.LOCATION ? ' · ' + msg.LOCATION : '' }}
+                                {{ msg.CODE }}&nbsp;&nbsp;{{ msg.CITY ? ' · ' + msg.CITY : '' }}
                             </span>
                         </div>
                         <div ng-show="messageSearchResults.length === 0 && messageSearchQuery.length >= 2"

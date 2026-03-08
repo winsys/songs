@@ -581,7 +581,7 @@ class Ajax
         }
 
         $list = Info::get('db')->select(
-            "SELECT ID, CODE, TITLE, LOCATION, CITY
+            "SELECT ID, CODE, TITLE, CITY
              FROM messages
              WHERE TITLE LIKE '%{$query}%'
                 OR TEXT  LIKE '%{$query}%'
@@ -596,7 +596,7 @@ class Ajax
     {
         $id = (int)self::$args['id'];
         $list = Info::get('db')->select(
-            "SELECT ID, CODE, TITLE, LOCATION, CITY, TEXT
+            "SELECT ID, CODE, TITLE, CITY, TEXT
              FROM messages WHERE ID = {$id} LIMIT 1"
         );
         return json_encode(count($list) > 0 ? $list[0] : null);
