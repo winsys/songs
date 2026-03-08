@@ -422,16 +422,14 @@ class Ajax
         return '';
     }
 
+
     /**
      * ============================================================
-     * ИНСТРУКЦИЯ: Вставить ВСЁ содержимое между двумя линиями
-     * в файл app/Ajax.php — прямо ПЕРЕД методом updateSocket().
+     * ИНСТРУКЦИЯ: Вставить методы ниже в app/Ajax.php
+     * ПЕРЕД методом updateSocket().
      * ============================================================
      */
 
-    // -----------------------------------------------------------
-    // get_sermon_list — список проповедей текущего пользователя
-    // -----------------------------------------------------------
     private static function get_sermon_list()
     {
         $userId = (int)$_SESSION['userId'];
@@ -444,10 +442,6 @@ class Ajax
         return json_encode($list);
     }
 
-    // -----------------------------------------------------------
-    // get_sermon — одна проповедь с полным CONTENT
-    // Параметры: id
-    // -----------------------------------------------------------
     private static function get_sermon()
     {
         $userId   = (int)$_SESSION['userId'];
@@ -461,19 +455,15 @@ class Ajax
         return json_encode(count($list) > 0 ? $list[0] : null);
     }
 
-    // -----------------------------------------------------------
-    // save_sermon — создать или обновить проповедь
-    // Параметры: id (0=новая), title, date, content
-    // Возвращает: { id: <id> }
-    // -----------------------------------------------------------
     private static function save_sermon()
     {
         $userId = (int)$_SESSION['userId'];
+        $dbh    = Info::get('dbh');
 
         $sermonId = isset(self::$args['id']) ? (int)self::$args['id'] : 0;
-        $title    = isset(self::$args['title'])   ? mysqli_escape_string(Info::get('dbh'), self::$args['title'])   : '';
-        $date     = isset(self::$args['date'])    ? mysqli_escape_string(Info::get('dbh'), self::$args['date'])    : '';
-        $content  = isset(self::$args['content']) ? mysqli_escape_string(Info::get('dbh'), self::$args['content']) : '';
+        $title    = isset(self::$args['title'])   ? mysqli_real_escape_string($dbh, self::$args['title'])   : '';
+        $date     = isset(self::$args['date'])    ? mysqli_real_escape_string($dbh, self::$args['date'])    : '';
+        $content  = isset(self::$args['content']) ? mysqli_real_escape_string($dbh, self::$args['content']) : '';
 
         $dateVal = ($date !== '') ? "'{$date}'" : 'NULL';
 
@@ -482,27 +472,33 @@ class Ajax
                 "SELECT ID FROM sermons WHERE ID = {$sermonId} AND USER_ID = {$userId} LIMIT 1"
             );
             if (count($existing) > 0) {
-                Info::get('db')->exec(
+                $ok = Info::get('db')->exec(
                     "UPDATE sermons
                      SET TITLE = '{$title}', SERMON_DATE = {$dateVal}, CONTENT = '{$content}'
                      WHERE ID = {$sermonId} AND USER_ID = {$userId}"
                 );
-                return json_encode(array('id' => $sermonId));
+                if (!$ok) {
+                    $err = mysqli_error($dbh);
+                    error_log("save_sermon UPDATE failed: " . $err);
+                    return json_encode(array('status' => 'error', 'message' => $err));
+                }
+                return json_encode(array('id' => $sermonId, 'status' => 'ok'));
             }
         }
 
-        Info::get('db')->exec(
+        $ok = Info::get('db')->exec(
             "INSERT INTO sermons (USER_ID, TITLE, SERMON_DATE, CONTENT)
              VALUES ({$userId}, '{$title}', {$dateVal}, '{$content}')"
         );
+        if (!$ok) {
+            $err = mysqli_error($dbh);
+            error_log("save_sermon INSERT failed: " . $err);
+            return json_encode(array('status' => 'error', 'message' => $err));
+        }
         $newId = Info::get('db')->insert_id();
-        return json_encode(array('id' => $newId));
+        return json_encode(array('id' => $newId, 'status' => 'ok'));
     }
 
-    // -----------------------------------------------------------
-    // delete_sermon — удалить проповедь
-    // Параметры: id
-    // -----------------------------------------------------------
     private static function delete_sermon()
     {
         $userId   = (int)$_SESSION['userId'];
@@ -513,10 +509,6 @@ class Ajax
         return json_encode(array('status' => 'ok'));
     }
 
-    // -----------------------------------------------------------
-    // upload_sermon_image — загрузка картинки (multipart)
-    // Возвращает: { status, path } или { status, message }
-    // -----------------------------------------------------------
     private static function upload_sermon_image()
     {
         $userId = (int)$_SESSION['userId'];
@@ -548,7 +540,7 @@ class Ajax
         $uploadDir = __DIR__ . '/../public/sermon_images/' . $userId . '/';
         if (!file_exists($uploadDir)) {
             if (!mkdir($uploadDir, 0777, true)) {
-                return json_encode(array('status' => 'error', 'message' => 'Cannot create dir: ' . $uploadDir));
+                return json_encode(array('status' => 'error', 'message' => 'Cannot create dir'));
             }
         }
 
@@ -567,12 +559,9 @@ class Ajax
 
     /**
      * ============================================================
-     * КОНЕЦ вставки.
-     * Не забудьте также:
-     *   mkdir -p public/sermon_images && chmod 777 public/sermon_images
+     * КОНЕЦ вставки в Ajax.php
      * ============================================================
      */
-
 
     private static function updateSocket()
     {
