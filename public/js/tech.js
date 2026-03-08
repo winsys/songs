@@ -576,6 +576,8 @@ app.controller('Tech', function ($scope, $http, $timeout)
     /**
      * When user clicks a search result, navigate to the book/chapter
      * and highlight (select) the verse.
+     * Uses direct HTTP promise chaining instead of $watch to avoid
+     * digest-cycle timing issues with highlighted chapter.
      */
     $scope.selectSearchResult = function(result) {
         // Find the book in current list
@@ -585,42 +587,54 @@ app.controller('Tech', function ($scope, $http, $timeout)
         });
 
         if (!book) {
-            // Book list might be from a different translation — reload
             $scope.setBibleTranslation($scope.bibleTranslationId || 1);
             return;
         }
 
         $scope.bibleSearchQuery = ''; // close search results
 
-        // Navigate
-        $scope.selectBibleBook(book);
+        // Step 1 — select book (reset state, load chapters)
+        $scope.selectedBibleBook    = book;
+        $scope.bibleChapters        = [];
+        $scope.selectedBibleChapter = null;
+        $scope.bibleVerses          = [];
+        $scope.biblePreparedVerses  = [];
+        $scope.selectedBibleVerses  = [];
 
-        // After chapters load, select the chapter, then the verse
-        var unwatch = $scope.$watch('bibleChapters', function(chapters) {
-            if (chapters.length === 0) return;
-            unwatch();
+        $http({ method: "POST", url: "/ajax",
+            data: { command: 'get_bible_chapters', book_id: book.ID }
+        }).then(function(resp) {
+            $scope.bibleChapters = resp.data;
 
-            $scope.selectBibleChapter(result.CHAPTER_NUM);
+            // Step 2 — select chapter
+            $scope.selectedBibleChapter = result.CHAPTER_NUM;
+            $scope.bibleVerses          = [];
+            $scope.biblePreparedVerses  = [];
+            $scope.selectedBibleVerses  = [];
 
-            var unwatch2 = $scope.$watch('bibleVerses', function(verses) {
-                if (verses.length === 0) return;
-                unwatch2();
-
-                // Find the verse index and select it
-                var verseIdx = -1;
-                angular.forEach(verses, function(v, idx) {
-                    if (v.VERSE_NUM === result.VERSE_NUM) verseIdx = idx;
-                });
-
-                if (verseIdx >= 0 && $scope.biblePreparedVerses[verseIdx]) {
-                    var verseText = $scope.biblePreparedVerses[verseIdx];
-                    $scope.selectedBibleVerses = [verseText];
-                    var cleanText = verseText.replace(/\n\(\d+\)$/, '');
-                    var bookName = $scope.getBibleBookName(book);
-                    sendBibleText(cleanText, bookName + ' ' + result.CHAPTER_NUM);
-                    $scope.showingBibleVerse = verseText;
-                }
+            return $http({ method: "POST", url: "/ajax",
+                data: { command: 'get_bible_verses',
+                    book_id: book.ID,
+                    chapter_num: result.CHAPTER_NUM }
             });
+        }).then(function(resp) {
+            $scope.bibleVerses         = resp.data;
+            $scope.biblePreparedVerses = prepareBibleVerses($scope.bibleVerses);
+
+            // Step 3 — find and select the verse
+            var verseIdx = -1;
+            angular.forEach($scope.bibleVerses, function(v, idx) {
+                if (parseInt(v.VERSE_NUM) === parseInt(result.VERSE_NUM)) verseIdx = idx;
+            });
+
+            if (verseIdx >= 0 && $scope.biblePreparedVerses[verseIdx]) {
+                var verseText = $scope.biblePreparedVerses[verseIdx];
+                $scope.selectedBibleVerses = [verseText];
+                $scope.showingBibleVerse   = verseText;
+                var cleanText  = verseText.replace(/\n\(\d+\)$/, '');
+                var bookName   = $scope.getBibleBookName(book);
+                sendBibleText(cleanText, bookName + ' ' + result.CHAPTER_NUM + ':' + result.VERSE_NUM);
+            }
         });
     };
 
