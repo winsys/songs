@@ -1,9 +1,41 @@
-app.controller('Piano', function ($scope, $http, $timeout)
+app.controller('Piano', function ($scope, $http)
 {
     $scope.listId = 1;
     $scope.songList = [];
     $scope.favorites = [];
     $scope.fullScreen = false;
+    $scope.availableSongLists = [];
+    $scope.visibleSongLists = [];
+
+    // Load available song lists and user settings
+    $scope.loadSongLists = function() {
+        $http({ method: "POST", url: "/ajax", data: {command: 'get_all_song_lists' } }).then(
+            function success(respond){
+                $scope.availableSongLists = respond.data;
+
+                // Load user settings to filter lists
+                $http({ method: "POST", url: "/ajax", data: {command: 'get_user_settings' } }).then(
+                    function success(settingsRespond){
+                        if (settingsRespond.data && settingsRespond.data.available_lists) {
+                            var selectedListIds = settingsRespond.data.available_lists.split(',');
+                            $scope.visibleSongLists = $scope.availableSongLists.filter(function(list) {
+                                return selectedListIds.indexOf(String(list.LIST_ID)) !== -1;
+                            });
+                        } else {
+                            // Show all lists if no settings
+                            $scope.visibleSongLists = $scope.availableSongLists;
+                        }
+                    },
+                    function error(erespond){
+                        // Show all lists on error
+                        $scope.visibleSongLists = $scope.availableSongLists;
+                    }
+                );
+            },
+            function error(erespond){
+                console.log('Ajax call error: ', erespond)
+            });
+    };
 
     $scope.reloadSongList = function(){
         $http({ method: "POST", url: "/ajax", data: {command: 'get_song_list', list_id: $scope.listId } }).then(
@@ -130,6 +162,7 @@ app.controller('Piano', function ($scope, $http, $timeout)
         $scope.reloadSongList();
     }
 
+    $scope.loadSongLists();
     $scope.reloadSongList();
     $scope.reloadFavorites();
 });
