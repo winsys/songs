@@ -540,6 +540,34 @@ app.controller('Tech', function ($scope, $http, $timeout)
         return languageParts.join('\r\n- - - - - - - -\r\n');
     }
 
+    /**
+     * After Angular digest, scroll each bible panel so the selected item is visible.
+     */
+    function scrollBiblePanels() {
+        $timeout(function() {
+            var panels = [
+                { id: 'bible-books-panel',    sel: '.bible-list-item.selected' },
+                { id: 'bible-chapters-panel', sel: '.bible-list-item.selected' },
+                { id: 'bible-verses-panel',   sel: '.bible-verse-item.chapter-selected' }
+            ];
+            panels.forEach(function(p) {
+                var panel = document.getElementById(p.id);
+                if (!panel) return;
+                var el = panel.querySelector(p.sel);
+                if (!el) return;
+                var panelTop    = panel.scrollTop;
+                var panelBottom = panelTop + panel.clientHeight;
+                var elTop       = el.offsetTop;
+                var elBottom    = elTop + el.offsetHeight;
+                if (elTop < panelTop) {
+                    panel.scrollTop = elTop - 8;
+                } else if (elBottom > panelBottom) {
+                    panel.scrollTop = elBottom - panel.clientHeight + 8;
+                }
+            });
+        }, 50);
+    }
+
     function sendBibleText(text, refLabel) {
         $http({ method: "POST", url: "/ajax",
             data: { command: 'set_bible_text',
@@ -620,7 +648,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
             $scope.bibleChapters = resp.data;
 
             // Step 2 — select chapter
-            $scope.selectedBibleChapter = result.CHAPTER_NUM;
+            $scope.selectedBibleChapter = parseInt(result.CHAPTER_NUM);
             $scope.bibleVerses          = [];
             $scope.biblePreparedVerses  = [];
             $scope.selectedBibleVerses  = [];
@@ -648,6 +676,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
                 var bookName   = $scope.getBibleBookName(book);
                 sendBibleText(cleanText, bookName + ' ' + result.CHAPTER_NUM + ':' + result.VERSE_NUM);
             }
+            scrollBiblePanels();
         });
     };
 
