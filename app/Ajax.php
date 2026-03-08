@@ -423,6 +423,7 @@ class Ajax
     }
 
 
+<?php
     /**
      * ============================================================
      * ИНСТРУКЦИЯ: Вставить методы ниже в app/Ajax.php
@@ -472,30 +473,30 @@ class Ajax
                 "SELECT ID FROM sermons WHERE ID = {$sermonId} AND USER_ID = {$userId} LIMIT 1"
             );
             if (count($existing) > 0) {
-                $ok = Info::get('db')->exec(
+                $dbh->query(
                     "UPDATE sermons
                      SET TITLE = '{$title}', SERMON_DATE = {$dateVal}, CONTENT = '{$content}'
                      WHERE ID = {$sermonId} AND USER_ID = {$userId}"
                 );
-                if (!$ok) {
-                    $err = mysqli_error($dbh);
-                    error_log("save_sermon UPDATE failed: " . $err);
+                $err = $dbh->error;
+                if ($err) {
+                    error_log("save_sermon UPDATE error: " . $err);
                     return json_encode(array('status' => 'error', 'message' => $err));
                 }
                 return json_encode(array('id' => $sermonId, 'status' => 'ok'));
             }
         }
 
-        $ok = Info::get('db')->exec(
+        $dbh->query(
             "INSERT INTO sermons (USER_ID, TITLE, SERMON_DATE, CONTENT)
              VALUES ({$userId}, '{$title}', {$dateVal}, '{$content}')"
         );
-        if (!$ok) {
-            $err = mysqli_error($dbh);
-            error_log("save_sermon INSERT failed: " . $err);
+        $err = $dbh->error;
+        if ($err) {
+            error_log("save_sermon INSERT error: " . $err);
             return json_encode(array('status' => 'error', 'message' => $err));
         }
-        $newId = Info::get('db')->insert_id();
+        $newId = $dbh->insert_id;
         return json_encode(array('id' => $newId, 'status' => 'ok'));
     }
 
@@ -559,7 +560,7 @@ class Ajax
 
     /**
      * ============================================================
-     * КОНЕЦ вставки в Ajax.php
+     * КОНЕЦ вставки.
      * ============================================================
      */
 
