@@ -843,6 +843,92 @@ app.controller('Tech', function ($scope, $http, $timeout)
 
 
     // ==========================================================
+    // KEYBOARD NAVIGATION (Arrow Up / Arrow Down)
+    // ==========================================================
+
+    document.addEventListener('keydown', function(e) {
+        // Only act on ArrowUp / ArrowDown; ignore if focus is in an input/textarea
+        if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+        var tag = document.activeElement && document.activeElement.tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+
+        e.preventDefault();
+        var dir = (e.key === 'ArrowDown') ? 1 : -1;
+
+        $scope.$apply(function() {
+            if ($scope.pageMode === 'bible') {
+                navigateBibleVerse(dir);
+            } else {
+                navigateSongChapter(dir);
+            }
+        });
+    });
+
+    function navigateSongChapter(dir) {
+        var list = $scope.preparedChapters;
+        if (!list || list.length === 0) return;
+
+        // Find current index — use the last selected chapter as anchor
+        var anchor = $scope.selectedChapters.length > 0
+            ? $scope.selectedChapters[$scope.selectedChapters.length - 1]
+            : $scope.showingChapter;
+
+        var currentIdx = list.indexOf(anchor);
+        var nextIdx;
+
+        if (currentIdx === -1) {
+            nextIdx = dir === 1 ? 0 : list.length - 1;
+        } else {
+            nextIdx = currentIdx + dir;
+            if (nextIdx < 0 || nextIdx >= list.length) return; // already at edge
+        }
+
+        // Simulate a single-select click on the next chapter
+        var nextChapter = list[nextIdx];
+        $scope.toggleCurrentTextChapter(nextChapter, { ctrlKey: false, metaKey: false });
+
+        // Scroll the item into view
+        $timeout(function() {
+            var el = document.querySelector('.chapter-item.selected-chapter, .chapter-item.active');
+            if (!el) {
+                // fallback: find by index
+                var items = document.querySelectorAll('.chapter-item');
+                if (items[nextIdx]) items[nextIdx].scrollIntoView({ block: 'nearest' });
+            } else {
+                el.scrollIntoView({ block: 'nearest' });
+            }
+        }, 50);
+    }
+
+    function navigateBibleVerse(dir) {
+        var list = $scope.biblePreparedVerses;
+        if (!list || list.length === 0) return;
+
+        var anchor = $scope.selectedBibleVerses.length > 0
+            ? $scope.selectedBibleVerses[$scope.selectedBibleVerses.length - 1]
+            : $scope.showingBibleVerse;
+
+        var currentIdx = list.indexOf(anchor);
+        var nextIdx;
+
+        if (currentIdx === -1) {
+            nextIdx = dir === 1 ? 0 : list.length - 1;
+        } else {
+            nextIdx = currentIdx + dir;
+            if (nextIdx < 0 || nextIdx >= list.length) return;
+        }
+
+        var nextVerse = list[nextIdx];
+        $scope.toggleBibleVerse(nextVerse, { ctrlKey: false, metaKey: false });
+
+        $timeout(function() {
+            var items = document.querySelectorAll('.bible-verse-item');
+            if (items[nextIdx]) items[nextIdx].scrollIntoView({ block: 'nearest' });
+        }, 50);
+    }
+
+
+    // ==========================================================
     // INIT
     // ==========================================================
 
