@@ -24,9 +24,13 @@ app.controller('Musician', function ($scope, $http)
         $http({ method: "POST", url: "/ajax", data: {command: 'get_image' } }).then(
             function success(respond){
                 if( respond.data.length > 0 ){
-                        $scope.imgName = respond.data[0].image + '?t=' + new Date().getTime();
+                    if (imagePath.indexOf('/sermon_images/') === 0) {
+                        $scope.imgName = $scope.placeholderImage;  // показывает placeholder
+                    } else {
+                        $scope.imgName = imagePath + '?t=' + ...;
+                    }
                 }else{
-                        $scope.imgName = $scope.placeholderImage;
+                    $scope.imgName = $scope.placeholderImage;
                 }
             },
         );
