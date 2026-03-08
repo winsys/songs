@@ -40,33 +40,23 @@
 
     <div class="row">
         <div class="col-xs-3 col-s-3 col-md-3"
+             ng-repeat="list in visibleSongLists"
              style="margin-top: 20pt">
-            <button class="btn btn-sm btn-default search-box btn-list"
-                    ng-class="listId == 1 ? 'btn-selected' : ''"
-                    style="width: 100%" ng-click="setList(1)" >Донецк</button>
-        </div>
-        <div class="col-xs-3 col-s-3 col-md-3"
-             style="margin-top: 20pt">
-            <button class="btn btn-sm btn-default search-box btn-list"
-                    ng-class="listId == 2 ? 'btn-selected' : ''"
-                    style="width: 100%" ng-click="setList(2)">Москва</button>
-        </div>
-        <div class="col-xs-3 col-s-3 col-md-3"
-             style="margin-top: 20pt">
-            <button class="btn btn-sm btn-default search-box btn-list"
-                    ng-class="listId == 3 ? 'btn-selected' : ''"
-                    style="width: 100%" ng-click="setList(3)">Вильнюс</button>
+            <button class="btn btn-sm btn-default search-box btn-list songlist-btn"
+                    ng-class="listId == list.LIST_ID ? 'btn-selected' : ''"
+                    style="width: 100%"
+                    ng-click="setList(list.LIST_ID)">{{list.LIST_NAME}}</button>
         </div>
         <div class="col-xs-3 col-s-3 col-md-3 pull-right"
              style="margin-top: 20pt">
-            <button class="btn btn-sm btn-primary search-box" style="width: 100%" ng-click="openList()">Весь список</button>
+            <button class="btn btn-sm btn-primary search-box songlist-btn" style="width: 100%" ng-click="openList()">Весь список</button>
         </div>
     </div>
 
     <!-- Search input -->
     <div class="row">
         <div class="col-s-12 col-md-12 col-xs-12"
-             style="margin-top: 20pt; margin-bottom: 30px">
+             style="margin-top: 20pt; margin-bottom: 10px">
             <angucomplete-alt id="ccf6"
                               placeholder="название или номер"
                               pause="100"
@@ -84,12 +74,12 @@
 
             <div class="row prod-list-item"
                  ng-repeat="listItem in favorites">
-                    <span class="btn btn-danger col-sm-1" ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">&nbsp;X&nbsp;</span>
-                    <span class="col-sm-8 col-md-8 item-text">{{ listItem.dispName }}</span>
-                    <img class="col-sm-3 col-md-3"
-                         ng-attr-id="{{ 'img' + listItem.ID }}"
-                         ng-src="{{ listItem.imageName }}"
-                         ng-click="openFullscreen('img' + listItem.ID, listItem.NUM, listItem.LISTID)"/>
+                <span class="btn btn-danger col-sm-1" ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">&nbsp;X&nbsp;</span>
+                <span class="col-sm-8 col-md-8 item-text">{{ listItem.dispName }}</span>
+                <img class="col-sm-3 col-md-3"
+                     ng-attr-id="{{ 'img' + listItem.ID }}"
+                     ng-src="{{ listItem.imageName }}"
+                     ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"/>
             </div>
 
         </div>
