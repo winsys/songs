@@ -136,7 +136,9 @@
         font-weight: bold;
     }
     .bible-verse-item {
-        width: 97%;
+        display: block;
+        box-sizing: border-box;
+        width: calc(100% - 16px);
         padding: 10px 12px;
         border: solid 1px silver;
         border-radius: 10px;
@@ -146,6 +148,7 @@
         user-select: none;
         font-size: 11pt;
         white-space: pre-wrap;
+        word-break: break-word;
     }
     .bible-verse-item:hover {
         background-color: #f0f0f0;
@@ -408,11 +411,10 @@
                             — {{ getBibleBookName(selectedBibleBook) }} {{ selectedBibleChapter }}
                         </span>
                     </div>
-                    <div ng-repeat="verse in biblePreparedVerses">
-                        <span class="bible-verse-item"
-                              ng-class="{'chapter-selected': selectedBibleVerses.indexOf(verse) > -1}"
-                              ng-click="toggleBibleVerse(verse, $event)">{{ verse }}</span>
-                    </div>
+                    <div class="bible-verse-item"
+                         ng-repeat="verse in biblePreparedVerses"
+                         ng-class="{'chapter-selected': selectedBibleVerses.indexOf(verse) > -1}"
+                         ng-click="toggleBibleVerse(verse, $event)">{{ verse }}</div>
                     <div ng-show="biblePreparedVerses.length === 0 && selectedBibleChapter" style="padding: 12px; color: #999; font-size: 10pt;">
                         Загрузка...
                     </div>
