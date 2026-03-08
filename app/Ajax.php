@@ -588,7 +588,7 @@ class Ajax
 
         $conditions = array();
         if ($titleQuery !== '') {
-            $conditions[] = "TITLE LIKE '%{$titleQuery}%'";
+            $conditions[] = "(TITLE LIKE '%{$titleQuery}%' OR CODE LIKE '%{$titleQuery}%')";
         }
         if ($textQuery !== '') {
             $conditions[] = "TEXT LIKE '%{$textQuery}%'";
