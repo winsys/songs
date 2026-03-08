@@ -37,6 +37,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
     // ── UI state ─────────────────────────────────────────────
     $scope.bookSearchQuery      = '';
     $scope.biblePanelCollapsed  = false;
+    $scope.leftPanelTab = 'bible';   // 'bible' | 'messages'
     $scope.showColorPicker      = false;
     $scope.currentColor         = '#e53935';
     $scope.modalImgSrc          = '';

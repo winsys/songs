@@ -353,6 +353,52 @@
         border-color: #2e6da4;
     }
 
+    /* ===== Left panel tabs (Bible / Messages) ===== */
+    .left-panel-tabs {
+        display: flex;
+        gap: 0;
+        margin-bottom: 0;
+    }
+    .left-tab-btn {
+        flex: 1;
+        padding: 7px 6px;
+        font-size: 10pt;
+        font-weight: bold;
+        border: 1px solid #ddd;
+        background: #f5f5f5;
+        color: #888;
+        cursor: pointer;
+        transition: background 0.15s, color 0.15s;
+        outline: none;
+        border-bottom: none;
+    }
+    .left-tab-btn:first-child {
+        border-radius: 8px 0 0 0;
+    }
+    .left-tab-btn:last-child {
+        border-radius: 0 8px 0 0;
+    }
+    .left-tab-btn.active-tab {
+        background: #fff;
+        color: #337ab7;
+        border-bottom: 2px solid #fff;
+        z-index: 1;
+        position: relative;
+    }
+    .left-tab-btn.active-tab-msg {
+        background: #fff;
+        color: #6a1b9a;
+        border-bottom: 2px solid #fff;
+        z-index: 1;
+        position: relative;
+    }
+    .left-tab-content {
+        border: 1px solid #ddd;
+        border-radius: 0 0 8px 8px;
+        padding: 10px 8px 8px;
+        background: #fff;
+    }
+
     /* ===== Image fullscreen modal ===== */
     #sermon-img-modal {
         display: none;
@@ -417,154 +463,161 @@
     <!-- Two-column body -->
     <div class="prep-two-col">
 
-        <!-- ===== Bible Navigator (left) ===== -->
+        <!-- ===== Left panel: Bible / Messages tabs ===== -->
         <div class="prep-bible-col" ng-class="{collapsed: biblePanelCollapsed}">
-            <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:6px;">
-                <strong style="font-size:10pt; color:#555;">📚 Библия</strong>
-                <button class="btn btn-xs btn-default bible-toggle-btn"
-                        ng-click="biblePanelCollapsed = !biblePanelCollapsed">
-                    {{ biblePanelCollapsed ? '▼ Открыть' : '▲ Свернуть' }}
+
+            <!-- Tab buttons -->
+            <div class="left-panel-tabs">
+                <button class="left-tab-btn"
+                        ng-class="leftPanelTab === 'bible' ? 'active-tab' : ''"
+                        ng-click="leftPanelTab = 'bible'">
+                    📖 Библия
+                </button>
+                <button class="left-tab-btn"
+                        ng-class="leftPanelTab === 'messages' ? 'active-tab-msg' : ''"
+                        ng-click="leftPanelTab = 'messages'">
+                    ✍️ Послание
                 </button>
             </div>
 
-            <div class="prep-bible-inner">
+            <!-- Tab content wrapper -->
+            <div class="left-tab-content">
 
-                <!-- Translation buttons -->
-                <div style="margin-bottom:8px; display:flex; flex-wrap:wrap; gap:4px;">
-                    <button ng-repeat="tr in bibleTranslations"
-                            class="tr-btn"
-                            ng-class="{'active-tr': bibleTranslationId == tr.ID}"
-                            ng-click="setBibleTranslation(tr.ID)">{{ tr.NAME }}</button>
-                </div>
+                <!-- ── BIBLE TAB ── -->
+                <div ng-show="leftPanelTab === 'bible'" class="prep-bible-inner">
 
-                <!-- Book search -->
-                <input type="text"
-                       class="prep-bible-search"
-                       placeholder="Поиск книги..."
-                       ng-model="bookSearchQuery" />
-
-                <!-- Books panel -->
-                <div class="prep-panel" id="prep-books-panel" style="height:28vh;">
-                    <div class="prep-panel-title">Книги</div>
-                    <div class="prep-list-item"
-                         ng-repeat="book in getFilteredBooks()"
-                         ng-class="{selected: selectedBook && selectedBook.ID === book.ID}"
-                         ng-click="selectBook(book)">{{ getBookName(book) }}</div>
-                    <div ng-show="!bibleTranslationId" style="padding:10px; color:#aaa; font-size:9pt;">
-                        Выберите перевод
+                    <!-- Translation buttons -->
+                    <div style="margin-bottom:8px; display:flex; flex-wrap:wrap; gap:4px;">
+                        <button ng-repeat="tr in bibleTranslations"
+                                class="tr-btn"
+                                ng-class="{'active-tr': bibleTranslationId == tr.ID}"
+                                ng-click="setBibleTranslation(tr.ID)">{{ tr.NAME }}</button>
                     </div>
-                </div>
 
-                <!-- Chapters panel -->
-                <div class="prep-panel" id="prep-chapters-panel" style="height:18vh; margin-top:6px;" ng-show="selectedBook">
-                    <div class="prep-panel-title">Главы</div>
-                    <div style="display:flex; flex-wrap:wrap; gap:4px; padding:8px;">
-                        <button class="btn btn-xs"
-                                ng-repeat="ch in bibleChapters"
-                                ng-class="selectedChapter == ch ? 'btn-success' : 'btn-default'"
-                                ng-click="selectChapter(ch)">{{ ch }}</button>
-                    </div>
-                </div>
+                    <!-- Book search -->
+                    <input type="text"
+                           class="prep-bible-search"
+                           placeholder="Поиск книги..."
+                           ng-model="bookSearchQuery" />
 
-                <!-- Verses panel -->
-                <div class="prep-panel" id="prep-verses-panel" style="height:22vh; margin-top:6px;" ng-show="selectedChapter">
-                    <div class="prep-panel-title">
-                        Стихи
-                        <span ng-show="selectedBibleVerseNums.length > 0" style="color:#337ab7; font-size:9pt; font-weight:normal; margin-left:6px;">
-                            ({{ selectedBibleVerseNums.length }} выбр.)
-                        </span>
-                    </div>
-                    <span class="prep-verse-item"
-                          ng-repeat="v in preparedVerses"
-                          ng-class="{'verse-selected': selectedBibleVerseNums.indexOf(v.num) > -1}"
-                          ng-click="toggleVerse(v, $event)">{{ v.display }}</span>
-                    <div ng-show="preparedVerses.length === 0 && selectedChapter" style="padding:10px; color:#aaa; font-size:9pt;">
-                        Загрузка...
-                    </div>
-                </div>
-
-                <!-- ===== Messages search panel ===== -->
-                <div style="margin-top: 14px;">
-                    <div class="prep-panel-title" style="border-radius: 8px 8px 0 0; border: 1px solid #ddd; border-bottom: none; background: #fdf6ff; color: #6a1b9a;">
-                        ✍️ Цитаты из посланий
-                    </div>
-                    <div style="border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; padding: 8px;">
-
-                        <!-- Two search inputs -->
-                        <input type="text"
-                               class="prep-bible-search"
-                               placeholder="Поиск по названию..."
-                               ng-model="prepMsgTitleQuery"
-                               ng-change="searchMessagesPrep()" />
-                        <input type="text"
-                               class="prep-bible-search"
-                               placeholder="Поиск по тексту..."
-                               ng-model="prepMsgTextQuery"
-                               ng-change="searchMessagesPrep()"
-                               style="margin-top: 4px;" />
-
-                        <!-- Search results -->
-                        <div class="prep-panel"
-                             style="height: 18vh; margin-top: 6px;"
-                             ng-show="prepMsgTitleQuery.length >= 2 || prepMsgTextQuery.length >= 2">
-                            <div class="prep-panel-title">Результаты</div>
-                            <div class="prep-list-item"
-                                 ng-repeat="msg in prepMsgResults"
-                                 ng-class="{selected: prepSelectedMessage && prepSelectedMessage.ID === msg.ID}"
-                                 ng-click="selectMessagePrep(msg)">
-                                <strong style="font-size: 10pt; display: block;">{{ msg.TITLE }}</strong>
-                                <span style="font-size: 9pt; color: #888;">{{ msg.CODE }}{{ msg.CITY ? ' · ' + msg.CITY : '' }}</span>
-                            </div>
-                            <div ng-show="prepMsgResults.length === 0"
-                                 style="padding: 10px; color: #aaa; font-size: 9pt;">
-                                Ничего не найдено
-                            </div>
-                        </div>
-
-                        <!-- Paragraphs of selected message -->
-                        <div class="prep-panel"
-                             style="height: 28vh; margin-top: 6px;"
-                             ng-show="prepSelectedMessage">
-                            <div class="prep-panel-title" style="color: #6a1b9a;">
-                                Абзацы — <span style="font-weight: normal;">{{ prepSelectedMessage.TITLE }}</span>
-                            </div>
-                            <div ng-repeat="para in prepMsgParagraphs"
-                                 class="prep-verse-item"
-                                 ng-class="{'verse-selected': prepSelectedParaIdx === para.idx}"
-                                 ng-click="togglePrepPara(para)"
-                                 style="font-size: 9.5pt; color: #333;">
-                                {{ para.text }}
-                            </div>
-                            <div ng-show="prepMsgParagraphs.length === 0"
-                                 style="padding: 10px; color: #aaa; font-size: 9pt;">
-                                Загрузка...
-                            </div>
-                        </div>
-
-                        <!-- Insert button -->
-                        <button class="btn btn-sm btn-default"
-                                ng-show="prepSelectedParaIdx !== null"
-                                ng-click="insertMessageCitation()"
-                                style="margin-top: 8px; width: 100%; background: #f3e5f5; border-color: #ce93d8; color: #6a1b9a; font-size: 10pt;">
-                            ✍️ Вставить цитату в текст
-                        </button>
-
-                        <div ng-show="!prepSelectedMessage && prepMsgTitleQuery.length < 2 && prepMsgTextQuery.length < 2"
-                             style="padding: 6px 0; color: #aaa; font-size: 9pt;">
-                            Введите минимум 2 символа для поиска
+                    <!-- Books panel -->
+                    <div class="prep-panel" id="prep-books-panel" style="height:28vh;">
+                        <div class="prep-panel-title">Книги</div>
+                        <div class="prep-list-item"
+                             ng-repeat="book in getFilteredBooks()"
+                             ng-class="{selected: selectedBook && selectedBook.ID === book.ID}"
+                             ng-click="selectBook(book)">{{ getBookName(book) }}</div>
+                        <div ng-show="!bibleTranslationId" style="padding:10px; color:#aaa; font-size:9pt;">
+                            Выберите перевод
                         </div>
                     </div>
-                </div>
 
-                <!-- Insert citation button -->
-                <button class="btn btn-success btn-sm"
-                        style="width:100%; margin-top:8px; font-size:10pt;"
-                        ng-disabled="selectedBibleVerseNums.length === 0"
-                        ng-click="insertBibleCitation()">
-                    📌 Вставить {{ selectedBibleVerseNums.length > 0 ? getRefLabel() : 'цитату' }}
-                </button>
+                    <!-- Chapters panel -->
+                    <div class="prep-panel" id="prep-chapters-panel" style="height:18vh; margin-top:6px;" ng-show="selectedBook">
+                        <div class="prep-panel-title">Главы</div>
+                        <div style="display:flex; flex-wrap:wrap; gap:4px; padding:8px;">
+                            <button class="btn btn-xs"
+                                    ng-repeat="ch in bibleChapters"
+                                    ng-class="selectedChapter == ch ? 'btn-success' : 'btn-default'"
+                                    ng-click="selectChapter(ch)">{{ ch }}</button>
+                        </div>
+                    </div>
 
-            </div><!-- /prep-bible-inner -->
+                    <!-- Verses panel -->
+                    <div class="prep-panel" id="prep-verses-panel" style="height:22vh; margin-top:6px;" ng-show="selectedChapter">
+                        <div class="prep-panel-title">
+                            Стихи
+                            <span ng-show="selectedBibleVerseNums.length > 0" style="color:#337ab7; font-size:9pt; font-weight:normal; margin-left:6px;">
+                        ({{ selectedBibleVerseNums.length }} выбр.)
+                    </span>
+                        </div>
+                        <span class="prep-verse-item"
+                              ng-repeat="v in preparedVerses"
+                              ng-class="{'verse-selected': selectedBibleVerseNums.indexOf(v.num) > -1}"
+                              ng-click="toggleVerse(v, $event)">{{ v.display }}</span>
+                        <div ng-show="preparedVerses.length === 0 && selectedChapter" style="padding:10px; color:#aaa; font-size:9pt;">
+                            Загрузка...
+                        </div>
+                    </div>
+
+                    <!-- Insert Bible citation button -->
+                    <button class="btn btn-success btn-sm"
+                            style="width:100%; margin-top:8px; font-size:10pt;"
+                            ng-disabled="selectedBibleVerseNums.length === 0"
+                            ng-click="insertBibleCitation()">
+                        📌 Вставить {{ selectedBibleVerseNums.length > 0 ? getRefLabel() : 'цитату' }}
+                    </button>
+
+                </div><!-- /bible tab -->
+
+                <!-- ── MESSAGES TAB ── -->
+                <div ng-show="leftPanelTab === 'messages'">
+
+                    <!-- Two search inputs -->
+                    <input type="text"
+                           class="prep-bible-search"
+                           placeholder="Поиск по названию..."
+                           ng-model="prepMsgTitleQuery"
+                           ng-change="searchMessagesPrep()" />
+                    <input type="text"
+                           class="prep-bible-search"
+                           placeholder="Поиск по тексту..."
+                           ng-model="prepMsgTextQuery"
+                           ng-change="searchMessagesPrep()"
+                           style="margin-top:4px;" />
+
+                    <div style="color:#aaa; font-size:9pt; padding: 4px 2px 6px;"
+                         ng-show="prepMsgTitleQuery.length < 2 && prepMsgTextQuery.length < 2">
+                        Введите минимум 2 символа для поиска
+                    </div>
+
+                    <!-- Search results panel -->
+                    <div class="prep-panel"
+                         style="height:18vh; margin-top:4px;"
+                         ng-show="prepMsgTitleQuery.length >= 2 || prepMsgTextQuery.length >= 2">
+                        <div class="prep-panel-title">Результаты ({{ prepMsgResults.length }})</div>
+                        <div class="prep-list-item"
+                             ng-repeat="msg in prepMsgResults"
+                             ng-class="{selected: prepSelectedMessage && prepSelectedMessage.ID === msg.ID}"
+                             ng-click="selectMessagePrep(msg)">
+                            <strong style="font-size:10pt; display:block;">{{ msg.TITLE }}</strong>
+                            <span style="font-size:9pt; color:#888;">{{ msg.CODE }}{{ msg.CITY ? ' · ' + msg.CITY : '' }}</span>
+                        </div>
+                        <div ng-show="prepMsgResults.length === 0"
+                             style="padding:10px; color:#aaa; font-size:9pt;">
+                            Ничего не найдено
+                        </div>
+                    </div>
+
+                    <!-- Paragraphs panel -->
+                    <div class="prep-panel"
+                         style="height:38vh; margin-top:6px;"
+                         ng-show="prepSelectedMessage">
+                        <div class="prep-panel-title" style="color:#6a1b9a;">
+                            {{ prepSelectedMessage.TITLE }}
+                        </div>
+                        <span class="prep-verse-item"
+                              ng-repeat="para in prepMsgParagraphs"
+                              ng-class="{'verse-selected': prepSelectedParaIdx === para.idx}"
+                              ng-click="togglePrepPara(para)"
+                              style="font-size:9.5pt; color:#333;">{{ para.text }}</span>
+                        <div ng-show="prepMsgParagraphs.length === 0"
+                             style="padding:10px; color:#aaa; font-size:9pt;">
+                            Загрузка...
+                        </div>
+                    </div>
+
+                    <!-- Insert message citation button -->
+                    <button class="btn btn-sm"
+                            style="width:100%; margin-top:8px; font-size:10pt; background:#f3e5f5; border-color:#ce93d8; color:#6a1b9a;"
+                            ng-show="prepSelectedParaIdx !== null"
+                            ng-click="insertMessageCitation()">
+                        ✍️ Вставить цитату из послания
+                    </button>
+
+                </div><!-- /messages tab -->
+
+            </div><!-- /left-tab-content -->
         </div><!-- /prep-bible-col -->
 
         <!-- ===== Editor (right) ===== -->
