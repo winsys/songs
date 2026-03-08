@@ -192,6 +192,40 @@
     }
     .bible-cite .cite-remove:hover { color: #e53935; }
 
+    /* ===== Message citation chip ===== */
+    .message-cite {
+        display: inline-flex;
+        align-items: flex-start;
+        gap: 4px;
+        background: #f3e5f5;
+        border: 1px solid #ce93d8;
+        border-radius: 10px;
+        padding: 4px 10px 4px 8px;
+        font-size: 10pt;
+        color: #6a1b9a;
+        font-weight: normal;
+        cursor: pointer;
+        user-select: none;
+        white-space: pre-wrap;
+        word-break: break-word;
+        vertical-align: middle;
+        margin: 2px 3px;
+        transition: background 0.15s;
+        max-width: 100%;
+    }
+    .message-cite:hover { background: #e1bee7; }
+    .message-cite .cite-remove {
+        display: inline-block;
+        margin-left: 6px;
+        flex-shrink: 0;
+        color: #999;
+        font-size: 11pt;
+        font-weight: 400;
+        cursor: pointer;
+        line-height: 1;
+    }
+    .message-cite .cite-remove:hover { color: #e53935; }
+
     /* ===== Sermon image wrap ===== */
     .sermon-img-wrap {
         display: inline-block;
@@ -446,6 +480,79 @@
                           ng-click="toggleVerse(v, $event)">{{ v.display }}</span>
                     <div ng-show="preparedVerses.length === 0 && selectedChapter" style="padding:10px; color:#aaa; font-size:9pt;">
                         Загрузка...
+                    </div>
+                </div>
+
+                <!-- ===== Messages search panel ===== -->
+                <div style="margin-top: 14px;">
+                    <div class="prep-panel-title" style="border-radius: 8px 8px 0 0; border: 1px solid #ddd; border-bottom: none; background: #fdf6ff; color: #6a1b9a;">
+                        ✍️ Цитаты из посланий
+                    </div>
+                    <div style="border: 1px solid #ddd; border-top: none; border-radius: 0 0 8px 8px; padding: 8px;">
+
+                        <!-- Two search inputs -->
+                        <input type="text"
+                               class="prep-bible-search"
+                               placeholder="Поиск по названию..."
+                               ng-model="prepMsgTitleQuery"
+                               ng-change="searchMessagesPrep()" />
+                        <input type="text"
+                               class="prep-bible-search"
+                               placeholder="Поиск по тексту..."
+                               ng-model="prepMsgTextQuery"
+                               ng-change="searchMessagesPrep()"
+                               style="margin-top: 4px;" />
+
+                        <!-- Search results -->
+                        <div class="prep-panel"
+                             style="height: 18vh; margin-top: 6px;"
+                             ng-show="prepMsgTitleQuery.length >= 2 || prepMsgTextQuery.length >= 2">
+                            <div class="prep-panel-title">Результаты</div>
+                            <div class="prep-list-item"
+                                 ng-repeat="msg in prepMsgResults"
+                                 ng-class="{selected: prepSelectedMessage && prepSelectedMessage.ID === msg.ID}"
+                                 ng-click="selectMessagePrep(msg)">
+                                <strong style="font-size: 10pt; display: block;">{{ msg.TITLE }}</strong>
+                                <span style="font-size: 9pt; color: #888;">{{ msg.CODE }}{{ msg.CITY ? ' · ' + msg.CITY : '' }}</span>
+                            </div>
+                            <div ng-show="prepMsgResults.length === 0"
+                                 style="padding: 10px; color: #aaa; font-size: 9pt;">
+                                Ничего не найдено
+                            </div>
+                        </div>
+
+                        <!-- Paragraphs of selected message -->
+                        <div class="prep-panel"
+                             style="height: 28vh; margin-top: 6px;"
+                             ng-show="prepSelectedMessage">
+                            <div class="prep-panel-title" style="color: #6a1b9a;">
+                                Абзацы — <span style="font-weight: normal;">{{ prepSelectedMessage.TITLE }}</span>
+                            </div>
+                            <div ng-repeat="para in prepMsgParagraphs"
+                                 class="prep-verse-item"
+                                 ng-class="{'verse-selected': prepSelectedParaIdx === para.idx}"
+                                 ng-click="togglePrepPara(para)"
+                                 style="font-size: 9.5pt; color: #333;">
+                                {{ para.text }}
+                            </div>
+                            <div ng-show="prepMsgParagraphs.length === 0"
+                                 style="padding: 10px; color: #aaa; font-size: 9pt;">
+                                Загрузка...
+                            </div>
+                        </div>
+
+                        <!-- Insert button -->
+                        <button class="btn btn-sm btn-default"
+                                ng-show="prepSelectedParaIdx !== null"
+                                ng-click="insertMessageCitation()"
+                                style="margin-top: 8px; width: 100%; background: #f3e5f5; border-color: #ce93d8; color: #6a1b9a; font-size: 10pt;">
+                            ✍️ Вставить цитату в текст
+                        </button>
+
+                        <div ng-show="!prepSelectedMessage && prepMsgTitleQuery.length < 2 && prepMsgTextQuery.length < 2"
+                             style="padding: 6px 0; color: #aaa; font-size: 9pt;">
+                            Введите минимум 2 символа для поиска
+                        </div>
                     </div>
                 </div>
 

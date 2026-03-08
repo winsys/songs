@@ -25,6 +25,15 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
     $scope.preparedVerses       = [];          // [{num, display}]
     $scope.selectedBibleVerseNums = [];        // verse numbers selected (int[])
 
+    // ── Messages panel state (sermon prep) ──────────────────────
+    $scope.prepMsgTitleQuery    = '';
+    $scope.prepMsgTextQuery     = '';
+    $scope.prepMsgResults       = [];
+    $scope.prepSelectedMessage  = null;
+    $scope.prepMsgParagraphs    = [];   // [{idx, text}]
+    $scope.prepSelectedParaIdx  = null;
+    var prepMsgSearchTimer      = null;
+
     // ── UI state ─────────────────────────────────────────────
     $scope.bookSearchQuery      = '';
     $scope.biblePanelCollapsed  = false;
@@ -364,6 +373,19 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
         $scope.selectedBibleVerseNums = [];
     };
 
+    // Message citations
+        editorEl.querySelectorAll('.message-cite').forEach(function (span) {
+            var removeBtn = span.querySelector('.cite-remove');
+            if (removeBtn) {
+                removeBtn.onclick = function (e) {
+                    e.stopPropagation();
+                    span.remove();
+                    scheduleAutoSave();
+                };
+            }
+        });
+
+
     // ==========================================================
     // DOM UTILITY: insert node at saved cursor position
     // ==========================================================
@@ -547,6 +569,94 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
                 $scope.selectedBibleVerseNums = [v.num];
             }
         }
+    };
+
+
+    // ==========================================================
+    // MESSAGES PANEL (sermon prep)
+    // ==========================================================
+
+    $scope.searchMessagesPrep = function () {
+        if (prepMsgSearchTimer) $timeout.cancel(prepMsgSearchTimer);
+
+        var titleQ = $scope.prepMsgTitleQuery || '';
+        var textQ  = $scope.prepMsgTextQuery  || '';
+
+        if (titleQ.length < 2 && textQ.length < 2) {
+            $scope.prepMsgResults = [];
+            return;
+        }
+
+        prepMsgSearchTimer = $timeout(function () {
+            $http({ method: "POST", url: "/ajax", data: {
+                    command: 'search_messages',
+                    title_query: titleQ,
+                    text_query:  textQ
+                }}).then(function (r) {
+                $scope.prepMsgResults = r.data;
+            });
+        }, 400);
+    };
+
+    $scope.selectMessagePrep = function (msg) {
+        $scope.prepSelectedMessage = msg;
+        $scope.prepMsgParagraphs   = [];
+        $scope.prepSelectedParaIdx = null;
+
+        $http({ method: "POST", url: "/ajax", data: {
+                command: 'get_message',
+                id: msg.ID
+            }}).then(function (r) {
+            if (r.data && r.data.TEXT) {
+                var lines = r.data.TEXT.split(/\r?\n/);
+                var paras = [];
+                lines.forEach(function (line, i) {
+                    if (line.trim().length > 0) {
+                        paras.push({ idx: i, text: line.trim() });
+                    }
+                });
+                $scope.prepMsgParagraphs = paras;
+            }
+        });
+    };
+
+    $scope.togglePrepPara = function (para) {
+        $scope.prepSelectedParaIdx = ($scope.prepSelectedParaIdx === para.idx) ? null : para.idx;
+    };
+
+    $scope.insertMessageCitation = function () {
+        if ($scope.prepSelectedParaIdx === null) return;
+
+        var para = null;
+        for (var i = 0; i < $scope.prepMsgParagraphs.length; i++) {
+            if ($scope.prepMsgParagraphs[i].idx === $scope.prepSelectedParaIdx) {
+                para = $scope.prepMsgParagraphs[i];
+                break;
+            }
+        }
+        if (!para) return;
+
+        var msgTitle = $scope.prepSelectedMessage ? $scope.prepSelectedMessage.TITLE : '';
+        var fullText = para.text;
+
+        var span = document.createElement('span');
+        span.className = 'message-cite';
+        span.contentEditable = 'false';
+        span.setAttribute('data-msg-title', msgTitle);
+        span.setAttribute('data-para-text', fullText);
+
+        span.innerHTML = '✍️ ' + fullText +
+            ' <span class="cite-remove" title="Удалить">×</span>';
+
+        span.querySelector('.cite-remove').onclick = function (e) {
+            e.stopPropagation();
+            span.remove();
+            scheduleAutoSave();
+        };
+
+        insertNodeAtCursor(span);
+
+        $scope.prepSelectedParaIdx = null;
     };
 
 });

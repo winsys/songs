@@ -146,6 +146,33 @@ angular.module('Songs', [])
                 }
             };
         });
+
+        // Message citation chips
+        body.querySelectorAll('.message-cite').forEach(function (el) {
+            el.style.cursor = 'pointer';
+            el.onclick = function (e) {
+                e.preventDefault();
+
+                if (activeEl === el) {
+                    deactivateAll();
+                    $timeout(function () { clearDisplay(); }, 0);
+                    return;
+                }
+
+                activateElement(el);
+                var paraText = el.getAttribute('data-para-text') || '';
+                var msgTitle = el.getAttribute('data-msg-title') || '';
+
+                $timeout(function () {
+                    showText(paraText, msgTitle);
+                    $http({ method: "POST", url: "/ajax", data: {
+                            command: 'set_message_text',
+                            text: paraText,
+                            song_name: msgTitle
+                        }});
+                }, 0);
+            };
+        });
     }
 
     function activateElement(el) {
@@ -153,7 +180,10 @@ angular.module('Songs', [])
             activeEl.classList.remove('active-cite', 'active-img');
         }
         activeEl = el;
-        el.classList.add(el.classList.contains('bible-cite') ? 'active-cite' : 'active-img');
+        el.classList.add(
+            (el.classList.contains('bible-cite') || el.classList.contains('message-cite'))
+                ? 'active-cite' : 'active-img'
+        );
     }
 
     function deactivateAll() {
