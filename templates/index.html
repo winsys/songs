@@ -3,7 +3,6 @@
         userId = <?php echo $_SESSION["userId"] ?>;
     </script>
     <div class="row">
-
         <div class="col-xs-9 col-sm-9 col-md-9 col-lg-9" style="width:80%; left: 10%">
             <div class="row" style="padding-top: 20px">
                 <li style="text-align: center;
@@ -13,10 +12,21 @@
             </div>
             <h1 style="text-align: center; margin-top: 50px">Выберите режим</h1>
             <div class="row" style="padding-top: 50px">
+
+                <?php $role = isset($_SESSION['userRole']) ? $_SESSION['userRole'] : 'musician'; ?>
+
+                <?php if ($role === 'admin' || $role === 'leader'): ?>
                 <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
                         class="btn btn-primary btn-lg"
                         onclick="window.location.href='/leader/'+userId">Ведущий</button>
                 <p><br><br></p>
+                <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
+                        class="btn btn-primary btn-lg"
+                        onclick="window.location.href='/tech/'+userId">Технический режим</button>
+                <p><br><br></p>
+                <?php endif; ?>
+
+                <?php if ($role === 'admin' || $role === 'musician'): ?>
                 <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
                         class="btn btn-primary btn-lg"
                         onclick="window.location.href='/piano/'+userId">Пианист</button>
@@ -25,6 +35,20 @@
                         class="btn btn-primary btn-lg"
                         onclick="window.location.href='/musician/'+userId">Музыкант</button>
                 <p><br><br></p>
+                <?php endif; ?>
+
+                <?php if ($role === 'admin' || $role === 'preacher'): ?>
+                <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
+                        class="btn btn-success btn-lg"
+                        onclick="window.location.href='/sermon/'+userId">Проповедь</button>
+                <p><br><br></p>
+                <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
+                        class="btn btn-success btn-lg"
+                        onclick="window.location.href='/sermon_prep/'+userId">Подготовка проповеди</button>
+                <p><br><br></p>
+                <?php endif; ?>
+
+                <?php if ($role === 'admin'): ?>
                 <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
                         class="btn btn-primary btn-lg"
                         onclick="window.location.href='/text/'+userId">Слова песни</button>
@@ -34,27 +58,16 @@
                         onclick="window.location.href='/text_stream/'+userId">Слова для трансляции</button>
                 <p><br><br></p>
                 <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
-                        class="btn btn-success btn-lg"
-                        onclick="window.location.href='/sermon/'+userId">Проповедь</button>
-                <p><br><br></p>
-                <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
-                        class="btn btn-success btn-lg"
-                        onclick="window.location.href='/sermon_prep/'+userId">Подготовка проповеди</button>
-                <p><br><br></p>
-                <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
                         class="btn btn-primary btn-lg"
                         onclick="window.location.href='/settings/'+userId">Настройки</button>
                 <p><br><br></p>
-                <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
-                        class="btn btn-primary btn-lg"
-                        onclick="window.location.href='/tech/'+userId">Технический режим</button>
-                <p><br><br></p>
+                <?php endif; ?>
+
                 <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
                         class="btn btn-warning btn-lg"
                         onclick="window.location.href='/logout'">Выйти</button>
+
             </div>
         </div>
-
     </div><!--/row-->
-
 </div><!--/.container-->
