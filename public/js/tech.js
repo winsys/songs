@@ -28,8 +28,16 @@ app.controller('Tech', function ($scope, $http, $timeout)
     $scope.bibleSearchQuery     = '';
     var bibleSearchTimer        = null;
 
+    // ── Messages mode state ───────────────────────────────────
+    $scope.messageSearchQuery   = '';
+    $scope.messageSearchResults = [];
+    $scope.selectedMessage      = null;
+    $scope.messageParagraphs    = [];
+    $scope.showingMessagePara   = null;
+    var messageSearchTimer      = null;
+
     // ── Page mode ─────────────────────────────────────────────
-    $scope.pageMode = 'songs';  // 'songs' | 'bible'
+    $scope.pageMode = 'songs';  // 'songs' | 'bible' | 'messages'
 
     // ── Language selection ────────────────────────────────────
     $scope.languages = {
@@ -54,6 +62,9 @@ app.controller('Tech', function ($scope, $http, $timeout)
         }
     };
 
+    $scope.messagesMode = function() {
+        $scope.pageMode = 'messages';
+    };
 
     // ==========================================================
     // LANGUAGE TOGGLE (shared between modes)
@@ -567,6 +578,68 @@ app.controller('Tech', function ($scope, $http, $timeout)
             });
         }, 50);
     }
+
+    // ==========================================================
+    // MESSAGES MODE
+    // ==========================================================
+
+    $scope.searchMessages = function() {
+        if (messageSearchTimer) $timeout.cancel(messageSearchTimer);
+
+        if (!$scope.messageSearchQuery || $scope.messageSearchQuery.length < 2) {
+            $scope.messageSearchResults = [];
+            return;
+        }
+
+        messageSearchTimer = $timeout(function() {
+            $http({ method: "POST", url: "/ajax", data: {
+                    command: 'search_messages',
+                    query: $scope.messageSearchQuery
+                }}).then(function(r) {
+                $scope.messageSearchResults = r.data;
+            });
+        }, 400);
+    };
+
+    $scope.selectMessage = function(msg) {
+        $scope.selectedMessage   = msg;
+        $scope.messageParagraphs = [];
+        $scope.showingMessagePara = null;
+
+        $http({ method: "POST", url: "/ajax", data: {
+                command: 'get_message',
+                id: msg.ID
+            }}).then(function(r) {
+            if (r.data && r.data.TEXT) {
+                // Split by newline — each line is a paragraph (same as song verses)
+                var lines = r.data.TEXT.split(/\r?\n/);
+                $scope.messageParagraphs = lines.filter(function(l) {
+                    return l.trim().length > 0;
+                });
+                $scope.selectedMessage = r.data; // full data with TEXT
+            }
+        });
+    };
+
+    $scope.toggleMessageParagraph = function(para) {
+        if ($scope.showingMessagePara === para) {
+            // Toggle off
+            $scope.showingMessagePara = null;
+            $http({ method: "POST", url: "/ajax", data: {
+                    command: 'set_message_text',
+                    text: '',
+                    song_name: ''
+                }});
+        } else {
+            $scope.showingMessagePara = para;
+            var title = $scope.selectedMessage ? $scope.selectedMessage.TITLE : '';
+            $http({ method: "POST", url: "/ajax", data: {
+                    command: 'set_message_text',
+                    text: para,
+                    song_name: title
+                }});
+        }
+    };
 
     function sendBibleText(text, refLabel) {
         $http({ method: "POST", url: "/ajax",

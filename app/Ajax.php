@@ -423,6 +423,73 @@ class Ajax
     }
 
 
+
+    /**
+     * ============================================================
+     * ИНСТРУКЦИЯ: Вставить методы ниже в app/Ajax.php
+     * ПЕРЕД методом updateSocket().
+     * ============================================================
+     */
+
+    // Поиск посланий по названию и тексту
+    private static function search_messages()
+    {
+        $dbh = Info::get('dbh');
+        $query = isset(self::$args['query']) ? mysqli_real_escape_string($dbh, self::$args['query']) : '';
+
+        if ($query === '') {
+            return json_encode(array());
+        }
+
+        $list = Info::get('db')->select(
+            "SELECT ID, CODE, TITLE, LOCATION, CITY
+             FROM messages
+             WHERE TITLE LIKE '%{$query}%'
+                OR TEXT  LIKE '%{$query}%'
+             ORDER BY TITLE
+             LIMIT 100"
+        );
+        return json_encode($list);
+    }
+
+    // Получить абзацы одного послания
+    private static function get_message()
+    {
+        $id = (int)self::$args['id'];
+        $list = Info::get('db')->select(
+            "SELECT ID, CODE, TITLE, LOCATION, CITY, TEXT
+             FROM messages WHERE ID = {$id} LIMIT 1"
+        );
+        return json_encode(count($list) > 0 ? $list[0] : null);
+    }
+
+    // Показать абзац послания на экране текста
+    private static function set_message_text()
+    {
+        $userId = (int)$_SESSION['userId'];
+        $dbh = Info::get('dbh');
+        $text = mysqli_real_escape_string($dbh, self::$args['text']);
+        $song_name = mysqli_real_escape_string($dbh, self::$args['song_name']);
+
+        Info::get('db')->exec("DELETE FROM current WHERE groupId={$userId}");
+
+        if ($text !== '') {
+            Info::get('db')->exec(
+                "INSERT INTO current (groupId, image, text, song_name)
+                 VALUES ({$userId}, '__bible__', '{$text}', '{$song_name}')"
+            );
+        }
+
+        self::updateSocket();
+        return '';
+    }
+
+    /**
+     * ============================================================
+     * КОНЕЦ вставки.
+     * ============================================================
+     */
+
     private static function updateSocket()
     {
         $err1 = '';

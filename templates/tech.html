@@ -201,6 +201,11 @@
                     ng-class="pageMode === 'bible' ? 'mode-btn-active' : 'btn-default'"
                     ng-click="bibleMode()">Библия</button>
         </div>
+        <div class="col-xs-3 col-md-3" style="margin-top: 20pt">
+            <button class="btn btn-sm songlist-btn" style="width: 100%"
+                    ng-class="pageMode === 'messages' ? 'mode-btn-active' : 'btn-default'"
+                    ng-click="messagesMode()">Послание</button>
+        </div>
     </div>
 
     <!-- Строка 2: Сборники (режим Песни) или Переводы (режим Библия) -->
@@ -324,6 +329,83 @@
         </div>
 
     </div><!-- /songs mode -->
+
+    <!-- ========================================================== -->
+    <!-- MESSAGES MODE content                                       -->
+    <!-- ========================================================== -->
+    <div ng-show="pageMode === 'messages'">
+
+        <!-- Double search: title + content -->
+        <div class="row">
+            <div class="col-xs-12" style="margin-top: 20pt; margin-bottom: 10px;">
+                <input type="text"
+                       class="form-control search-box"
+                       placeholder="Поиск по названию или тексту послания..."
+                       ng-model="messageSearchQuery"
+                       ng-change="searchMessages()"
+                       style="height: 32pt; font-size: 14pt;" />
+            </div>
+        </div>
+
+        <!-- Two-panel layout: list | paragraphs -->
+        <div class="row" style="margin-top: 10px;">
+
+            <!-- Left: search results / message list -->
+            <div class="col-sm-5 col-xs-5">
+                <div class="bible-panel" id="messages-list-panel">
+                    <div class="bible-panel-title">📜 Послания</div>
+
+                    <!-- Search results -->
+                    <div ng-show="messageSearchQuery.length >= 2">
+                        <div class="bible-list-item"
+                             ng-repeat="msg in messageSearchResults"
+                             ng-class="{'selected': selectedMessage && selectedMessage.ID === msg.ID}"
+                             ng-click="selectMessage(msg)">
+                            <strong style="font-size: 10pt;">{{ msg.TITLE }}</strong>
+                            <span style="display:block; font-size: 9pt; color: #888;">
+                                {{ msg.CODE }}{{ msg.CITY ? ' · ' + msg.CITY : '' }}{{ msg.LOCATION ? ' · ' + msg.LOCATION : '' }}
+                            </span>
+                        </div>
+                        <div ng-show="messageSearchResults.length === 0 && messageSearchQuery.length >= 2"
+                             style="padding: 12px; color: #999; font-size: 10pt;">
+                            Ничего не найдено
+                        </div>
+                    </div>
+
+                    <div ng-show="!messageSearchQuery || messageSearchQuery.length < 2"
+                         style="padding: 12px; color: #999; font-size: 10pt;">
+                        Введите минимум 2 символа для поиска
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right: paragraphs of selected message -->
+            <div class="col-sm-7 col-xs-7">
+                <div class="bible-panel" id="messages-para-panel">
+                    <div class="bible-panel-title">
+                        ✍️ Абзацы
+                        <span ng-show="selectedMessage" style="color: #337ab7;">
+                            — {{ selectedMessage.TITLE }}
+                        </span>
+                    </div>
+                    <div class="bible-verse-item"
+                         ng-repeat="para in messageParagraphs"
+                         ng-class="{'chapter-selected': showingMessagePara === para}"
+                         ng-click="toggleMessageParagraph(para)">{{ para }}</div>
+                    <div ng-show="messageParagraphs.length === 0 && selectedMessage"
+                         style="padding: 12px; color: #999; font-size: 10pt;">
+                        Нет текста
+                    </div>
+                    <div ng-show="!selectedMessage"
+                         style="padding: 12px; color: #999; font-size: 10pt;">
+                        Выберите послание
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div style="margin-bottom: 100px"></div>
+    </div><!-- /messages mode -->
 
 
     <!-- ========================================================== -->
