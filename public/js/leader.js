@@ -169,7 +169,6 @@ app.controller('Leader', function ($scope, $http)
         jQuery("#confirmation-dialog .modal").modal(flag ? 'show' : 'hide');
     };
 
-
     /**
      * Add song popup
      */
@@ -190,27 +189,6 @@ app.controller('Leader', function ($scope, $http)
 
     $scope.addSongPopup = function(flag) {
         jQuery("#add-song-popup .modal").modal(flag ? 'show' : 'hide');
-    };
-
-    $scope.uploadPhoto = function(fm)
-    {
-        var input = $('#imageCapDialog');
-        var reader = new FileReader();
-        reader.onload = function(){
-            $http({
-                method: "PUT",
-                url: $scope._ROOT + "image/" + fm.file.name + "/" + $scope.curQuestion.protocol_record_id,
-                data: reader.result
-            }).then(
-                function success(respond)
-                {
-                    $scope.curQuestion.photos.push(respond.data.result);
-                },
-                function error(erespond){
-                    console.log('API call error: '+erespond)
-                });
-        };
-        reader.readAsDataURL(input[0].files[0]);
     };
 
     $scope.setList = function( listId ){
