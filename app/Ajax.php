@@ -574,20 +574,35 @@ class Ajax
     private static function search_messages()
     {
         $dbh = Info::get('dbh');
-        $query = isset(self::$args['query']) ? mysqli_real_escape_string($dbh, self::$args['query']) : '';
 
-        if ($query === '') {
+        $titleQuery = isset(self::$args['title_query'])
+            ? mysqli_real_escape_string($dbh, self::$args['title_query'])
+            : '';
+        $textQuery  = isset(self::$args['text_query'])
+            ? mysqli_real_escape_string($dbh, self::$args['text_query'])
+            : '';
+
+        if ($titleQuery === '' && $textQuery === '') {
             return json_encode(array());
         }
 
+        $conditions = array();
+        if ($titleQuery !== '') {
+            $conditions[] = "TITLE LIKE '%{$titleQuery}%'";
+        }
+        if ($textQuery !== '') {
+            $conditions[] = "TEXT LIKE '%{$textQuery}%'";
+        }
+        $where = implode(' OR ', $conditions);
+
         $list = Info::get('db')->select(
             "SELECT ID, CODE, TITLE, CITY
-             FROM messages
-             WHERE TITLE LIKE '%{$query}%'
-                OR TEXT  LIKE '%{$query}%'
-             ORDER BY TITLE
-             LIMIT 100"
+         FROM messages
+         WHERE {$where}
+         ORDER BY TITLE
+         LIMIT 100"
         );
+
         return json_encode($list);
     }
 
