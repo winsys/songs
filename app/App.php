@@ -67,6 +67,10 @@ class App
             case 'text_stream':
                 $this->render($route[0], $route[1], 'text_layout_streaming');
                 break;
+            // Sermon presentation mode — standalone full-screen page
+            case 'sermon':
+                $this->render($route[0], $route[1], 'sermon_layout');
+                break;
             default:
                 $this->render($route[0], $route[1]);
                 break;
