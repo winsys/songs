@@ -164,31 +164,53 @@
     /* ===== Bible citation chip ===== */
     .bible-cite {
         display: inline-flex;
-        align-items: center;
-        gap: 4px;
+        align-items: flex-start;
+        gap: 6px;
         background: #e8f4fd;
         border: 1px solid #90caf9;
         border-radius: 12px;
-        padding: 2px 10px 2px 8px;
+        padding: 4px 10px 4px 8px;
         font-size: 10pt;
         color: #1565c0;
-        font-weight: 600;
         cursor: pointer;
         user-select: none;
-        white-space: nowrap;
+        white-space: normal;
+        word-break: break-word;
         vertical-align: middle;
-        margin: 1px 2px;
+        margin: 2px 3px;
+        max-width: 100%;
         transition: background 0.15s;
     }
     .bible-cite:hover { background: #bbdefb; }
+    .bible-cite .cite-body {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        flex: 1;
+        min-width: 0;
+    }
+    .bible-cite .cite-ref {
+        font-weight: 700;
+        white-space: nowrap;
+        color: #1565c0;
+    }
+    .bible-cite .cite-verse-text {
+        font-weight: 400;
+        font-size: 9.5pt;
+        color: #1976d2;
+        opacity: 0.85;
+        line-height: 1.4;
+    }
     .bible-cite .cite-remove {
         display: inline-block;
-        margin-left: 4px;
+        flex-shrink: 0;
+        margin-left: 2px;
         color: #999;
         font-size: 11pt;
         font-weight: 400;
         cursor: pointer;
         line-height: 1;
+        padding-top: 2px;
     }
     .bible-cite .cite-remove:hover { color: #e53935; }
 
