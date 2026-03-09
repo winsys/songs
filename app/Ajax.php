@@ -754,6 +754,108 @@ class Ajax
         return json_encode(['status' => 'success']);
     }
 
+// ============================================================
+    // ПОЛЬЗОВАТЕЛИ ГРУППЫ
+    // ============================================================
+
+    private static function get_group_users()
+    {
+        $userId = (int)$_SESSION['userId'];
+        // Все пользователи группы: сам admin (ID=$userId) + остальные (GROUP_ID=$userId)
+        $users = Info::get('db')->select(
+            "SELECT ID, NAME, LOGIN, PASS, ROLE
+             FROM users
+             WHERE ID = {$userId} OR GROUP_ID = {$userId}
+             ORDER BY FIELD(ROLE, 'admin', 'leader', 'musician', 'preacher')"
+        );
+        return json_encode($users);
+    }
+
+    private static function update_group_user()
+    {
+        $userId  = (int)$_SESSION['userId'];
+        $dbh     = Info::get('dbh');
+        $id      = (int)self::$args['id'];
+        $name    = mysqli_real_escape_string($dbh, self::$args['name']);
+        $login   = mysqli_real_escape_string($dbh, self::$args['login']);
+        $pass    = mysqli_real_escape_string($dbh, self::$args['pass']);
+
+        // Убедимся, что редактируем только своего пользователя
+        $check = Info::get('db')->get(
+            "SELECT ID FROM users WHERE ID = {$id} AND (ID = {$userId} OR GROUP_ID = {$userId})"
+        );
+        if (!$check) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+
+        Info::get('db')->exec(
+            "UPDATE users SET NAME = '{$name}', LOGIN = '{$login}', PASS = '{$pass}'
+             WHERE ID = {$id}"
+        );
+        return json_encode(['status' => 'success']);
+    }
+
+    private static function create_group_user()
+    {
+        $userId  = (int)$_SESSION['userId'];
+        $dbh     = Info::get('dbh');
+        $role    = mysqli_real_escape_string($dbh, self::$args['role']);
+
+        $allowed = ['admin', 'leader', 'musician', 'preacher'];
+        if (!in_array($role, $allowed)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid role']);
+        }
+
+        // Проверить, не существует ли уже такой пользователь
+        $existing = Info::get('db')->get(
+            "SELECT ID FROM users
+             WHERE ROLE = '{$role}' AND (ID = {$userId} OR GROUP_ID = {$userId})"
+        );
+        if ($existing) {
+            return json_encode(['status' => 'error', 'message' => 'User already exists']);
+        }
+
+        // Получить имя группы (из admin-пользователя)
+        $adminUser = Info::get('db')->get("SELECT NAME FROM users WHERE ID = {$userId}");
+        $groupName = $adminUser ? $adminUser['NAME'] : 'Group';
+
+        $roleLabels = [
+            'admin'    => 'Администратор',
+            'leader'   => 'Ведущий',
+            'musician' => 'Музыкант',
+            'preacher' => 'Проповедник'
+        ];
+        $defaultName  = $groupName . ' - ' . $roleLabels[$role];
+        $defaultLogin = strtolower(preg_replace('/\s+/', '_', $groupName)) . '_' . $role;
+
+        // Генерация пароля: 8 символов
+        $chars    = 'abcdefghjkmnpqrstuvwxyz23456789';
+        $password = '';
+        for ($i = 0; $i < 8; $i++) {
+            $password .= $chars[random_int(0, strlen($chars) - 1)];
+        }
+
+        $escapedName  = mysqli_real_escape_string($dbh, $defaultName);
+        $escapedLogin = mysqli_real_escape_string($dbh, $defaultLogin);
+        $escapedPass  = mysqli_real_escape_string($dbh, $password);
+
+        Info::get('db')->exec(
+            "INSERT INTO users (NAME, LOGIN, PASS, ROLE, GROUP_ID)
+             VALUES ('{$escapedName}', '{$escapedLogin}', '{$escapedPass}', '{$role}', {$userId})"
+        );
+
+        $newId = Info::get('dbh')->insert_id;
+        return json_encode([
+            'status' => 'success',
+            'user'   => [
+                'ID'    => $newId,
+                'NAME'  => $defaultName,
+                'LOGIN' => $defaultLogin,
+                'PASS'  => $password,
+                'ROLE'  => $role
+            ]
+        ]);
+    }
 
     private static function upload_placeholder_image()
     {

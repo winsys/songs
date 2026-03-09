@@ -102,5 +102,104 @@ app.controller('Settings', function ($scope, $http)
     };
 
     $scope.loadAvailableLists();
+
+    // ============================================================
+    // ПОЛЬЗОВАТЕЛИ ГРУППЫ
+    // Вставить в public/js/settings.js ПЕРЕД строкой loadSettings();
+    // ============================================================
+
+    var ALL_ROLES = [
+        { role: 'admin',    roleLabel: 'Администратор' },
+        { role: 'leader',   roleLabel: 'Ведущий' },
+        { role: 'musician', roleLabel: 'Музыкант' },
+        { role: 'preacher', roleLabel: 'Проповедник' }
+    ];
+
+    $scope.userSlots = ALL_ROLES.map(function(r) {
+        return { role: r.role, roleLabel: r.roleLabel, user: null };
+    });
+
+    $scope.getRoleBadgeStyle = function(role) {
+        var colors = {
+            admin:    { color: '#fff', background: '#c62828', border: '1px solid #b71c1c' },
+            leader:   { color: '#fff', background: '#1565c0', border: '1px solid #0d47a1' },
+            musician: { color: '#fff', background: '#2e7d32', border: '1px solid #1b5e20' },
+            preacher: { color: '#fff', background: '#6a1b9a', border: '1px solid #4a148c' }
+        };
+        return colors[role] || { color: '#333', background: '#e0e0e0' };
+    };
+
+    $scope.loadGroupUsers = function() {
+        $http({ method: 'POST', url: '/ajax', data: { command: 'get_group_users' } }).then(
+            function success(r) {
+                var users = r.data || [];
+                // Сбросить слоты
+                $scope.userSlots = ALL_ROLES.map(function(slot) {
+                    var found = null;
+                    for (var i = 0; i < users.length; i++) {
+                        if (users[i].ROLE === slot.role) { found = users[i]; break; }
+                    }
+                    return { role: slot.role, roleLabel: slot.roleLabel, user: found };
+                });
+            },
+            function error(e) { console.log('loadGroupUsers error:', e); }
+        );
+    };
+
+    $scope.createGroupUser = function(role) {
+        $http({ method: 'POST', url: '/ajax', data: { command: 'create_group_user', role: role } }).then(
+            function success(r) {
+                if (r.data && r.data.status === 'success') {
+                    // Найти слот и вставить нового пользователя
+                    for (var i = 0; i < $scope.userSlots.length; i++) {
+                        if ($scope.userSlots[i].role === role) {
+                            $scope.userSlots[i].user = r.data.user;
+                            break;
+                        }
+                    }
+                } else {
+                    alert('❌ Ошибка создания пользователя: ' + (r.data.message || ''));
+                }
+            },
+            function error(e) { alert('❌ Ошибка при создании пользователя!'); }
+        );
+    };
+
+    $scope.updateGroupUser = function(user) {
+        $http({ method: 'POST', url: '/ajax', data: {
+                command: 'update_group_user',
+                id:    user.ID,
+                name:  user.NAME,
+                login: user.LOGIN,
+                pass:  user.PASS
+            }}).then(
+            function success(r) {
+                if (r.data && r.data.status === 'success') {
+                    alert('✅ Пользователь сохранён!');
+                } else {
+                    alert('❌ Ошибка при сохранении!');
+                }
+            },
+            function error(e) { alert('❌ Ошибка при сохранении!'); }
+        );
+    };
+
+    $scope.shareUser = function(user, roleLabel) {
+        var text =
+            'Роль: '   + roleLabel    + '\n' +
+            'Имя: '    + user.NAME   + '\n' +
+            'Логин: '  + user.LOGIN  + '\n' +
+            'Пароль: ' + user.PASS;
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(
+                function() { alert('📋 Данные скопированы в буфер обмена!'); },
+                function() { prompt('Скопируйте данные:', text); }
+            );
+        } else {
+            prompt('Скопируйте данные:', text);
+        }
+    };
+
+    $scope.loadGroupUsers();
     $scope.loadSettings();
 });
