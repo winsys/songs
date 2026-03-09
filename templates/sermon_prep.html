@@ -1,4 +1,17 @@
 <style>
+    /* ── Chip colour tokens (overridden at runtime by sermon_prep.js) ── */
+    :root {
+        --sp-bible-bg:       #e8f4fd;
+        --sp-bible-border:   #90caf9;
+        --sp-bible-ref:      #1565c0;
+        --sp-bible-verse:    #1976d2;
+        --sp-bible-hover-bg: #bbdefb;
+
+        --sp-msg-bg:         #f3e5f5;
+        --sp-msg-border:     #ce93d8;
+        --sp-msg-color:      #6a1b9a;
+        --sp-msg-hover-bg:   #e1bee7;
+    }
     /* ===== Layout ===== */
     .prep-header-row {
         padding-top: 20px;
@@ -166,12 +179,12 @@
         display: inline-flex;
         align-items: flex-start;
         gap: 6px;
-        background: #e8f4fd;
-        border: 1px solid #90caf9;
+        background: var(--sp-bible-bg);
+        border: 1px solid var(--sp-bible-border);
         border-radius: 12px;
         padding: 4px 10px 4px 8px;
         font-size: 10pt;
-        color: #1565c0;
+        color: var(--sp-bible-ref);
         cursor: pointer;
         user-select: none;
         white-space: normal;
@@ -181,7 +194,7 @@
         max-width: 100%;
         transition: background 0.15s;
     }
-    .bible-cite:hover { background: #bbdefb; }
+    .bible-cite:hover { background: var(--sp-bible-hover-bg); }
     .bible-cite .cite-body {
         display: flex;
         flex-direction: column;
@@ -192,12 +205,12 @@
     .bible-cite .cite-ref {
         font-weight: 700;
         white-space: nowrap;
-        color: #1565c0;
+        color: var(--sp-bible-ref);
     }
     .bible-cite .cite-verse-text {
         font-weight: 400;
         font-size: 9.5pt;
-        color: #1976d2;
+        color: var(--sp-bible-verse);
         opacity: 0.85;
         line-height: 1.4;
     }
@@ -219,12 +232,12 @@
         display: inline-flex;
         align-items: flex-start;
         gap: 4px;
-        background: #f3e5f5;
-        border: 1px solid #ce93d8;
+        background: var(--sp-msg-bg);
+        border: 1px solid var(--sp-msg-border);
         border-radius: 10px;
         padding: 4px 10px 4px 8px;
         font-size: 10pt;
-        color: #6a1b9a;
+        color: var(--sp-msg-color);
         font-weight: normal;
         cursor: pointer;
         user-select: none;
@@ -235,7 +248,7 @@
         transition: background 0.15s;
         max-width: 100%;
     }
-    .message-cite:hover { background: #e1bee7; }
+    .message-cite:hover { background: var(--sp-msg-hover-bg); }
     .message-cite .cite-remove {
         display: inline-block;
         margin-left: 6px;
@@ -465,15 +478,20 @@
     </div>
 
     <!-- Title + Date row -->
-    <div class="row" style="margin-top: 14px;">
+    <div class="row" style="margin-top: 22px;">
         <div class="col-xs-7 col-sm-8">
+            <label style="font-weight: bold; font-size: 10pt; margin-bottom: 4px; display: block; color: #555;">
+                Название проповеди
+            </label>
             <input type="text"
                    class="form-control"
                    style="font-size: 14pt; font-weight: bold;"
-                   placeholder="Название проповеди"
                    ng-model="sermon.title" />
         </div>
         <div class="col-xs-5 col-sm-4">
+            <label style="font-weight: bold; font-size: 10pt; margin-bottom: 4px; display: block; color: #555;">
+                Дата проповеди
+            </label>
             <input type="text"
                    class="form-control"
                    style="font-size: 12pt;"
@@ -683,11 +701,6 @@
                 <input type="file" id="sermon-image-input" accept="image/*" style="display:none;" />
 
                 <div style="flex:1;"></div>
-
-                <!-- Sermon list toggle -->
-                <button class="toolbar-btn" ng-click="showSermonList = !showSermonList" title="Список проповедей">
-                    📋 Список
-                </button>
             </div>
 
             <!-- Editor area -->
@@ -697,14 +710,21 @@
             </div>
 
             <!-- Bottom bar -->
-            <div class="prep-bottom">
-                <button class="btn btn-success btn-sm" ng-click="saveSermon()">💾 Сохранить</button>
-                <button class="btn btn-default btn-sm" ng-click="newSermon()">+ Новая проповедь</button>
-                <button class="btn btn-danger btn-sm" ng-show="sermon.id" ng-click="confirmDelete()">🗑 Удалить</button>
-                <span class="save-status" ng-class="{'saved': saveStatus === 'saved', 'saving': saveStatus === 'saving'}"
-                      ng-show="saveStatus">
-                    {{ saveStatus === 'saving' ? 'Сохранение...' : (saveStatus === 'saved' ? '✓ Сохранено' : '') }}
-                </span>
+            <div class="prep-bottom" style="justify-content: space-between; flex-wrap: wrap;">
+                <!-- Left group: action buttons -->
+                <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+                    <button class="btn btn-success btn-sm" ng-click="saveSermon()">💾 Сохранить</button>
+                    <button class="btn btn-default btn-sm" ng-click="newSermon()">+ Новая проповедь</button>
+                    <button class="btn btn-danger btn-sm" ng-show="sermon.id" ng-click="confirmDelete()">🗑 Удалить</button>
+                    <span class="save-status" ng-class="{'saved': saveStatus === 'saved', 'saving': saveStatus === 'saving'}"
+                          ng-show="saveStatus">
+                        {{ saveStatus === 'saving' ? 'Сохранение...' : (saveStatus === 'saved' ? '✓ Сохранено' : '') }}
+                    </span>
+                </div>
+                <!-- Right group: list toggle -->
+                <button class="btn btn-default btn-sm" ng-click="showSermonList = !showSermonList" title="Список проповедей">
+                    📋 Список
+                </button>
             </div>
 
             <!-- Sermon list panel -->
