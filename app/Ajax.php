@@ -680,9 +680,17 @@ class Ajax
                 'streaming_bg_color' => '#000000',
                 'streaming_font' => 'Arial',
                 'streaming_font_color' => '#FFFFFF',
-                'streaming_height_percent' => 100
+                'streaming_height_percent' => 100,
+                'sermon_notes_bg_color'   => '#2b2b2b',
+                'sermon_bible_base_color' => '#7ec8f8',
+                'sermon_msg_base_color'   => '#ce93d8'
             ];
         }
+
+        // Fill in defaults for new columns if they are NULL (rows created before migration)
+        if (empty($settings['sermon_notes_bg_color']))   $settings['sermon_notes_bg_color']   = '#2b2b2b';
+        if (empty($settings['sermon_bible_base_color'])) $settings['sermon_bible_base_color']  = '#7ec8f8';
+        if (empty($settings['sermon_msg_base_color']))   $settings['sermon_msg_base_color']    = '#ce93d8';
 
         return json_encode($settings);
     }
@@ -693,17 +701,20 @@ class Ajax
         $settings = self::$args['settings'];
 
         // Escape values
-        $displayName = mysqli_escape_string(Info::get('dbh'), $settings['display_name']);
-        $favoritesOrder = mysqli_escape_string(Info::get('dbh'), $settings['favorites_order']);
-        $availableLists = mysqli_escape_string(Info::get('dbh'), $settings['available_lists']);
-        $placeholderImage = mysqli_escape_string(Info::get('dbh'), $settings['placeholder_image']);
-        $mainBgColor = mysqli_escape_string(Info::get('dbh'), $settings['main_bg_color']);
-        $mainFont = mysqli_escape_string(Info::get('dbh'), $settings['main_font']);
-        $mainFontColor = mysqli_escape_string(Info::get('dbh'), $settings['main_font_color']);
-        $streamingBgColor = mysqli_escape_string(Info::get('dbh'), $settings['streaming_bg_color']);
-        $streamingFont = mysqli_escape_string(Info::get('dbh'), $settings['streaming_font']);
-        $streamingFontColor = mysqli_escape_string(Info::get('dbh'), $settings['streaming_font_color']);
-        $streamingHeightPercent = intval($settings['streaming_height_percent']);
+        $displayName             = mysqli_escape_string(Info::get('dbh'), $settings['display_name']);
+        $favoritesOrder          = mysqli_escape_string(Info::get('dbh'), $settings['favorites_order']);
+        $availableLists          = mysqli_escape_string(Info::get('dbh'), $settings['available_lists']);
+        $placeholderImage        = mysqli_escape_string(Info::get('dbh'), $settings['placeholder_image']);
+        $mainBgColor             = mysqli_escape_string(Info::get('dbh'), $settings['main_bg_color']);
+        $mainFont                = mysqli_escape_string(Info::get('dbh'), $settings['main_font']);
+        $mainFontColor           = mysqli_escape_string(Info::get('dbh'), $settings['main_font_color']);
+        $streamingBgColor        = mysqli_escape_string(Info::get('dbh'), $settings['streaming_bg_color']);
+        $streamingFont           = mysqli_escape_string(Info::get('dbh'), $settings['streaming_font']);
+        $streamingFontColor      = mysqli_escape_string(Info::get('dbh'), $settings['streaming_font_color']);
+        $streamingHeightPercent  = intval($settings['streaming_height_percent']);
+        $sermonNotesBgColor      = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_notes_bg_color'])   ? $settings['sermon_notes_bg_color']   : '#2b2b2b');
+        $sermonBibleBaseColor    = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_bible_base_color']) ? $settings['sermon_bible_base_color'] : '#7ec8f8');
+        $sermonMsgBaseColor      = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_msg_base_color'])   ? $settings['sermon_msg_base_color']   : '#ce93d8');
 
         // Check if settings exist
         $existing = Info::get('db')->get("SELECT user_id FROM user_settings WHERE user_id = {$userId}");
@@ -712,17 +723,20 @@ class Ajax
             // Update existing settings
             Info::get('db')->exec("
                 UPDATE user_settings SET
-                    display_name = '{$displayName}',
-                    favorites_order = '{$favoritesOrder}',
-                    available_lists = '{$availableLists}',
-                    placeholder_image = '{$placeholderImage}',
-                    main_bg_color = '{$mainBgColor}',
-                    main_font = '{$mainFont}',
-                    main_font_color = '{$mainFontColor}',
-                    streaming_bg_color = '{$streamingBgColor}',
-                    streaming_font = '{$streamingFont}',
-                    streaming_font_color = '{$streamingFontColor}',
-                    streaming_height_percent = {$streamingHeightPercent}
+                    display_name             = '{$displayName}',
+                    favorites_order          = '{$favoritesOrder}',
+                    available_lists          = '{$availableLists}',
+                    placeholder_image        = '{$placeholderImage}',
+                    main_bg_color            = '{$mainBgColor}',
+                    main_font                = '{$mainFont}',
+                    main_font_color          = '{$mainFontColor}',
+                    streaming_bg_color       = '{$streamingBgColor}',
+                    streaming_font           = '{$streamingFont}',
+                    streaming_font_color     = '{$streamingFontColor}',
+                    streaming_height_percent = {$streamingHeightPercent},
+                    sermon_notes_bg_color    = '{$sermonNotesBgColor}',
+                    sermon_bible_base_color  = '{$sermonBibleBaseColor}',
+                    sermon_msg_base_color    = '{$sermonMsgBaseColor}'
                 WHERE user_id = {$userId}
             ");
         } else {
@@ -731,11 +745,13 @@ class Ajax
                 INSERT INTO user_settings (
                     user_id, display_name, favorites_order, available_lists, placeholder_image,
                     main_bg_color, main_font, main_font_color,
-                    streaming_bg_color, streaming_font, streaming_font_color, streaming_height_percent
+                    streaming_bg_color, streaming_font, streaming_font_color, streaming_height_percent,
+                    sermon_notes_bg_color, sermon_bible_base_color, sermon_msg_base_color
                 ) VALUES (
                     {$userId}, '{$displayName}', '{$favoritesOrder}', '{$availableLists}', '{$placeholderImage}',
                     '{$mainBgColor}', '{$mainFont}', '{$mainFontColor}',
-                    '{$streamingBgColor}', '{$streamingFont}', '{$streamingFontColor}', {$streamingHeightPercent}
+                    '{$streamingBgColor}', '{$streamingFont}', '{$streamingFontColor}', {$streamingHeightPercent},
+                    '{$sermonNotesBgColor}', '{$sermonBibleBaseColor}', '{$sermonMsgBaseColor}'
                 )
             ");
         }
