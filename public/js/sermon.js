@@ -326,7 +326,7 @@ angular.module('Songs', [])
         }
 
         function sendImageToDisplay(path) {
-            $http({ method: "POST", url: "/ajax", data: { command: path ? 'set_image' : 'clear_image', image: path }});
+            $http({ method: "POST", url: "/ajax", data: { command: path ? 'set_tech_image' : 'clear_image', image_name: path }});
         }
 
         /**
@@ -362,12 +362,12 @@ angular.module('Songs', [])
             var size = 8;
             el.style.fontSize = size + 'px';
 
-            while (size < 300 && el.scrollHeight <= maxH && el.scrollWidth <= maxW) {
+            while (size < 300 && el.scrollHeight <= maxH) {
                 size++;
                 el.style.fontSize = size + 'px';
             }
             // One step back if we overshot
-            if (el.scrollHeight > maxH || el.scrollWidth > maxW) {
+            if (el.scrollHeight > maxH) {
                 size = Math.max(8, size - 1);
                 el.style.fontSize = size + 'px';
             }
