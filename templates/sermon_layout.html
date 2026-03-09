@@ -6,10 +6,42 @@
     <title>Проповедь</title>
     <script src="/js/angular.min.js" type="text/javascript"></script>
     <style>
+        /* ── CSS custom properties (defaults = current hard-coded values) ── */
+        :root {
+            /* Notes panel */
+            --sn-body-bg:      #1a1a1a;
+            --sn-notes-bg:     #2b2b2b;
+            --sn-notes-header: #222222;
+            --sn-notes-border: #444444;
+            --sn-select-bg:    #333333;
+
+            /* Bible cite chip */
+            --sn-bible-bg:           #1a3a5c;
+            --sn-bible-border:       #2a6099;
+            --sn-bible-ref:          #7ec8f8;
+            --sn-bible-verse:        #90caf9;
+            --sn-bible-hover-bg:     #1e4a78;
+            --sn-bible-hover-border: #4a90d9;
+            --sn-bible-active-bg:    #1e6bbf;
+            --sn-bible-active-bdr:   #64b5f6;
+            --sn-bible-active-verse: #e3f2fd;
+            --sn-bible-shadow:       #1976d2;
+
+            /* Message / Epistle cite chip */
+            --sn-msg-bg:           #2d1b3d;
+            --sn-msg-border:       #7b1fa2;
+            --sn-msg-color:        #ce93d8;
+            --sn-msg-hover-bg:     #3d1f52;
+            --sn-msg-hover-border: #ab47bc;
+            --sn-msg-active-bg:    #4a148c;
+            --sn-msg-active-bdr:   #e040fb;
+            --sn-msg-shadow:       #7b1fa2;
+        }
+
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            background: #1a1a1a;
+            background: var(--sn-body-bg);
             color: #fff;
             font-family: Arial, sans-serif;
             height: 100vh;
@@ -28,16 +60,16 @@
             width: 50%;
             height: 100vh;
             overflow-y: auto;
-            background: #2b2b2b;
-            border-right: 2px solid #444;
+            background: var(--sn-notes-bg);
+            border-right: 2px solid var(--sn-notes-border);
             display: flex;
             flex-direction: column;
         }
 
         #notes-header {
-            background: #222;
+            background: var(--sn-notes-header);
             padding: 10px 16px;
-            border-bottom: 1px solid #444;
+            border-bottom: 1px solid var(--sn-notes-border);
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -66,9 +98,9 @@
         }
 
         #sermon-select {
-            background: #333;
+            background: var(--sn-select-bg);
             color: #ccc;
-            border: 1px solid #555;
+            border: 1px solid var(--sn-notes-border);
             border-radius: 5px;
             padding: 4px 8px;
             font-size: 10pt;
@@ -90,12 +122,12 @@
             display: inline-flex;
             align-items: flex-start;
             gap: 6px;
-            background: #1a3a5c;
-            border: 1px solid #2a6099;
+            background: var(--sn-bible-bg);
+            border: 1px solid var(--sn-bible-border);
             border-radius: 12px;
             padding: 5px 12px;
             font-size: 10pt;
-            color: #7ec8f8;
+            color: var(--sn-bible-ref);
             cursor: pointer;
             user-select: none;
             white-space: normal;
@@ -105,12 +137,15 @@
             max-width: 100%;
             transition: background 0.15s, border-color 0.15s;
         }
-        #notes-body .bible-cite:hover { background: #1e4a78; border-color: #4a90d9; }
+        #notes-body .bible-cite:hover {
+            background: var(--sn-bible-hover-bg);
+            border-color: var(--sn-bible-hover-border);
+        }
         #notes-body .bible-cite.active-cite {
-            background: #1e6bbf;
-            border-color: #64b5f6;
+            background: var(--sn-bible-active-bg);
+            border-color: var(--sn-bible-active-bdr);
             color: #fff;
-            box-shadow: 0 0 0 2px #1976d2;
+            box-shadow: 0 0 0 2px var(--sn-bible-shadow);
         }
         #notes-body .bible-cite .cite-body {
             display: flex;
@@ -122,28 +157,31 @@
         #notes-body .bible-cite .cite-ref {
             font-weight: 700;
             white-space: nowrap;
-            color: #7ec8f8;
+            color: var(--sn-bible-ref);
         }
         #notes-body .bible-cite.active-cite .cite-ref { color: #fff; }
         #notes-body .bible-cite .cite-verse-text {
             font-weight: 400;
             font-size: 9.5pt;
-            color: #90caf9;
+            color: var(--sn-bible-verse);
             opacity: 0.9;
             line-height: 1.45;
         }
-        #notes-body .bible-cite.active-cite .cite-verse-text { color: #e3f2fd; opacity: 1; }
+        #notes-body .bible-cite.active-cite .cite-verse-text {
+            color: var(--sn-bible-active-verse);
+            opacity: 1;
+        }
 
         /* ===== Message cite chip (in notes) ===== */
         #notes-body .message-cite {
             display: inline-flex;
             align-items: flex-start;
-            background: #2d1b3d;
-            border: 1px solid #7b1fa2;
+            background: var(--sn-msg-bg);
+            border: 1px solid var(--sn-msg-border);
             border-radius: 10px;
             padding: 4px 12px;
             font-size: 10pt;
-            color: #ce93d8;
+            color: var(--sn-msg-color);
             font-weight: normal;
             cursor: pointer;
             user-select: none;
@@ -154,17 +192,18 @@
             transition: background 0.15s, border-color 0.15s;
             max-width: 100%;
         }
-        #notes-body .message-cite:hover { background: #3d1f52; border-color: #ab47bc; }
+        #notes-body .message-cite:hover {
+            background: var(--sn-msg-hover-bg);
+            border-color: var(--sn-msg-hover-border);
+        }
         #notes-body .message-cite.active-cite {
-            background: #4a148c;
-            border-color: #e040fb;
+            background: var(--sn-msg-active-bg);
+            border-color: var(--sn-msg-active-bdr);
             color: #fff;
-            box-shadow: 0 0 0 2px #7b1fa2;
+            box-shadow: 0 0 0 2px var(--sn-msg-shadow);
         }
         /* Hide the × remove button in sermon mode */
         #notes-body .message-cite .cite-remove { display: none !important; }
-
-        /* Hide the × remove button in sermon mode */
         #notes-body .cite-remove { display: none !important; }
 
         /* ===== Image in notes ===== */
@@ -173,20 +212,22 @@
             margin: 4px 2px;
             vertical-align: middle;
             cursor: pointer;
-            border: 2px solid #555;
+            border: 2px solid var(--sn-notes-border);
             border-radius: 6px;
             overflow: hidden;
             transition: border-color 0.15s;
         }
-        #notes-body .sermon-img-wrap:hover { border-color: #64b5f6; }
-        #notes-body .sermon-img-wrap.active-img { border-color: #1976d2; box-shadow: 0 0 0 2px #1976d2; }
+        #notes-body .sermon-img-wrap:hover { border-color: var(--sn-bible-active-bdr); }
+        #notes-body .sermon-img-wrap.active-img {
+            border-color: var(--sn-bible-shadow);
+            box-shadow: 0 0 0 2px var(--sn-bible-shadow);
+        }
         #notes-body .sermon-img-thumb {
             display: block;
             max-width: 160px;
             max-height: 120px;
             object-fit: cover;
         }
-        /* Hide remove button in sermon mode */
         #notes-body .sermon-img-remove { display: none !important; }
 
         /* ===== RIGHT: Display panel ===== */
@@ -333,6 +374,6 @@
 <!-- Fullscreen button -->
 <button id="fullscreen-btn" ng-click="toggleFullscreen()">⛶ Полный экран</button>
 
-<script src="/js/sermon.js?v=2" type="text/javascript"></script>
+<script src="/js/sermon.js?v=3" type="text/javascript"></script>
 </body>
 </html>

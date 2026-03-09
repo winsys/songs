@@ -12,7 +12,11 @@ app.controller('Settings', function ($scope, $http)
         streaming_bg_color: '#000000',
         streaming_font: 'Arial',
         streaming_font_color: '#FFFFFF',
-        streaming_height_percent: 100
+        streaming_height_percent: 100,
+        // ── Sermon display ──────────────────────
+        sermon_notes_bg_color:   '#2b2b2b',
+        sermon_bible_base_color: '#7ec8f8',
+        sermon_msg_base_color:   '#ce93d8'
     };
 
     $scope.availableLists = [];
@@ -38,7 +42,8 @@ app.controller('Settings', function ($scope, $http)
         $http({ method: "POST", url: "/ajax", data: {command: 'get_user_settings' } }).then(
             function success(respond){
                 if (respond.data && respond.data.user_id) {
-                    $scope.settings = respond.data;
+                    // Merge so that any missing keys keep defaults
+                    angular.extend($scope.settings, respond.data);
 
                     // Parse available_lists string to checkbox object
                     if ($scope.settings.available_lists) {
@@ -52,6 +57,11 @@ app.controller('Settings', function ($scope, $http)
                     if ($scope.settings.streaming_height_percent) {
                         $scope.settings.streaming_height_percent = parseInt($scope.settings.streaming_height_percent, 10);
                     }
+
+                    // Ensure sermon colours have defaults if DB returned null/empty
+                    if (!$scope.settings.sermon_notes_bg_color)   $scope.settings.sermon_notes_bg_color   = '#2b2b2b';
+                    if (!$scope.settings.sermon_bible_base_color)  $scope.settings.sermon_bible_base_color  = '#7ec8f8';
+                    if (!$scope.settings.sermon_msg_base_color)    $scope.settings.sermon_msg_base_color    = '#ce93d8';
                 }
             },
             function error(erespond){
@@ -132,6 +142,25 @@ app.controller('Settings', function ($scope, $http)
                 alert('❌ Ошибка при сохранении настроек!');
             }
         );
+    };
+
+    // ── Colour helper used in template for live chip previews ──
+    // Returns a hex string that is `amount` lightness-points lighter (positive)
+    // or darker (negative) than the input hex.
+    $scope.shadeColor = function(hex, amount) {
+        if (!hex || hex.length < 7) return hex;
+        try {
+            hex = hex.replace(/^#/, '');
+            var n = parseInt(hex, 16);
+            var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+            // Simple approach: add `amount` to each channel
+            var clamp = function(v) { return Math.max(0, Math.min(255, v)); };
+            var factor = amount / 100;
+            r = clamp(Math.round(r + 255 * factor));
+            g = clamp(Math.round(g + 255 * factor));
+            b = clamp(Math.round(b + 255 * factor));
+            return '#' + [r,g,b].map(function(v){ return v.toString(16).padStart(2,'0'); }).join('');
+        } catch(e) { return hex; }
     };
 
     // Initialize
