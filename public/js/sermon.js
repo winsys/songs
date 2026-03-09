@@ -12,7 +12,6 @@ angular.module('Songs', [])
 
         $scope.displayText      = '';
         $scope.displayTitle     = '';
-        $scope.displayFontSize  = 20;
         $scope.displayImageSrc  = '';
 
         var userSettings = null;
@@ -28,7 +27,7 @@ angular.module('Songs', [])
         });
 
         // ==========================================================
-        // COLOUR UTILITIES  (shared with sermon_prep.js via copy)
+        // COLOUR UTILITIES
         // ==========================================================
 
         function hexToRgb(hex) {
@@ -78,27 +77,18 @@ angular.module('Songs', [])
             return [r * 255, g * 255, b * 255];
         }
 
-        function hsl(h, s, l) {
-            return rgbToHex.apply(null, hslToRgb(h, s, l));
-        }
+        function hsl(h, s, l) { return rgbToHex.apply(null, hslToRgb(h, s, l)); }
 
-        /**
-         * Derive DARK-THEME chip CSS tokens from a base colour.
-         * The base colour is the "identity" (hue+saturation) – e.g. #1565c0.
-         * Lightness is pinned to produce readable chips on a dark background.
-         */
         function deriveChipColorsDark(baseHex) {
-            var rgb = hexToRgb(baseHex);
+            var rgb  = hexToRgb(baseHex);
             var hsl_ = rgbToHsl(rgb[0], rgb[1], rgb[2]);
             var h = hsl_[0];
-            // Clamp saturation to a useful range for vivid but not garish chips
             var s = Math.max(55, Math.min(hsl_[1], 85));
-
             return {
-                bg:           hsl(h, s * 0.70, 17),   // very dark background
-                border:       hsl(h, s * 0.85, 32),   // dark-medium border
-                ref:          hsl(h, s,        72),   // light text (readable on dark)
-                verse:        hsl(h, s * 0.80, 64),   // slightly dimmer
+                bg:           hsl(h, s * 0.70, 17),
+                border:       hsl(h, s * 0.85, 32),
+                ref:          hsl(h, s,        72),
+                verse:        hsl(h, s * 0.80, 64),
                 hoverBg:      hsl(h, s * 0.75, 25),
                 hoverBorder:  hsl(h, s,        44),
                 activeBg:     hsl(h, s,        40),
@@ -109,7 +99,7 @@ angular.module('Songs', [])
         }
 
         function deriveNotesPanelColors(bgHex) {
-            var rgb = hexToRgb(bgHex);
+            var rgb  = hexToRgb(bgHex);
             var hsl_ = rgbToHsl(rgb[0], rgb[1], rgb[2]);
             var h = hsl_[0], s = hsl_[1], l = hsl_[2];
             return {
@@ -156,7 +146,6 @@ angular.module('Songs', [])
             if (!userSettings) return;
             var root = document.documentElement;
 
-            // Notes panel
             var np = deriveNotesPanelColors(userSettings.sermon_notes_bg_color || '#2b2b2b');
             root.style.setProperty('--sn-body-bg',      np.bodyBg);
             root.style.setProperty('--sn-notes-bg',     np.bg);
@@ -164,7 +153,6 @@ angular.module('Songs', [])
             root.style.setProperty('--sn-notes-border', np.border);
             root.style.setProperty('--sn-select-bg',    np.selectBg);
 
-            // Bible chips
             var bc = deriveChipColorsDark(userSettings.sermon_bible_base_color || '#1565c0');
             root.style.setProperty('--sn-bible-bg',           bc.bg);
             root.style.setProperty('--sn-bible-border',       bc.border);
@@ -177,7 +165,6 @@ angular.module('Songs', [])
             root.style.setProperty('--sn-bible-active-verse', bc.activeVerse);
             root.style.setProperty('--sn-bible-shadow',       bc.shadow);
 
-            // Message chips
             var mc = deriveChipColorsDark(userSettings.sermon_msg_base_color || '#6a1b9a');
             root.style.setProperty('--sn-msg-bg',           mc.bg);
             root.style.setProperty('--sn-msg-border',       mc.border);
@@ -206,7 +193,7 @@ angular.module('Songs', [])
                     $scope.currentSermon = r.data;
                     $scope.notesHtml = $sce.trustAsHtml(r.data.CONTENT || '');
                     $timeout(attachNoteHandlers, 100);
-                    $scope.displayText = $scope.displayTitle = $scope.displayImageSrc = '';
+                    clearDisplayScope();
                     activeEl = null;
                 }
             );
@@ -224,14 +211,19 @@ angular.module('Songs', [])
                 el.style.cursor = 'pointer';
                 el.onclick = function (e) {
                     e.preventDefault();
-                    if (activeEl === el) { deactivateAll(); $timeout(function(){ clearDisplay(); }, 0); return; }
+                    if (activeEl === el) {
+                        deactivateAll();
+                        // BUG FIX: wrap scope changes in $timeout to trigger digest
+                        $timeout(function () { clearDisplayScope(); sendImageToDisplay(''); });
+                        return;
+                    }
                     activateElement(el);
                     var bookId   = el.getAttribute('data-book-id');
                     var chapter  = el.getAttribute('data-chapter');
                     var verseNum = el.getAttribute('data-verse-nums');
                     var refLabel = el.getAttribute('data-ref-label') || '';
                     var trId     = el.getAttribute('data-translation-id') || 1;
-                    $timeout(function(){ fetchAndShowVerse(trId, bookId, chapter, verseNum, refLabel); }, 0);
+                    $timeout(function () { fetchAndShowVerse(trId, bookId, chapter, verseNum, refLabel); });
                 };
             });
 
@@ -239,10 +231,17 @@ angular.module('Songs', [])
                 el.style.cursor = 'pointer';
                 el.onclick = function (e) {
                     e.preventDefault();
-                    if (activeEl === el) { deactivateAll(); sendImageToDisplay(''); return; }
+                    if (activeEl === el) {
+                        deactivateAll();
+                        // BUG FIX: clear scope AND send clear to server
+                        $timeout(function () { clearDisplayScope(); sendImageToDisplay(''); });
+                        return;
+                    }
                     activateElement(el);
                     var path = el.getAttribute('data-image-path');
-                    if (path) { showImage(path); sendImageToDisplay(path); }
+                    if (path) {
+                        $timeout(function () { showImage(path); sendImageToDisplay(path); });
+                    }
                 };
             });
 
@@ -250,14 +249,18 @@ angular.module('Songs', [])
                 el.style.cursor = 'pointer';
                 el.onclick = function (e) {
                     e.preventDefault();
-                    if (activeEl === el) { deactivateAll(); $timeout(function(){ clearDisplay(); }, 0); return; }
+                    if (activeEl === el) {
+                        deactivateAll();
+                        $timeout(function () { clearDisplayScope(); sendImageToDisplay(''); });
+                        return;
+                    }
                     activateElement(el);
                     var paraText = el.getAttribute('data-para-text') || '';
                     var msgTitle = el.getAttribute('data-msg-title') || '';
-                    $timeout(function(){
+                    $timeout(function () {
                         showText(paraText, msgTitle);
                         $http({ method: "POST", url: "/ajax", data: { command: 'set_message_text', text: paraText, song_name: msgTitle }});
-                    }, 0);
+                    });
                 };
             });
         }
@@ -265,16 +268,21 @@ angular.module('Songs', [])
         function activateElement(el) {
             if (activeEl && activeEl !== el) activeEl.classList.remove('active-cite', 'active-img');
             activeEl = el;
-            el.classList.add((el.classList.contains('bible-cite') || el.classList.contains('message-cite')) ? 'active-cite' : 'active-img');
+            el.classList.add(
+                (el.classList.contains('bible-cite') || el.classList.contains('message-cite'))
+                    ? 'active-cite' : 'active-img'
+            );
         }
 
         function deactivateAll() {
             if (activeEl) { activeEl.classList.remove('active-cite', 'active-img'); activeEl = null; }
         }
 
-        function clearDisplay() {
-            $scope.displayText = $scope.displayTitle = $scope.displayImageSrc = '';
-            $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' } });
+        // Clear only the Angular scope variables (no HTTP call here)
+        function clearDisplayScope() {
+            $scope.displayText     = '';
+            $scope.displayTitle    = '';
+            $scope.displayImageSrc = '';
         }
 
         // ==========================================================
@@ -301,28 +309,64 @@ angular.module('Songs', [])
         // ==========================================================
 
         function showText(text, title) {
-            $scope.displayText = text; $scope.displayTitle = title || ''; $scope.displayImageSrc = '';
-            $timeout(autoFitText, 50);
+            $scope.displayText     = text;
+            $scope.displayTitle    = title || '';
+            $scope.displayImageSrc = '';
+            // BUG FIX: autoFitText must run AFTER Angular has rendered the new text.
+            // Use $timeout with 0ms so it runs after the current digest completes,
+            // then a second $timeout to ensure the DOM has painted with the new text.
+            $timeout(function () {
+                $timeout(function () { autoFitText(); });
+            });
         }
 
         function showImage(path) {
-            $scope.displayText = $scope.displayTitle = ''; $scope.displayImageSrc = path;
+            $scope.displayText     = '';
+            $scope.displayTitle    = '';
+            $scope.displayImageSrc = path;
         }
 
         function sendImageToDisplay(path) {
             $http({ method: "POST", url: "/ajax", data: { command: path ? 'set_image' : 'clear_image', image: path }});
         }
 
+        /**
+         * Grow/shrink font until the text fills display-text-wrap as large as possible.
+         * BUG FIX: do NOT call $scope.$apply() here — this function runs inside a
+         * $timeout callback which already owns the digest cycle. Instead, mutate the
+         * DOM style directly; the ng-style binding is removed from the HTML so there
+         * is no conflict.
+         */
         function autoFitText() {
             var wrap = document.getElementById('display-text-wrap');
             var el   = document.getElementById('display-text');
-            if (!wrap || !el || !$scope.displayText) return;
-            var maxH = wrap.clientHeight * 0.85, maxW = wrap.clientWidth * 0.92, size = 10;
+            if (!wrap || !el) return;
+
+            var text = el.textContent || el.innerText || '';
+            if (!text.trim()) return;
+
+            var maxH = wrap.clientHeight * 0.90;
+            var maxW = wrap.clientWidth  * 0.95;
+
+            // Reset to minimum so scrollHeight/Width reflect actual content
+            var size = 8;
             el.style.fontSize = size + 'px';
-            while (size < 120 && el.scrollHeight <= maxH && el.scrollWidth <= maxW) { size++; el.style.fontSize = size + 'px'; }
-            while ((el.scrollHeight > maxH || el.scrollWidth > maxW) && size > 8) { size--; el.style.fontSize = size + 'px'; }
-            $scope.$apply(function(){ $scope.displayFontSize = size; });
+
+            // Grow
+            while (size < 200 && el.scrollHeight <= maxH && el.scrollWidth <= maxW) {
+                size++;
+                el.style.fontSize = size + 'px';
+            }
+            // Back off one step
+            if (el.scrollHeight > maxH || el.scrollWidth > maxW) {
+                size = Math.max(8, size - 1);
+                el.style.fontSize = size + 'px';
+            }
         }
+
+        // ==========================================================
+        // FULLSCREEN
+        // ==========================================================
 
         $scope.toggleFullscreen = function () {
             if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
