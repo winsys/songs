@@ -237,6 +237,87 @@
         </div>
     </div>
 
+
+    <!-- ══════════════════════════════════════════════════════
+         Sermon Display Settings
+         ══════════════════════════════════════════════════════ -->
+    <div class="row">
+        <div class="col-xs-12">
+            <div class="settings-section">
+                <h4 style="margin-top: 0;">Режим Проповедь (Sermon Display)</h4>
+                <p style="font-size: 9.5pt; color: #888; margin-bottom: 16px;">
+                    Правая сторона экрана использует параметры раздела «Основной дисплей».
+                </p>
+
+                <!-- Notes panel background colour -->
+                <div style="margin-bottom: 15px;">
+                    <label class="settings-label">12. Цвет фона левой панели (заметки проповеди):</label>
+                    <div class="color-picker-container">
+                        <input type="color"
+                               ng-model="settings.sermon_notes_bg_color"
+                               style="width: 60px; height: 40px; cursor: pointer;">
+                        <span>{{settings.sermon_notes_bg_color}}</span>
+                        <div class="color-preview"
+                             ng-style="{'background-color': settings.sermon_notes_bg_color}"></div>
+                    </div>
+                    <small style="color: #888; display: block; margin-top: 4px;">
+                        Фон панели заметок. Цвет шапки и рамки вычисляется автоматически.
+                    </small>
+                </div>
+
+                <!-- Bible chip base colour -->
+                <div style="margin-bottom: 15px;">
+                    <label class="settings-label">13. Базовый цвет чипов цитат Библии:</label>
+                    <div class="color-picker-container">
+                        <input type="color"
+                               ng-model="settings.sermon_bible_base_color"
+                               style="width: 60px; height: 40px; cursor: pointer;">
+                        <span>{{settings.sermon_bible_base_color}}</span>
+                        <!-- Live chip preview -->
+                        <span style="display:inline-flex; align-items:flex-start; gap:4px;
+                                     border-radius:10px; padding:4px 10px; font-size:10pt;
+                                     margin-left:10px; pointer-events:none; user-select:none;"
+                              ng-style="{
+                                'color':            settings.sermon_bible_base_color,
+                                'background-color': shadeColor(settings.sermon_bible_base_color, -55),
+                                'border':           '1px solid ' + shadeColor(settings.sermon_bible_base_color, -28)
+                              }">
+                            📖 Иоанна 3:16
+                        </span>
+                    </div>
+                    <small style="color: #888; display: block; margin-top: 4px;">
+                        Цвет заголовка чипа (📖 ссылка). Фон, рамка и текст стиха вычисляются автоматически.
+                    </small>
+                </div>
+
+                <!-- Message / Epistle chip base colour -->
+                <div style="margin-bottom: 5px;">
+                    <label class="settings-label">14. Базовый цвет чипов цитат Послания:</label>
+                    <div class="color-picker-container">
+                        <input type="color"
+                               ng-model="settings.sermon_msg_base_color"
+                               style="width: 60px; height: 40px; cursor: pointer;">
+                        <span>{{settings.sermon_msg_base_color}}</span>
+                        <!-- Live chip preview -->
+                        <span style="display:inline-flex; align-items:flex-start; gap:4px;
+                                     border-radius:10px; padding:4px 10px; font-size:10pt;
+                                     margin-left:10px; pointer-events:none; user-select:none;"
+                              ng-style="{
+                                'color':            settings.sermon_msg_base_color,
+                                'background-color': shadeColor(settings.sermon_msg_base_color, -55),
+                                'border':           '1px solid ' + shadeColor(settings.sermon_msg_base_color, -28)
+                              }">
+                            ✉ Цитата из послания
+                        </span>
+                    </div>
+                    <small style="color: #888; display: block; margin-top: 4px;">
+                        Цвет текста чипа цитаты. Фон и рамка вычисляются автоматически.
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Save Button -->
     <div class="row">
         <div class="col-xs-12">
