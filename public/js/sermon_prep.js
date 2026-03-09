@@ -358,6 +358,15 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
         nums.forEach(function (num) {
             var refLabel = bookName + ' ' + $scope.selectedChapter + ':' + num;
 
+            // Look up verse text from already-loaded rawVerses
+            var verseText = '';
+            for (var vi = 0; vi < $scope.rawVerses.length; vi++) {
+                if (parseInt($scope.rawVerses[vi].VERSE_NUM) === num) {
+                    verseText = $scope.rawVerses[vi].TEXT || '';
+                    break;
+                }
+            }
+
             var span = document.createElement('span');
             span.className = 'bible-cite';
             span.contentEditable = 'false';
@@ -367,9 +376,14 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
             span.setAttribute('data-chapter', $scope.selectedChapter || '');
             span.setAttribute('data-verse-nums', num);
             span.setAttribute('data-ref-label', refLabel);
+            span.setAttribute('data-verse-text', verseText);
 
-            span.innerHTML = '📖 ' + refLabel +
-                ' <span class="cite-remove" title="Удалить">×</span>';
+            span.innerHTML =
+                '<span class="cite-body">' +
+                '<span class="cite-ref">📖 ' + refLabel + '</span>' +
+                (verseText ? '<span class="cite-verse-text">' + verseText + '</span>' : '') +
+                '</span>' +
+                '<span class="cite-remove" title="Удалить">×</span>';
 
             span.querySelector('.cite-remove').onclick = function (e) {
                 e.stopPropagation();

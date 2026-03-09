@@ -88,19 +88,21 @@
         /* ===== Bible cite chip (in notes) ===== */
         #notes-body .bible-cite {
             display: inline-flex;
-            align-items: center;
+            align-items: flex-start;
+            gap: 6px;
             background: #1a3a5c;
             border: 1px solid #2a6099;
             border-radius: 12px;
-            padding: 2px 12px;
+            padding: 5px 12px;
             font-size: 10pt;
             color: #7ec8f8;
-            font-weight: 600;
             cursor: pointer;
             user-select: none;
-            white-space: nowrap;
+            white-space: normal;
+            word-break: break-word;
             vertical-align: middle;
             margin: 2px 3px;
+            max-width: 100%;
             transition: background 0.15s, border-color 0.15s;
         }
         #notes-body .bible-cite:hover { background: #1e4a78; border-color: #4a90d9; }
@@ -110,6 +112,27 @@
             color: #fff;
             box-shadow: 0 0 0 2px #1976d2;
         }
+        #notes-body .bible-cite .cite-body {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            flex: 1;
+            min-width: 0;
+        }
+        #notes-body .bible-cite .cite-ref {
+            font-weight: 700;
+            white-space: nowrap;
+            color: #7ec8f8;
+        }
+        #notes-body .bible-cite.active-cite .cite-ref { color: #fff; }
+        #notes-body .bible-cite .cite-verse-text {
+            font-weight: 400;
+            font-size: 9.5pt;
+            color: #90caf9;
+            opacity: 0.9;
+            line-height: 1.45;
+        }
+        #notes-body .bible-cite.active-cite .cite-verse-text { color: #e3f2fd; opacity: 1; }
 
         /* ===== Message cite chip (in notes) ===== */
         #notes-body .message-cite {
