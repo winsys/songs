@@ -1,5 +1,5 @@
 /**
- * sermon.js
+ * sermon.js  v6
  * Presentation mode: left = scrollable notes, right = text/image display.
  */
 angular.module('Songs', [])
@@ -213,7 +213,6 @@ angular.module('Songs', [])
                     e.preventDefault();
                     if (activeEl === el) {
                         deactivateAll();
-                        // BUG FIX: wrap scope changes in $timeout to trigger digest
                         $timeout(function () { clearDisplayScope(); sendImageToDisplay(''); });
                         return;
                     }
@@ -233,7 +232,6 @@ angular.module('Songs', [])
                     e.preventDefault();
                     if (activeEl === el) {
                         deactivateAll();
-                        // BUG FIX: clear scope AND send clear to server
                         $timeout(function () { clearDisplayScope(); sendImageToDisplay(''); });
                         return;
                     }
@@ -278,7 +276,6 @@ angular.module('Songs', [])
             if (activeEl) { activeEl.classList.remove('active-cite', 'active-img'); activeEl = null; }
         }
 
-        // Clear only the Angular scope variables (no HTTP call here)
         function clearDisplayScope() {
             $scope.displayText     = '';
             $scope.displayTitle    = '';
@@ -312,11 +309,13 @@ angular.module('Songs', [])
             $scope.displayText     = text;
             $scope.displayTitle    = title || '';
             $scope.displayImageSrc = '';
-            // BUG FIX: autoFitText must run AFTER Angular has rendered the new text.
-            // Use $timeout with 0ms so it runs after the current digest completes,
-            // then a second $timeout to ensure the DOM has painted with the new text.
+            // Wait for Angular to finish rendering the new text into the DOM,
+            // then use requestAnimationFrame so the browser has actually painted
+            // (and #display-text-wrap has correct clientHeight/clientWidth).
             $timeout(function () {
-                $timeout(function () { autoFitText(); });
+                requestAnimationFrame(function () {
+                    autoFitText(text);
+                });
             });
         }
 
@@ -331,33 +330,43 @@ angular.module('Songs', [])
         }
 
         /**
-         * Grow/shrink font until the text fills display-text-wrap as large as possible.
-         * BUG FIX: do NOT call $scope.$apply() here — this function runs inside a
-         * $timeout callback which already owns the digest cycle. Instead, mutate the
-         * DOM style directly; the ng-style binding is removed from the HTML so there
-         * is no conflict.
+         * autoFitText — grows font until the text fills the display panel.
+         *
+         * Key design decisions:
+         *  - font-size is written directly to el.style — no ng-style binding,
+         *    which would overwrite our value on every digest.
+         *  - called via requestAnimationFrame so clientHeight/clientWidth of the
+         *    wrapper are always the real painted dimensions, even at large window sizes.
+         *  - if dimensions are still 0 (element hidden), retries once via rAF.
+         *  - `expectedText` guard: if the user clicked something else while the
+         *    async fetch was in flight, we skip stale calls.
          */
-        function autoFitText() {
+        function autoFitText(expectedText) {
             var wrap = document.getElementById('display-text-wrap');
             var el   = document.getElementById('display-text');
             if (!wrap || !el) return;
 
-            var text = el.textContent || el.innerText || '';
-            if (!text.trim()) return;
+            // Guard: skip if scope changed while we were waiting
+            if (expectedText !== undefined && $scope.displayText !== expectedText) return;
 
             var maxH = wrap.clientHeight * 0.90;
             var maxW = wrap.clientWidth  * 0.95;
 
-            // Reset to minimum so scrollHeight/Width reflect actual content
+            // If wrapper has no dimensions yet, retry after next paint
+            if (maxH <= 0 || maxW <= 0) {
+                requestAnimationFrame(function () { autoFitText(expectedText); });
+                return;
+            }
+
+            // Start small and grow
             var size = 8;
             el.style.fontSize = size + 'px';
 
-            // Grow
-            while (size < 200 && el.scrollHeight <= maxH && el.scrollWidth <= maxW) {
+            while (size < 300 && el.scrollHeight <= maxH && el.scrollWidth <= maxW) {
                 size++;
                 el.style.fontSize = size + 'px';
             }
-            // Back off one step
+            // One step back if we overshot
             if (el.scrollHeight > maxH || el.scrollWidth > maxW) {
                 size = Math.max(8, size - 1);
                 el.style.fontSize = size + 'px';
