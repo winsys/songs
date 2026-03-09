@@ -55,6 +55,113 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
     $scope.prepSelectedParaIdx  = null;
     var prepMsgSearchTimer      = null;
 
+
+    // ── Colour utilities (light-theme chip derivation) ─────────────────────
+
+    function _hexToRgb(hex) {
+        hex = hex.replace(/^#/, '');
+        if (hex.length === 3) hex = hex.split('').map(function(c){ return c+c; }).join('');
+        var n = parseInt(hex, 16);
+        return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+    }
+
+    function _rgbToHex(r, g, b) {
+        return '#' + [r, g, b].map(function(v){
+            return Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, '0');
+        }).join('');
+    }
+
+    function _rgbToHsl(r, g, b) {
+        r /= 255; g /= 255; b /= 255;
+        var max = Math.max(r, g, b), min = Math.min(r, g, b);
+        var h, s, l = (max + min) / 2;
+        if (max === min) { h = s = 0; } else {
+            var d = max - min;
+            s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+            switch (max) {
+                case r: h = ((g - b) / d + (g < b ? 6 : 0)) / 6; break;
+                case g: h = ((b - r) / d + 2) / 6; break;
+                case b: h = ((r - g) / d + 4) / 6; break;
+            }
+        }
+        return [h * 360, s * 100, l * 100];
+    }
+
+    function _hslToRgb(h, s, l) {
+        h /= 360; s /= 100; l /= 100;
+        var r, g, b;
+        if (s === 0) { r = g = b = l; } else {
+            var q = l < 0.5 ? l * (1 + s) : l + s - l * s;
+            var p = 2 * l - q;
+            var hue = function(t) {
+                if (t < 0) t += 1; if (t > 1) t -= 1;
+                if (t < 1/6) return p + (q - p) * 6 * t;
+                if (t < 1/2) return q;
+                if (t < 2/3) return p + (q - p) * (2/3 - t) * 6;
+                return p;
+            };
+            r = hue(h + 1/3); g = hue(h); b = hue(h - 1/3);
+        }
+        return [r * 255, g * 255, b * 255];
+    }
+
+    function _hsl(h, s, l) { return _rgbToHex.apply(null, _hslToRgb(h, s, l)); }
+
+    /**
+     * Derive LIGHT-THEME chip CSS tokens from a base colour.
+     * The base colour is the text/header colour on white background.
+     * Backgrounds are light tints; only text uses the base colour directly.
+     */
+    function deriveChipColorsLight(baseHex) {
+        var rgb  = _hexToRgb(baseHex);
+        var hsl_ = _rgbToHsl(rgb[0], rgb[1], rgb[2]);
+        var h = hsl_[0];
+        var s = Math.max(55, Math.min(hsl_[1], 90));
+
+        return {
+            bg:          _hsl(h, s * 0.55, 93),   // very light tint
+            border:      _hsl(h, s * 0.70, 73),   // medium-light border
+            ref:         baseHex,                  // base colour for header text
+            verse:       _hsl(h, s,        Math.min(hsl_[2] + 8, 62)), // slightly lighter
+            hoverBg:     _hsl(h, s * 0.60, 86)    // hover: slightly darker tint
+        };
+    }
+
+    /**
+     * Apply light-theme chip CSS variables to :root.
+     * Called once after user settings are loaded.
+     */
+    function applyPrepChipColors(bibleBase, msgBase) {
+        var root = document.documentElement;
+
+        var bc = deriveChipColorsLight(bibleBase);
+        root.style.setProperty('--sp-bible-bg',       bc.bg);
+        root.style.setProperty('--sp-bible-border',   bc.border);
+        root.style.setProperty('--sp-bible-ref',      bc.ref);
+        root.style.setProperty('--sp-bible-verse',    bc.verse);
+        root.style.setProperty('--sp-bible-hover-bg', bc.hoverBg);
+
+        var mc = deriveChipColorsLight(msgBase);
+        root.style.setProperty('--sp-msg-bg',         mc.bg);
+        root.style.setProperty('--sp-msg-border',     mc.border);
+        root.style.setProperty('--sp-msg-color',      mc.ref);
+        root.style.setProperty('--sp-msg-hover-bg',   mc.hoverBg);
+    }
+
+    // ── Load user settings and apply chip colours ──────────────────────────
+
+    function loadPrepUserSettings() {
+        $http({ method: "POST", url: "/ajax", data: { command: 'get_user_settings' } }).then(
+            function(r) {
+                if (r.data) {
+                    var bibleBase = r.data.sermon_bible_base_color || '#1565c0';
+                    var msgBase   = r.data.sermon_msg_base_color   || '#6a1b9a';
+                    applyPrepChipColors(bibleBase, msgBase);
+                }
+            }
+        );
+    }
+
     // ==========================================================
     // INIT
     // ==========================================================
@@ -74,6 +181,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
             $scope.sermon.date = d.toISOString().slice(0, 10);
             $scope.loadSermonList();
             $scope.loadBibleTranslations();
+            loadPrepUserSettings();
         });
 
         // Defer editor init until Angular has rendered the DOM

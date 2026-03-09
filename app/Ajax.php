@@ -661,13 +661,13 @@ class Ajax
         return json_encode($lists);
     }
 
+
     private static function get_user_settings()
     {
         $userId = $_SESSION['userId'];
         $settings = Info::get('db')->get("SELECT * FROM user_settings WHERE user_id = {$userId}");
 
         if (!$settings) {
-            // Return defaults if no settings exist
             $settings = [
                 'user_id' => $userId,
                 'display_name' => $_SESSION['userName'],
@@ -682,15 +682,14 @@ class Ajax
                 'streaming_font_color' => '#FFFFFF',
                 'streaming_height_percent' => 100,
                 'sermon_notes_bg_color'   => '#2b2b2b',
-                'sermon_bible_base_color' => '#7ec8f8',
-                'sermon_msg_base_color'   => '#ce93d8'
+                'sermon_bible_base_color' => '#1565c0',
+                'sermon_msg_base_color'   => '#6a1b9a'
             ];
         }
 
-        // Fill in defaults for new columns if they are NULL (rows created before migration)
         if (empty($settings['sermon_notes_bg_color']))   $settings['sermon_notes_bg_color']   = '#2b2b2b';
-        if (empty($settings['sermon_bible_base_color'])) $settings['sermon_bible_base_color']  = '#7ec8f8';
-        if (empty($settings['sermon_msg_base_color']))   $settings['sermon_msg_base_color']    = '#ce93d8';
+        if (empty($settings['sermon_bible_base_color'])) $settings['sermon_bible_base_color']  = '#1565c0';
+        if (empty($settings['sermon_msg_base_color']))   $settings['sermon_msg_base_color']    = '#6a1b9a';
 
         return json_encode($settings);
     }
@@ -700,7 +699,6 @@ class Ajax
         $userId = $_SESSION['userId'];
         $settings = self::$args['settings'];
 
-        // Escape values
         $displayName             = mysqli_escape_string(Info::get('dbh'), $settings['display_name']);
         $favoritesOrder          = mysqli_escape_string(Info::get('dbh'), $settings['favorites_order']);
         $availableLists          = mysqli_escape_string(Info::get('dbh'), $settings['available_lists']);
@@ -713,14 +711,12 @@ class Ajax
         $streamingFontColor      = mysqli_escape_string(Info::get('dbh'), $settings['streaming_font_color']);
         $streamingHeightPercent  = intval($settings['streaming_height_percent']);
         $sermonNotesBgColor      = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_notes_bg_color'])   ? $settings['sermon_notes_bg_color']   : '#2b2b2b');
-        $sermonBibleBaseColor    = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_bible_base_color']) ? $settings['sermon_bible_base_color'] : '#7ec8f8');
-        $sermonMsgBaseColor      = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_msg_base_color'])   ? $settings['sermon_msg_base_color']   : '#ce93d8');
+        $sermonBibleBaseColor    = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_bible_base_color']) ? $settings['sermon_bible_base_color'] : '#1565c0');
+        $sermonMsgBaseColor      = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_msg_base_color'])   ? $settings['sermon_msg_base_color']   : '#6a1b9a');
 
-        // Check if settings exist
         $existing = Info::get('db')->get("SELECT user_id FROM user_settings WHERE user_id = {$userId}");
 
         if ($existing) {
-            // Update existing settings
             Info::get('db')->exec("
                 UPDATE user_settings SET
                     display_name             = '{$displayName}',
@@ -740,7 +736,6 @@ class Ajax
                 WHERE user_id = {$userId}
             ");
         } else {
-            // Insert new settings
             Info::get('db')->exec("
                 INSERT INTO user_settings (
                     user_id, display_name, favorites_order, available_lists, placeholder_image,
@@ -758,6 +753,7 @@ class Ajax
 
         return json_encode(['status' => 'success']);
     }
+
 
     private static function upload_placeholder_image()
     {
