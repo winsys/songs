@@ -202,6 +202,39 @@
     .lang-ru { background: #d0e8ff; color: #1a5a99; }
     .lang-lt { background: #d4f0d4; color: #2a6a2a; }
     .lang-en { background: #fff0cc; color: #7a5a00; }
+
+    .song-lang-badges {
+        display: inline-flex;
+        gap: 4px;
+        margin-left: 2px;
+        vertical-align: middle;
+    }
+    .lang-badge {
+        display: inline-block;
+        font-size: 7.5pt;
+        font-weight: bold;
+        padding: 1px 5px;
+        border-radius: 3px;
+        line-height: 1.5;
+    }
+    .lang-ru { background: #d0e8ff; color: #1a5a99; }
+    .lang-lt { background: #d4f0d4; color: #2a6a2a; }
+    .lang-en { background: #fff0cc; color: #7a5a00; }
+    .song-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 2px;
+    }
+    .song-book-name {
+        font-size: 10pt;
+        color: #888;
+    }
+    .angucomplete-description {
+        font-size: 9pt;
+        color: #888;
+    }
 </style>
 
 <div ng-controller="Leader" class="container">
@@ -231,6 +264,7 @@
                               local-data=songList
                               search-fields="dispName"
                               title-field="dispName"
+                              description-field="langInfo"
                               selected-object="selectedItem"
                               minlength="2"
                               input-class="form-control search-box">
