@@ -17,6 +17,8 @@ angular.module('Songs', [])
         var userSettings = null;
         var activeEl     = null;
 
+        var scaleChips   = false;
+        var fontSavePending = null;
         var NOTES_FONT_MIN = 8;
         var NOTES_FONT_MAX = 40;
         $scope.notesFontSize = 13;   // pt, matches CSS default
@@ -144,6 +146,10 @@ angular.module('Songs', [])
                 textEl.style.fontFamily = userSettings.main_font       || 'Arial';
                 textEl.style.color      = userSettings.main_font_color || '#ffffff';
             }
+            // Restore notes font size and chip scaling from settings
+            $scope.notesFontSize = parseInt(userSettings.sermon_notes_font_size) || 13;
+            scaleChips = !!parseInt(userSettings.sermon_scale_chips || 0);
+            applyNotesFontSize();
         }
 
         function applySermonColors() {
@@ -377,6 +383,20 @@ angular.module('Songs', [])
             }
         }
 
+        function applyNotesFontSize() {
+            var size = $scope.notesFontSize;
+            var root = document.documentElement;
+            root.style.setProperty('--sn-notes-font', size + 'pt');
+            if (scaleChips) {
+                var ratio = size / 13;
+                root.style.setProperty('--sn-chip-font',       (10  * ratio).toFixed(1) + 'pt');
+                root.style.setProperty('--sn-chip-verse-font', (9.5 * ratio).toFixed(1) + 'pt');
+            } else {
+                root.style.setProperty('--sn-chip-font',       '10pt');
+                root.style.setProperty('--sn-chip-verse-font', '9.5pt');
+            }
+        }
+
         // ==========================================================
         // NOTES PANEL FONT SIZE
         // ==========================================================
@@ -385,8 +405,16 @@ angular.module('Songs', [])
             var next = $scope.notesFontSize + delta;
             if (next < NOTES_FONT_MIN || next > NOTES_FONT_MAX) return;
             $scope.notesFontSize = next;
-            var body = document.getElementById('notes-body');
-            if (body) body.style.fontSize = next + 'pt';
+            applyNotesFontSize();
+            // Debounced save
+            if (fontSavePending) $timeout.cancel(fontSavePending);
+            fontSavePending = $timeout(function () {
+                $http({ method: "POST", url: "/ajax", data: {
+                        command: 'save_sermon_notes_settings',
+                        sermon_notes_font_size: $scope.notesFontSize,
+                        sermon_scale_chips: scaleChips ? 1 : 0
+                    }});
+            }, 800);
         };
 
         // ==========================================================

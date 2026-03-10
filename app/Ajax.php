@@ -683,13 +683,17 @@ class Ajax
                 'streaming_height_percent' => 100,
                 'sermon_notes_bg_color'   => '#2b2b2b',
                 'sermon_bible_base_color' => '#1565c0',
-                'sermon_msg_base_color'   => '#6a1b9a'
+                'sermon_msg_base_color'   => '#6a1b9a',
+                'sermon_notes_font_size' => 13,
+                'sermon_scale_chips'     => 0,
             ];
         }
 
         if (empty($settings['sermon_notes_bg_color']))   $settings['sermon_notes_bg_color']   = '#2b2b2b';
         if (empty($settings['sermon_bible_base_color'])) $settings['sermon_bible_base_color']  = '#1565c0';
         if (empty($settings['sermon_msg_base_color']))   $settings['sermon_msg_base_color']    = '#6a1b9a';
+        if (empty($settings['sermon_notes_font_size']))  $settings['sermon_notes_font_size'] = 13;
+        if (empty($settings['sermon_scale_chips']))      $settings['sermon_scale_chips']     = 0;
 
         return json_encode($settings);
     }
@@ -713,6 +717,8 @@ class Ajax
         $sermonNotesBgColor      = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_notes_bg_color'])   ? $settings['sermon_notes_bg_color']   : '#2b2b2b');
         $sermonBibleBaseColor    = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_bible_base_color']) ? $settings['sermon_bible_base_color'] : '#1565c0');
         $sermonMsgBaseColor      = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_msg_base_color'])   ? $settings['sermon_msg_base_color']   : '#6a1b9a');
+        $sermonNotesFontSize     = isset($settings['sermon_notes_font_size']) ? intval($settings['sermon_notes_font_size']) : 13;
+        $sermonScaleChips        = isset($settings['sermon_scale_chips'])     ? intval($settings['sermon_scale_chips'])     : 0;
 
         $existing = Info::get('db')->get("SELECT user_id FROM user_settings WHERE user_id = {$userId}");
 
@@ -732,7 +738,9 @@ class Ajax
                     streaming_height_percent = {$streamingHeightPercent},
                     sermon_notes_bg_color    = '{$sermonNotesBgColor}',
                     sermon_bible_base_color  = '{$sermonBibleBaseColor}',
-                    sermon_msg_base_color    = '{$sermonMsgBaseColor}'
+                    sermon_msg_base_color    = '{$sermonMsgBaseColor}',
+                    sermon_notes_font_size   = '{$sermonNotesFontSize}',
+                    sermon_scale_chips       = '{$sermonScaleChips}'
                 WHERE user_id = {$userId}
             ");
         } else {
@@ -741,16 +749,36 @@ class Ajax
                     user_id, display_name, favorites_order, available_lists, placeholder_image,
                     main_bg_color, main_font, main_font_color,
                     streaming_bg_color, streaming_font, streaming_font_color, streaming_height_percent,
-                    sermon_notes_bg_color, sermon_bible_base_color, sermon_msg_base_color
+                    sermon_notes_bg_color, sermon_bible_base_color, sermon_msg_base_color, sermon_notes_font_size, sermon_scale_chips
                 ) VALUES (
                     {$userId}, '{$displayName}', '{$favoritesOrder}', '{$availableLists}', '{$placeholderImage}',
                     '{$mainBgColor}', '{$mainFont}', '{$mainFontColor}',
                     '{$streamingBgColor}', '{$streamingFont}', '{$streamingFontColor}', {$streamingHeightPercent},
-                    '{$sermonNotesBgColor}', '{$sermonBibleBaseColor}', '{$sermonMsgBaseColor}'
+                    '{$sermonNotesBgColor}', '{$sermonBibleBaseColor}', '{$sermonMsgBaseColor}',
+                    '{$sermonNotesFontSize}', '{$sermonScaleChips}'
                 )
             ");
         }
 
+        return json_encode(['status' => 'success']);
+    }
+
+
+    private static function save_sermon_notes_settings()
+    {
+        $userId   = (int)$_SESSION['userId'];
+        $fontSize = isset(self::$args['sermon_notes_font_size']) ? intval(self::$args['sermon_notes_font_size']) : 13;
+        $scale    = isset(self::$args['sermon_scale_chips'])     ? intval(self::$args['sermon_scale_chips'])     : 0;
+
+        $existing = Info::get('db')->get("SELECT user_id FROM user_settings WHERE user_id = {$userId}");
+        if ($existing) {
+            Info::get('db')->exec("
+            UPDATE user_settings
+            SET sermon_notes_font_size = {$fontSize},
+                sermon_scale_chips     = {$scale}
+            WHERE user_id = {$userId}
+        ");
+        }
         return json_encode(['status' => 'success']);
     }
 

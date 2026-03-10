@@ -32,6 +32,10 @@
             --sn-msg-active-bg:    #6020a8;
             --sn-msg-active-bdr:   #b060e0;
             --sn-msg-shadow:       #5a1890;
+
+            --sn-notes-font:      13pt;
+            --sn-chip-font:       10pt;
+            --sn-chip-verse-font: 9.5pt;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -96,7 +100,7 @@
             flex: 1;
             overflow-y: auto;
             padding: 16px 18px 40px;
-            font-size: 13pt;
+            font-size: var(--sn-notes-font);
             line-height: 1.75;
             color: #e0e0e0;
         }
@@ -110,7 +114,7 @@
             border: 1px solid var(--sn-bible-border);
             border-radius: 12px;
             padding: 5px 12px;
-            font-size: 10pt;
+            font-size: var(--sn-chip-font);
             color: var(--sn-bible-ref);
             cursor: pointer;
             user-select: none;
@@ -131,7 +135,7 @@
         #notes-body .bible-cite .cite-body { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
         #notes-body .bible-cite .cite-ref { font-weight: 700; white-space: nowrap; color: var(--sn-bible-ref); }
         #notes-body .bible-cite.active-cite .cite-ref { color: #fff; }
-        #notes-body .bible-cite .cite-verse-text { font-weight: 400; font-size: 9.5pt; color: var(--sn-bible-verse); opacity: 0.9; line-height: 1.45; }
+        #notes-body .bible-cite .cite-verse-text { font-weight: 400; font-size: var(--sn-chip-verse-font); color: var(--sn-bible-verse); opacity: 0.9; line-height: 1.45; }
         #notes-body .bible-cite.active-cite .cite-verse-text { color: var(--sn-bible-active-verse); opacity: 1; }
 
         /* ===== Message cite chip ===== */
@@ -142,7 +146,7 @@
             border: 1px solid var(--sn-msg-border);
             border-radius: 10px;
             padding: 4px 12px;
-            font-size: 10pt;
+            font-size: var(--sn-chip-font);
             color: var(--sn-msg-color);
             cursor: pointer;
             user-select: none;
@@ -186,9 +190,9 @@
             color: #ccc;
             border: 1px solid var(--sn-notes-border);
             border-radius: 4px;
-            width: 26px;
-            height: 26px;
-            font-size: 14pt;
+            min-width: 44px;
+            height: 36px;
+            font-size: 16pt;
             line-height: 1;
             cursor: pointer;
             display: flex;
@@ -200,12 +204,6 @@
         }
         .font-size-btn:hover { background: rgba(255,255,255,0.18); color: #fff; }
         .font-size-btn:active { background: rgba(255,255,255,0.28); }
-        #font-size-label {
-            font-size: 9pt;
-            color: #888;
-            min-width: 30px;
-            text-align: center;
-        }
 
         /* ===== RIGHT: Display panel ===== */
         #display-panel {
