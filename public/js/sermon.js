@@ -109,12 +109,15 @@ angular.module('Songs', [])
             var rgb  = hexToRgb(bgHex);
             var hsl_ = rgbToHsl(rgb[0], rgb[1], rgb[2]);
             var h = hsl_[0], s = hsl_[1], l = hsl_[2];
+            var dark = l < 50;                          // тёмный фон?
             return {
-                bodyBg:   hsl(h, s, Math.max(l - 8, 0)),
-                bg:       bgHex,
-                headerBg: hsl(h, s, Math.max(l - 5, 0)),
-                border:   hsl(h, s, Math.min(l + 12, 55)),
-                selectBg: hsl(h, s, Math.min(l + 4,  50))
+                bodyBg:    hsl(h, s, Math.max(l - 8, 0)),
+                bg:        bgHex,
+                headerBg:  hsl(h, s, Math.max(l - 5, 0)),
+                border:    hsl(h, s, Math.min(l + 12, 55)),
+                selectBg:  hsl(h, s, Math.min(l + 4,  50)),
+                textColor: dark ? hsl(h, Math.min(s, 12), 88) : hsl(h, Math.min(s, 12), 12),  // основной текст
+                textDim:   dark ? hsl(h, Math.min(s, 12), 55) : hsl(h, Math.min(s, 12), 48)   // второстепенный
             };
         }
 
@@ -163,6 +166,9 @@ angular.module('Songs', [])
             root.style.setProperty('--sn-notes-header', np.headerBg);
             root.style.setProperty('--sn-notes-border', np.border);
             root.style.setProperty('--sn-select-bg',    np.selectBg);
+
+            root.style.setProperty('--sn-notes-text',     np.textColor);
+            root.style.setProperty('--sn-notes-text-dim', np.textDim);
 
             var bc = deriveChipColorsDark(userSettings.sermon_bible_base_color || '#1565c0');
             root.style.setProperty('--sn-bible-bg',           bc.bg);
