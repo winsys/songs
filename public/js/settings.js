@@ -101,6 +101,15 @@ app.controller('Settings', function ($scope, $http)
         } catch(e){ return hex; }
     };
 
+    $scope.chipBgColor = function(hex, alpha) {
+        if (!hex || hex.length < 7) return 'transparent';
+        try {
+            var n = parseInt(hex.replace(/^#/, ''), 16);
+            var r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+            return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
+        } catch(e) { return 'transparent'; }
+    };
+
     $scope.loadAvailableLists();
 
     // ============================================================

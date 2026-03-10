@@ -278,10 +278,10 @@
                                      border-radius:10px; padding:4px 10px; font-size:10pt;
                                      margin-left:10px; pointer-events:none; user-select:none;"
                               ng-style="{
-                                'color':            settings.sermon_bible_base_color,
-                                'background-color': shadeColor(settings.sermon_bible_base_color, -55),
-                                'border':           '1px solid ' + shadeColor(settings.sermon_bible_base_color, -28)
-                              }">
+                                          'color':            settings.sermon_bible_base_color,
+                                          'background-color': chipBgColor(settings.sermon_bible_base_color, 0.13),
+                                          'border':           '1px solid ' + shadeColor(settings.sermon_bible_base_color, -28)
+                                        }">
                             📖 Иоанна 3:16
                         </span>
                     </div>
@@ -291,7 +291,7 @@
                 </div>
 
                 <!-- Message / Epistle chip base colour -->
-                <div style="margin-bottom: 5px;">
+                <div style="margin-bottom: 15px;">
                     <label class="settings-label">14. Базовый цвет чипов цитат Послания:</label>
                     <div class="color-picker-container">
                         <input type="color"
@@ -303,10 +303,10 @@
                                      border-radius:10px; padding:4px 10px; font-size:10pt;
                                      margin-left:10px; pointer-events:none; user-select:none;"
                               ng-style="{
-                                'color':            settings.sermon_msg_base_color,
-                                'background-color': shadeColor(settings.sermon_msg_base_color, -55),
-                                'border':           '1px solid ' + shadeColor(settings.sermon_msg_base_color, -28)
-                              }">
+                                          'color':            settings.sermon_msg_base_color,
+                                          'background-color': chipBgColor(settings.sermon_msg_base_color, 0.13),
+                                          'border':           '1px solid ' + shadeColor(settings.sermon_msg_base_color, -28)
+                                        }">
                             ✉ Цитата из послания
                         </span>
                     </div>
