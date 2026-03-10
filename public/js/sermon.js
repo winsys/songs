@@ -17,6 +17,10 @@ angular.module('Songs', [])
         var userSettings = null;
         var activeEl     = null;
 
+        var NOTES_FONT_MIN = 8;
+        var NOTES_FONT_MAX = 40;
+        $scope.notesFontSize = 13;   // pt, matches CSS default
+
         // ==========================================================
         // INIT
         // ==========================================================
@@ -372,6 +376,18 @@ angular.module('Songs', [])
                 el.style.fontSize = size + 'px';
             }
         }
+
+        // ==========================================================
+        // NOTES PANEL FONT SIZE
+        // ==========================================================
+
+        $scope.changeNotesFontSize = function (delta) {
+            var next = $scope.notesFontSize + delta;
+            if (next < NOTES_FONT_MIN || next > NOTES_FONT_MAX) return;
+            $scope.notesFontSize = next;
+            var body = document.getElementById('notes-body');
+            if (body) body.style.fontSize = next + 'pt';
+        };
 
         // ==========================================================
         // FULLSCREEN
