@@ -1,5 +1,19 @@
 app.controller('Tech', function ($scope, $http, $timeout)
 {
+   // Заменить пустые строки на символ ¶ для наглядности в редакторе
+   function addParaMarks(text) {
+       if (!text) return '';
+       // Нормализовать окончания строк до \n, затем заменить пустые строки на ¶
+       return text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+                          .replace(/\n(\n)/g, '\n¶$1');
+   }
+
+   // Убрать символ ¶ из строк-разделителей перед сохранением
+   function removeParaMarks(text) {
+       if (!text) return '';
+       return text.replace(/^¶$/mg, '');
+   }
+
     // ── Songs mode state ──────────────────────────────────────
     $scope.listId = 1;
     $scope.songList = [];
@@ -823,9 +837,9 @@ app.controller('Tech', function ($scope, $http, $timeout)
         $scope.editConfig = {
             title: 'Редактирование песни',
             songId: listItem.ID,
-            songText: listItem.TEXT,
-            songTextLt: listItem.TEXT_LT || '',
-            songTextEn: listItem.TEXT_EN || '',
+            songText:   addParaMarks(listItem.TEXT   || ''),
+            songTextLt: addParaMarks(listItem.TEXT_LT || ''),
+            songTextEn: addParaMarks(listItem.TEXT_EN || ''),
             songName: listItem.NAME,
             songNum: listItem.NUM,
             dispName: listItem.dispName,
@@ -877,10 +891,9 @@ app.controller('Tech', function ($scope, $http, $timeout)
     };
 
     $scope.saveSongEdits = function() {
-        var textWithCRLF   = $scope.editConfig.songText.replace(/\r?\n/g, '\r\n');
-        var textLtWithCRLF = $scope.editConfig.songTextLt   ? $scope.editConfig.songTextLt.replace(/\r?\n/g, '\r\n')   : '';
-        var textEnWithCRLF = $scope.editConfig.songTextEn   ? $scope.editConfig.songTextEn.replace(/\r?\n/g, '\r\n')   : '';
-
+        var textWithCRLF   = removeParaMarks($scope.editConfig.songText).replace(/\r?\n/g, '\r\n');
+        var textLtWithCRLF = removeParaMarks($scope.editConfig.songTextLt   || '').replace(/\r?\n/g, '\r\n');
+        var textEnWithCRLF = removeParaMarks($scope.editConfig.songTextEn   || '').replace(/\r?\n/g, '\r\n');
         if ($scope.editConfig.isNewSong) {
             $http({ method: "POST", url: "/ajax",
                 data: { command: 'create_song',

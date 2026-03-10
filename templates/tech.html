@@ -194,6 +194,19 @@
         display: block;
         margin-bottom: 2px;
     }
+
+    /* Символ ¶ в textarea отображается цветом */
+    #edit-song-popup textarea {
+        color: #222;
+        caret-color: #222;
+    }
+    /* Отдельный цвет через ::placeholder не работает для ¶,
+       но мы можем выделить сам textarea фоном */
+    #edit-song-popup .verse-editor {
+        background-color: #fafafa;
+        line-height: 1.6;
+        resize: vertical;
+    }
 </style>
 
 <div ng-controller="Tech" class="container">
@@ -657,16 +670,16 @@
                                 <label style="font-size: 12pt; font-weight: bold;">Текст песни (RU):</label>
                                 <textarea ng-model="editConfig.songText"
                                           rows="15"
-                                          class="form-control"
+                                          class="form-control verse-editor"
                                           style="font-size: 12pt; width: 100%; margin-top: 5px; font-family: monospace; white-space: pre-wrap;">
                                 </textarea>
-                                <small style="color: gray;">Каждый куплет на отдельной строке</small>
+                                <small style="color: gray;">Куплеты разделяются строкой с символом ¶</small>
                             </div>
                             <div class="col-xs-4">
                                 <label style="font-size: 12pt; font-weight: bold;">Текст песни (LT):</label>
                                 <textarea ng-model="editConfig.songTextLt"
                                           rows="15"
-                                          class="form-control"
+                                          class="form-control verse-editor"
                                           style="font-size: 12pt; width: 100%; margin-top: 5px; font-family: monospace; white-space: pre-wrap;">
                                 </textarea>
                                 <small style="color: gray;">Опционально</small>
@@ -675,7 +688,7 @@
                                 <label style="font-size: 12pt; font-weight: bold;">Текст песни (EN):</label>
                                 <textarea ng-model="editConfig.songTextEn"
                                           rows="15"
-                                          class="form-control"
+                                          class="form-control verse-editor"
                                           style="font-size: 12pt; width: 100%; margin-top: 5px; font-family: monospace; white-space: pre-wrap;">
                                 </textarea>
                                 <small style="color: gray;">Опционально</small>
