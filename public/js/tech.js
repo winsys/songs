@@ -1,3 +1,36 @@
+// Директива в tech.js, до controller
+app.directive('verseEditor', function() {
+    return {
+        restrict: 'A',
+        require: 'ngModel',
+        link: function(scope, el, attrs, ngModel) {
+            el[0].contentEditable = 'true';
+            el[0].style.whiteSpace = 'pre-wrap';
+
+            // Модель → DOM: \r\n превращается в <br data-br>
+            ngModel.$render = function() {
+                var val = ngModel.$viewValue || '';
+                el[0].innerHTML = val
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/\r\n/g, '<br data-br="1">');
+            };
+
+            // DOM → модель: <br> обратно в \r\n
+            el[0].addEventListener('input', function() {
+                scope.$apply(function() {
+                    var html = el[0].innerHTML;
+                    var text = html
+                        .replace(/<br\s*data-br[^>]*>/gi, '\r\n')
+                        .replace(/<br\s*\/?>/gi, '\r\n')
+                        .replace(/&lt;/g, '<')
+                        .replace(/&amp;/g, '&');
+                    ngModel.$setViewValue(text);
+                });
+            });
+        }
+    };
+});
 app.controller('Tech', function ($scope, $http, $timeout)
 {
     function addParaMarks(text) {
