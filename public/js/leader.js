@@ -41,6 +41,15 @@ app.controller('Leader', function ($scope, $http)
         $http({ method: "POST", url: "/ajax", data: {command: 'get_song_list', list_id: $scope.listId } }).then(
             function success(respond){
                 $scope.songList = respond.data;
+                angular.forEach($scope.songList, function(song) {
+                       var langs = [];
+                       if (song.hasTextRu === '1') langs.push('RU');
+                       if (song.hasTextLt === '1') langs.push('LT');
+                       if (song.hasTextEn === '1') langs.push('EN');
+                       var bookPart = song.bookName ? song.bookName : '';
+                       var langPart = langs.length ? langs.join(' · ') : '—';
+                       song.langInfo = bookPart + (bookPart && langPart ? '  ·  ' : '') + langPart;
+                });
             },
             function error(erespond){
                 console.log('Ajax call error: ', erespond)

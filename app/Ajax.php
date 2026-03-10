@@ -6,7 +6,19 @@ class Ajax
 
     private static function get_song_list()
     {
-        $list = Info::get('db')->select("select *, concat(NUM, '   ',NAME) as dispName, TEXT from song_list where LISTID = ".self::$args['list_id']." order by NUM");
+        $listId = (int)self::$args['list_id'];
+        $list = Info::get('db')->select(
+            "SELECT l.*,
+                    concat(l.NUM, '   ', l.NAME) as dispName,
+                    n.LIST_NAME as bookName,
+                    (l.TEXT    IS NOT NULL AND l.TEXT    != '') AS hasTextRu,
+                    (l.TEXT_LT IS NOT NULL AND l.TEXT_LT != '') AS hasTextLt,
+                    (l.TEXT_EN IS NOT NULL AND l.TEXT_EN != '') AS hasTextEn
+             FROM song_list l
+             LEFT JOIN list_names n ON n.LIST_ID = l.LISTID
+             WHERE l.LISTID = {$listId}
+             ORDER BY l.NUM"
+        );
         return json_encode($list);
     }
 
