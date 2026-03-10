@@ -38,6 +38,9 @@
             --sn-notes-font:      13pt;
             --sn-chip-font:       10pt;
             --sn-chip-verse-font: 9.5pt;
+
+            --sn-notes-text:     #e0e0e0;
+            --sn-notes-text-dim: #888888;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -77,14 +80,14 @@
         #notes-title {
             font-size: 13pt;
             font-weight: bold;
-            color: #ddd;
+            color: var(--sn-notes-text);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
             flex: 1;
         }
 
-        #notes-date { font-size: 10pt; color: #888; flex-shrink: 0; }
+        #notes-date { font-size: 10pt; color: var(--sn-notes-text-dim); flex-shrink: 0; }
         #sermon-select-wrap { flex-shrink: 0; }
 
         #sermon-select {
@@ -104,7 +107,7 @@
             padding: 16px 18px 40px;
             font-size: var(--sn-notes-font);
             line-height: 1.75;
-            color: #e0e0e0;
+            color: var(--sn-notes-text);
         }
 
         /* ===== Bible cite chip ===== */
