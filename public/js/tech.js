@@ -4,13 +4,13 @@ app.controller('Tech', function ($scope, $http, $timeout)
    function addParaMarks(text) {
        if (!text) return '';
        // Нормализовать окончания строк до \n, затем заменить пустые строки на ¶
-       return text.replace(/\r\n/g, '\r\n¶$1');
+       return text.replace(/\r\n/g, '\r\n¶\r\n');
    }
 
    // Убрать символ ¶ из строк-разделителей перед сохранением
    function removeParaMarks(text) {
        if (!text) return '';
-       return text.replace(/^¶$/mg, '');
+       return text.replace('\r\n¶\r\n', '\r\n');
    }
 
     // ── Songs mode state ──────────────────────────────────────
