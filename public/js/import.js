@@ -67,17 +67,23 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     // ─────────────────────────────────────────────────────────
     $scope.onSongSogSelected = function () {
         var f = document.getElementById('songSogFile');
-        $scope.selectedSogFile = f && f.files[0] ? f.files[0] : null;
+        $scope.$apply(function () {
+            $scope.selectedSogFile = f && f.files[0] ? f.files[0] : null;
+        });
     };
 
     $scope.onSongZipSelected = function () {
         var f = document.getElementById('songZipFile');
-        $scope.selectedZipFile = f && f.files[0] ? f.files[0] : null;
+        $scope.$apply(function () {
+            $scope.selectedZipFile = f && f.files[0] ? f.files[0] : null;
+        });
     };
 
     $scope.onMsgSogSelected = function () {
         var f = document.getElementById('msgSogFile');
-        $scope.selectedMsgFile = f && f.files[0] ? f.files[0] : null;
+        $scope.$apply(function () {
+            $scope.selectedMsgFile = f && f.files[0] ? f.files[0] : null;
+        });
     };
 
     // ─────────────────────────────────────────────────────────
