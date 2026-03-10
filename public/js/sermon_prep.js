@@ -117,13 +117,14 @@ app.controller('SermonPrep', function ($scope, $http, $timeout) {
         var hsl_ = _rgbToHsl(rgb[0], rgb[1], rgb[2]);
         var h = hsl_[0];
         var s = Math.max(55, Math.min(hsl_[1], 90));
+        var r = rgb[0], g = rgb[1], b = rgb[2];
 
         return {
-            bg:          _hsl(h, s * 0.55, 93),   // very light tint
-            border:      _hsl(h, s * 0.70, 73),   // medium-light border
-            ref:         baseHex,                  // base colour for header text
-            verse:       _hsl(h, s,        Math.min(hsl_[2] + 8, 62)), // slightly lighter
-            hoverBg:     _hsl(h, s * 0.60, 86)    // hover: slightly darker tint
+            bg:      'rgba(' + r + ',' + g + ',' + b + ',0.13)',  // прозрачный тинт базового цвета
+            border:  _hsl(h, s * 0.70, 73),                       // medium-light border
+            ref:     baseHex,                                      // base colour for header text
+            verse:   _hsl(h, s, Math.min(hsl_[2] + 8, 62)),       // slightly lighter
+            hoverBg: 'rgba(' + r + ',' + g + ',' + b + ',0.21)'   // hover: чуть более непрозрачный
         };
     }
 

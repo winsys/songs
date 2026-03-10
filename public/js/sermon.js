@@ -90,17 +90,18 @@ angular.module('Songs', [])
             var hsl_ = rgbToHsl(rgb[0], rgb[1], rgb[2]);
             var h = hsl_[0];
             var s = Math.max(55, Math.min(hsl_[1], 85));
+            var r = Math.round(rgb[0]), g = Math.round(rgb[1]), b = Math.round(rgb[2]);
             return {
-                bg:           hsl(h, s * 0.70, 17),
+                bg:           'rgba(' + r + ',' + g + ',' + b + ',0.15)',  // прозрачный тинт
                 border:       hsl(h, s * 0.85, 32),
                 ref:          hsl(h, s,        72),
                 verse:        hsl(h, s * 0.80, 64),
-                hoverBg:      hsl(h, s * 0.75, 25),
+                hoverBg:      'rgba(' + r + ',' + g + ',' + b + ',0.25)',  // чуть плотнее
                 hoverBorder:  hsl(h, s,        44),
-                activeBg:     hsl(h, s,        40),
+                activeBg:     'rgba(' + r + ',' + g + ',' + b + ',0.55)',  // активный — заметно плотный
                 activeBorder: hsl(h, Math.min(s * 1.1, 100), 57),
                 activeVerse:  hsl(h, 40,       90),
-                shadow:       hsl(h, s * 0.90, 35)
+                shadow:       'rgba(' + r + ',' + g + ',' + b + ',0.40)'   // тень вокруг активного
             };
         }
 
