@@ -320,6 +320,11 @@
                              ng-repeat="song in songList">
                             <div class="col-xs-9 col-s-9 col-md-9" style="font-size: 16pt">
                                 {{ song.dispName }}
+                                <span class="song-lang-badges" style="margin-left: 6px; vertical-align: middle;">
+                                    <span class="lang-badge lang-ru" ng-if="song.hasTextRu == '1'">RU</span>
+                                    <span class="lang-badge lang-lt" ng-if="song.hasTextLt == '1'">LT</span>
+                                    <span class="lang-badge lang-en" ng-if="song.hasTextEn == '1'">EN</span>
+                                </span>
                             </div>
                             <div class="col-xs-3 col-s-3 col-md-3">
                                 <button class="btn btn-lg" style="font-size: 16pt" ng-click="addSongToFavorites(song.ID)">Выбрать</button>
