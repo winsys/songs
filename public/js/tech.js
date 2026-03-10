@@ -31,24 +31,48 @@ app.directive('verseEditor', function() {
 
                 // Enter
                 el[0].addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
+                    if (e.key !== 'Enter') return;
+                    e.preventDefault();
+                    e.stopPropagation();
 
-                        // Вставить ¶<br> в позицию курсора
-                        document.execCommand('insertHTML', false,
-                            '<span class="para-mark" contenteditable="false">¶</span><br>');
+                    var sel = window.getSelection();
+                    if (!sel.rangeCount) return;
 
-                        // Синхронизировать с моделью
-                        scope.$apply(function() {
-                            var html = el[0].innerHTML;
-                            var text = html
-                                .replace(/<span[^>]*class="para-mark"[^>]*>[^<]*<\/span>/gi, '')
-                                .replace(/<br\s*\/?>/gi, '\r\n')
-                                .replace(/&lt;/g, '<')
-                                .replace(/&amp;/g, '&');
-                            ngModel.$setViewValue(text);
-                        });
-                    }
+                    var range = sel.getRangeAt(0);
+                    range.deleteContents();
+
+                    // Создать ¶ + br
+                    var span = document.createElement('span');
+                    span.className = 'para-mark';
+                    span.contentEditable = 'false';
+                    span.textContent = '¶';
+
+                    var br = document.createElement('br');
+
+                    // Вставить оба узла
+                    range.insertNode(br);
+                    range.insertNode(span);
+
+                    // Переместить курсор ПОСЛЕ br
+                    var newRange = document.createRange();
+                    newRange.setStartAfter(br);
+                    newRange.collapse(true);
+                    sel.removeAllRanges();
+                    sel.addRange(newRange);
+
+                    // Вернуть фокус явно
+                    el[0].focus();
+
+                    // Синхронизировать с моделью
+                    scope.$apply(function() {
+                        var html = el[0].innerHTML;
+                        var text = html
+                            .replace(/<span[^>]*class="para-mark"[^>]*>[^<]*<\/span>/gi, '')
+                            .replace(/<br\s*\/?>/gi, '\r\n')
+                            .replace(/&lt;/g, '<')
+                            .replace(/&amp;/g, '&');
+                        ngModel.$setViewValue(text);
+                    });
                 });
             }
         };
