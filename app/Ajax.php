@@ -27,10 +27,19 @@ class Ajax
 
     private static function get_favorites()
     {
-        $sql = "SELECT f.ID as FID, l.*, concat(l.num, ' - ',l.name) as dispName, 
-                        concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName, f.SONGID FROM favorites f 
-                left join song_list l ON l.ID=f.SONGID
-                where f.groupId={$_SESSION['userId']}
+        $userId = $_SESSION['userId'];
+        $sql = "SELECT f.ID as FID, l.*,
+                       concat(l.num, ' - ', l.name) as dispName,
+                       concat('/images/', l.LISTID, '/', l.num, '.jpg') as imageName,
+                       f.SONGID,
+                       n.LIST_NAME as bookName,
+                       (l.TEXT    IS NOT NULL AND l.TEXT    != '') AS hasTextRu,
+                       (l.TEXT_LT IS NOT NULL AND l.TEXT_LT != '') AS hasTextLt,
+                       (l.TEXT_EN IS NOT NULL AND l.TEXT_EN != '') AS hasTextEn
+                FROM favorites f
+                LEFT JOIN song_list l  ON l.ID    = f.SONGID
+                LEFT JOIN list_names n ON n.LIST_ID = l.LISTID
+                WHERE f.groupId = {$userId}
                 ORDER BY FID";
         $list = Info::get('db')->select($sql);
         return json_encode($list);
