@@ -644,6 +644,398 @@ class Ajax
      * ============================================================
      */
 
+
+    /**
+     * ============================================================
+     * ИНСТРУКЦИЯ:
+     *   Вставить все методы ниже в app/Ajax.php
+     *   ПЕРЕД методом updateSocket().
+     * ============================================================
+     */
+
+    // --------------------------------------------------------
+    // Создать новый сборник песен
+    // Параметры: name
+    // --------------------------------------------------------
+    private static function create_song_list()
+    {
+        if (!Security::isAdmin()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+
+        $dbh = Info::get('dbh');
+        $name = mysqli_real_escape_string($dbh, trim(self::$args['name'] ?? ''));
+
+        if ($name === '') {
+            return json_encode(['status' => 'error', 'message' => 'Название не может быть пустым']);
+        }
+
+        // Получить следующий LIST_ID
+        $row = Info::get('db')->get("SELECT MAX(LIST_ID) AS max_id FROM list_names");
+        $nextId = ($row && $row['max_id']) ? (int)$row['max_id'] + 1 : 1;
+
+        $userId = (int)$_SESSION['userId'];
+        Info::get('db')->exec(
+            "INSERT INTO list_names (LIST_ID, LIST_NAME, ADDEDBY) VALUES ({$nextId}, '{$name}', {$userId})"
+        );
+
+        return json_encode(['status' => 'success', 'list_id' => $nextId]);
+    }
+
+    // --------------------------------------------------------
+    // Импорт текстов песен в формате SOG
+    // POST-файл: sogfile
+    // POST-поля: list_id, lang (ru|lt|en)
+    // --------------------------------------------------------
+    private static function import_songs_sog()
+    {
+        if (!Security::isAdmin()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+
+        if (!isset($_FILES['sogfile']) || $_FILES['sogfile']['error'] !== UPLOAD_ERR_OK) {
+            $errCode = isset($_FILES['sogfile']) ? $_FILES['sogfile']['error'] : 'no file';
+            return json_encode(['status' => 'error', 'message' => 'Файл не загружен (код ' . $errCode . ')']);
+        }
+
+        $listId = (int)($_POST['list_id'] ?? 0);
+        $lang = trim($_POST['lang'] ?? 'ru');
+
+        if (!in_array($lang, ['ru', 'lt', 'en'])) {
+            return json_encode(['status' => 'error', 'message' => 'Неверный язык']);
+        }
+        if ($listId <= 0) {
+            return json_encode(['status' => 'error', 'message' => 'Не указан сборник']);
+        }
+
+        $field = $lang === 'ru' ? 'TEXT' : ($lang === 'lt' ? 'TEXT_LT' : 'TEXT_EN');
+
+        // Прочитать файл, снять UTF-8 BOM если есть
+        $raw = file_get_contents($_FILES['sogfile']['tmp_name']);
+        $raw = ltrim($raw, "\xEF\xBB\xBF"); // UTF-8 BOM
+        $raw = str_replace("\r\n", "\n", $raw);
+        $raw = str_replace("\r", "\n", $raw);
+        $lines = explode("\n", $raw);
+
+        $dbh = Info::get('dbh');
+        $db = Info::get('db');
+        $log = [];
+        $updated = 0;
+        $errors = 0;
+
+        $i = 0;
+        $total = count($lines);
+
+        while ($i < $total) {
+            // Пропустить пустые строки между песнями
+            if (trim($lines[$i]) === '') {
+                $i++;
+                continue;
+            }
+
+            // Строка 1: номер песни
+            $num = trim($lines[$i]);
+            $i++;
+            if ($i >= $total) break;
+
+            // Строка 2: название
+            $name = trim($lines[$i]);
+            $i++;
+
+            // Строки 3+: куплеты до пустой строки
+            $verses = [];
+            while ($i < $total && trim($lines[$i]) !== '') {
+                $verses[] = $lines[$i];
+                $i++;
+            }
+            $text = implode("\r\n", $verses);
+
+            if ($num === '') {
+                $log[] = ['type' => 'warn', 'msg' => "Строка ~{$i}: пропущен номер песни"];
+                $errors++;
+                continue;
+            }
+
+            // Найти песню в базе
+            $numEsc = mysqli_real_escape_string($dbh, $num);
+            $nameEsc = mysqli_real_escape_string($dbh, $name);
+            $textEsc = mysqli_real_escape_string($dbh, $text);
+
+            $existing = $db->get(
+                "SELECT ID FROM song_list WHERE LISTID={$listId} AND NUM='{$numEsc}' LIMIT 1"
+            );
+
+            if ($existing) {
+                $db->exec(
+                    "UPDATE song_list SET {$field}='{$textEsc}', NAME=IF(NAME='', '{$nameEsc}', NAME)
+                     WHERE ID={$existing['ID']}"
+                );
+                $log[] = ['type' => 'ok', 'msg' => "Обновлена песня #{$num} «{$name}»"];
+            } else {
+                // Создать новую запись
+                $nameField = $lang === 'ru' ? "NAME='{$nameEsc}', TEXT='{$textEsc}'"
+                    : "NAME='{$nameEsc}', {$field}='{$textEsc}'";
+                $db->exec(
+                    "INSERT INTO song_list (LISTID, NUM, NAME, {$field})
+                     VALUES ({$listId}, '{$numEsc}', '{$nameEsc}', '{$textEsc}')"
+                );
+                $log[] = ['type' => 'ok', 'msg' => "Добавлена песня #{$num} «{$name}»"];
+            }
+            $updated++;
+        }
+
+        return json_encode([
+            'status' => 'success',
+            'updated' => $updated,
+            'errors' => $errors,
+            'log' => $log,
+        ]);
+    }
+
+    // --------------------------------------------------------
+    // Импорт картинок сборника из ZIP-архива
+    // POST-файл: zipfile
+    // POST-поля: list_id
+    // --------------------------------------------------------
+    private static function import_song_images_zip()
+    {
+        if (!Security::isAdmin()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+
+        if (!isset($_FILES['zipfile']) || $_FILES['zipfile']['error'] !== UPLOAD_ERR_OK) {
+            $errCode = isset($_FILES['zipfile']) ? $_FILES['zipfile']['error'] : 'no file';
+            return json_encode(['status' => 'error', 'message' => 'Файл не загружен (код ' . $errCode . ')']);
+        }
+
+        $listId = (int)($_POST['list_id'] ?? 0);
+        if ($listId <= 0) {
+            return json_encode(['status' => 'error', 'message' => 'Не указан сборник']);
+        }
+
+        if (!class_exists('ZipArchive')) {
+            return json_encode(['status' => 'error', 'message' => 'Расширение ZipArchive не установлено на сервере']);
+        }
+
+        $zip = new ZipArchive();
+        $res = $zip->open($_FILES['zipfile']['tmp_name']);
+        if ($res !== true) {
+            return json_encode(['status' => 'error', 'message' => 'Не удалось открыть ZIP (код ' . $res . ')']);
+        }
+
+        $targetDir = __DIR__ . '/../public/images/' . $listId . '/';
+        if (!file_exists($targetDir)) {
+            mkdir($targetDir, 0777, true);
+        }
+
+        $allowedExt = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        $extracted = 0;
+        $errors = 0;
+        $log = [];
+
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+
+            // Пропустить папки и скрытые файлы
+            if (substr($name, -1) === '/' || strpos(basename($name), '.') === 0) continue;
+
+            $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
+            if (!in_array($ext, $allowedExt)) {
+                $log[] = ['type' => 'warn', 'msg' => "Пропущен файл (не картинка): {$name}"];
+                continue;
+            }
+
+            // Имя файла без пути (на случай вложенных папок в ZIP)
+            $basename = basename($name);
+            $targetFile = $targetDir . $basename;
+
+            $content = $zip->getFromIndex($i);
+            if ($content === false) {
+                $log[] = ['type' => 'error', 'msg' => "Ошибка чтения из ZIP: {$name}"];
+                $errors++;
+                continue;
+            }
+
+            if (file_put_contents($targetFile, $content) === false) {
+                $log[] = ['type' => 'error', 'msg' => "Ошибка записи файла: {$basename}"];
+                $errors++;
+                continue;
+            }
+
+            $log[] = ['type' => 'ok', 'msg' => "Сохранён: {$basename}"];
+            $extracted++;
+        }
+
+        $zip->close();
+
+        return json_encode([
+            'status' => 'success',
+            'extracted' => $extracted,
+            'errors' => $errors,
+            'log' => $log,
+        ]);
+    }
+
+    // --------------------------------------------------------
+    // Импорт посланий в формате SOG
+    // POST-файл: sogfile
+    // POST-поля: lang (ru|lt|en)
+    // --------------------------------------------------------
+    private static function import_messages_sog()
+    {
+        if (!Security::isAdmin()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+
+        if (!isset($_FILES['sogfile']) || $_FILES['sogfile']['error'] !== UPLOAD_ERR_OK) {
+            $errCode = isset($_FILES['sogfile']) ? $_FILES['sogfile']['error'] : 'no file';
+            return json_encode(['status' => 'error', 'message' => 'Файл не загружен (код ' . $errCode . ')']);
+        }
+
+        $lang = trim($_POST['lang'] ?? 'ru');
+        if (!in_array($lang, ['ru', 'lt', 'en'])) {
+            return json_encode(['status' => 'error', 'message' => 'Неверный язык']);
+        }
+
+        $textField = $lang === 'ru' ? 'TEXT' : ($lang === 'lt' ? 'TEXT_LT' : 'TEXT_EN');
+
+        // Прочитать файл, снять UTF-8 BOM
+        $raw = file_get_contents($_FILES['sogfile']['tmp_name']);
+        $raw = ltrim($raw, "\xEF\xBB\xBF"); // UTF-8 BOM
+
+        // Нормализовать окончания строк (CR+LF → LF)
+        $raw = str_replace("\r\n", "\n", $raw);
+        $raw = str_replace("\r", "\n", $raw);
+        $lines = explode("\n", $raw);
+
+        $dbh = Info::get('dbh');
+        $db = Info::get('db');
+        $userId = (int)$_SESSION['userId'];
+        $log = [];
+        $inserted = 0;
+        $updated = 0;
+        $errors = 0;
+
+        $i = 0;
+        $total = count($lines);
+
+        while ($i < $total) {
+            // ── Шаг 1: первая строка (игнорируется) ──────────
+            // Пропустить пустые строки между блоками
+            if (trim($lines[$i]) === '') {
+                $i++;
+                continue;
+            }
+            $i++; // игнорируем строку-заголовок
+
+            if ($i >= $total) break;
+
+            // ── Шаг 2: строка с кодом, названием и городом ──
+            $headerLine = $lines[$i];
+            $i++;
+
+            // CODE — от начала до первого пробела
+            if (!preg_match('/^(\S+)\s*/', $headerLine, $m)) {
+                $log[] = ['type' => 'warn', 'msg' => "Строка {$i}: не удалось разобрать заголовок: {$headerLine}"];
+                $errors++;
+                // Пропустить до следующей пустой строки
+                while ($i < $total && trim($lines[$i]) !== '') $i++;
+                continue;
+            }
+            $code = $m[1];
+            $rest = substr($headerLine, strlen($m[0]));
+
+            // Убрать ведущие пробелы и тире
+            $rest = ltrim($rest, " \t-–—");
+
+            // TITLE — до символа "("
+            $parenPos = strpos($rest, '(');
+            if ($parenPos !== false) {
+                $title = rtrim(substr($rest, 0, $parenPos), " \t(");
+                // CITY — между скобками
+                $closePos = strpos($rest, ')', $parenPos);
+                $city = $closePos !== false
+                    ? trim(substr($rest, $parenPos + 1, $closePos - $parenPos - 1))
+                    : '';
+            } else {
+                $title = trim($rest);
+                $city = '';
+            }
+
+            if ($code === '') {
+                $log[] = ['type' => 'warn', 'msg' => "Строка ~{$i}: пустой код послания, пропускаем"];
+                $errors++;
+                while ($i < $total && trim($lines[$i]) !== '') $i++;
+                continue;
+            }
+
+            // ── Шаг 3: абзацы текста до пустой строки ───────
+            $paragraphs = [];
+            while ($i < $total) {
+                $line = $lines[$i];
+                // Пустая строка или строка из одних пробелов — конец послания
+                if (trim($line) === '') {
+                    $i++;
+                    break;
+                }
+                $paragraphs[] = $line;
+                $i++;
+            }
+            $text = implode("\r\n", $paragraphs);
+
+            // Сохранить в базу данных
+            $codeEsc = mysqli_real_escape_string($dbh, $code);
+            $titleEsc = mysqli_real_escape_string($dbh, $title);
+            $cityEsc = mysqli_real_escape_string($dbh, $city);
+            $textEsc = mysqli_real_escape_string($dbh, $text);
+
+            $existing = $db->get(
+                "SELECT ID FROM messages WHERE CODE='{$codeEsc}' LIMIT 1"
+            );
+
+            if ($existing) {
+                // Обновить текст на нужном языке (и при ru — также TITLE/CITY если пусты)
+                if ($lang === 'ru') {
+                    $db->exec(
+                        "UPDATE messages SET
+                            TEXT='{$textEsc}',
+                            TITLE=IF(TITLE='', '{$titleEsc}', TITLE),
+                            CITY=IF(CITY='', '{$cityEsc}', CITY)
+                         WHERE ID={$existing['ID']}"
+                    );
+                } else {
+                    $db->exec(
+                        "UPDATE messages SET {$textField}='{$textEsc}' WHERE ID={$existing['ID']}"
+                    );
+                }
+                $log[] = ['type' => 'ok', 'msg' => "Обновлено: [{$code}] {$title}"];
+                $updated++;
+            } else {
+                // Новая запись
+                $textRu = $lang === 'ru' ? "'{$textEsc}'" : "''";
+                $textLt = $lang === 'lt' ? "'{$textEsc}'" : "''";
+                $textEn = $lang === 'en' ? "'{$textEsc}'" : "''";
+
+                $db->exec(
+                    "INSERT INTO messages (USER_ID, CODE, TITLE, CITY, TEXT, TEXT_LT, TEXT_EN)
+                     VALUES ({$userId}, '{$codeEsc}', '{$titleEsc}', '{$cityEsc}', {$textRu}, {$textLt}, {$textEn})"
+                );
+                $log[] = ['type' => 'ok', 'msg' => "Добавлено: [{$code}] {$title} ({$city})"];
+                $inserted++;
+            }
+        }
+
+        return json_encode([
+            'status' => 'success',
+            'inserted' => $inserted,
+            'updated' => $updated,
+            'errors' => $errors,
+            'log' => $log,
+        ]);
+    }
+    // КОНЕЦ - Импорт посланий в формате SOG
+    // --------------------------------------------------------
+
     private static function updateSocket()
     {
         $err1 = '';
