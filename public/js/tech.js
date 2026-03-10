@@ -10,7 +10,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
    // Убрать символ ¶ из строк-разделителей перед сохранением
    function removeParaMarks(text) {
        if (!text) return '';
-       return text.replace('\r\n¶\r\n', '\r\n');
+       return text.replace(/\r\n¶\r\n/g, '\r\n');
    }
 
     // ── Songs mode state ──────────────────────────────────────
