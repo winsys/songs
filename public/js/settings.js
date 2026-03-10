@@ -196,6 +196,7 @@ app.controller('Settings', function ($scope, $http)
 
     $scope.shareUser = function(user, roleLabel) {
         var text =
+            'https://songs.winsys.lv' + '\n' +
             'Роль: '   + roleLabel    + '\n' +
             'Имя: '    + user.NAME   + '\n' +
             'Логин: '  + user.LOGIN  + '\n' +
