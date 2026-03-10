@@ -28,28 +28,6 @@ app.directive('verseEditor', function() {
                         ngModel.$setViewValue(text);
                     });
                 });
-
-                // Enter
-                el[0].addEventListener('keydown', function(e) {
-                    if (e.key === 'Enter') {
-                        e.preventDefault();
-
-                        // Вставить ¶<br> в позицию курсора
-                        document.execCommand('insertHTML', false,
-                            '<span class="para-mark" contenteditable="false">¶</span><br>');
-
-                        // Синхронизировать с моделью
-                        scope.$apply(function() {
-                            var html = el[0].innerHTML;
-                            var text = html
-                                .replace(/<span[^>]*class="para-mark"[^>]*>[^<]*<\/span>/gi, '')
-                                .replace(/<br\s*\/?>/gi, '\r\n')
-                                .replace(/&lt;/g, '<')
-                                .replace(/&amp;/g, '&');
-                            ngModel.$setViewValue(text);
-                        });
-                    }
-                });
             }
         };
     })
