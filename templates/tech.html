@@ -209,11 +209,16 @@
     }
 
     .verse-editor {
-        content: '¶';
-        color: #ba6e6e;
-        font-weight: bold;
-        pointer-events: none;
-        user-select: none;
+        min-height: 300px;
+        font-family: monospace;
+        overflow-y: auto;
+        resize: vertical;
+        white-space: pre-wrap;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+        padding: 6px;
+        line-height: 1.6;
+        background-color: #fafafa;
     }
     .para-mark {
         color: #ba6e6e;
