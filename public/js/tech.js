@@ -13,7 +13,7 @@ app.directive('verseEditor', function() {
                     el[0].innerHTML = val
                         .replace(/&/g, '&amp;')
                         .replace(/</g, '&lt;')
-                        .replace(/\r\n/g, '<span class="para-mark">¶</span><br>');
+                        .replace(/\r\n/g, '<br data-br="1">');
                 };
 
                 // DOM → модель: <br> обратно в \r\n
@@ -21,7 +21,7 @@ app.directive('verseEditor', function() {
                     scope.$apply(function() {
                         var html = el[0].innerHTML;
                         var text = html
-                            .replace(/<span[^>]*class="para-mark"[^>]*>[^<]*<\/span>/gi, '')
+                            .replace(/<br\s*data-br[^>]*>/gi, '\r\n')
                             .replace(/<br\s*\/?>/gi, '\r\n')
                             .replace(/&lt;/g, '<')
                             .replace(/&amp;/g, '&');
