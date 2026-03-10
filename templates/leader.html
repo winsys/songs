@@ -174,6 +174,34 @@
             line-height: 1.1;
         }
     }
+
+    .song-meta {
+        display: block;
+        margin-top: 3px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+    .song-book-name {
+        font-size: 10pt;
+        color: #888;
+    }
+    .song-lang-badges {
+        display: inline-flex;
+        gap: 4px;
+    }
+    .lang-badge {
+        display: inline-block;
+        font-size: 8pt;
+        font-weight: bold;
+        padding: 1px 5px;
+        border-radius: 3px;
+        line-height: 1.4;
+    }
+    .lang-ru { background: #d0e8ff; color: #1a5a99; }
+    .lang-lt { background: #d4f0d4; color: #2a6a2a; }
+    .lang-en { background: #fff0cc; color: #7a5a00; }
 </style>
 
 <div ng-controller="Leader" class="container">
@@ -214,13 +242,31 @@
 
             <div class="row prod-list-item"
                  ng-repeat="listItem in favorites">
-                <span class="btn btn-danger col-sm-1" ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">&nbsp;X&nbsp;</span>
-                <span class="col-sm-8 col-md-8 item-text">{{ listItem.dispName }}</span>
+
+                <!-- Кнопка удаления -->
+                <span class="btn btn-danger col-sm-1"
+                      ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">&nbsp;X&nbsp;</span>
+
+                <!-- Название + сборник + языки -->
+                <span class="col-sm-8 col-md-8">
+                    <span class="item-text">{{ listItem.dispName }}</span>
+                    <span class="song-meta">
+                        <span class="song-book-name" ng-if="listItem.bookName">{{ listItem.bookName }}</span>
+                        <span class="song-lang-badges">
+                            <span class="lang-badge lang-ru" ng-if="listItem.hasTextRu == '1'">RU</span>
+                            <span class="lang-badge lang-lt" ng-if="listItem.hasTextLt == '1'">LT</span>
+                            <span class="lang-badge lang-en" ng-if="listItem.hasTextEn == '1'">EN</span>
+                        </span>
+                    </span>
+                </span>
+
+                <!-- Картинка с нотами -->
                 <img class="col-sm-3 col-md-3"
                      ng-attr-id="{{ 'img' + listItem.ID }}"
                      ng-src="{{ listItem.imageName }}"
                      ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"/>
             </div>
+
 
         </div>
 
