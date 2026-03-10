@@ -207,14 +207,6 @@
         line-height: 1.6;
         resize: vertical;
     }
-
-    .verse-editor [data-br]::after {
-        content: '¶';
-        color: #ba6e6e;
-        font-weight: bold;
-        pointer-events: none;
-        user-select: none;
-    }
 </style>
 
 <div ng-controller="Tech" class="container">
@@ -676,32 +668,29 @@
                         <div class="row" style="margin-top: 20px;">
                             <div class="col-xs-4">
                                 <label style="font-size: 12pt; font-weight: bold;">Текст песни (RU):</label>
-                                <div verse-editor
-                                     ng-model="editConfig.songText"
-                                     class="form-control verse-editor"
-                                     style="font-size: 12pt; min-height: 300px; font-family: monospace;
-                                            overflow-y: auto; resize: vertical;">
-                                </div>
+                                <textarea ng-model="editConfig.songText"
+                                          rows="15"
+                                          class="form-control verse-editor"
+                                          style="font-size: 12pt; width: 100%; margin-top: 5px; font-family: monospace; white-space: pre-wrap;">
+                                </textarea>
                                 <small style="color: gray;">Куплеты разделяются строкой с символом ¶</small>
                             </div>
                             <div class="col-xs-4">
                                 <label style="font-size: 12pt; font-weight: bold;">Текст песни (LT):</label>
-                                <div verse-editor
-                                     ng-model="editConfig.songTextLt"
-                                     class="form-control verse-editor"
-                                     style="font-size: 12pt; min-height: 300px; font-family: monospace;
-                                            overflow-y: auto; resize: vertical;">
-                                </div>
+                                <textarea ng-model="editConfig.songTextLt"
+                                          rows="15"
+                                          class="form-control verse-editor"
+                                          style="font-size: 12pt; width: 100%; margin-top: 5px; font-family: monospace; white-space: pre-wrap;">
+                                </textarea>
                                 <small style="color: gray;">Опционально</small>
                             </div>
                             <div class="col-xs-4">
                                 <label style="font-size: 12pt; font-weight: bold;">Текст песни (EN):</label>
-                                <div verse-editor
-                                     ng-model="editConfig.songTextEn"
-                                     class="form-control verse-editor"
-                                     style="font-size: 12pt; min-height: 300px; font-family: monospace;
-                                            overflow-y: auto; resize: vertical;">
-                                </div>
+                                <textarea ng-model="editConfig.songTextEn"
+                                          rows="15"
+                                          class="form-control verse-editor"
+                                          style="font-size: 12pt; width: 100%; margin-top: 5px; font-family: monospace; white-space: pre-wrap;">
+                                </textarea>
                                 <small style="color: gray;">Опционально</small>
                             </div>
                         </div>
