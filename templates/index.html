@@ -20,16 +20,30 @@
                         class="btn btn-primary btn-lg"
                         onclick="window.location.href='/leader/'+userId">Ведущий</button>
                 <p><br><br></p>
-                <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
-                        class="btn btn-primary btn-lg"
-                        onclick="window.location.href='/tech/'+userId">Технический режим</button>
-                <p><br><br></p>
                 <?php endif; ?>
 
                 <?php if ($role === 'admin' || $role === 'musician'): ?>
                 <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
                         class="btn btn-primary btn-lg"
                         onclick="window.location.href='/musician/'+userId">Музыкант</button>
+                <p><br><br></p>
+                <?php endif; ?>
+
+                <?php if ($role === 'admin'): ?>
+                <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
+                        class="btn btn-primary btn-lg"
+                        onclick="window.location.href='/text/'+userId">Слова песни</button>
+                <p><br><br></p>
+                <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
+                        class="btn btn-primary btn-lg"
+                        onclick="window.location.href='/text_stream/'+userId">Слова для трансляции</button>
+                <p><br><br></p>
+                <?php endif; ?>
+
+                <?php if ($role === 'admin' || $role === 'leader'): ?>
+                <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
+                        class="btn btn-primary btn-lg"
+                        onclick="window.location.href='/tech/'+userId">Технический режим</button>
                 <p><br><br></p>
                 <?php endif; ?>
 
@@ -45,14 +59,6 @@
                 <?php endif; ?>
 
                 <?php if ($role === 'admin'): ?>
-                <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
-                        class="btn btn-primary btn-lg"
-                        onclick="window.location.href='/text/'+userId">Слова песни</button>
-                <p><br><br></p>
-                <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
-                        class="btn btn-primary btn-lg"
-                        onclick="window.location.href='/text_stream/'+userId">Слова для трансляции</button>
-                <p><br><br></p>
                 <button type="submit" style="text-align: center; width: 100%; font-size: 18pt"
                         class="btn btn-primary btn-lg"
                         onclick="window.location.href='/settings/'+userId">Настройки</button>
