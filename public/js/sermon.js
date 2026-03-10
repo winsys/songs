@@ -370,9 +370,10 @@ angular.module('Songs', [])
 
             // Start small and grow
             var size = 8;
+            var maxSize = 100;
             el.style.fontSize = size + 'px';
 
-            while (size < 300 && el.scrollHeight <= maxH) {
+            while (size < maxSize && el.scrollHeight <= maxH) {
                 size++;
                 el.style.fontSize = size + 'px';
             }
