@@ -44,6 +44,7 @@ app.controller('Settings', function ($scope, $http)
                     if (!$scope.settings.sermon_notes_bg_color)   $scope.settings.sermon_notes_bg_color   = '#2b2b2b';
                     if (!$scope.settings.sermon_bible_base_color)  $scope.settings.sermon_bible_base_color  = '#1565c0';
                     if (!$scope.settings.sermon_msg_base_color)    $scope.settings.sermon_msg_base_color    = '#6a1b9a';
+                    $scope.settings.sermon_scale_chips = parseInt($scope.settings.sermon_scale_chips) || 0;
                 }
             },
             function error(e){ console.log('Ajax call error: ', e); });
