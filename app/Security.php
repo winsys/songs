@@ -14,14 +14,14 @@ class Security {
     }
 
     public static function loginRequest(){
-        return isset($_GET['login']) && isset($_GET['pass']);
+        return isset($_POST['login']) && isset($_POST['pass']);
     }
 
     public static function doLogin()
     {
         $db    = Info::get('db');
-        $login = $db->db_handle()->real_escape_string($_GET['login']);
-        $pass  = $db->db_handle()->real_escape_string($_GET['pass']);
+        $login = $db->db_handle()->real_escape_string($_POST['login']);
+        $pass  = $db->db_handle()->real_escape_string($_POST['pass']);
         $user  = $db->get("SELECT * FROM users WHERE login=\"{$login}\" and pass=\"{$pass}\"");
 
         if (count($user) > 0) {
@@ -102,4 +102,5 @@ class Security {
     {
         return isset($_SESSION['loggedIn']) && $_SESSION['loggedIn'];
     }
+
 }
