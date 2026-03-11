@@ -343,8 +343,6 @@
         cursor: pointer;
         transition: all 0.15s;
         white-space: nowrap;
-        width: 100%;
-        text-align: center;
     }
     .btn-edit:hover { background: #e8d5f5; border-color: #a07ad0; }
 
@@ -638,17 +636,19 @@
                             <!-- Left: title + meta -->
                             <div class="text-container">
                                 <span class="item-text">{{ listItem.dispName }}</span>
-                                <span class="book-name">{{ listItem.bookName }}</span>
+                                <!-- book-name row: name left, edit button right -->
+                                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:3px;">
+                                    <span class="book-name" style="margin-top:0;">{{ listItem.bookName }}</span>
+                                    <!-- Desktop: edit button -->
+                                    <div class="song-text-edit" ng-click="$event.stopPropagation()" style="margin-top:0;">
+                                        <button class="btn-edit" ng-click="editFavorite(listItem)">✏️ Ред.</button>
+                                    </div>
+                                </div>
                                 <span class="song-lang-badges" style="margin-top: 4px;">
                                 <span class="lang-badge lang-ru" ng-if="listItem.TEXT    && listItem.TEXT    != ''">RU</span>
                                 <span class="lang-badge lang-lt" ng-if="listItem.TEXT_LT && listItem.TEXT_LT != ''">LT</span>
                                 <span class="lang-badge lang-en" ng-if="listItem.TEXT_EN && listItem.TEXT_EN != ''">EN</span>
                             </span>
-                                <!-- Desktop: edit button right-aligned under title -->
-                                <div class="song-text-edit" ng-click="$event.stopPropagation()">
-                                    <button class="btn-edit"
-                                            ng-click="editFavorite(listItem)">✏️ Редактировать</button>
-                                </div>
                             </div>
 
                             <!-- Right: image + edit button -->
