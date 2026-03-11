@@ -236,7 +236,8 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     // Импорт послания (ввод текстом вручную)
     // ─────────────────────────────────────────────────────────
     $scope.importMessagesText = function () {
-        if (!$scope.txtCode || !$scope.txtTitle || !$scope.txtBody) return;
+        if (!$scope.txtCode || !$scope.txtBody) return;
+        if ($scope.txtMode === 'new' && !$scope.txtTitle) return;
         $scope.txtImporting = true;
         $scope.msgLog = [];
         msgLog('ok', 'Сохраняем послание [' + $scope.txtCode + ']…');
@@ -251,8 +252,8 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                 title:    $scope.txtTitle.trim(),
                 city:     $scope.txtCity.trim(),
                 para_sep: $scope.txtParaSep,
-                mode:     $scope.txtMode,
-                body:     $scope.txtBody
+                body:     $scope.txtBody,
+                mode:     $scope.txtMode
             }
         }).then(
             function (r) {
