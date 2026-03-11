@@ -1,434 +1,597 @@
 <style>
-    .settings-section {
-        margin: 30px 0;
-        padding: 20px;
-        border: 1px solid #ddd;
-        border-radius: 10px;
-        background-color: #f9f9f9;
+    /* ============================================================
+       SETTINGS — design system matching tech.html / sermon_prep.html
+       ============================================================ */
+    body {
+        background: #f0f2f5;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     }
-    .settings-label {
-        font-weight: bold;
-        font-size: 11pt;
-        margin-bottom: 8px;
-        display: block;
+
+    .settings-wrapper {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 20px 15px 80px;
     }
-    .settings-input {
-        width: 100%;
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        font-size: 11pt;
-    }
-    .color-picker-container {
+
+    /* ── Header ───────────────────────────────────────────────── */
+    .settings-header {
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #5a6272;
+        background: #f4f5f7;
+        border: none;
+        cursor: pointer;
+        transition: all 0.15s;
+        flex-shrink: 0;
+        text-decoration: none;
+    }
+    .btn-back:hover { background: #e8eaed; color: #2c3e50; transform: translateX(-1px); }
+    .settings-page-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    /* ── Section card ─────────────────────────────────────────── */
+    .settings-card {
+        background: #fff;
+        border: 1.5px solid #dee2e6;
+        border-radius: 12px;
+        padding: 20px 22px;
+        margin-bottom: 16px;
+    }
+    .settings-card-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #b0b8c1;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin: 0 0 16px;
+        display: block;
+    }
+    .settings-card-subtitle {
+        font-size: 12px;
+        color: #95a5a6;
+        margin: -10px 0 14px;
+    }
+
+    /* ── Field label ──────────────────────────────────────────── */
+    .settings-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+        display: block;
+    }
+    .settings-hint {
+        font-size: 11px;
+        color: #aab;
+        display: block;
+        margin-top: 4px;
+    }
+
+    /* ── Inputs / selects ─────────────────────────────────────── */
+    .settings-input {
+        width: 100%;
+        padding: 9px 14px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        font-size: 13px;
+        color: #2c3e50;
+        background: #fff;
+        box-sizing: border-box;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        outline: none;
+        -webkit-appearance: none;
+        margin-bottom: 0;
+    }
+    .settings-input:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52,152,219,0.12);
+    }
+    select.settings-input { cursor: pointer; }
+    input[type="range"].settings-input {
+        padding: 4px 0;
+        border: none;
+        border-radius: 0;
+        box-shadow: none;
+        accent-color: #1a6db5;
+    }
+    input[type="range"].settings-input:focus { box-shadow: none; }
+    .settings-field { margin-bottom: 16px; }
+    .settings-field:last-child { margin-bottom: 0; }
+
+    /* ── Color row ───────────────────────────────────────────── */
+    .color-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+    .color-input-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    input[type="color"] {
+        width: 44px;
+        height: 36px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 8px;
+        padding: 2px;
+        cursor: pointer;
+        background: #fff;
+    }
+    .color-hex-label {
+        font-size: 12px;
+        color: #5a6272;
+        font-family: monospace;
     }
     .color-preview {
-        width: 40px;
-        height: 40px;
-        border: 2px solid #ccc;
-        border-radius: 5px;
+        width: 36px;
+        height: 36px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 8px;
     }
+
+    /* ── Checkbox / radio ────────────────────────────────────── */
     .checkbox-list {
         display: flex;
         flex-direction: column;
-        gap: 8px;
+        gap: 10px;
     }
     .checkbox-item {
         display: flex;
         align-items: center;
         gap: 10px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #34495e;
     }
-    .save-btn {
+    .checkbox-item input[type="checkbox"],
+    .checkbox-item input[type="radio"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+        accent-color: #1a6db5;
+        flex-shrink: 0;
+    }
+    .radio-row {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    /* ── Scale checkbox row ───────────────────────────────────── */
+    .scale-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13px;
+        color: #34495e;
+    }
+    .scale-row input[type="checkbox"] {
+        width: 16px; height: 16px;
+        cursor: pointer;
+        accent-color: #1a6db5;
+    }
+
+    /* ── Image preview ───────────────────────────────────────── */
+    .placeholder-preview {
+        max-width: 180px;
+        max-height: 120px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 8px;
+        display: block;
+        margin-bottom: 12px;
+    }
+
+    /* ── Group user card ─────────────────────────────────────── */
+    .user-slot-card {
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-bottom: 12px;
+        background: #fafbfc;
+    }
+    .user-slot-card:last-child { margin-bottom: 0; }
+    .role-badge {
+        display: inline-block;
+        padding: 2px 12px;
+        border-radius: 12px;
+        font-size: 11px;
+        font-weight: 700;
+        margin-bottom: 10px;
+    }
+    .user-slot-fields {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+    }
+    .user-slot-inputs { flex: 1; }
+    .user-mini-label {
+        font-size: 10px;
+        color: #95a5a6;
+        display: block;
+        margin-bottom: 2px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+    }
+    .user-mini-input {
         width: 100%;
-        padding: 15px;
-        font-size: 14pt;
-        font-weight: bold;
-        margin-top: 30px;
+        padding: 5px 10px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 12px;
+        color: #2c3e50;
+        box-sizing: border-box;
+        margin-bottom: 6px;
+        outline: none;
     }
+    .user-mini-input:focus { border-color: #3498db; }
+    .user-mini-input.monospace { font-family: monospace; }
+    .user-slot-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        padding-top: 18px;
+        min-width: 70px;
+    }
+    .btn-save-user {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        border: none;
+        background: #1a6db5;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.15s;
+        width: 100%;
+        text-align: center;
+    }
+    .btn-save-user:hover { background: #155a99; }
+    .btn-share-user {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 500;
+        border: 1.5px solid #dee2e6;
+        background: #f8f9fa;
+        color: #5a6272;
+        cursor: pointer;
+        transition: all 0.15s;
+        width: 100%;
+        text-align: center;
+    }
+    .btn-share-user:hover { border-color: #1a6db5; color: #1a6db5; }
+    .btn-create-user {
+        padding: 7px 16px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        border: none;
+        background: #ebf3fb;
+        color: #1a6db5;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .btn-create-user:hover { background: #d6e9f8; }
+
+    /* ── Save button ─────────────────────────────────────────── */
+    .btn-save-all {
+        width: 100%;
+        padding: 14px;
+        font-size: 15px;
+        font-weight: 700;
+        border: none;
+        border-radius: 12px;
+        background: #1a6db5;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.15s;
+        margin-top: 8px;
+    }
+    .btn-save-all:hover { background: #155a99; box-shadow: 0 4px 16px rgba(26,109,181,0.3); transform: translateY(-1px); }
 </style>
 
-<div ng-controller="Settings" class="container">
-    <div class="row">
-        <div class="col-xs-12" style="margin-top: 20px;">
-            <h2 style="text-align: center;">⚙️ Настройки пользователя</h2>
-        </div>
-    </div>
+<div ng-controller="Settings">
+    <div class="settings-wrapper">
 
-    <!-- Display Name -->
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="settings-section">
-                <label class="settings-label">1. Отображаемое имя:</label>
-                <input type="text"
-                       class="settings-input"
+        <!-- Header -->
+        <div class="settings-header">
+            <button class="btn-back" onclick="window.location.href='/index/<?php echo $_SESSION['userId'] ?>'">
+                ← Главная
+            </button>
+            <div class="settings-page-title">⚙️ Настройки пользователя</div>
+        </div>
+
+        <!-- 1. Отображаемое имя -->
+        <div class="settings-card">
+            <span class="settings-card-title">1. Отображаемое имя</span>
+            <div class="settings-field">
+                <input type="text" class="settings-input"
                        ng-model="settings.display_name"
                        placeholder="Введите имя для отображения">
             </div>
         </div>
-    </div>
 
-    <!-- Favorites Order -->
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="settings-section">
-                <label class="settings-label">2. Порядок избранных песен:</label>
+        <!-- 2. Порядок избранных -->
+        <div class="settings-card">
+            <span class="settings-card-title">2. Порядок избранных песен</span>
+            <div class="settings-field">
                 <select class="settings-input" ng-model="settings.favorites_order">
                     <option value="latest_bottom">Последние добавленные внизу</option>
                     <option value="latest_top">Последние добавленные сверху</option>
                 </select>
             </div>
         </div>
-    </div>
 
-    <!-- Available Song Lists -->
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="settings-section">
-                <label class="settings-label">3. Доступные списки песен:</label>
-                <div class="checkbox-list">
-                    <div class="checkbox-item" ng-repeat="list in availableLists">
-                        <input type="checkbox"
-                               id="list_{{list.LIST_ID}}"
-                               ng-model="selectedLists[list.LIST_ID]">
-                        <label for="list_{{list.LIST_ID}}" style="margin: 0; cursor: pointer;">
-                            {{list.LIST_NAME}}
-                        </label>
+        <!-- 3. Доступные списки -->
+        <div class="settings-card">
+            <span class="settings-card-title">3. Доступные списки песен</span>
+            <div class="checkbox-list">
+                <label class="checkbox-item" ng-repeat="list in availableLists"
+                       for="list_{{list.LIST_ID}}">
+                    <input type="checkbox"
+                           id="list_{{list.LIST_ID}}"
+                           ng-model="selectedLists[list.LIST_ID]">
+                    {{list.LIST_NAME}}
+                </label>
+            </div>
+        </div>
+
+        <!-- 4. Фоновое изображение -->
+        <div class="settings-card">
+            <span class="settings-card-title">4. Фоновое изображение (placeholder)</span>
+            <div ng-if="settings.placeholder_image" style="margin-bottom:12px;">
+                <img ng-src="{{settings.placeholder_image}}" class="placeholder-preview">
+            </div>
+            <div class="settings-field">
+                <label class="settings-label">Выберите изображение по умолчанию:</label>
+                <select class="settings-input" ng-model="settings.placeholder_image">
+                    <option ng-repeat="img in placeholderImages" value="{{img.path}}">{{img.name}}</option>
+                </select>
+            </div>
+            <div class="settings-field">
+                <label class="settings-label">Или загрузите новое изображение:</label>
+                <input type="file" id="placeholderUpload" accept="image/*"
+                       class="settings-input"
+                       onchange="angular.element(this).scope().uploadPlaceholderImage()">
+            </div>
+        </div>
+
+        <!-- 5–7. Основной дисплей -->
+        <div class="settings-card">
+            <span class="settings-card-title">Основной дисплей (Text Display)</span>
+
+            <div class="settings-field">
+                <label class="settings-label">5. Цвет фона</label>
+                <div class="color-row">
+                    <div class="color-input-wrap">
+                        <input type="color" ng-model="settings.main_bg_color">
+                        <span class="color-hex-label">{{settings.main_bg_color}}</span>
                     </div>
+                    <div class="color-preview" ng-style="{'background-color': settings.main_bg_color}"></div>
+                </div>
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">6. Шрифт</label>
+                <select class="settings-input" ng-model="settings.main_font">
+                    <option value="Arial">Arial</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Courier New">Courier New</option>
+                    <option value="Tahoma">Tahoma</option>
+                </select>
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">7. Цвет шрифта</label>
+                <div class="color-row">
+                    <div class="color-input-wrap">
+                        <input type="color" ng-model="settings.main_font_color">
+                        <span class="color-hex-label">{{settings.main_font_color}}</span>
+                    </div>
+                    <div class="color-preview" ng-style="{'background-color': settings.main_font_color}"></div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Placeholder Image -->
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="settings-section">
-                <label class="settings-label">4. Фоновое изображение (placeholder):</label>
-                <div ng-if="settings.placeholder_image" style="margin-bottom: 10px;">
-                    <img ng-src="{{settings.placeholder_image}}"
-                         style="max-width: 200px; max-height: 150px; border: 1px solid #ccc; border-radius: 5px;">
+        <!-- 8–11. Стриминговый дисплей -->
+        <div class="settings-card">
+            <span class="settings-card-title">Стриминговый дисплей (Streaming Display)</span>
+
+            <div class="settings-field">
+                <label class="settings-label">8. Цвет фона</label>
+                <div class="color-row">
+                    <div class="color-input-wrap">
+                        <input type="color" ng-model="settings.streaming_bg_color">
+                        <span class="color-hex-label">{{settings.streaming_bg_color}}</span>
+                    </div>
+                    <div class="color-preview" ng-style="{'background-color': settings.streaming_bg_color}"></div>
                 </div>
+            </div>
 
-                <!-- Default Image Selection -->
-                <div style="margin-bottom: 15px;">
-                    <label class="settings-label" style="font-size: 10pt; font-weight: normal;">Выберите изображение по умолчанию:</label>
-                    <select class="settings-input"
-                            ng-model="settings.placeholder_image">
-                        <option ng-repeat="img in placeholderImages" value="{{img.path}}">{{img.name}}</option>
-                    </select>
+            <div class="settings-field">
+                <label class="settings-label">9. Шрифт</label>
+                <select class="settings-input" ng-model="settings.streaming_font">
+                    <option value="Arial">Arial</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Courier New">Courier New</option>
+                    <option value="Tahoma">Tahoma</option>
+                </select>
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">10. Цвет шрифта</label>
+                <div class="color-row">
+                    <div class="color-input-wrap">
+                        <input type="color" ng-model="settings.streaming_font_color">
+                        <span class="color-hex-label">{{settings.streaming_font_color}}</span>
+                    </div>
+                    <div class="color-preview" ng-style="{'background-color': settings.streaming_font_color}"></div>
                 </div>
+            </div>
 
-                <!-- Upload New Image -->
-                <div>
-                    <label class="settings-label" style="font-size: 10pt; font-weight: normal;">Или загрузите новое изображение:</label>
-                    <input type="file"
-                           id="placeholderUpload"
-                           accept="image/*"
-                           onchange="angular.element(this).scope().uploadPlaceholderImage()"
-                           class="settings-input">
+            <div class="settings-field">
+                <label class="settings-label">11. Процент высоты экрана для текста ({{settings.streaming_height_percent}}%)</label>
+                <input type="range" min="20" max="100"
+                       ng-model="settings.streaming_height_percent"
+                       class="settings-input" style="cursor:pointer;">
+                <span class="settings-hint">Текст будет масштабирован для заполнения указанного процента высоты экрана</span>
+            </div>
+        </div>
+
+        <!-- 12–16. Режим Проповедь -->
+        <div class="settings-card">
+            <span class="settings-card-title">Режим Проповедь (Sermon Display)</span>
+            <p class="settings-card-subtitle">Правая сторона экрана использует параметры раздела «Основной дисплей».</p>
+
+            <div class="settings-field">
+                <label class="settings-label">12. Цвет фона левой панели (заметки)</label>
+                <div class="color-row">
+                    <div class="color-input-wrap">
+                        <input type="color" ng-model="settings.sermon_notes_bg_color">
+                        <span class="color-hex-label">{{settings.sermon_notes_bg_color}}</span>
+                    </div>
+                    <div class="color-preview" ng-style="{'background-color': settings.sermon_notes_bg_color}"></div>
+                </div>
+                <span class="settings-hint">Фон панели заметок. Цвет шапки и рамки вычисляется автоматически.</span>
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">13. Базовый цвет чипов цитат Библии</label>
+                <div class="color-row">
+                    <div class="color-input-wrap">
+                        <input type="color" ng-model="settings.sermon_bible_base_color">
+                        <span class="color-hex-label">{{settings.sermon_bible_base_color}}</span>
+                    </div>
+                    <!-- Live chip preview -->
+                    <span style="display:inline-flex; align-items:flex-start; gap:4px;
+                             border-radius:10px; padding:4px 12px; font-size:10pt;
+                             pointer-events:none; user-select:none;"
+                          ng-style="{
+                          'color':            settings.sermon_bible_base_color,
+                          'background-color': chipBgColor(settings.sermon_bible_base_color, 0.13),
+                          'border':           '1px solid ' + shadeColor(settings.sermon_bible_base_color, -28)
+                      }">📖 Иоанна 3:16</span>
+                </div>
+                <span class="settings-hint">Цвет заголовка чипа. Фон, рамка и текст стиха вычисляются автоматически.</span>
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">14. Базовый цвет чипов цитат Послания</label>
+                <div class="color-row">
+                    <div class="color-input-wrap">
+                        <input type="color" ng-model="settings.sermon_msg_base_color">
+                        <span class="color-hex-label">{{settings.sermon_msg_base_color}}</span>
+                    </div>
+                    <!-- Live chip preview -->
+                    <span style="display:inline-flex; align-items:flex-start; gap:4px;
+                             border-radius:10px; padding:4px 12px; font-size:10pt;
+                             pointer-events:none; user-select:none;"
+                          ng-style="{
+                          'color':            settings.sermon_msg_base_color,
+                          'background-color': chipBgColor(settings.sermon_msg_base_color, 0.13),
+                          'border':           '1px solid ' + shadeColor(settings.sermon_msg_base_color, -28)
+                      }">✉ Цитата из послания</span>
+                </div>
+                <span class="settings-hint">Цвет текста чипа цитаты. Фон и рамка вычисляются автоматически.</span>
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">15. Размер шрифта заметок ({{settings.sermon_notes_font_size}}pt)</label>
+                <input type="range" min="8" max="40"
+                       ng-model="settings.sermon_notes_font_size"
+                       class="settings-input" style="cursor:pointer;">
+                <span class="settings-hint">Начальный размер текста в левой панели режима Проповедь.</span>
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">16. Масштабировать цитаты</label>
+                <div class="scale-row">
+                    <input type="checkbox" id="scaleChipsCheck"
+                           ng-model="settings.sermon_scale_chips"
+                           ng-true-value="1" ng-false-value="0">
+                    <label for="scaleChipsCheck" style="cursor:pointer; margin:0; font-size:13px; color:#34495e; font-weight:normal;">
+                        Шрифты чипов Библии и Посланий масштабируются вместе с заметками
+                    </label>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Main Display Settings -->
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="settings-section">
-                <h4 style="margin-top: 0;">Основной дисплей (Text Display)</h4>
+        <!-- Пользователи группы -->
+        <div class="settings-card">
+            <span class="settings-card-title">👥 Пользователи группы</span>
 
-                <!-- Main Background Color -->
-                <div style="margin-bottom: 15px;">
-                    <label class="settings-label">5. Цвет фона:</label>
-                    <div class="color-picker-container">
-                        <input type="color"
-                               ng-model="settings.main_bg_color"
-                               style="width: 60px; height: 40px; cursor: pointer;">
-                        <span>{{settings.main_bg_color}}</span>
-                        <div class="color-preview" ng-style="{'background-color': settings.main_bg_color}"></div>
-                    </div>
+            <div ng-repeat="slot in userSlots" class="user-slot-card">
+
+                <!-- Пользователь не создан -->
+                <div ng-if="!slot.user" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <span style="font-size:13px; color:#7f8c8d;">
+                    <strong>{{ slot.roleLabel }}</strong> — пользователь не создан
+                </span>
+                    <button class="btn-create-user" ng-click="createGroupUser(slot.role)">
+                        ➕ Создать
+                    </button>
                 </div>
 
-                <!-- Main Font -->
-                <div style="margin-bottom: 15px;">
-                    <label class="settings-label">6. Шрифт:</label>
-                    <select class="settings-input" ng-model="settings.main_font">
-                        <option value="Arial">Arial</option>
-                        <option value="Verdana">Verdana</option>
-                        <option value="Times New Roman">Times New Roman</option>
-                        <option value="Georgia">Georgia</option>
-                        <option value="Courier New">Courier New</option>
-                        <option value="Tahoma">Tahoma</option>
-                    </select>
-                </div>
-
-                <!-- Main Font Color -->
-                <div style="margin-bottom: 15px;">
-                    <label class="settings-label">7. Цвет шрифта:</label>
-                    <div class="color-picker-container">
-                        <input type="color"
-                               ng-model="settings.main_font_color"
-                               style="width: 60px; height: 40px; cursor: pointer;">
-                        <span>{{settings.main_font_color}}</span>
-                        <div class="color-preview" ng-style="{'background-color': settings.main_font_color}"></div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Streaming Display Settings -->
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="settings-section">
-                <h4 style="margin-top: 0;">Стриминговый дисплей (Streaming Display)</h4>
-
-                <!-- Streaming Background Color -->
-                <div style="margin-bottom: 15px;">
-                    <label class="settings-label">8. Цвет фона:</label>
-                    <div class="color-picker-container">
-                        <input type="color"
-                               ng-model="settings.streaming_bg_color"
-                               style="width: 60px; height: 40px; cursor: pointer;">
-                        <span>{{settings.streaming_bg_color}}</span>
-                        <div class="color-preview" ng-style="{'background-color': settings.streaming_bg_color}"></div>
-                    </div>
-                </div>
-
-                <!-- Streaming Font -->
-                <div style="margin-bottom: 15px;">
-                    <label class="settings-label">9. Шрифт:</label>
-                    <select class="settings-input" ng-model="settings.streaming_font">
-                        <option value="Arial">Arial</option>
-                        <option value="Verdana">Verdana</option>
-                        <option value="Times New Roman">Times New Roman</option>
-                        <option value="Georgia">Georgia</option>
-                        <option value="Courier New">Courier New</option>
-                        <option value="Tahoma">Tahoma</option>
-                    </select>
-                </div>
-
-                <!-- Streaming Font Color -->
-                <div style="margin-bottom: 15px;">
-                    <label class="settings-label">10. Цвет шрифта:</label>
-                    <div class="color-picker-container">
-                        <input type="color"
-                               ng-model="settings.streaming_font_color"
-                               style="width: 60px; height: 40px; cursor: pointer;">
-                        <span>{{settings.streaming_font_color}}</span>
-                        <div class="color-preview" ng-style="{'background-color': settings.streaming_font_color}"></div>
-                    </div>
-                </div>
-
-                <!-- Streaming Height Percent -->
-                <div style="margin-bottom: 15px;">
-                    <label class="settings-label">11. Процент высоты экрана для текста ({{settings.streaming_height_percent}}%):</label>
-                    <input type="range"
-                           min="20"
-                           max="100"
-                           ng-model="settings.streaming_height_percent"
-                           class="settings-input"
-                           style="cursor: pointer;">
-                    <small style="color: gray;">Текст будет масштабирован для заполнения указанного процента высоты экрана</small>
-                </div>
-            </div>
-        </div>
-    </div>
-
-
-    <!-- ══════════════════════════════════════════════════════
-         Sermon Display Settings
-         ══════════════════════════════════════════════════════ -->
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="settings-section">
-                <h4 style="margin-top: 0;">Режим Проповедь (Sermon Display)</h4>
-                <p style="font-size: 9.5pt; color: #888; margin-bottom: 16px;">
-                    Правая сторона экрана использует параметры раздела «Основной дисплей».
-                </p>
-
-                <!-- Notes panel background colour -->
-                <div style="margin-bottom: 15px;">
-                    <label class="settings-label">12. Цвет фона левой панели (заметки проповеди):</label>
-                    <div class="color-picker-container">
-                        <input type="color"
-                               ng-model="settings.sermon_notes_bg_color"
-                               style="width: 60px; height: 40px; cursor: pointer;">
-                        <span>{{settings.sermon_notes_bg_color}}</span>
-                        <div class="color-preview"
-                             ng-style="{'background-color': settings.sermon_notes_bg_color}"></div>
-                    </div>
-                    <small style="color: #888; display: block; margin-top: 4px;">
-                        Фон панели заметок. Цвет шапки и рамки вычисляется автоматически.
-                    </small>
-                </div>
-
-                <!-- Bible chip base colour -->
-                <div style="margin-bottom: 15px;">
-                    <label class="settings-label">13. Базовый цвет чипов цитат Библии:</label>
-                    <div class="color-picker-container">
-                        <input type="color"
-                               ng-model="settings.sermon_bible_base_color"
-                               style="width: 60px; height: 40px; cursor: pointer;">
-                        <span>{{settings.sermon_bible_base_color}}</span>
-                        <!-- Live chip preview -->
-                        <span style="display:inline-flex; align-items:flex-start; gap:4px;
-                                     border-radius:10px; padding:4px 10px; font-size:10pt;
-                                     margin-left:10px; pointer-events:none; user-select:none;"
-                              ng-style="{
-                                          'color':            settings.sermon_bible_base_color,
-                                          'background-color': chipBgColor(settings.sermon_bible_base_color, 0.13),
-                                          'border':           '1px solid ' + shadeColor(settings.sermon_bible_base_color, -28)
-                                        }">
-                            📖 Иоанна 3:16
-                        </span>
-                    </div>
-                    <small style="color: #888; display: block; margin-top: 4px;">
-                        Цвет заголовка чипа (📖 ссылка). Фон, рамка и текст стиха вычисляются автоматически.
-                    </small>
-                </div>
-
-                <!-- Message / Epistle chip base colour -->
-                <div style="margin-bottom: 15px;">
-                    <label class="settings-label">14. Базовый цвет чипов цитат Послания:</label>
-                    <div class="color-picker-container">
-                        <input type="color"
-                               ng-model="settings.sermon_msg_base_color"
-                               style="width: 60px; height: 40px; cursor: pointer;">
-                        <span>{{settings.sermon_msg_base_color}}</span>
-                        <!-- Live chip preview -->
-                        <span style="display:inline-flex; align-items:flex-start; gap:4px;
-                                     border-radius:10px; padding:4px 10px; font-size:10pt;
-                                     margin-left:10px; pointer-events:none; user-select:none;"
-                              ng-style="{
-                                          'color':            settings.sermon_msg_base_color,
-                                          'background-color': chipBgColor(settings.sermon_msg_base_color, 0.13),
-                                          'border':           '1px solid ' + shadeColor(settings.sermon_msg_base_color, -28)
-                                        }">
-                            ✉ Цитата из послания
-                        </span>
-                    </div>
-                    <small style="color: #888; display: block; margin-top: 4px;">
-                        Цвет текста чипа цитаты. Фон и рамка вычисляются автоматически.
-                    </small>
-                </div>
-
-                <!-- Notes font size -->
-                <div style="margin-bottom: 15px;">
-                    <label class="settings-label">15. Размер шрифта заметок ({{ settings.sermon_notes_font_size }}pt):</label>
-                    <input type="range" min="8" max="40"
-                           ng-model="settings.sermon_notes_font_size"
-                           class="settings-input" style="cursor: pointer;">
-                    <small style="color: #888; display: block; margin-top: 4px;">
-                        Начальный размер текста в левой панели режима Проповедь.
-                    </small>
-                </div>
-
-                <!-- Scale chips with font -->
-                <div style="margin-bottom: 5px;">
-                    <label class="settings-label">16. Масштабировать цитаты:</label>
-                    <div style="display: flex; align-items: center; gap: 10px; margin-top: 6px;">
-                        <input type="checkbox" id="scaleChipsCheck"
-                               ng-model="settings.sermon_scale_chips"
-                               ng-true-value="1" ng-false-value="0"
-                               style="width: 18px; height: 18px; cursor: pointer;">
-                        <label for="scaleChipsCheck" style="cursor: pointer; margin: 0; font-weight: normal; color: #555;">
-                            Шрифты чипов Библии и Посланий масштабируются вместе с заметками
-                        </label>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- =====================================================
-             БЛОК: ПОЛЬЗОВАТЕЛИ ГРУППЫ
-             Вставить в templates/settings.html ПЕРЕД кнопкой "Сохранить"
-             ===================================================== -->
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="settings-section">
-                <label class="settings-label">👥 Пользователи группы:</label>
-
-                <div ng-repeat="slot in userSlots" style="margin-bottom: 18px; padding: 14px; border: 1px solid #e0e0e0; border-radius: 8px; background: #fff;">
-
-                    <!-- Пользователь не создан -->
-                    <div ng-if="!slot.user" style="display: flex; align-items: center; justify-content: space-between; gap: 10px;">
-                        <div style="flex: 1;">
-                            <span style="font-size: 10pt; color: #888;">
-                                <strong>{{ slot.roleLabel }}</strong> — пользователь не создан
-                            </span>
-                        </div>
-                        <button class="btn btn-primary btn-sm" ng-click="createGroupUser(slot.role)" style="white-space: nowrap;">
-                            ➕ Создать
-                        </button>
-                    </div>
-
-                    <!-- Пользователь существует -->
-                    <div ng-if="slot.user">
-                        <div style="display: flex; align-items: flex-start; gap: 12px;">
-                            <!-- Поля -->
-                            <div style="flex: 1;">
-                                <!-- Роль (только отображение) -->
-                                <div style="margin-bottom: 8px;">
-                                    <span style="display: inline-block; padding: 2px 10px; border-radius: 12px; font-size: 9pt; font-weight: bold;"
-                                          ng-style="getRoleBadgeStyle(slot.role)">
-                                        {{ slot.roleLabel }}
-                                    </span>
-                                </div>
-                                <!-- Имя -->
-                                <div style="margin-bottom: 6px;">
-                                    <label style="font-size: 9pt; color: #555; display: block; margin-bottom: 2px;">Имя:</label>
-                                    <input type="text" class="settings-input" ng-model="slot.user.NAME"
-                                           style="font-size: 10pt; padding: 5px 8px;">
-                                </div>
-                                <!-- Логин -->
-                                <div style="margin-bottom: 6px;">
-                                    <label style="font-size: 9pt; color: #555; display: block; margin-bottom: 2px;">Логин:</label>
-                                    <input type="text" class="settings-input" ng-model="slot.user.LOGIN"
-                                           style="font-size: 10pt; padding: 5px 8px;">
-                                </div>
-                                <!-- Пароль -->
-                                <div style="margin-bottom: 8px;">
-                                    <label style="font-size: 9pt; color: #555; display: block; margin-bottom: 2px;">Пароль:</label>
-                                    <input type="text" class="settings-input" ng-model="slot.user.PASS"
-                                           style="font-size: 10pt; padding: 5px 8px; font-family: monospace;">
-                                </div>
-                                <!-- Кнопка Сохранить -->
-                                <button class="btn btn-success btn-sm" ng-click="updateGroupUser(slot.user)">
-                                    💾 Сохранить
-                                </button>
+                <!-- Пользователь существует -->
+                <div ng-if="slot.user">
+                    <span class="role-badge" ng-style="getRoleBadgeStyle(slot.role)">{{ slot.roleLabel }}</span>
+                    <div class="user-slot-fields">
+                        <div class="user-slot-inputs">
+                            <div class="settings-field">
+                                <label class="user-mini-label">Имя</label>
+                                <input type="text" class="user-mini-input" ng-model="slot.user.NAME">
                             </div>
-                            <!-- Кнопка Поделиться -->
-                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 80px; padding-top: 22px;">
-                                <button class="btn btn-default btn-sm" ng-click="shareUser(slot.user, slot.roleLabel)"
-                                        title="Скопировать данные пользователя"
-                                        style="padding: 8px 12px; font-size: 11pt;">
-                                    📋
-                                </button>
-                                <small style="color: #888; font-size: 8pt; margin-top: 4px; text-align: center;">Поделиться</small>
+                            <div class="settings-field">
+                                <label class="user-mini-label">Логин</label>
+                                <input type="text" class="user-mini-input" ng-model="slot.user.LOGIN">
+                            </div>
+                            <div>
+                                <label class="user-mini-label">Пароль</label>
+                                <input type="text" class="user-mini-input monospace" ng-model="slot.user.PASS">
                             </div>
                         </div>
+                        <div class="user-slot-actions">
+                            <button class="btn-save-user" ng-click="updateGroupUser(slot.user)">💾 Сохранить</button>
+                            <button class="btn-share-user" ng-click="shareUser(slot.user, slot.roleLabel)" title="Скопировать данные">📋 Поделиться</button>
+                        </div>
                     </div>
-
                 </div>
 
             </div>
         </div>
-    </div>
 
-    <!-- Save Button -->
-    <div class="row">
-        <div class="col-xs-12">
-            <button class="btn btn-success save-btn" ng-click="saveSettings()">
-                💾 Сохранить все настройки
-            </button>
-        </div>
-    </div>
+        <!-- Save all -->
+        <button class="btn-save-all" ng-click="saveSettings()">
+            💾 Сохранить все настройки
+        </button>
 
-    <div style="margin-bottom: 100px;"></div>
+        <div style="height:60px;"></div>
+    </div>
 </div>
 
 <script src="/js/settings.js?v=10001" type="text/javascript"></script>
