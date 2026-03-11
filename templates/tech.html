@@ -598,6 +598,7 @@
 
             <!-- Search -->
             <div style="margin-top: 16px; margin-bottom: 12px;">
+                <div class="section-label" style="margin-bottom: 6px;">Поиск песни</div>
                 <angucomplete-alt id="ccf6"
                                   placeholder="название, текст песни или номер"
                                   pause="100"
@@ -612,11 +613,20 @@
             </div>
 
             <!-- Two columns: favorites + chapters -->
+            <!-- Shared header row — keeps both labels at the same height -->
+            <div class="row" style="margin-bottom: 4px;">
+                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                    <div class="section-label" style="margin-top: 16px; margin-bottom: 0;">Выбранные песни</div>
+                </div>
+                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                    <div class="section-label" style="margin-top: 16px; margin-bottom: 0;">Куплеты</div>
+                </div>
+            </div>
+
             <div class="row">
 
                 <!-- Left: song list -->
-                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6" style="margin-top: 20px; overflow: hidden;">
-                    <div class="section-label">Выбранные песни</div>
+                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6" style="overflow: hidden;">
 
                     <!-- Empty state -->
                     <div ng-if="favorites.length === 0"
@@ -677,7 +687,6 @@
 
                 <!-- Right: text chapters -->
                 <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                    <div class="section-label">Куплеты</div>
                     <div ng-if="preparedChapters.length === 0"
                          style="text-align:center; padding: 24px 8px; color: #b0b8c1; font-size:12px;">
                         Выберите песню
