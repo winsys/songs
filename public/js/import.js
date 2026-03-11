@@ -239,18 +239,18 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
         $scope.msgLog = [];
         msgLog('ok', 'Сохраняем послание [' + $scope.txtCode + ']…');
 
-        var fd = new FormData();
-        fd.append('command',  'import_messages_text');
-        fd.append('lang',     $scope.msgLang);
-        fd.append('code',     $scope.txtCode.trim());
-        fd.append('title',    $scope.txtTitle.trim());
-        fd.append('city',     $scope.txtCity.trim());
-        fd.append('para_sep', $scope.txtParaSep);
-        fd.append('body',     $scope.txtBody);
-
-        $http.post('/ajax', fd, {
-            transformRequest: angular.identity,
-            headers: { 'Content-Type': undefined }
+        $http({
+            method: 'POST',
+            url: '/ajax',
+            data: {
+                command:  'import_messages_text',
+                lang:     $scope.msgLang,
+                code:     $scope.txtCode.trim(),
+                title:    $scope.txtTitle.trim(),
+                city:     $scope.txtCity.trim(),
+                para_sep: $scope.txtParaSep,
+                body:     $scope.txtBody
+            }
         }).then(
             function (r) {
                 $scope.txtImporting = false;

@@ -1067,12 +1067,12 @@ class Ajax
             return json_encode(['status' => 'error', 'message' => 'Access denied']);
         }
 
-        $lang    = trim($_POST['lang']     ?? 'ru');
-        $code    = trim($_POST['code']     ?? '');
-        $title   = trim($_POST['title']    ?? '');
-        $city    = trim($_POST['city']     ?? '');
-        $paraSep = trim($_POST['para_sep'] ?? 'emptyline');
-        $body    = $_POST['body']          ?? '';
+        $lang    = trim(self::$args['lang']     ?? 'ru');
+        $code    = trim(self::$args['code']     ?? '');
+        $title   = trim(self::$args['title']    ?? '');
+        $city    = trim(self::$args['city']     ?? '');
+        $paraSep = trim(self::$args['para_sep'] ?? 'emptyline');
+        $body    = self::$args['body']          ?? '';
 
         if (!in_array($lang, ['ru', 'lt', 'en'])) {
             return json_encode(['status' => 'error', 'message' => 'Неверный язык']);
