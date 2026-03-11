@@ -1077,10 +1077,13 @@ class Ajax
         if (!in_array($lang, ['ru', 'lt', 'en'])) {
             return json_encode(['status' => 'error', 'message' => 'Неверный язык']);
         }
+
+        $mode    = trim(self::$args['mode'] ?? 'new');
+
         if ($code === '') {
             return json_encode(['status' => 'error', 'message' => 'Код послания не может быть пустым']);
         }
-        if ($title === '') {
+        if ($mode === 'new' && $title === '') {
             return json_encode(['status' => 'error', 'message' => 'Название не может быть пустым']);
         }
         if (trim($body) === '') {
@@ -1121,6 +1124,10 @@ class Ajax
         $textEsc  = mysqli_real_escape_string($dbh, $text);
 
         $existing = $db->get("SELECT ID FROM messages WHERE CODE='{$codeEsc}' LIMIT 1");
+
+        if ($mode === 'translate' && !$existing) {
+            return json_encode(['status' => 'error', 'message' => "Послание [{$codeEsc}] не найдено. Сначала создайте его (режим «Новое послание»)"]);
+        }
 
         if ($existing) {
             if ($lang === 'ru') {
