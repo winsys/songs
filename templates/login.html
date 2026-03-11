@@ -1,27 +1,164 @@
-<div class="container">
+<style>
+    body {
+        background: #f0f2f5;
+        min-height: 100vh;
+    }
 
-    <div class="row">
+    .login-wrapper {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        padding: 20px;
+    }
 
-        <div class="col-xs-9 col-sm-9 col-md-9 col-lg-9" style="width:80%; left: 10%">
-            <h1 style="text-align: center; margin-top: 100px">Введите логин и пароль</h1>
-            <div class="row" style="padding-top: 100px">
-                <form action="/login">
+    .login-card {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
+        padding: 48px 40px 40px;
+        width: 100%;
+        max-width: 400px;
+    }
+
+    .login-logo {
+        text-align: center;
+        margin-bottom: 8px;
+        font-size: 48px;
+        line-height: 1;
+    }
+
+    .login-title {
+        text-align: center;
+        font-size: 22px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 6px;
+    }
+
+    .login-subtitle {
+        text-align: center;
+        color: #95a5a6;
+        font-size: 13px;
+        margin-bottom: 32px;
+    }
+
+    .login-card .form-group {
+        margin-bottom: 20px;
+    }
+
+    .login-card .form-group label {
+        font-size: 12px;
+        font-weight: 600;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 6px;
+    }
+
+    .login-card .input-group-addon {
+        background: #f8f9fa;
+        border-color: #dee2e6;
+        color: #95a5a6;
+        font-size: 15px;
+    }
+
+    .login-card .form-control {
+        border-color: #dee2e6;
+        border-left: none;
+        font-size: 15px;
+        height: 44px;
+        box-shadow: none;
+        color: #2c3e50;
+    }
+
+    .login-card .form-control:focus {
+        border-color: #3498db;
+        box-shadow: none;
+    }
+
+    .login-card .input-group:focus-within .input-group-addon {
+        border-color: #3498db;
+        color: #3498db;
+    }
+
+    .btn-login {
+        width: 100%;
+        height: 48px;
+        font-size: 16px;
+        font-weight: 600;
+        letter-spacing: 0.5px;
+        border-radius: 8px;
+        margin-top: 8px;
+        background: linear-gradient(135deg, #3498db, #2980b9);
+        border: none;
+        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
+        transition: all 0.2s;
+    }
+
+    .btn-login:hover,
+    .btn-login:focus {
+        background: linear-gradient(135deg, #2980b9, #1f6391);
+        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.5);
+        transform: translateY(-1px);
+        color: #fff;
+    }
+
+    .btn-login:active {
+        transform: translateY(0);
+    }
+
+    .login-footer {
+        text-align: center;
+        margin-top: 24px;
+        color: #95a5a6;
+        font-size: 12px;
+    }
+</style>
+
+<div class="login-wrapper">
+    <div class="login-card">
+
+        <div class="login-logo">🎵</div>
+        <div class="login-title">Worship Songs</div>
+        <div class="login-subtitle">Введите данные для входа</div>
+
+        <form action="/login" method="post">
+            <div class="form-group">
+                <label>Логин</label>
+                <div class="input-group">
+                    <span class="input-group-addon">👤</span>
                     <input type="text"
-                           style="width: 50%; font-size: 12pt; margin-left: 25%"
+                           class="form-control"
                            id="login_id"
-                           name="login" placeholder="логин" />
-                    <p><br></p>
-                    <input type="password"
-                           style="width: 50%; font-size: 12pt; margin-left: 25%"
-                           id="pass_id"
-                           name="pass" placeholder="пароль" />
-                    <p><br><br><br></p>
-                    <button type="submit" style="text-align: center; width: 50%; font-size: 18pt; margin-left: 25%"
-                            class="btn btn-primary btn-lg">Войти</button>
-                </form>
+                           name="login"
+                           placeholder="Ваш логин"
+                           autocomplete="username"
+                           autofocus />
+                </div>
             </div>
+
+            <div class="form-group">
+                <label>Пароль</label>
+                <div class="input-group">
+                    <span class="input-group-addon">🔒</span>
+                    <input type="password"
+                           class="form-control"
+                           id="pass_id"
+                           name="pass"
+                           placeholder="Ваш пароль"
+                           autocomplete="current-password" />
+                </div>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-login">
+                Войти →
+            </button>
+        </form>
+
+        <div class="login-footer">
+            Worship Songs Management System
         </div>
 
-    </div><!--/row-->
-
-</div><!--/.container-->
+    </div>
+</div>
