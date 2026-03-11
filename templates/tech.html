@@ -296,13 +296,27 @@
         margin-top: 3px;
     }
 
-    /* Right block: thumb + edit button stacked */
+    /* Right block: thumb only on desktop, thumb+edit on mobile */
     .song-right-block {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 6px;
         flex-shrink: 0;
+    }
+    /* Desktop: edit button inside text-container (right-aligned), hidden from right block */
+    @media (min-width: 769px) {
+        .song-right-block .btn-edit { display: none; }
+        .song-text-edit { display: flex; }
+    }
+    /* Mobile: edit under image in right block, hidden from text-container */
+    @media (max-width: 768px) {
+        .song-right-block .btn-edit { display: block; }
+        .song-text-edit { display: none; }
+    }
+    .song-text-edit {
+        justify-content: flex-end;
+        margin-top: 6px;
     }
 
     .song-image {
@@ -630,6 +644,11 @@
                                 <span class="lang-badge lang-lt" ng-if="listItem.TEXT_LT && listItem.TEXT_LT != ''">LT</span>
                                 <span class="lang-badge lang-en" ng-if="listItem.TEXT_EN && listItem.TEXT_EN != ''">EN</span>
                             </span>
+                                <!-- Desktop: edit button right-aligned under title -->
+                                <div class="song-text-edit" ng-click="$event.stopPropagation()">
+                                    <button class="btn-edit"
+                                            ng-click="editFavorite(listItem)">✏️ Редактировать</button>
+                                </div>
                             </div>
 
                             <!-- Right: image + edit button -->
