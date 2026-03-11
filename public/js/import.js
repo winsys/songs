@@ -15,6 +15,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     $scope.msgImporting  = false;
     $scope.msgProgress   = 0;
     $scope.msgLog        = [];
+    $scope.msgSubTab = 'sog';
 
     // ── Послания (ввод текстом) ───────────────────────────────
     $scope.txtCode      = '';
