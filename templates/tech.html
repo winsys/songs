@@ -391,7 +391,7 @@
         border-radius: 8px;
         margin: 6px 8px;
         cursor: pointer;
-        font-size: 12px;
+        font-size: 14px;
         color: #2c3e50;
         transition: all 0.15s;
         user-select: none;
@@ -410,7 +410,7 @@
         padding: 10px 14px;
         border-bottom: 1px solid #f0f2f5;
         cursor: pointer;
-        font-size: 13px;
+        font-size: 15px;
         color: #34495e;
         transition: background-color 0.12s;
         line-height: 1.5;
@@ -589,7 +589,7 @@
             <div class="row">
 
                 <!-- Left: song list -->
-                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6" style="margin-top: 20px; overflow: hidden;">
                     <div class="section-label">Выбранные песни</div>
 
                     <!-- Empty state -->
@@ -599,27 +599,37 @@
                         <div style="font-size:12px;">Нет выбранных песен</div>
                     </div>
 
-                    <div ng-repeat="listItem in favorites">
-                        <div class="song-item" ng-class="{'box-selected': showingSong && showingSong.ID == listItem.ID}">
+                    <div class="row" style="position: relative; margin-bottom: 12px;"
+                         ng-repeat="listItem in favorites">
+
+                        <!-- Clickable card: whole area triggers prepareText -->
+                        <div class="song-name col-xs-12 col-sm-12 col-md-12 col-lg-12"
+                             ng-class="{'box-selected': showingSong === listItem}"
+                             ng-click="prepareText(listItem.TEXT, listItem)">
                             <div class="text-container">
                                 <span class="item-text">{{ listItem.dispName }}</span>
-                                <span class="book-name" ng-if="listItem.bookName">{{ listItem.bookName }}</span>
-                                <span class="song-lang-badges" style="margin-top: 4px; display: inline-flex;">
-                                <span class="lang-badge lang-ru" ng-if="listItem.hasTextRu == '1'">RU</span>
-                                <span class="lang-badge lang-lt" ng-if="listItem.hasTextLt == '1'">LT</span>
-                                <span class="lang-badge lang-en" ng-if="listItem.hasTextEn == '1'">EN</span>
+                                <span class="book-name">
+                                {{ listItem.bookName }}
+                                <span class="song-lang-badges">
+                                    <span class="lang-badge lang-ru" ng-if="listItem.TEXT    && listItem.TEXT    != ''">RU</span>
+                                    <span class="lang-badge lang-lt" ng-if="listItem.TEXT_LT && listItem.TEXT_LT != ''">LT</span>
+                                    <span class="lang-badge lang-en" ng-if="listItem.TEXT_EN && listItem.TEXT_EN != ''">EN</span>
+                                </span>
                             </span>
                             </div>
-                            <button class="btn-edit edit-button"
-                                    ng-click="editFavorite(listItem)">
-                                ✏️ Ред.
-                            </button>
-                            <img class="song-image"
-                                 ng-attr-id="{{ 'img' + listItem.ID }}"
-                                 ng-src="{{ listItem.imageName }}"
-                                 ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"
-                                 title="Открыть ноты" />
+                            <img class="song-image" ng-src="{{ listItem.imageName }}" />
                         </div>
+
+                        <!-- Action buttons below card -->
+                        <div style="display: flex; justify-content: space-between; margin-top: 5px;"
+                             class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
+                            <button class="btn btn-default btn-sm"
+                                    ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">❌</button>
+                            <button class="btn btn-default btn-sm edit-button"
+                                    style="color: green;"
+                                    ng-click="editFavorite(listItem)">Редактировать</button>
+                        </div>
+
                     </div>
 
                     <button class="btn-clear" ng-if="favorites.length > 0" ng-click="clearFavorites()">
@@ -738,7 +748,7 @@
                            class="search-input"
                            placeholder="Поиск в Библии..."
                            ng-model="bibleSearchQuery"
-                           ng-change="searchBible()" />
+                           ng-change="searchBible(); bibleBookSearchQuery=''" />
                 </div>
             </div>
 
