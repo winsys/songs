@@ -1,4 +1,8 @@
 <style>
+    /* ============================================================
+       LEADER PAGE — design consistent with index.html / login.html
+       ============================================================ */
+
     body {
         background: #f0f2f5;
         min-height: 100vh;
@@ -164,46 +168,7 @@
         box-shadow: 0 4px 12px rgba(26, 109, 181, 0.30);
     }
 
-    /* ---- Search input ---------------------------------------- */
-    .search-wrapper {
-        position: relative;
-        margin-top: 4px;
-    }
-
-    .search-wrapper .form-control,
-    .search-wrapper input[type="text"] {
-        width: 100%;
-        height: 48px;
-        padding: 10px 16px 10px 44px;
-        border: 1.5px solid #dee2e6;
-        border-radius: 10px;
-        font-size: 15px;
-        color: #2c3e50;
-        background: #fff;
-        transition: border-color 0.15s, box-shadow 0.15s;
-        box-shadow: none;
-        -webkit-appearance: none;
-    }
-
-    .search-wrapper input[type="text"]:focus,
-    .search-wrapper .form-control:focus {
-        border-color: #3498db;
-        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12);
-        outline: none;
-    }
-
-    .search-icon {
-        position: absolute;
-        left: 14px;
-        top: 50%;
-        transform: translateY(-50%);
-        font-size: 18px;
-        color: #95a5a6;
-        pointer-events: none;
-        z-index: 2;
-    }
-
-    /* Override angucomplete to match our style */
+    /* ---- Search input / angucomplete override ----------------- */
     #ccf6 .angucomplete-holder {
         width: 100%;
     }
@@ -211,7 +176,7 @@
     #ccf6 .angucomplete-input-container input {
         width: 100%;
         height: 48px;
-        padding: 10px 16px 10px 44px;
+        padding: 10px 16px !important;
         border: 1.5px solid #dee2e6 !important;
         border-radius: 10px !important;
         font-size: 15px;
@@ -319,20 +284,50 @@
     .lang-en { background: #fff0cc; color: #7a5a00; }
 
     /* Notes thumbnail */
+    .song-thumb-wrap {
+        width: 52px;
+        height: 52px;
+        flex-shrink: 0;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1px solid #dee2e6;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .song-thumb-wrap:hover {
+        transform: scale(1.06);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.14);
+    }
+
     .song-thumb {
         width: 52px;
         height: 52px;
         object-fit: cover;
-        border-radius: 8px;
-        border: 1px solid #dee2e6;
-        cursor: pointer;
-        transition: transform 0.15s, box-shadow 0.15s;
-        flex-shrink: 0;
+        display: block;
     }
 
-    .song-thumb:hover {
-        transform: scale(1.06);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.14);
+    /* Reset all thumb styles when image goes fullscreen */
+    .song-thumb:-webkit-full-screen {
+        width: 100vw !important;
+        height: 100vh !important;
+        object-fit: contain !important;
+        border-radius: 0 !important;
+        background: #000;
+    }
+    .song-thumb:-moz-full-screen {
+        width: 100vw !important;
+        height: 100vh !important;
+        object-fit: contain !important;
+        border-radius: 0 !important;
+        background: #000;
+    }
+    .song-thumb:fullscreen {
+        width: 100vw !important;
+        height: 100vh !important;
+        object-fit: contain !important;
+        border-radius: 0 !important;
+        background: #000;
     }
 
     /* Delete button */
@@ -526,20 +521,17 @@
         <!-- Search -->
         <div class="section-label" style="margin-top: 20px;">Поиск песни</div>
 
-        <div style="position: relative;">
-            <span class="search-icon">🔍</span>
-            <angucomplete-alt id="ccf6"
-                              placeholder="название, текст или номер"
-                              pause="100"
-                              local-data="songList"
-                              search-fields="dispName"
-                              title-field="dispName"
-                              description-field="langInfo"
-                              selected-object="selectedItem"
-                              minlength="2"
-                              input-class="form-control">
-            </angucomplete-alt>
-        </div>
+        <angucomplete-alt id="ccf6"
+                          placeholder="название, текст или номер"
+                          pause="100"
+                          local-data="songList"
+                          search-fields="dispName"
+                          title-field="dispName"
+                          description-field="langInfo"
+                          selected-object="selectedItem"
+                          minlength="2"
+                          input-class="form-control">
+        </angucomplete-alt>
 
         <!-- Selected songs -->
         <div class="section-label" style="margin-top: 20px;">
@@ -582,11 +574,13 @@
                 </span>
 
                 <!-- Song image thumbnail -->
-                <img class="song-thumb"
-                     ng-attr-id="{{ 'img' + listItem.ID }}"
-                     ng-src="{{ listItem.imageName }}"
+                <div class="song-thumb-wrap"
                      ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"
-                     title="Открыть ноты"/>
+                     title="Открыть ноты">
+                    <img class="song-thumb"
+                         ng-attr-id="{{ 'img' + listItem.ID }}"
+                         ng-src="{{ listItem.imageName }}"/>
+                </div>
             </div>
         </div>
 
