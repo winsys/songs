@@ -1057,6 +1057,112 @@ class Ajax
     // КОНЕЦ - Импорт посланий в формате SOG
     // --------------------------------------------------------
 
+// --------------------------------------------------------
+    // Импорт послания (ввод текстом вручную)
+    // POST-поля: lang, code, title, city, para_sep, body
+    // --------------------------------------------------------
+    private static function import_messages_text()
+    {
+        if (!Security::isAdmin()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+
+        $lang    = trim($_POST['lang']     ?? 'ru');
+        $code    = trim($_POST['code']     ?? '');
+        $title   = trim($_POST['title']    ?? '');
+        $city    = trim($_POST['city']     ?? '');
+        $paraSep = trim($_POST['para_sep'] ?? 'emptyline');
+        $body    = $_POST['body']          ?? '';
+
+        if (!in_array($lang, ['ru', 'lt', 'en'])) {
+            return json_encode(['status' => 'error', 'message' => 'Неверный язык']);
+        }
+        if ($code === '') {
+            return json_encode(['status' => 'error', 'message' => 'Код послания не может быть пустым']);
+        }
+        if ($title === '') {
+            return json_encode(['status' => 'error', 'message' => 'Название не может быть пустым']);
+        }
+        if (trim($body) === '') {
+            return json_encode(['status' => 'error', 'message' => 'Текст послания пустой']);
+        }
+
+        // Валидация формата кода: YY-MMDD[x][x]
+        if (!preg_match('/^\d{2}-\d{4}[A-Za-z]{0,2}$/', $code)) {
+            return json_encode(['status' => 'error', 'message' => 'Неверный формат кода: ожидается YY-MMDD или YY-MMDDx']);
+        }
+
+        // Нормализовать окончания строк
+        $body = str_replace("\r\n", "\n", $body);
+        $body = str_replace("\r", "\n", $body);
+
+        // Разбить на абзацы
+        if ($paraSep === 'emptyline') {
+            // Разделитель — пустая строка; несколько пустых строк подряд = один разделитель
+            $blocks = preg_split('/\n{2,}/', trim($body));
+        } else {
+            // Каждая непустая строка — отдельный абзац
+            $blocks = explode("\n", $body);
+        }
+
+        // Убрать пустые блоки и лишние пробелы
+        $paragraphs = array_filter(array_map('trim', $blocks), function ($b) { return $b !== ''; });
+        $text = implode("\r\n", $paragraphs);
+
+        $dbh  = Info::get('dbh');
+        $db   = Info::get('db');
+        $userId = (int)$_SESSION['userId'];
+
+        $textField = $lang === 'ru' ? 'TEXT' : ($lang === 'lt' ? 'TEXT_LT' : 'TEXT_EN');
+
+        $codeEsc  = mysqli_real_escape_string($dbh, $code);
+        $titleEsc = mysqli_real_escape_string($dbh, $title);
+        $cityEsc  = mysqli_real_escape_string($dbh, $city);
+        $textEsc  = mysqli_real_escape_string($dbh, $text);
+
+        $existing = $db->get("SELECT ID FROM messages WHERE CODE='{$codeEsc}' LIMIT 1");
+
+        if ($existing) {
+            if ($lang === 'ru') {
+                $db->exec(
+                    "UPDATE messages SET
+                        TEXT='{$textEsc}',
+                        TITLE=IF(TITLE='', '{$titleEsc}', TITLE),
+                        CITY=IF(CITY='', '{$cityEsc}', CITY)
+                     WHERE ID={$existing['ID']}"
+                );
+            } else {
+                $db->exec(
+                    "UPDATE messages SET {$textField}='{$textEsc}' WHERE ID={$existing['ID']}"
+                );
+            }
+            return json_encode([
+                'status'  => 'success',
+                'action'  => 'updated',
+                'message' => "Обновлено: [{$code}] {$title}" . ($city ? " ({$city})" : ''),
+            ]);
+        }
+
+        // Новая запись
+        $textRu = $lang === 'ru' ? "'{$textEsc}'" : "''";
+        $textLt = $lang === 'lt' ? "'{$textEsc}'" : "''";
+        $textEn = $lang === 'en' ? "'{$textEsc}'" : "''";
+
+        $db->exec(
+            "INSERT INTO messages (USER_ID, CODE, TITLE, CITY, TEXT, TEXT_LT, TEXT_EN)
+             VALUES ({$userId}, '{$codeEsc}', '{$titleEsc}', '{$cityEsc}', {$textRu}, {$textLt}, {$textEn})"
+        );
+
+        return json_encode([
+            'status'  => 'success',
+            'action'  => 'inserted',
+            'message' => "Добавлено: [{$code}] {$title}" . ($city ? " ({$city})" : ''),
+        ]);
+    }
+    // КОНЕЦ - Импорт послания (ввод текстом)
+    // --------------------------------------------------------
+
+
     private static function updateSocket()
     {
         $err1 = '';

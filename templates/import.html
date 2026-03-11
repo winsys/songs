@@ -228,6 +228,48 @@
             </button>
         </div>
 
+        <!-- TEXT (manual) import -->
+        <div class="import-section">
+            <h4>3. Импорт текста послания (вручную)</h4>
+            <p style="font-size: 9.5pt; color: #666; margin-bottom: 12px;">
+                Введите данные вручную и вставьте текст перевода из буфера обмена.
+            </p>
+
+            <label class="import-label">Код послания (YY-MMDD[x]):</label>
+            <input type="text" class="import-input" ng-model="txtCode"
+                   placeholder="например: 62-0318" style="font-family: monospace;" />
+
+            <label class="import-label">Название:</label>
+            <input type="text" class="import-input" ng-model="txtTitle"
+                   placeholder="Название послания" />
+
+            <label class="import-label">Место перевода:</label>
+            <input type="text" class="import-input" ng-model="txtCity"
+                   placeholder="Город / источник перевода" />
+
+            <label class="import-label">Разделитель абзацев:</label>
+            <select class="import-select" ng-model="txtParaSep">
+                <option value="newline">Перевод строки (каждая строка — абзац)</option>
+                <option value="emptyline">Пустая строка (блоки между пустыми строками)</option>
+            </select>
+
+            <label class="import-label">Текст перевода:</label>
+            <textarea class="import-input" ng-model="txtBody" rows="12"
+                      placeholder="Вставьте текст из буфера обмена (Ctrl+V)…"
+                      style="font-size: 10pt; line-height: 1.5; resize: vertical;"></textarea>
+
+            <div style="margin-top: 4px; color: #888; font-size: 9pt;">
+                Символов: {{txtBody.length}}
+            </div>
+
+            <button class="btn btn-primary" style="margin-top: 10px;"
+                    ng-click="importMessagesText()"
+                    ng-disabled="!txtCode || !txtTitle || !txtBody || txtImporting">
+                <span ng-if="!txtImporting">💾 Сохранить послание</span>
+                <span ng-if="txtImporting">⏳ Сохраняется…</span>
+            </button>
+        </div>
+
         <!-- Message log -->
         <div class="import-section" ng-show="msgLog.length">
             <h4>Протокол импорта</h4>
