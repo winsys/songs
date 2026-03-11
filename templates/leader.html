@@ -9,39 +9,19 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     }
 
-    /* ---- Page layout ----------------------------------------- */
+    /* ---- Page layout: container like sermon_prep (max 1100px) --- */
     .leader-wrapper {
-        display: flex;
-        justify-content: center;
-        align-items: flex-start;
-        min-height: 100vh;
-        padding: 24px 16px 48px;
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px 15px 48px;
     }
 
-    .leader-card {
-        background: #fff;
-        border-radius: 14px;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
-        padding: 28px 28px 36px;
-        width: 100%;
-
-        /* Mobile: full width; Desktop: max ~50% */
-        max-width: 100%;
+    @media (max-width: 768px) {
+        .leader-wrapper { padding: 14px 10px 40px; }
     }
 
-    @media (min-width: 900px) {
-        .leader-card {
-            max-width: 680px;
-        }
-        .leader-wrapper {
-            padding: 32px 24px 64px;
-        }
-    }
-
-    @media (min-width: 1400px) {
-        .leader-card {
-            max-width: 720px;
-        }
+    @media (max-width: 480px) {
+        .leader-wrapper { padding: 10px 8px 32px; }
     }
 
     /* ---- Header ---------------------------------------------- */
@@ -290,7 +270,7 @@
         flex-shrink: 0;
         border-radius: 8px;
         overflow: hidden;
-        border: 1px solid #dee2e6;
+        border: 1.5px solid #8fa3b8;
         cursor: pointer;
         transition: transform 0.15s, box-shadow 0.15s;
     }
@@ -440,42 +420,13 @@
 
     /* ---- Responsive tweaks ----------------------------------- */
     @media (max-width: 480px) {
-        .leader-card {
-            padding: 20px 16px 28px;
-            border-radius: 12px;
-        }
-
-        .leader-page-title {
-            font-size: 16px;
-        }
-
-        .item-text {
-            font-size: 14px;
-        }
-
-        .song-thumb {
-            width: 44px;
-            height: 44px;
-        }
-
-        .btn-show-all {
-            width: 100%;
-            margin-top: 4px;
-        }
-
-        .songlist-row {
-            flex-direction: column;
-        }
-
-        .btn-list {
-            min-width: unset;
-        }
-    }
-
-    @media (min-width: 481px) and (max-width: 899px) {
-        .leader-card {
-            padding: 24px 20px 32px;
-        }
+        .leader-page-title { font-size: 16px; }
+        .item-text { font-size: 14px; }
+        .song-thumb { width: 44px; height: 44px; }
+        .song-thumb-wrap { width: 44px; height: 44px; }
+        .btn-show-all { width: 100%; margin-top: 4px; }
+        .songlist-row { flex-direction: column; }
+        .btn-list { min-width: unset; }
     }
 
     /* ---- Number input fix ------------------------------------ */
@@ -491,78 +442,77 @@
 
 <div ng-controller="Leader">
     <div class="leader-wrapper">
-        <div class="leader-card">
 
-            <!-- Header: Back button + Title -->
-            <div class="leader-header">
-                <button class="btn-back" onclick="window.location.href='/index/<?php echo $_SESSION['userId'] ?>'">
-                    ← Главная
-                </button>
-                <div class="leader-title-block">
-                    <div class="leader-page-title">🎤 Ведущий пения</div>
-                    <div class="leader-page-subtitle">Управление списком песен службы</div>
-                </div>
+        <!-- Header: Back button + Title -->
+        <div class="leader-header">
+            <button class="btn-back" onclick="window.location.href='/index/<?php echo $_SESSION['userId'] ?>'">
+                ← Главная
+            </button>
+            <div class="leader-title-block">
+                <div class="leader-page-title">🎤 Ведущий пения</div>
+                <div class="leader-page-subtitle">Управление списком песен службы</div>
             </div>
+        </div>
 
-            <!-- Song list selector -->
-            <div class="section-label">Список песен</div>
+        <!-- Song list selector -->
+        <div class="section-label">Список песен</div>
 
-            <div class="songlist-row">
-                <button class="btn-list songlist-btn"
-                        ng-repeat="list in visibleSongLists"
-                        ng-class="listId == list.LIST_ID ? 'btn-selected' : ''"
-                        ng-click="setList(list.LIST_ID)">
-                    {{ list.LIST_NAME }}
-                </button>
-                <button class="btn-show-all" ng-click="openList()">
-                    Весь список
-                </button>
-            </div>
+        <div class="songlist-row">
+            <button class="btn-list songlist-btn"
+                    ng-repeat="list in visibleSongLists"
+                    ng-class="listId == list.LIST_ID ? 'btn-selected' : ''"
+                    ng-click="setList(list.LIST_ID)">
+                {{ list.LIST_NAME }}
+            </button>
+            <button class="btn-show-all" ng-click="openList()">
+                Весь список
+            </button>
+        </div>
 
-            <!-- Search -->
-            <div class="section-label" style="margin-top: 20px;">Поиск песни</div>
+        <!-- Search -->
+        <div class="section-label" style="margin-top: 20px;">Поиск песни</div>
 
-            <angucomplete-alt id="ccf6"
-                              placeholder="название, текст или номер"
-                              pause="100"
-                              local-data="songList"
-                              search-fields="dispName"
-                              title-field="dispName"
-                              description-field="langInfo"
-                              selected-object="selectedItem"
-                              minlength="2"
-                              input-class="form-control">
-            </angucomplete-alt>
+        <angucomplete-alt id="ccf6"
+                          placeholder="название, текст или номер"
+                          pause="100"
+                          local-data="songList"
+                          search-fields="dispName"
+                          title-field="dispName"
+                          description-field="langInfo"
+                          selected-object="selectedItem"
+                          minlength="2"
+                          input-class="form-control">
+        </angucomplete-alt>
 
-            <!-- Selected songs -->
-            <div class="section-label" style="margin-top: 20px;">
-                Выбранные песни
-                <span ng-if="favorites.length > 0"
-                      style="background:#ebf3fb; color:#1a6db5; border-radius:20px;
+        <!-- Selected songs -->
+        <div class="section-label" style="margin-top: 20px;">
+            Выбранные песни
+            <span ng-if="favorites.length > 0"
+                  style="background:#ebf3fb; color:#1a6db5; border-radius:20px;
                          padding:1px 8px; font-size:10px; margin-left:6px; font-weight:700;">
                 {{ favorites.length }}
             </span>
-            </div>
+        </div>
 
-            <!-- Empty state -->
-            <div ng-if="favorites.length === 0"
-                 style="text-align:center; padding: 28px 16px; color: #b0b8c1;">
-                <div style="font-size: 32px; margin-bottom: 8px;">🎵</div>
-                <div style="font-size: 13px;">Нет выбранных песен.<br>Найдите песню в поиске выше.</div>
-            </div>
+        <!-- Empty state -->
+        <div ng-if="favorites.length === 0"
+             style="text-align:center; padding: 28px 16px; color: #b0b8c1;">
+            <div style="font-size: 32px; margin-bottom: 8px;">🎵</div>
+            <div style="font-size: 13px;">Нет выбранных песен.<br>Найдите песню в поиске выше.</div>
+        </div>
 
-            <!-- Favorites list -->
-            <div class="favorites-list">
-                <div class="prod-list-item"
-                     ng-repeat="listItem in favorites">
+        <!-- Favorites list -->
+        <div class="favorites-list">
+            <div class="prod-list-item"
+                 ng-repeat="listItem in favorites">
 
-                    <!-- Delete button -->
-                    <button class="btn-delete"
-                            ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)"
-                            title="Удалить">✕</button>
+                <!-- Delete button -->
+                <button class="btn-delete"
+                        ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)"
+                        title="Удалить">✕</button>
 
-                    <!-- Song info -->
-                    <span style="flex: 1; min-width: 0;">
+                <!-- Song info -->
+                <span style="flex: 1; min-width: 0;">
                     <span class="item-text">{{ listItem.dispName }}</span>
                     <span class="song-meta">
                         <span class="song-book-name" ng-if="listItem.bookName">{{ listItem.bookName }}</span>
@@ -574,25 +524,24 @@
                     </span>
                 </span>
 
-                    <!-- Song image thumbnail -->
-                    <div class="song-thumb-wrap"
-                         ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"
-                         title="Открыть ноты">
-                        <img class="song-thumb"
-                             ng-attr-id="{{ 'img' + listItem.ID }}"
-                             ng-src="{{ listItem.imageName }}"/>
-                    </div>
+                <!-- Song image thumbnail -->
+                <div class="song-thumb-wrap"
+                     ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"
+                     title="Открыть ноты">
+                    <img class="song-thumb"
+                         ng-attr-id="{{ 'img' + listItem.ID }}"
+                         ng-src="{{ listItem.imageName }}"/>
                 </div>
             </div>
+        </div>
 
-            <!-- Bottom actions -->
-            <div class="bottom-actions" ng-if="favorites.length > 0">
-                <button class="btn-clear" ng-click="clearFavorites()">
-                    🗑 Очистить список
-                </button>
-            </div>
+        <!-- Bottom actions -->
+        <div class="bottom-actions" ng-if="favorites.length > 0">
+            <button class="btn-clear" ng-click="clearFavorites()">
+                🗑 Очистить список
+            </button>
+        </div>
 
-        </div><!-- /leader-card -->
     </div><!-- /leader-wrapper -->
 
 
