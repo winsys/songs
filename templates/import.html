@@ -1,321 +1,531 @@
 <style>
-    .import-section {
-        margin: 20px 0;
-        padding: 20px;
-        border: 1px solid #ddd;
+    /* ============================================================
+       IMPORT — design system matching tech.html / sermon_prep.html
+       ============================================================ */
+    body {
+        background: #f0f2f5;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    .import-wrapper {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 20px 15px 80px;
+    }
+
+    /* ── Header ───────────────────────────────────────────────── */
+    .import-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #5a6272;
+        background: #f4f5f7;
+        border: none;
+        cursor: pointer;
+        transition: all 0.15s;
+        flex-shrink: 0;
+        text-decoration: none;
+    }
+    .btn-back:hover { background: #e8eaed; color: #2c3e50; transform: translateX(-1px); }
+    .import-page-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+    }
+
+    /* ── Tab bar ──────────────────────────────────────────────── */
+    .tab-bar {
+        display: flex;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+    .tab-btn {
+        flex: 1;
+        padding: 10px 16px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1.5px solid #dee2e6;
         border-radius: 10px;
-        background-color: #f9f9f9;
+        cursor: pointer;
+        background: #f8f9fa;
+        color: #7f8c8d;
+        transition: all 0.15s;
+        text-align: center;
+    }
+    .tab-btn:hover { border-color: #1a6db5; color: #1a6db5; background: #ebf3fb; }
+    .tab-btn.active {
+        background: #1a6db5;
+        color: #fff;
+        border-color: #1a6db5;
+    }
+
+    /* ── Section card ─────────────────────────────────────────── */
+    .import-section {
+        background: #fff;
+        border: 1.5px solid #dee2e6;
+        border-radius: 12px;
+        padding: 20px 22px;
+        margin-bottom: 16px;
     }
     .import-section h4 {
-        margin-top: 0;
-        margin-bottom: 15px;
-        font-size: 13pt;
-        color: #333;
+        margin: 0 0 14px;
+        font-size: 13px;
+        font-weight: 700;
+        color: #2c3e50;
     }
+    .import-section p {
+        font-size: 12px;
+        color: #95a5a6;
+        margin-bottom: 14px;
+    }
+    .import-section p code {
+        background: #f0f2f5;
+        padding: 1px 5px;
+        border-radius: 4px;
+        font-size: 11px;
+        color: #34495e;
+    }
+
+    /* ── Labels / inputs ─────────────────────────────────────── */
     .import-label {
-        font-weight: bold;
-        font-size: 11pt;
+        font-size: 11px;
+        font-weight: 700;
+        color: #b0b8c1;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
         margin-bottom: 6px;
         display: block;
     }
-    .import-select, .import-input {
+    .import-input, .import-select {
         width: 100%;
-        padding: 8px;
-        border: 1px solid #ccc;
-        border-radius: 5px;
-        font-size: 11pt;
-        margin-bottom: 12px;
-    }
-    .import-log {
-        background: #1e1e1e;
-        color: #c8f0c8;
-        font-family: monospace;
-        font-size: 10pt;
-        padding: 12px;
-        border-radius: 6px;
-        max-height: 300px;
-        overflow-y: auto;
-        white-space: pre-wrap;
-        word-break: break-word;
-    }
-    .import-log .log-error { color: #ff8080; }
-    .import-log .log-warn  { color: #ffd080; }
-    .import-log .log-ok    { color: #80ff80; }
-    .tab-bar { display: flex; gap: 8px; margin-bottom: 20px; }
-    .tab-btn {
-        padding: 10px 20px;
-        font-size: 11pt;
-        border: 1px solid #aaa;
-        border-radius: 6px;
-        cursor: pointer;
+        padding: 9px 14px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        font-size: 13px;
+        color: #2c3e50;
         background: #fff;
-        color: #333;
+        box-sizing: border-box;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        outline: none;
+        -webkit-appearance: none;
+        margin-bottom: 14px;
     }
-    .tab-btn.active {
-        background: #2E7D32;
+    .import-input:focus, .import-select:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52,152,219,0.12);
+    }
+    select.import-select { cursor: pointer; }
+    textarea.import-input { resize: vertical; line-height: 1.5; }
+    input[type="file"].import-input { cursor: pointer; font-size: 12px; padding: 7px 14px; }
+
+    /* ── New list row ─────────────────────────────────────────── */
+    .new-list-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 14px;
+    }
+    .new-list-row .import-input {
+        flex: 1;
+        margin-bottom: 0;
+    }
+
+    /* ── Buttons ──────────────────────────────────────────────── */
+    .btn-import-primary {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 20px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        background: #1a6db5;
         color: #fff;
-        border-color: #1b5e20;
+        cursor: pointer;
+        transition: all 0.15s;
     }
-    .new-list-row { display: flex; gap: 8px; align-items: flex-end; margin-bottom: 12px; }
-    .new-list-row input { flex: 1; margin-bottom: 0; }
+    .btn-import-primary:hover:not([disabled]) { background: #155a99; transform: translateY(-1px); box-shadow: 0 3px 12px rgba(26,109,181,0.3); }
+    .btn-import-primary[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-import-success {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 20px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        background: #27ae60;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .btn-import-success:hover:not([disabled]) { background: #219150; transform: translateY(-1px); }
+    .btn-import-success[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-import-sm {
+        padding: 7px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        border: none;
+        background: #ebf3fb;
+        color: #1a6db5;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+    }
+    .btn-import-sm:hover:not([disabled]) { background: #d6e9f8; }
+    .btn-import-sm[disabled] { opacity: 0.45; cursor: not-allowed; }
+
+    /* ── Status banner ───────────────────────────────────────── */
+    .status-ok {
+        background: #eaf6ec;
+        border: 1.5px solid #4caf50;
+        border-radius: 8px;
+        padding: 7px 14px;
+        font-size: 12px;
+        color: #1e7e34;
+        margin-top: 8px;
+        margin-bottom: 0;
+    }
+
+    /* ── Progress bar ────────────────────────────────────────── */
     .progress-bar-wrap {
-        background: #e0e0e0;
-        border-radius: 4px;
-        height: 16px;
-        margin-bottom: 10px;
+        background: #e8ecf0;
+        border-radius: 8px;
+        height: 14px;
+        margin-bottom: 12px;
         overflow: hidden;
         display: none;
     }
     .progress-bar-wrap.visible { display: block; }
     .progress-bar-inner {
         height: 100%;
-        background: #388e3c;
+        background: #1a6db5;
         transition: width 0.3s;
-        font-size: 9pt;
+        font-size: 9px;
         color: #fff;
         text-align: center;
-        line-height: 16px;
+        line-height: 14px;
     }
+
+    /* ── Separator label ─────────────────────────────────────── */
+    .or-divider {
+        font-size: 11px;
+        font-weight: 700;
+        color: #b0b8c1;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin: 0 0 10px;
+        display: block;
+    }
+
+    /* ── Radio group ─────────────────────────────────────────── */
+    .radio-group {
+        display: flex;
+        gap: 20px;
+        margin-bottom: 14px;
+        flex-wrap: wrap;
+    }
+    .radio-group label {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #34495e;
+    }
+    .radio-group input[type="radio"] {
+        accent-color: #1a6db5;
+        cursor: pointer;
+    }
+
+    /* ── Code suggestion dropdown ───────────────────────────── */
+    .code-suggest-dropdown {
+        position: absolute;
+        z-index: 1000;
+        background: #fff;
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        width: 100%;
+        box-shadow: 0 6px 20px rgba(0,0,0,0.12);
+        max-height: 220px;
+        overflow-y: auto;
+    }
+    .code-suggest-item {
+        padding: 8px 14px;
+        cursor: pointer;
+        border-bottom: 1px solid #f5f6f8;
+        font-size: 12px;
+        line-height: 1.4;
+        transition: background 0.1s;
+    }
+    .code-suggest-item:hover { background: #f0f4f8; }
+    .code-suggest-item:last-child { border-bottom: none; }
+    .code-suggest-code { font-family: monospace; font-weight: 700; color: #1a6db5; }
+    .code-suggest-city { color: #95a5a6; }
+
+    /* ── Import log ──────────────────────────────────────────── */
+    .import-log {
+        background: #1a1f2e;
+        color: #a8e6cf;
+        font-family: 'Fira Mono', 'Courier New', monospace;
+        font-size: 11px;
+        padding: 14px 16px;
+        border-radius: 10px;
+        max-height: 300px;
+        overflow-y: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        line-height: 1.6;
+    }
+    .import-log .log-error { color: #ff8a80; }
+    .import-log .log-warn  { color: #ffd180; }
+    .import-log .log-ok    { color: #b9f6ca; }
+
+    /* ── Char counter ────────────────────────────────────────── */
+    .char-counter { font-size: 11px; color: #aab; margin-top: -10px; margin-bottom: 10px; }
 </style>
 
-<div ng-controller="ImportCtrl" class="container">
-    <div class="row">
-        <div class="col-xs-12" style="margin-top: 20px; margin-bottom: 40px;">
-            <h2 style="text-align: center;">📥 Импорт данных</h2>
-        </div>
-    </div>
+<div ng-controller="ImportCtrl">
+    <div class="import-wrapper">
 
-    <!-- Tab bar -->
-    <div class="row">
-        <div class="col-xs-12">
-            <div class="tab-bar">
-                <button class="tab-btn" ng-class="{active: tab==='songs'}" ng-click="tab='songs'">🎵 Сборники песен</button>
-                <button class="tab-btn" ng-class="{active: tab==='messages'}" ng-click="tab='messages'">📖 Послания</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===================== SONGS TAB ===================== -->
-    <div ng-show="tab==='songs'">
-
-        <!-- Choose / create song list -->
-        <div class="import-section">
-            <h4>1. Выберите сборник песен</h4>
-
-            <label class="import-label">Существующий сборник:</label>
-            <select class="import-select" ng-model="songListId" ng-options="l.LIST_ID as l.LIST_NAME for l in songLists">
-                <option value="">— выберите сборник —</option>
-            </select>
-
-            <div style="margin-bottom: 8px; font-weight: bold; color: #555;">или создайте новый:</div>
-            <div class="new-list-row">
-                <input type="text" class="import-input" ng-model="newListName"
-                       placeholder="Название нового сборника" />
-                <button class="btn btn-success btn-sm" ng-click="createSongList()"
-                        ng-disabled="!newListName || creating">
-                    <span ng-if="!creating">➕ Создать</span>
-                    <span ng-if="creating">⏳ …</span>
-                </button>
-            </div>
-
-            <div ng-if="songListId" style="margin-top: 6px; color: #2e7d32; font-size: 10pt;">
-                ✅ Выбран сборник ID={{songListId}}
-            </div>
-        </div>
-
-        <!-- Language -->
-        <div class="import-section" ng-show="songListId">
-            <h4>2. Язык импорта</h4>
-            <select class="import-select" ng-model="songLang">
-                <option value="ru">Русский (TEXT)</option>
-                <option value="lt">Литовский (TEXT_LT)</option>
-                <option value="en">Английский (TEXT_EN)</option>
-            </select>
-        </div>
-
-        <!-- Text import -->
-        <div class="import-section" ng-show="songListId">
-            <h4>3. Импорт текстов (формат SOG)</h4>
-            <p style="font-size: 9.5pt; color: #666; margin-bottom: 12px;">
-                Текстовый файл UTF-8. Каждая песня: строка 1 — номер, строка 2 — название, далее куплеты, пустая строка — конец песни.
-            </p>
-
-            <label class="import-label">Выберите SOG-файл (.txt):</label>
-            <input type="file" id="songSogFile" accept=".txt,.sog"
-                   class="import-input"
-                   onchange="angular.element(this).scope().onSongSogSelected()" />
-
-            <div class="progress-bar-wrap" ng-class="{visible: songProgress > 0}">
-                <div class="progress-bar-inner" ng-style="{width: songProgress + '%'}">{{songProgress}}%</div>
-            </div>
-
-            <button class="btn btn-primary"
-                    ng-click="importSongsSog()"
-                    ng-disabled="!selectedSogFile || songImporting">
-                <span ng-if="!songImporting">⬆️ Импортировать тексты</span>
-                <span ng-if="songImporting">⏳ Импортируется…</span>
+        <!-- Header -->
+        <div class="import-header">
+            <button class="btn-back" onclick="window.location.href='/index/<?php echo $_SESSION['userId'] ?>'">
+                ← Главная
             </button>
+            <div class="import-page-title">📥 Импорт данных</div>
         </div>
 
-        <!-- Image ZIP import -->
-        <div class="import-section" ng-show="songListId">
-            <h4>4. Импорт картинок с нотами (ZIP)</h4>
-            <p style="font-size: 9.5pt; color: #666; margin-bottom: 12px;">
-                ZIP-архив, в котором имена файлов картинок совпадают с номерами песен (например, <code>001.jpg</code>).
-            </p>
-
-            <label class="import-label">Выберите ZIP-файл:</label>
-            <input type="file" id="songZipFile" accept=".zip"
-                   class="import-input"
-                   onchange="angular.element(this).scope().onSongZipSelected()" />
-
-            <div class="progress-bar-wrap" ng-class="{visible: zipProgress > 0}">
-                <div class="progress-bar-inner" ng-style="{width: zipProgress + '%'}">{{zipProgress}}%</div>
-            </div>
-
-            <button class="btn btn-primary"
-                    ng-click="importSongZip()"
-                    ng-disabled="!selectedZipFile || zipImporting">
-                <span ng-if="!zipImporting">⬆️ Импортировать картинки</span>
-                <span ng-if="zipImporting">⏳ Распаковывается…</span>
-            </button>
+        <!-- Tab bar -->
+        <div class="tab-bar">
+            <button class="tab-btn" ng-class="{active: tab==='songs'}" ng-click="tab='songs'">🎵 Сборники песен</button>
+            <button class="tab-btn" ng-class="{active: tab==='messages'}" ng-click="tab='messages'">📖 Послания</button>
         </div>
 
-        <!-- Song log -->
-        <div class="import-section" ng-show="songLog.length">
-            <h4>Протокол импорта</h4>
-            <div class="import-log" id="songLogEl">
-                <div ng-repeat="entry in songLog" ng-class="'log-' + entry.type">{{entry.msg}}</div>
-            </div>
-        </div>
-    </div>
+        <!-- ===================== SONGS TAB ===================== -->
+        <div ng-show="tab==='songs'">
 
-    <!-- ===================== MESSAGES TAB ===================== -->
-    <div ng-show="tab==='messages'">
+            <!-- 1. Выбор сборника -->
+            <div class="import-section">
+                <h4>1. Выберите сборник песен</h4>
 
-        <!-- Language -->
-        <div class="import-section">
-            <h4>1. Язык импорта</h4>
-            <select class="import-select" ng-model="msgLang">
-                <option value="ru">Русский (TEXT)</option>
-                <option value="lt">Литовский (TEXT_LT)</option>
-                <option value="en">Английский (TEXT_EN)</option>
-            </select>
-        </div>
+                <label class="import-label">Существующий сборник</label>
+                <select class="import-select" ng-model="songListId"
+                        ng-options="l.LIST_ID as l.LIST_NAME for l in songLists">
+                    <option value="">— выберите сборник —</option>
+                </select>
 
-        <!-- SOG file -->
-        <div class="import-section">
-            <h4>2. Импорт текстов посланий (формат SOG)</h4>
-            <p style="font-size: 9.5pt; color: #666; margin-bottom: 12px;">
-                Файл UTF-8-BOM с окончаниями CR+LF. Каждое послание: строка игнорируется, затем
-                <code>КОД — НАЗВАНИЕ (ГОРОД)</code>, далее абзацы текста, пустая строка — конец послания.
-            </p>
+                <span class="or-divider">или создайте новый</span>
+                <div class="new-list-row">
+                    <input type="text" class="import-input" ng-model="newListName"
+                           placeholder="Название нового сборника" />
+                    <button class="btn-import-success" ng-click="createSongList()"
+                            ng-disabled="!newListName || creating">
+                        <span ng-if="!creating">➕ Создать</span>
+                        <span ng-if="creating">⏳ …</span>
+                    </button>
+                </div>
 
-            <label class="import-label">Выберите SOG-файл (.txt):</label>
-            <input type="file" id="msgSogFile" accept=".txt,.sog"
-                   class="import-input"
-                   onchange="angular.element(this).scope().onMsgSogSelected()" />
-
-            <div class="progress-bar-wrap" ng-class="{visible: msgProgress > 0}">
-                <div class="progress-bar-inner" ng-style="{width: msgProgress + '%'}">{{msgProgress}}%</div>
-            </div>
-
-            <button class="btn btn-primary"
-                    ng-click="importMessagesSog()"
-                    ng-disabled="!selectedMsgFile || msgImporting">
-                <span ng-if="!msgImporting">⬆️ Импортировать послания</span>
-                <span ng-if="msgImporting">⏳ Импортируется…</span>
-            </button>
-        </div>
-
-        <!-- TEXT (manual) import -->
-        <div class="import-section">
-            <h4>3. Импорт текста послания (вручную)</h4>
-            <p style="font-size: 9.5pt; color: #666; margin-bottom: 12px;">
-                Введите данные вручную и вставьте текст перевода из буфера обмена.
-            </p>
-
-            <label class="import-label">Режим:</label>
-            <div style="margin-bottom: 10px;">
-                <label style="margin-right: 16px; cursor: pointer;">
-                    <input type="radio" ng-model="txtMode" value="new" /> Новое послание
-                </label>
-                <label style="cursor: pointer;">
-                    <input type="radio" ng-model="txtMode" value="translate" /> Добавить перевод к существующему
-                </label>
-            </div>
-
-            <label class="import-label">Код послания (YY-MMDD[x]):</label>
-            <div style="position: relative;">
-                <input type="text" class="import-input" ng-model="txtCode"
-                       placeholder="например: 62-0318" style="font-family: monospace;"
-                       ng-change="onTxtCodeInput()"
-                       ng-blur="clearCodeSuggestions()" />
-                <span ng-show="txtCodeSearching"
-                      style="position: absolute; right: 10px; top: 8px; color: #999; font-size: 10pt;">
-                    ⏳
-                </span>
-                <!-- Dropdown с результатами -->
-                <div ng-show="txtCodeSuggestions.length > 0"
-                     style="position: absolute; z-index: 1000; background: #fff;
-                            border: 1px solid #ccc; border-radius: 4px; width: 100%;
-                            box-shadow: 0 3px 8px rgba(0,0,0,0.15); max-height: 220px; overflow-y: auto;">
-                    <div ng-repeat="msg in txtCodeSuggestions"
-                         ng-click="selectCodeSuggestion(msg)"
-                         style="padding: 7px 10px; cursor: pointer; border-bottom: 1px solid #eee;
-                                font-size: 9.5pt; line-height: 1.4;"
-                         onmouseover="this.style.background='#f0f4ff'"
-                         onmouseout="this.style.background=''">
-                        <span style="font-family: monospace; font-weight: bold; color: #337ab7;">{{msg.CODE}}</span>
-                        <span ng-show="msg.CITY" style="color: #888;"> · {{msg.CITY}}</span>
-                        <span style="display: block; color: #333;">{{msg.TITLE}}</span>
-                    </div>
+                <div class="status-ok" ng-if="songListId">
+                    ✅ Выбран сборник ID={{songListId}}
                 </div>
             </div>
 
-            <div ng-show="txtMode === 'new'">
-                <label class="import-label">Название:</label>
-                <input type="text" class="import-input" ng-model="txtTitle"
-                       placeholder="Название послания" />
-
-                <label class="import-label">Место перевода:</label>
-                <input type="text" class="import-input" ng-model="txtCity"
-                       placeholder="Город / источник перевода" />
+            <!-- 2. Язык -->
+            <div class="import-section" ng-show="songListId">
+                <h4>2. Язык импорта</h4>
+                <select class="import-select" ng-model="songLang">
+                    <option value="ru">Русский (TEXT)</option>
+                    <option value="lt">Литовский (TEXT_LT)</option>
+                    <option value="en">Английский (TEXT_EN)</option>
+                </select>
             </div>
 
-            <label class="import-label">Разделитель абзацев:</label>
-            <select class="import-select" ng-model="txtParaSep">
-                <option value="newline">Перевод строки (каждая строка — абзац)</option>
-                <option value="emptyline">Пустая строка (блоки между пустыми строками)</option>
-            </select>
+            <!-- 3. Тексты SOG -->
+            <div class="import-section" ng-show="songListId">
+                <h4>3. Импорт текстов (формат SOG)</h4>
+                <p>Текстовый файл UTF-8. Каждая песня: строка 1 — номер, строка 2 — название, далее куплеты, пустая строка — конец песни.</p>
 
-            <label class="import-label">Текст перевода:</label>
-            <textarea class="import-input" ng-model="txtBody" rows="12"
-                      placeholder="Вставьте текст из буфера обмена (Ctrl+V)…"
-                      style="font-size: 10pt; line-height: 1.5; resize: vertical;"></textarea>
+                <label class="import-label">Выберите SOG-файл (.txt)</label>
+                <input type="file" id="songSogFile" accept=".txt,.sog"
+                       class="import-input"
+                       onchange="angular.element(this).scope().onSongSogSelected()" />
 
-            <div style="margin-top: 4px; color: #888; font-size: 9pt;">
-                Символов: {{txtBody.length}}
+                <div class="progress-bar-wrap" ng-class="{visible: songProgress > 0}">
+                    <div class="progress-bar-inner" ng-style="{width: songProgress + '%'}">{{songProgress}}%</div>
+                </div>
+
+                <button class="btn-import-primary"
+                        ng-click="importSongsSog()"
+                        ng-disabled="!selectedSogFile || songImporting">
+                    <span ng-if="!songImporting">⬆️ Импортировать тексты</span>
+                    <span ng-if="songImporting">⏳ Импортируется…</span>
+                </button>
             </div>
 
-            <button class="btn btn-primary" style="margin-top: 10px;"
-                    ng-click="importMessagesText()"
-                    ng-disabled="!txtCode || (txtMode==='new' && !txtTitle) || !txtBody || txtImporting">
-                <span ng-if="!txtImporting">💾 Сохранить послание</span>
-                <span ng-if="txtImporting">⏳ Сохраняется…</span>
-            </button>
-        </div>
+            <!-- 4. Картинки ZIP -->
+            <div class="import-section" ng-show="songListId">
+                <h4>4. Импорт картинок с нотами (ZIP)</h4>
+                <p>ZIP-архив, в котором имена файлов картинок совпадают с номерами песен (например, <code>001.jpg</code>).</p>
 
-        <!-- Message log -->
-        <div class="import-section" ng-show="msgLog.length">
-            <h4>Протокол импорта</h4>
-            <div class="import-log" id="msgLogEl">
-                <div ng-repeat="entry in msgLog" ng-class="'log-' + entry.type">{{entry.msg}}</div>
+                <label class="import-label">Выберите ZIP-файл</label>
+                <input type="file" id="songZipFile" accept=".zip"
+                       class="import-input"
+                       onchange="angular.element(this).scope().onSongZipSelected()" />
+
+                <div class="progress-bar-wrap" ng-class="{visible: zipProgress > 0}">
+                    <div class="progress-bar-inner" ng-style="{width: zipProgress + '%'}">{{zipProgress}}%</div>
+                </div>
+
+                <button class="btn-import-primary"
+                        ng-click="importSongZip()"
+                        ng-disabled="!selectedZipFile || zipImporting">
+                    <span ng-if="!zipImporting">⬆️ Импортировать картинки</span>
+                    <span ng-if="zipImporting">⏳ Распаковывается…</span>
+                </button>
             </div>
-        </div>
+
+            <!-- Song log -->
+            <div class="import-section" ng-show="songLog.length">
+                <h4>Протокол импорта</h4>
+                <div class="import-log" id="songLogEl">
+                    <div ng-repeat="entry in songLog" ng-class="'log-' + entry.type">{{entry.msg}}</div>
+                </div>
+            </div>
+
+        </div><!-- /songs tab -->
+
+        <!-- ===================== MESSAGES TAB ===================== -->
+        <div ng-show="tab==='messages'">
+
+            <!-- 1. Язык -->
+            <div class="import-section">
+                <h4>1. Язык импорта</h4>
+                <select class="import-select" ng-model="msgLang">
+                    <option value="ru">Русский (TEXT)</option>
+                    <option value="lt">Литовский (TEXT_LT)</option>
+                    <option value="en">Английский (TEXT_EN)</option>
+                </select>
+            </div>
+
+            <!-- 2. SOG файл -->
+            <div class="import-section">
+                <h4>2. Импорт текстов посланий (формат SOG)</h4>
+                <p>Файл UTF-8-BOM с окончаниями CR+LF. Каждое послание: строка игнорируется, затем
+                    <code>КОД — НАЗВАНИЕ (ГОРОД)</code>, далее абзацы текста, пустая строка — конец послания.</p>
+
+                <label class="import-label">Выберите SOG-файл (.txt)</label>
+                <input type="file" id="msgSogFile" accept=".txt,.sog"
+                       class="import-input"
+                       onchange="angular.element(this).scope().onMsgSogSelected()" />
+
+                <div class="progress-bar-wrap" ng-class="{visible: msgProgress > 0}">
+                    <div class="progress-bar-inner" ng-style="{width: msgProgress + '%'}">{{msgProgress}}%</div>
+                </div>
+
+                <button class="btn-import-primary"
+                        ng-click="importMessagesSog()"
+                        ng-disabled="!selectedMsgFile || msgImporting">
+                    <span ng-if="!msgImporting">⬆️ Импортировать послания</span>
+                    <span ng-if="msgImporting">⏳ Импортируется…</span>
+                </button>
+            </div>
+
+            <!-- 3. Ввод вручную -->
+            <div class="import-section">
+                <h4>3. Импорт текста послания (вручную)</h4>
+                <p>Введите данные вручную и вставьте текст перевода из буфера обмена.</p>
+
+                <label class="import-label">Режим</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" ng-model="txtMode" value="new" /> Новое послание
+                    </label>
+                    <label>
+                        <input type="radio" ng-model="txtMode" value="translate" /> Добавить перевод к существующему
+                    </label>
+                </div>
+
+                <label class="import-label">Код послания (YY-MMDD[x])</label>
+                <div style="position:relative;">
+                    <input type="text" class="import-input" ng-model="txtCode"
+                           placeholder="например: 62-0318"
+                           style="font-family:monospace;"
+                           ng-change="onTxtCodeInput()"
+                           ng-blur="clearCodeSuggestions()" />
+                    <span ng-show="txtCodeSearching"
+                          style="position:absolute; right:14px; top:10px; color:#aab; font-size:12px;">⏳</span>
+
+                    <!-- Suggestions dropdown -->
+                    <div class="code-suggest-dropdown"
+                         ng-show="txtCodeSuggestions.length > 0">
+                        <div class="code-suggest-item"
+                             ng-repeat="msg in txtCodeSuggestions"
+                             ng-click="selectCodeSuggestion(msg)">
+                            <span class="code-suggest-code">{{msg.CODE}}</span>
+                            <span class="code-suggest-city" ng-show="msg.CITY"> · {{msg.CITY}}</span>
+                            <span style="display:block; color:#34495e;">{{msg.TITLE}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-show="txtMode === 'new'">
+                    <label class="import-label">Название</label>
+                    <input type="text" class="import-input" ng-model="txtTitle"
+                           placeholder="Название послания" />
+
+                    <label class="import-label">Место перевода</label>
+                    <input type="text" class="import-input" ng-model="txtCity"
+                           placeholder="Город / источник перевода" />
+                </div>
+
+                <label class="import-label">Разделитель абзацев</label>
+                <select class="import-select" ng-model="txtParaSep">
+                    <option value="newline">Перевод строки (каждая строка — абзац)</option>
+                    <option value="emptyline">Пустая строка (блоки между пустыми строками)</option>
+                </select>
+
+                <label class="import-label">Текст перевода</label>
+                <textarea class="import-input" ng-model="txtBody" rows="12"
+                          placeholder="Вставьте текст из буфера обмена (Ctrl+V)…"></textarea>
+                <div class="char-counter">Символов: {{txtBody.length}}</div>
+
+                <button class="btn-import-success"
+                        ng-click="importMessagesText()"
+                        ng-disabled="!txtCode || (txtMode==='new' && !txtTitle) || !txtBody || txtImporting">
+                    <span ng-if="!txtImporting">💾 Сохранить послание</span>
+                    <span ng-if="txtImporting">⏳ Сохраняется…</span>
+                </button>
+            </div>
+
+            <!-- Message log -->
+            <div class="import-section" ng-show="msgLog.length">
+                <h4>Протокол импорта</h4>
+                <div class="import-log" id="msgLogEl">
+                    <div ng-repeat="entry in msgLog" ng-class="'log-' + entry.type">{{entry.msg}}</div>
+                </div>
+            </div>
+
+        </div><!-- /messages tab -->
+
+        <div style="margin-bottom:80px;"></div>
     </div>
-
-    <div style="margin-bottom: 80px;"></div>
 </div>
 
 <script src="/js/import.js?v=10001" type="text/javascript"></script>
