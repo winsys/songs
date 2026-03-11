@@ -1,782 +1,1047 @@
 <style>
-    .prod-list-item {
-        position: relative;
-        margin-top: 5px;
-        margin-left: 0px;
-        padding-bottom: 3px;
-        padding-right: 12px;
-        border-bottom: 1px solid #d0d0d0;
-    }
-    input[type=number]::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-    }
-    input[type=number] {
-        -moz-appearance: textfield;
-        appearance: textfield;
-        margin: 0;
-    }
-    .text-chapter {
-        width: 97%;
-        padding: 10px;
-        border: solid 1px silver;
-        border-radius: 10px;
-        margin: 10px;
-        cursor: pointer;
-        transition: background-color 0.2s;
-        user-select: none;
-    }
-    .text-chapter:hover {
-        background-color: #f0f0f0;
-    }
-    .chapter-selected {
-        background-color: #c5f5c5;
-        border-color: #4caf50;
-        font-weight: bold;
-    }
-    .songlist-btn {
-        height: 24pt;
-        font-size: 11pt;
-        border-radius: 5px;
-    }
-    .search-box {
-        height: 32pt;
-        font-size: 16pt;
-    }
-    .search-box::placeholder {
-        font-size: 12pt;
-        color: gray;
-        opacity: 0.7;
-    }
-    .angucomplete-row {
-        padding-top: 10px;
-        padding-bottom: 10px;
-        font-size: 16pt !important;
-    }
-    .btn-selected, .btn-list:active, .btn-list:focus, .btn-list:hover {
-        background-color: #d9ffd9;
-        outline: none;
-    }
-    .song-name {
-        width: 97%;
-        padding: 20px;
-        border: solid 1px silver;
-        border-radius: 20px;
-        margin: 20px 0 5px;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-    }
-    .text-container {
-        flex: 1;
-    }
-    .item-text {
-        font-size: 14pt;
-        font-weight: bold;
-        display: block;
-    }
-    .book-name {
-        font-size: 10pt;
-        color: gray;
-        display: block;
-        margin-top: 5px;
-    }
-    .song-lang-badges {
-        display: inline-flex;
-        gap: 4px;
-        margin-left: 6px;
-        vertical-align: middle;
-    }
-    .lang-badge {
-        display: inline-block;
-        font-size: 7.5pt;
-        font-weight: bold;
-        padding: 1px 5px;
-        border-radius: 3px;
-        line-height: 1.5;
-    }
-    .lang-ru { background: #d0e8ff; color: #1a5a99; }
-    .lang-lt { background: #d4f0d4; color: #2a6a2a; }
-    .lang-en { background: #fff0cc; color: #7a5a00; }
-    .angucomplete-description {
-        font-size: 9pt;
-        color: #888;
-    }
-    .song-image {
-        width: 80px;
-        height: auto;
-        border-radius: 10px;
-        margin-left: 15px;
-    }
-    .box-selected {
-        background-color: #faefdd;
-    }
-    .edit-button {
-        margin-right: 10px;
-    }
-    .enlarged-image-popup .modal-dialog {
-        margin: 30px auto;
-    }
-    .enlarged-image-popup img {
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    /* ============================================================
+       TECH PAGE — style consistent with leader.html / index.html
+       ============================================================ */
+
+    body {
+        background: #f0f2f5;
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     }
 
-    /* === Bible Mode Styles === */
-    .mode-btn-active {
-        background-color: #337ab7;
-        color: #fff;
-        border-color: #2e6da4;
+    /* ---- Page layout (same max-width as sermon_prep) ----------- */
+    .tech-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px 15px 64px;
     }
-    .bible-panel {
-        border: 1px solid #ddd;
+
+    @media (max-width: 768px) {
+        .tech-wrapper { padding: 14px 10px 48px; }
+    }
+    @media (max-width: 480px) {
+        .tech-wrapper { padding: 10px 8px 40px; }
+    }
+
+    /* ---- Header ----------------------------------------------- */
+    .tech-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding-top: 4px;
+        margin-bottom: 20px;
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
         border-radius: 8px;
-        padding: 8px 0;
-        height: 70vh;
+        font-size: 13px;
+        font-weight: 500;
+        color: #5a6272;
+        background: #f4f5f7;
+        border: none;
+        cursor: pointer;
+        transition: all 0.15s;
+        flex-shrink: 0;
+        text-decoration: none;
+    }
+    .btn-back:hover {
+        background: #e8eaed;
+        color: #2c3e50;
+        transform: translateX(-1px);
+    }
+
+    .tech-title-block { flex: 1; }
+    .tech-page-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+        line-height: 1.2;
+    }
+    .tech-page-subtitle {
+        font-size: 12px;
+        color: #95a5a6;
+        margin: 2px 0 0;
+    }
+
+    /* ---- Section labels --------------------------------------- */
+    .section-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #b0b8c1;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin: 16px 0 8px;
+    }
+
+    /* ---- Mode / list / action buttons row --------------------- */
+    .btn-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .btn-mode {
+        flex: 1;
+        min-width: 80px;
+        padding: 9px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        text-align: center;
+        border: 1.5px solid #dee2e6;
+        background: #f8f9fa;
+        color: #5a6272;
+        cursor: pointer;
+        transition: all 0.15s;
+        line-height: 1.3;
+        white-space: nowrap;
+    }
+    .btn-mode:hover {
+        border-color: #1a6db5;
+        color: #1a6db5;
+        background: #ebf3fb;
+    }
+    .mode-btn-active {
+        background: #1a6db5 !important;
+        border-color: #1a6db5 !important;
+        color: #fff !important;
+        font-weight: 600;
+    }
+
+    .btn-list {
+        flex: 1;
+        min-width: 70px;
+        padding: 7px 10px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 500;
+        text-align: center;
+        border: 1.5px solid #dee2e6;
+        background: #f8f9fa;
+        color: #5a6272;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: normal;
+        line-height: 1.3;
+    }
+    .btn-list:hover, .btn-list:focus {
+        border-color: #1a6db5;
+        color: #1a6db5;
+        background: #ebf3fb;
+        outline: none;
+    }
+    .btn-selected {
+        background: #ebf3fb !important;
+        border-color: #1a6db5 !important;
+        color: #1a6db5 !important;
+        font-weight: 600;
+    }
+
+    .btn-action-blue {
+        padding: 7px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 500;
+        border: none;
+        background: #1a6db5;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+    }
+    .btn-action-blue:hover {
+        background: #155a99;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(26,109,181,0.28);
+    }
+
+    .btn-action-orange {
+        padding: 7px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 500;
+        border: none;
+        background: #fff3e0;
+        color: #e65100;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+        border: 1.5px solid #ffe0b2;
+    }
+    .btn-action-orange:hover {
+        background: #ffe0b2;
+        transform: translateY(-1px);
+    }
+
+    /* Language toggle buttons */
+    .btn-lang {
+        padding: 6px 16px;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 700;
+        border: 1.5px solid #dee2e6;
+        background: #f8f9fa;
+        color: #5a6272;
+        cursor: pointer;
+        transition: all 0.15s;
+        letter-spacing: 0.5px;
+    }
+    .btn-lang:hover { border-color: #1a6db5; color: #1a6db5; }
+    .btn-lang.lang-active {
+        background: #1a6db5;
+        border-color: #1a6db5;
+        color: #fff;
+    }
+
+    /* ---- Search inputs ---------------------------------------- */
+    .search-input {
+        width: 100%;
+        height: 44px;
+        padding: 8px 14px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        font-size: 14px;
+        color: #2c3e50;
+        background: #fff;
+        box-shadow: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        -webkit-appearance: none;
+    }
+    .search-input:focus {
+        border-color: #3498db;
+        box-shadow: 0 0 0 3px rgba(52,152,219,0.12);
+        outline: none;
+    }
+    .search-input::placeholder { color: #aab; font-size: 13px; }
+
+    /* angucomplete override */
+    #ccf6 .angucomplete-input-container input {
+        width: 100%;
+        height: 44px;
+        padding: 8px 14px !important;
+        border: 1.5px solid #dee2e6 !important;
+        border-radius: 10px !important;
+        font-size: 14px;
+        color: #2c3e50;
+        background: #fff;
+        box-shadow: none !important;
+        transition: border-color 0.15s;
+        -webkit-appearance: none;
+    }
+    #ccf6 .angucomplete-input-container input:focus {
+        border-color: #3498db !important;
+        box-shadow: 0 0 0 3px rgba(52,152,219,0.12) !important;
+        outline: none;
+    }
+    .angucomplete-dropdown {
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+        overflow: hidden;
+        margin-top: 4px;
+    }
+    .angucomplete-row {
+        padding: 10px 14px !important;
+        font-size: 13px !important;
+        color: #2c3e50;
+        border-bottom: 1px solid #f0f2f5;
+    }
+    .angucomplete-row:hover,
+    .angucomplete-selected-row { background: #ebf3fb !important; }
+    .angucomplete-description { font-size: 10px !important; color: #95a5a6 !important; }
+
+    /* ---- Songs mode: favorites list --------------------------- */
+    .song-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1.5px solid #eef0f3;
+        background: #fff;
+        margin-bottom: 8px;
+        transition: border-color 0.15s;
+    }
+    .song-item:hover { border-color: #d0d7e2; }
+    .song-item.box-selected { background: #fff9f0; border-color: #ffd591; }
+
+    .text-container { flex: 1; min-width: 0; }
+    .item-text {
+        font-size: 14px;
+        font-weight: 600;
+        color: #2c3e50;
+        display: block;
+        line-height: 1.3;
+    }
+    .book-name {
+        font-size: 11px;
+        color: #95a5a6;
+        display: block;
+        margin-top: 3px;
+    }
+
+    .song-image {
+        width: 60px;
+        height: 60px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1.5px solid #8fa3b8;
+        cursor: pointer;
+        flex-shrink: 0;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .song-image:hover {
+        transform: scale(1.06);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.14);
+    }
+    /* fullscreen reset */
+    .song-image:-webkit-full-screen { width:100vw!important; height:100vh!important; object-fit:contain!important; border-radius:0!important; background:#000; }
+    .song-image:-moz-full-screen    { width:100vw!important; height:100vh!important; object-fit:contain!important; border-radius:0!important; background:#000; }
+    .song-image:fullscreen          { width:100vw!important; height:100vh!important; object-fit:contain!important; border-radius:0!important; background:#000; }
+
+    .btn-edit {
+        padding: 6px 12px;
+        border-radius: 7px;
+        font-size: 12px;
+        font-weight: 500;
+        border: none;
+        background: #f3eafb;
+        color: #6f42c1;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .btn-edit:hover { background: #e8d5f5; }
+
+    /* ---- Text chapters (right column, songs mode) ------------- */
+    .text-chapter {
+        display: block;
+        padding: 12px 16px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        color: #2c3e50;
+        background: #fff;
+        transition: all 0.15s;
+        user-select: none;
+        line-height: 1.5;
+        white-space: pre-wrap;
+        word-break: break-word;
+    }
+    .text-chapter:hover { background: #f8f9fa; border-color: #c8d0db; }
+    .chapter-selected {
+        background: #eaf6ec !important;
+        border-color: #4caf50 !important;
+        font-weight: 600;
+        color: #1e7e34;
+    }
+
+    /* ---- Bible panels ----------------------------------------- */
+    .bible-panel {
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        background: #fff;
+        height: 68vh;
         overflow-y: auto;
     }
     .bible-panel-title {
-        font-size: 11pt;
-        font-weight: bold;
-        color: #555;
-        padding: 4px 12px 8px;
-        border-bottom: 1px solid #eee;
-        margin-bottom: 4px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+        padding: 10px 12px 8px;
+        border-bottom: 1px solid #f0f2f5;
+        background: #fafbfc;
+        border-radius: 10px 10px 0 0;
+        position: sticky;
+        top: 0;
+        z-index: 1;
     }
     .bible-list-item {
-        padding: 8px 12px;
+        padding: 9px 12px;
         cursor: pointer;
-        font-size: 10pt;
-        border-bottom: 1px solid #f5f5f5;
-        transition: background-color 0.15s;
+        font-size: 13px;
+        color: #34495e;
+        border-bottom: 1px solid #f5f6f8;
+        transition: background-color 0.12s;
         user-select: none;
     }
-    .bible-list-item:hover {
-        background-color: #f0f0f0;
-    }
+    .bible-list-item:hover { background-color: #f0f4f8; }
     .bible-list-item.selected {
-        background-color: #d9ffd9;
-        font-weight: bold;
+        background-color: #eaf6ec;
+        font-weight: 700;
+        color: #1e7e34;
     }
     .bible-verse-item {
         display: block;
         box-sizing: border-box;
         width: calc(100% - 16px);
         padding: 10px 12px;
-        border: solid 1px silver;
-        border-radius: 10px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 8px;
         margin: 6px 8px;
         cursor: pointer;
-        transition: background-color 0.2s;
+        font-size: 12px;
+        color: #2c3e50;
+        transition: all 0.15s;
         user-select: none;
-        font-size: 11pt;
         white-space: pre-wrap;
         word-break: break-word;
+        line-height: 1.5;
     }
-    .bible-verse-item:hover {
-        background-color: #f0f0f0;
-    }
+    .bible-verse-item:hover { background: #f0f4f8; border-color: #c8d0db; }
     .bible-verse-item.chapter-selected {
-        background-color: #c5f5c5;
+        background: #eaf6ec;
         border-color: #4caf50;
-        font-weight: bold;
+        font-weight: 600;
+        color: #1e7e34;
     }
     .bible-search-result {
-        padding: 8px 12px;
-        border-bottom: 1px solid #eee;
+        padding: 10px 14px;
+        border-bottom: 1px solid #f0f2f5;
         cursor: pointer;
-        transition: background-color 0.15s;
+        font-size: 13px;
+        color: #34495e;
+        transition: background-color 0.12s;
+        line-height: 1.5;
     }
-    .bible-search-result:hover {
-        background-color: #f0f0f0;
-    }
+    .bible-search-result:hover { background-color: #f0f4f8; }
     .bible-search-result .ref {
-        font-size: 9pt;
-        color: #888;
+        font-size: 10px;
+        font-weight: 600;
+        color: #1a6db5;
         display: block;
         margin-bottom: 2px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
     }
 
-    /* Символ ¶ в textarea отображается цветом */
+    /* ---- Messages mode ---------------------------------------- */
+    /* (reuses bible-panel / bible-verse-item classes) */
+
+    /* ---- Lang badges ------------------------------------------ */
+    .song-lang-badges { display: inline-flex; gap: 4px; }
+    .lang-badge {
+        display: inline-block;
+        font-size: 8px;
+        font-weight: 700;
+        padding: 2px 5px;
+        border-radius: 4px;
+        line-height: 1.4;
+        letter-spacing: 0.3px;
+    }
+    .lang-ru { background: #d0e8ff; color: #1a5a99; }
+    .lang-lt { background: #d4f0d4; color: #2a6a2a; }
+    .lang-en { background: #fff0cc; color: #7a5a00; }
+    .angucomplete-description { font-size: 9pt; color: #888; }
+
+    /* ---- Clear / bottom actions ------------------------------- */
+    .btn-clear {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 9px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        border: 1.5px solid #fad7d4;
+        background: #fdecea;
+        color: #c0392b;
+        cursor: pointer;
+        transition: all 0.15s;
+        margin-top: 16px;
+    }
+    .btn-clear:hover {
+        background: #fad7d4;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(192,57,43,0.16);
+    }
+
+    /* ---- Edit song popup specifics ---------------------------- */
+    .enlarged-image-popup .modal-dialog { margin: 30px auto; }
+    .enlarged-image-popup img { box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
     #edit-song-popup textarea {
         color: #222;
         caret-color: #222;
     }
-    /* Отдельный цвет через ::placeholder не работает для ¶,
-       но мы можем выделить сам textarea фоном */
     #edit-song-popup .verse-editor {
         background-color: #fafafa;
         line-height: 1.6;
         resize: vertical;
     }
+
+    /* ---- Number input fix ------------------------------------- */
+    input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
+    input[type=number] { -moz-appearance: textfield; appearance: textfield; margin: 0; }
+
+    /* ---- Mobile tweaks ---------------------------------------- */
+    @media (max-width: 480px) {
+        .tech-page-title { font-size: 16px; }
+        .item-text { font-size: 13px; }
+        .bible-panel { height: 55vh; }
+        .btn-mode { font-size: 12px; padding: 8px 6px; }
+    }
 </style>
 
-<div ng-controller="Tech" class="container">
+<div ng-controller="Tech">
+    <div class="tech-wrapper">
 
-    <!-- Header -->
-    <div class="row">
-        <div class="col-xs-12 col-sm-12 col-md-12 col-lg-12" style="width:100%">
-            <div class="row" style="padding-top: 20px">
-                <li style="text-align: center;
-                        box-shadow: rgba(50, 50, 93, 0.25) 0px 2px 5px -1px, rgba(0, 0, 0, 0.3) 0px 1px 3px -1px;
-                        width: 100%; font-size: 12pt"
-                    class="btn btn-default btn-lg noHover">Текущие песни для церкви: <?php echo $_SESSION['userName'] ?></li>
+        <!-- ── Header ─────────────────────────────────────────────── -->
+        <div class="tech-header">
+            <button class="btn-back" onclick="window.location.href='/index/<?php echo $_SESSION['userId'] ?>'">
+                ← Главная
+            </button>
+            <div class="tech-title-block">
+                <div class="tech-page-title">🖥️ Технический режим</div>
+                <div class="tech-page-subtitle"><?php echo htmlspecialchars($_SESSION['userName']) ?></div>
             </div>
         </div>
-    </div>
 
-    <!-- Строка 1: Переключение режимов -->
-    <div class="row">
-        <div class="col-xs-3 col-md-3" style="margin-top: 20pt">
-            <button class="btn btn-sm songlist-btn" style="width: 100%"
-                    ng-class="pageMode === 'songs' ? 'mode-btn-active' : 'btn-default'"
-                    ng-click="songMode()">Песни</button>
+        <!-- ── Строка 1: Переключение режимов ─────────────────────── -->
+        <div class="section-label">Режим</div>
+        <div class="btn-row">
+            <button class="btn-mode"
+                    ng-class="pageMode === 'songs'    ? 'mode-btn-active' : ''"
+                    ng-click="songMode()">🎵 Песни</button>
+            <button class="btn-mode"
+                    ng-class="pageMode === 'bible'    ? 'mode-btn-active' : ''"
+                    ng-click="bibleMode()">📖 Библия</button>
+            <button class="btn-mode"
+                    ng-class="pageMode === 'messages' ? 'mode-btn-active' : ''"
+                    ng-click="messagesMode()">✉️ Послание</button>
         </div>
-        <div class="col-xs-3 col-md-3" style="margin-top: 20pt">
-            <button class="btn btn-sm songlist-btn" style="width: 100%"
-                    ng-class="pageMode === 'bible' ? 'mode-btn-active' : 'btn-default'"
-                    ng-click="bibleMode()">Библия</button>
-        </div>
-        <div class="col-xs-3 col-md-3" style="margin-top: 20pt">
-            <button class="btn btn-sm songlist-btn" style="width: 100%"
-                    ng-class="pageMode === 'messages' ? 'mode-btn-active' : 'btn-default'"
-                    ng-click="messagesMode()">Послание</button>
-        </div>
-    </div>
 
-    <!-- Строка 2: Сборники (режим Песни) или Переводы (режим Библия) -->
-    <div class="row" ng-show="pageMode === 'songs'">
-        <div class="col-xs-3 col-md-3"
-             ng-repeat="list in visibleSongLists"
-             style="margin-top: 10pt">
-            <button class="btn btn-sm btn-default songlist-btn btn-list"
-                    ng-class="listId == list.LIST_ID ? 'btn-selected' : ''"
-                    style="width: 100%"
-                    ng-click="setList(list.LIST_ID)">{{list.LIST_NAME}}</button>
+        <!-- ── Строка 2: Сборники (Песни) / Переводы (Библия) ──────── -->
+        <div ng-show="pageMode === 'songs'">
+            <div class="section-label">Сборник</div>
+            <div class="btn-row">
+                <button class="btn-list"
+                        ng-repeat="list in visibleSongLists"
+                        ng-class="listId == list.LIST_ID ? 'btn-selected' : ''"
+                        ng-click="setList(list.LIST_ID)">{{ list.LIST_NAME }}</button>
+            </div>
         </div>
-    </div>
-    <div class="row" ng-show="pageMode === 'bible'">
-        <div class="col-xs-3 col-md-3"
-             ng-repeat="tr in bibleTranslations"
-             style="margin-top: 10pt">
-            <button class="btn btn-sm btn-default songlist-btn btn-list"
-                    ng-class="bibleTranslationId == tr.ID ? 'btn-selected' : ''"
-                    style="width: 100%"
-                    ng-click="setBibleTranslation(tr.ID)">{{tr.NAME}}</button>
-        </div>
-    </div>
 
-    <!-- Строка 3: Действия (только режим Песни) -->
-    <div class="row" ng-show="pageMode === 'songs'">
-        <div class="col-xs-3 col-md-3" style="margin-top: 10pt">
-            <button class="btn btn-sm btn-primary songlist-btn" style="width: 100%" ng-click="openList()">Весь список</button>
+        <div ng-show="pageMode === 'bible'">
+            <div class="section-label">Перевод</div>
+            <div class="btn-row">
+                <button class="btn-list"
+                        ng-repeat="tr in bibleTranslations"
+                        ng-class="bibleTranslationId == tr.ID ? 'btn-selected' : ''"
+                        ng-click="setBibleTranslation(tr.ID)">{{ tr.NAME }}</button>
+            </div>
         </div>
-        <div class="col-xs-3 col-md-3" style="margin-top: 10pt">
-            <button class="btn btn-sm btn-warning songlist-btn" style="width: 100%" ng-click="addNewSong()">Добавить песню</button>
-        </div>
-    </div>
 
-    <!-- Language Selection (both modes) -->
-    <div class="row">
-        <div class="col-xs-12" style="margin-top: 20pt; margin-bottom: 10px; text-align: center;">
-            <label style="font-size: 11pt; font-weight: bold; margin-right: 15px;">Языки:</label>
-            <button class="btn btn-sm songlist-btn"
-                    ng-class="languages.ru ? 'btn-primary' : 'btn-default'"
-                    style="margin-right: 10px; min-width: 60px;"
+        <!-- ── Строка 3: Доп. действия (только Песни) ──────────────── -->
+        <div ng-show="pageMode === 'songs'">
+            <div class="btn-row" style="margin-top: 8px;">
+                <button class="btn-action-blue" ng-click="openList()">📋 Весь список</button>
+                <button class="btn-action-orange" ng-click="addNewSong()">＋ Добавить песню</button>
+            </div>
+        </div>
+
+        <!-- ── Языки (все режимы) ──────────────────────────────────── -->
+        <div class="section-label" style="margin-top: 16px;">Языки</div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+            <button class="btn-lang"
+                    ng-class="languages.ru ? 'lang-active' : ''"
                     ng-click="toggleLanguage('ru')">RU</button>
-            <button class="btn btn-sm songlist-btn"
-                    ng-class="languages.lt ? 'btn-primary' : 'btn-default'"
-                    style="margin-right: 10px; min-width: 60px;"
+            <button class="btn-lang"
+                    ng-class="languages.lt ? 'lang-active' : ''"
                     ng-click="toggleLanguage('lt')">LT</button>
-            <button class="btn btn-sm songlist-btn"
-                    ng-class="languages.en ? 'btn-primary' : 'btn-default'"
-                    style="min-width: 60px;"
+            <button class="btn-lang"
+                    ng-class="languages.en ? 'lang-active' : ''"
                     ng-click="toggleLanguage('en')">EN</button>
         </div>
-    </div>
 
-    <!-- ========================================================== -->
-    <!-- SONGS MODE content                                          -->
-    <!-- ========================================================== -->
-    <div ng-show="pageMode === 'songs'">
+        <!-- ══════════════════════════════════════════════════════════
+             РЕЖИМ ПЕСНИ
+             ══════════════════════════════════════════════════════════ -->
+        <div ng-show="pageMode === 'songs'">
 
-        <!-- Search input -->
-        <div class="row">
-            <div class="col-s-12 col-md-12 col-xs-12"
-                 style="margin-top: 20pt; margin-bottom: 10px">
+            <!-- Search -->
+            <div style="margin-top: 16px; margin-bottom: 12px;">
                 <angucomplete-alt id="ccf6"
                                   placeholder="название, текст песни или номер"
                                   pause="100"
-                                  local-data=songList
+                                  local-data="songList"
                                   search-fields="dispName,TEXT"
                                   title-field="dispName"
                                   description-field="langInfo"
                                   selected-object="selectedItem"
                                   minlength="2"
-                                  input-class="form-control search-box">
+                                  input-class="form-control">
                 </angucomplete-alt>
             </div>
-        </div>
 
-        <!-- List of active songs + verses -->
-        <div class="row">
-            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6"
-                 style="margin-top: 20px; overflow: hidden">
+            <!-- Two columns: favorites + chapters -->
+            <div class="row">
 
-                <div class="row" style="position: relative; margin-bottom: 15px;"
-                     ng-repeat="listItem in favorites">
+                <!-- Left: song list -->
+                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                    <div class="section-label">Выбранные песни</div>
 
-                    <div class="song-name col-xs-12 col-sm-12 col-md-12 col-lg-12"
-                         ng-class="{'box-selected': showingSong === listItem}"
-                         ng-click="prepareText(listItem.TEXT, listItem)">
-                        <div class="text-container">
-                            <span class="item-text">{{ listItem.dispName }}</span>
-                            <span class="book-name">
-                                {{ listItem.bookName }}
-                                <span class="song-lang-badges">
-                                    <span class="lang-badge lang-ru" ng-if="listItem.TEXT    && listItem.TEXT    != ''">RU</span>
-                                    <span class="lang-badge lang-lt" ng-if="listItem.TEXT_LT && listItem.TEXT_LT != ''">LT</span>
-                                    <span class="lang-badge lang-en" ng-if="listItem.TEXT_EN && listItem.TEXT_EN != ''">EN</span>
-                                </span>
+                    <!-- Empty state -->
+                    <div ng-if="favorites.length === 0"
+                         style="text-align:center; padding: 24px 8px; color: #b0b8c1;">
+                        <div style="font-size:28px; margin-bottom:6px;">🎵</div>
+                        <div style="font-size:12px;">Нет выбранных песен</div>
+                    </div>
+
+                    <div ng-repeat="listItem in favorites">
+                        <div class="song-item" ng-class="{'box-selected': showingSong && showingSong.ID == listItem.ID}">
+                            <div class="text-container">
+                                <span class="item-text">{{ listItem.dispName }}</span>
+                                <span class="book-name" ng-if="listItem.bookName">{{ listItem.bookName }}</span>
+                                <span class="song-lang-badges" style="margin-top: 4px; display: inline-flex;">
+                                <span class="lang-badge lang-ru" ng-if="listItem.hasTextRu == '1'">RU</span>
+                                <span class="lang-badge lang-lt" ng-if="listItem.hasTextLt == '1'">LT</span>
+                                <span class="lang-badge lang-en" ng-if="listItem.hasTextEn == '1'">EN</span>
                             </span>
+                            </div>
+                            <button class="btn-edit edit-button"
+                                    ng-click="editFavorite(listItem)">
+                                ✏️ Ред.
+                            </button>
+                            <img class="song-image"
+                                 ng-attr-id="{{ 'img' + listItem.ID }}"
+                                 ng-src="{{ listItem.imageName }}"
+                                 ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"
+                                 title="Открыть ноты" />
                         </div>
-                        <img class="song-image" ng-src="{{ listItem.imageName }}" />
                     </div>
 
-                    <div style="display: flex; justify-content: space-between; margin-top: 5px;"
-                         class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                        <button class="btn btn-default btn-sm" ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">
-                            ❌
-                        </button>
-                        <button class="btn btn-default btn-sm edit-button"
-                                style="color: green;"
-                                ng-click="editFavorite(listItem)">
-                            Редактировать
-                        </button>
-                    </div>
+                    <button class="btn-clear" ng-if="favorites.length > 0" ng-click="clearFavorites()">
+                        🗑 Очистить список
+                    </button>
                 </div>
-            </div>
 
-            <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6"
-                 style="margin-top: 30px; overflow: hidden">
-                <div class="row"
-                     ng-repeat="chapter in preparedChapters">
-                    <span class="col-xs-12 col-sm-12 col-md-12 col-lg-12 text-chapter"
+                <!-- Right: text chapters -->
+                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
+                    <div class="section-label">Куплеты</div>
+                    <div ng-if="preparedChapters.length === 0"
+                         style="text-align:center; padding: 24px 8px; color: #b0b8c1; font-size:12px;">
+                        Выберите песню
+                    </div>
+                    <div ng-repeat="chapter in preparedChapters">
+                    <span class="text-chapter"
                           ng-class="{'chapter-selected': selectedChapters.indexOf(chapter) > -1}"
                           ng-click="toggleCurrentTextChapter(chapter, $event)">{{ chapter }}</span>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div style="margin-bottom: 100px">
-            <button class="btn btn-warning btn-lg" style="margin-top: 30px; font-size: 12pt" ng-click="clearFavorites()">Очистить список</button>
-        </div>
+        </div><!-- /songs mode -->
 
-    </div><!-- /songs mode -->
+        <!-- ══════════════════════════════════════════════════════════
+             РЕЖИМ ПОСЛАНИЕ
+             ══════════════════════════════════════════════════════════ -->
+        <div ng-show="pageMode === 'messages'">
 
-    <!-- ========================================================== -->
-    <!-- MESSAGES MODE content                                       -->
-    <!-- ========================================================== -->
-    <div ng-show="pageMode === 'messages'">
-
-        <!-- Two search boxes: title + text -->
-        <div class="row">
-            <div class="col-xs-6" style="margin-top: 20pt; margin-bottom: 10px; padding-right: 5px;">
-                <input type="text"
-                       class="form-control search-box"
-                       placeholder="Поиск по названию..."
-                       ng-model="messageTitleQuery"
-                       ng-change="searchMessages()"
-                       style="height: 32pt; font-size: 14pt;" />
+            <!-- Two search boxes -->
+            <div class="row" style="margin-top: 16px;">
+                <div class="col-xs-6" style="margin-bottom: 10px; padding-right: 5px;">
+                    <input type="text"
+                           class="search-input"
+                           placeholder="Поиск по названию..."
+                           ng-model="messageTitleQuery"
+                           ng-change="searchMessages()" />
+                </div>
+                <div class="col-xs-6" style="margin-bottom: 10px; padding-left: 5px;">
+                    <input type="text"
+                           class="search-input"
+                           placeholder="Поиск по тексту..."
+                           ng-model="messageTextQuery"
+                           ng-change="searchMessages()" />
+                </div>
             </div>
-            <div class="col-xs-6" style="margin-top: 20pt; margin-bottom: 10px; padding-left: 5px;">
-                <input type="text"
-                       class="form-control search-box"
-                       placeholder="Поиск по тексту..."
-                       ng-model="messageTextQuery"
-                       ng-change="searchMessages()"
-                       style="height: 32pt; font-size: 14pt;" />
-            </div>
-        </div>
 
-        <!-- Two-panel layout: list | paragraphs -->
-        <div class="row" style="margin-top: 10px;">
-
-            <!-- Left: search results / message list -->
-            <div class="col-sm-5 col-xs-5">
-                <div class="bible-panel" id="messages-list-panel">
-                    <div class="bible-panel-title">📜 Послания</div>
-
-                    <!-- Search results -->
-                    <div ng-show="messageTitleQuery.length >= 2 || messageTextQuery.length >= 2">
+            <div class="row">
+                <!-- Left: search results -->
+                <div class="col-sm-5 col-xs-5">
+                    <div class="bible-panel" id="messages-list-panel">
+                        <div class="bible-panel-title">📋 Результаты поиска</div>
                         <div class="bible-list-item"
                              ng-repeat="msg in messageSearchResults"
                              ng-class="{'selected': selectedMessage && selectedMessage.ID === msg.ID}"
                              ng-click="selectMessage(msg)">
-                            <strong style="font-size: 10pt;">{{ msg.TITLE }}</strong>
-                            <span style="display:block; font-size: 9pt; color: #888;">
-                            {{ msg.CODE }}&nbsp;&nbsp;{{ msg.CITY ? '· ' + msg.CITY : '' }}
-                            </span>
+                            {{ msg.TITLE }}
+                            <span style="color: #95a5a6; font-size: 10px;">
+                            {{ msg.CITY ? ' · ' + msg.CITY : '' }}
+                        </span>
                         </div>
                         <div ng-show="messageSearchResults.length === 0"
-                             style="padding: 12px; color: #999; font-size: 10pt;">
+                             style="padding: 12px; color: #b0b8c1; font-size: 12px;">
                             Ничего не найдено
                         </div>
-                    </div>
-
-                    <div ng-show="messageTitleQuery.length < 2 && messageTextQuery.length < 2"
-                         style="padding: 12px; color: #999; font-size: 10pt;">
-                        Введите минимум 2 символа для поиска
+                        <div ng-show="messageTitleQuery.length < 2 && messageTextQuery.length < 2"
+                             style="padding: 12px; color: #b0b8c1; font-size: 12px;">
+                            Введите минимум 2 символа
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Right: paragraphs of selected message -->
-            <div class="col-sm-7 col-xs-7">
-                <div class="bible-panel" id="messages-para-panel">
-                    <div class="bible-panel-title">
-                        ✍️ Абзацы
-                        <span ng-show="selectedMessage" style="color: #337ab7;">
+                <!-- Right: paragraphs -->
+                <div class="col-sm-7 col-xs-7">
+                    <div class="bible-panel" id="messages-para-panel">
+                        <div class="bible-panel-title">
+                            ✍️ Абзацы
+                            <span ng-show="selectedMessage" style="color: #1a6db5; font-weight: 600; text-transform: none;">
                             — {{ selectedMessage.TITLE }}
                         </span>
-                    </div>
-                    <div class="bible-verse-item"
-                         ng-repeat="para in messageParagraphs"
-                         ng-class="{'chapter-selected': showingMessagePara === para}"
-                         ng-click="toggleMessageParagraph(para)">{{ para }}</div>
-                    <div ng-show="messageParagraphs.length === 0 && selectedMessage"
-                         style="padding: 12px; color: #999; font-size: 10pt;">
-                        Нет текста
-                    </div>
-                    <div ng-show="!selectedMessage"
-                         style="padding: 12px; color: #999; font-size: 10pt;">
-                        Выберите послание
+                        </div>
+                        <div class="bible-verse-item"
+                             ng-repeat="para in messageParagraphs"
+                             ng-class="{'chapter-selected': showingMessagePara === para}"
+                             ng-click="toggleMessageParagraph(para)">{{ para }}</div>
+                        <div ng-show="messageParagraphs.length === 0 && selectedMessage"
+                             style="padding: 12px; color: #b0b8c1; font-size: 12px;">
+                            Нет текста
+                        </div>
+                        <div ng-show="!selectedMessage"
+                             style="padding: 12px; color: #b0b8c1; font-size: 12px;">
+                            Выберите послание
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <div style="margin-bottom: 100px"></div>
-    </div><!-- /messages mode -->
+            <div style="margin-bottom: 60px"></div>
+        </div><!-- /messages mode -->
 
+        <!-- ══════════════════════════════════════════════════════════
+             РЕЖИМ БИБЛИЯ
+             ══════════════════════════════════════════════════════════ -->
+        <div ng-show="pageMode === 'bible'">
 
-    <!-- ========================================================== -->
-    <!-- BIBLE MODE content                                          -->
-    <!-- ========================================================== -->
-    <div ng-show="pageMode === 'bible'">
-
-        <!-- Search row: book search + bible full-text search -->
-        <div class="row">
-            <div class="col-sm-3 col-xs-4" style="margin-top: 20pt; margin-bottom: 10px; padding-right: 5px;">
-                <input type="text"
-                       class="form-control search-box"
-                       placeholder="Поиск книги..."
-                       ng-model="bibleBookSearchQuery"
-                       style="height: 32pt; font-size: 14pt;" />
+            <!-- Search row -->
+            <div class="row" style="margin-top: 16px;">
+                <div class="col-sm-3 col-xs-4" style="margin-bottom: 10px; padding-right: 5px;">
+                    <input type="text"
+                           class="search-input"
+                           placeholder="Поиск книги..."
+                           ng-model="bibleBookSearchQuery" />
+                </div>
+                <div class="col-sm-9 col-xs-8" style="margin-bottom: 10px; padding-left: 5px;">
+                    <input type="text"
+                           class="search-input"
+                           placeholder="Поиск в Библии..."
+                           ng-model="bibleSearchQuery"
+                           ng-change="searchBible()" />
+                </div>
             </div>
-            <div class="col-sm-9 col-xs-8" style="margin-top: 20pt; margin-bottom: 10px; padding-left: 5px;">
-                <input type="text"
-                       class="form-control search-box"
-                       placeholder="Поиск в Библии..."
-                       ng-model="bibleSearchQuery"
-                       ng-change="searchBible()"
-                       style="height: 32pt; font-size: 14pt;" />
-            </div>
-        </div>
 
-        <!-- Bible search results (shown when query is active) -->
-        <div class="row" ng-show="bibleSearchQuery.length >= 2">
-            <div class="col-xs-12">
-                <div style="border: 1px solid #ddd; border-radius: 8px; max-height: 300px; overflow-y: auto; margin-bottom: 10px;">
-                    <div class="bible-panel-title">Результаты поиска ({{ bibleSearchResults.length }})</div>
+            <!-- Bible full-text search results -->
+            <div ng-show="bibleSearchQuery.length >= 2">
+                <div style="border: 1.5px solid #dee2e6; border-radius: 10px; max-height: 300px; overflow-y: auto; margin-bottom: 12px; background:#fff;">
+                    <div class="bible-panel-title">
+                        Результаты поиска ({{ bibleSearchResults.length }})
+                    </div>
                     <div class="bible-search-result"
                          ng-repeat="r in bibleSearchResults"
                          ng-click="selectSearchResult(r)">
                         <span class="ref">{{ r.BOOK_NAME }} {{ r.CHAPTER_NUM }}:{{ r.VERSE_NUM }}</span>
                         {{ getBibleVerseDisplay(r) }}
                     </div>
-                    <div ng-show="bibleSearchResults.length === 0" style="padding: 12px; color: #999;">
+                    <div ng-show="bibleSearchResults.length === 0"
+                         style="padding: 12px; color: #b0b8c1; font-size: 12px;">
                         Ничего не найдено
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- 3-panel Bible navigator (shown when no active search) -->
-        <div class="row" ng-show="!bibleSearchQuery || bibleSearchQuery.length < 2" style="margin-top: 10px;">
+            <!-- 3-panel navigator -->
+            <div ng-show="!bibleSearchQuery || bibleSearchQuery.length < 2">
+                <div class="row">
 
-            <!-- Column 1: Books -->
-            <div class="col-sm-3 col-xs-4">
-                <div class="bible-panel" id="bible-books-panel">
-                    <div class="bible-panel-title">📖 Книги</div>
-                    <div class="bible-list-item"
-                         ng-repeat="book in getFilteredBibleBooks()"
-                         ng-class="{'selected': selectedBibleBook && selectedBibleBook.ID === book.ID}"
-                         ng-click="selectBibleBook(book)">
-                        {{ getBibleBookName(book) }}
+                    <!-- Books -->
+                    <div class="col-sm-3 col-xs-4">
+                        <div class="bible-panel" id="bible-books-panel">
+                            <div class="bible-panel-title">📖 Книги</div>
+                            <div class="bible-list-item"
+                                 ng-repeat="book in getFilteredBibleBooks()"
+                                 ng-class="{'selected': selectedBibleBook && selectedBibleBook.ID === book.ID}"
+                                 ng-click="selectBibleBook(book)">
+                                {{ getBibleBookName(book) }}
+                            </div>
+                            <div ng-show="bibleBooks.length === 0 && bibleTranslationId"
+                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;">Загрузка...</div>
+                            <div ng-show="!bibleTranslationId"
+                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;">Выберите перевод</div>
+                        </div>
                     </div>
-                    <div ng-show="bibleBooks.length === 0 && bibleTranslationId" style="padding: 12px; color: #999; font-size: 10pt;">
-                        Загрузка...
+
+                    <!-- Chapters -->
+                    <div class="col-sm-2 col-xs-3">
+                        <div class="bible-panel" id="bible-chapters-panel">
+                            <div class="bible-panel-title">📑 Главы</div>
+                            <div class="bible-list-item"
+                                 ng-repeat="ch in bibleChapters"
+                                 ng-class="{'selected': selectedBibleChapter === ch}"
+                                 ng-click="selectBibleChapter(ch)"
+                                 style="text-align: center;">{{ ch }}</div>
+                            <div ng-show="bibleChapters.length === 0 && selectedBibleBook"
+                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;">Загрузка...</div>
+                            <div ng-show="!selectedBibleBook"
+                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;">Выберите книгу</div>
+                        </div>
                     </div>
-                    <div ng-show="!bibleTranslationId" style="padding: 12px; color: #999; font-size: 10pt;">
-                        Выберите перевод
+
+                    <!-- Verses -->
+                    <div class="col-sm-7 col-xs-5">
+                        <div class="bible-panel" id="bible-verses-panel">
+                            <div class="bible-panel-title">
+                                ✍️ Стихи
+                                <span ng-show="selectedBibleBook && selectedBibleChapter"
+                                      style="color: #1a6db5; font-weight: 600; text-transform: none;">
+                                — {{ getBibleBookName(selectedBibleBook) }} {{ selectedBibleChapter }}
+                            </span>
+                            </div>
+                            <div class="bible-verse-item"
+                                 ng-repeat="verse in biblePreparedVerses"
+                                 ng-class="{'chapter-selected': selectedBibleVerses.indexOf(verse) > -1}"
+                                 ng-click="toggleBibleVerse(verse, $event)">{{ verse }}</div>
+                            <div ng-show="biblePreparedVerses.length === 0 && selectedBibleChapter"
+                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;">Загрузка...</div>
+                            <div ng-show="!selectedBibleChapter"
+                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;">Выберите главу</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Column 2: Chapters -->
-            <div class="col-sm-2 col-xs-3">
-                <div class="bible-panel" id="bible-chapters-panel">
-                    <div class="bible-panel-title">📑 Главы</div>
-                    <div class="bible-list-item"
-                         ng-repeat="ch in bibleChapters"
-                         ng-class="{'selected': selectedBibleChapter === ch}"
-                         ng-click="selectBibleChapter(ch)"
-                         style="text-align: center;">
-                        {{ ch }}
-                    </div>
-                    <div ng-show="bibleChapters.length === 0 && selectedBibleBook" style="padding: 12px; color: #999; font-size: 10pt;">
-                        Загрузка...
-                    </div>
-                    <div ng-show="!selectedBibleBook" style="padding: 12px; color: #999; font-size: 10pt;">
-                        Выберите книгу
-                    </div>
-                </div>
-            </div>
-
-            <!-- Column 3: Verses -->
-            <div class="col-sm-7 col-xs-5">
-                <div class="bible-panel" id="bible-verses-panel">
-                    <div class="bible-panel-title">
-                        ✍️ Стихи
-                        <span ng-show="selectedBibleBook && selectedBibleChapter" style="color: #337ab7;">
-                            — {{ getBibleBookName(selectedBibleBook) }} {{ selectedBibleChapter }}
-                        </span>
-                    </div>
-                    <div class="bible-verse-item"
-                         ng-repeat="verse in biblePreparedVerses"
-                         ng-class="{'chapter-selected': selectedBibleVerses.indexOf(verse) > -1}"
-                         ng-click="toggleBibleVerse(verse, $event)">{{ verse }}</div>
-                    <div ng-show="biblePreparedVerses.length === 0 && selectedBibleChapter" style="padding: 12px; color: #999; font-size: 10pt;">
-                        Загрузка...
-                    </div>
-                    <div ng-show="!selectedBibleChapter" style="padding: 12px; color: #999; font-size: 10pt;">
-                        Выберите главу
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <div style="margin-bottom: 100px"></div>
-    </div><!-- /bible mode -->
+            <div style="margin-bottom: 60px"></div>
+        </div><!-- /bible mode -->
 
 
-    <!-- ========================================================== -->
-    <!-- Modals (shared, always in DOM)                             -->
-    <!-- ========================================================== -->
+        <!-- ══════════════════════════════════════════════════════════
+             МОДАЛЬНЫЕ ОКНА (внутри ng-controller)
+             ══════════════════════════════════════════════════════════ -->
 
-    <div id="list-popup">
-        <div class="modal fade list-popup" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-body">
-                        <div class="row"
-                             style="padding-top: 10px; padding-bottom: 10px; border-bottom: #204d74 solid 1px"
-                             ng-repeat="song in songList">
-                            <div class="col-xs-9 col-s-9 col-md-9" style="font-size: 16pt">
-                                {{ song.dispName }}
-                                <span class="song-lang-badges" style="margin-left: 6px; vertical-align: middle;">
+        <!-- Full song list -->
+        <div id="list-popup">
+            <div class="modal fade list-popup" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <div class="row"
+                                 style="padding: 10px 0; border-bottom: 1px solid #f0f2f5;"
+                                 ng-repeat="song in songList">
+                                <div class="col-xs-9 col-s-9 col-md-9" style="font-size: 15px; color: #2c3e50; padding-top: 4px;">
+                                    {{ song.dispName }}
+                                    <span class="song-lang-badges" style="margin-left: 6px; vertical-align: middle;">
                                     <span class="lang-badge lang-ru" ng-if="song.hasTextRu == '1'">RU</span>
                                     <span class="lang-badge lang-lt" ng-if="song.hasTextLt == '1'">LT</span>
                                     <span class="lang-badge lang-en" ng-if="song.hasTextEn == '1'">EN</span>
                                 </span>
-                            </div>
-                            <div class="col-xs-3 col-s-3 col-md-3">
-                                <button class="btn btn-lg" style="font-size: 16pt" ng-click="addSongToFavorites(song.ID)">Выбрать</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="add-song-popup">
-        <div class="modal fade add-song-popup" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-xs-9 col-s-9 col-md-9" style="font-size: 16pt">
-                                <input capture
-                                       accept="image/*"
-                                       id="imageCapDialog"
-                                       type="file"
-                                       ng-model="addConfig.image"
-                                       change="uploadPhoto(addConfig)" />
-                            </div>
-                            <div class="col-xs-3 col-s-3 col-md-3">
-                                <button class="btn btn-lg" style="font-size: 16pt" ng-click="addSongToFavorites(song.ID)">Выбрать</button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="confirmation-dialog">
-        <div class="modal fade confirmation-dialog" role="dialog">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h3 class="modal-title">{{ confirmationDialogConfig.title }}</h3>
-                    </div>
-                    <div class="modal-body">
-                        <div class="span5" style="font-size: 12pt"><strong>{{ confirmationDialogConfig.message }}</strong></div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button"
-                                style="font-size: 12pt"
-                                class="btn btn-default btn-lg"
-                                data-dismiss="modal">Отмена</button>
-                        <button type="button"
-                                style="font-size: 12pt"
-                                ng-repeat="button in confirmationDialogConfig.buttons"
-                                ng-click="button.action()"
-                                class="btn btn-warning btn-lg">&nbsp;&nbsp;&nbsp;{{ button.label }}&nbsp;&nbsp;&nbsp;</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="edit-song-popup">
-        <div class="modal fade edit-song-popup" role="dialog">
-            <div class="modal-dialog modal-lg">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal">&times;</button>
-                        <h3 class="modal-title">{{ editConfig.title }}</h3>
-                    </div>
-                    <div class="modal-body">
-                        <!-- Song Title -->
-                        <div class="row">
-                            <div class="col-xs-12">
-                                <label style="font-size: 12pt; font-weight: bold;">Название:</label>
-                                <input type="text"
-                                       ng-model="editConfig.songName"
-                                       class="form-control"
-                                       style="font-size: 14pt; margin-top: 5px;">
-                            </div>
-                        </div>
-
-                        <!-- Song Texts in 3 Columns -->
-                        <div class="row" style="margin-top: 20px;">
-                            <div class="col-xs-4">
-                                <label style="font-size: 12pt; font-weight: bold;">Текст песни (RU):</label>
-                                <textarea ng-model="editConfig.songText"
-                                          rows="15"
-                                          class="form-control verse-editor"
-                                          style="font-size: 12pt; width: 100%; margin-top: 5px; font-family: monospace; white-space: pre-wrap;">
-                                </textarea>
-                                <small style="color: gray;">Куплеты разделяются строкой с символом ¶</small>
-                            </div>
-                            <div class="col-xs-4">
-                                <label style="font-size: 12pt; font-weight: bold;">Текст песни (LT):</label>
-                                <textarea ng-model="editConfig.songTextLt"
-                                          rows="15"
-                                          class="form-control verse-editor"
-                                          style="font-size: 12pt; width: 100%; margin-top: 5px; font-family: monospace; white-space: pre-wrap;">
-                                </textarea>
-                                <small style="color: gray;">Опционально</small>
-                            </div>
-                            <div class="col-xs-4">
-                                <label style="font-size: 12pt; font-weight: bold;">Текст песни (EN):</label>
-                                <textarea ng-model="editConfig.songTextEn"
-                                          rows="15"
-                                          class="form-control verse-editor"
-                                          style="font-size: 12pt; width: 100%; margin-top: 5px; font-family: monospace; white-space: pre-wrap;">
-                                </textarea>
-                                <small style="color: gray;">Опционально</small>
-                            </div>
-                        </div>
-
-                        <!-- Image Preview and Upload -->
-                        <div class="row" style="margin-top: 20px;">
-                            <div class="col-xs-6">
-                                <label style="font-size: 12pt; font-weight: bold;">Текущее изображение:</label>
-                                <div ng-show="editConfig.currentImage" style="margin-top: 10px;">
-                                    <img ng-src="{{ editConfig.currentImage }}"
-                                         style="max-width: 200px; max-height: 150px; border-radius: 10px;"
-                                         ng-click="showEnlargedImage(editConfig.currentImage)" />
                                 </div>
-                                <div ng-show="!editConfig.currentImage" style="margin-top: 10px; color: gray;">
-                                    Нет изображения
-                                </div>
-                            </div>
-                            <div class="col-xs-6" ng-show="editConfig.previewImage">
-                                <label style="font-size: 12pt; font-weight: bold;">Новое изображение:</label>
-                                <div style="margin-top: 10px;">
-                                    <img ng-src="{{ editConfig.previewImage }}"
-                                         style="max-width: 200px; max-height: 150px; border-radius: 10px;" />
-                                    <br>
-                                    <button class="btn btn-danger btn-sm" style="margin-top: 5px;"
-                                            ng-click="clearImagePreview()">✕ Убрать</button>
+                                <div class="col-xs-3 col-s-3 col-md-3">
+                                    <button class="btn btn-lg" style="font-size: 14px;"
+                                            ng-click="addSongToFavorites(song.ID)">Выбрать</button>
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                        <!-- Upload Button -->
-                        <div class="row" style="margin-top: 15px;">
-                            <div class="col-xs-12">
-                                <input type="file"
-                                       id="imageUpload"
-                                       accept="image/*"
-                                       onchange="angular.element(this).scope().previewImage()"
-                                       style="display: none;" />
-                                <button class="btn btn-info btn-lg"
-                                        onclick="document.getElementById('imageUpload').click()"
-                                        style="width: 100%;">
-                                    📷 Выбрать новое изображение
-                                </button>
+        <!-- Add song popup -->
+        <div id="add-song-popup">
+            <div class="modal fade add-song-popup" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-body">
+                            <div class="row">
+                                <div class="col-xs-9 col-s-9 col-md-9" style="font-size: 16pt">
+                                    <input capture
+                                           accept="image/*"
+                                           id="imageCapDialog"
+                                           type="file"
+                                           ng-model="addConfig.image"
+                                           change="uploadPhoto(addConfig)" />
+                                </div>
+                                <div class="col-xs-3 col-s-3 col-md-3">
+                                    <button class="btn btn-lg" style="font-size: 16pt"
+                                            ng-click="addSongToFavorites(song.ID)">Выбрать</button>
+                                </div>
                             </div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
 
-                    <div class="modal-footer">
-                        <button type="button"
-                                class="btn btn-default btn-lg"
-                                data-dismiss="modal">
-                            Отмена
-                        </button>
-                        <button type="button"
-                                class="btn btn-success btn-lg"
-                                ng-click="saveSongEdits()">
-                            💾 Сохранить все изменения
-                        </button>
+        <!-- Confirmation dialog -->
+        <div id="confirmation-dialog">
+            <div class="modal fade confirmation-dialog" role="dialog">
+                <div class="modal-dialog">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title">{{ confirmationDialogConfig.title }}</h3>
+                        </div>
+                        <div class="modal-body">
+                            <div class="span5" style="font-size: 12pt">
+                                <strong>{{ confirmationDialogConfig.message }}</strong>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button"
+                                    style="font-size: 12pt"
+                                    class="btn btn-default btn-lg"
+                                    data-dismiss="modal">Отмена</button>
+                            <button type="button"
+                                    style="font-size: 12pt"
+                                    ng-repeat="button in confirmationDialogConfig.buttons"
+                                    ng-click="button.action()"
+                                    class="btn btn-warning btn-lg">
+                                &nbsp;&nbsp;&nbsp;{{ button.label }}&nbsp;&nbsp;&nbsp;
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <!-- Enlarged Image View Modal -->
-    <div id="enlarged-image-popup">
-        <div class="modal fade enlarged-image-popup" role="dialog" ng-if="editConfig.previewImage">
-            <div class="modal-dialog modal-lg" style="width: 90%; max-width: 1200px;">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" style="font-size: 30pt;">&times;</button>
-                        <h3 class="modal-title">Полный размер изображения</h3>
-                    </div>
-                    <div class="modal-body" style="text-align: center;">
-                        <img ng-src="{{ editConfig.previewImage }}"
-                             style="max-width: 100%; max-height: 80vh;" />
+        <!-- Edit song popup -->
+        <div id="edit-song-popup">
+            <div class="modal fade edit-song-popup" role="dialog">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal">&times;</button>
+                            <h3 class="modal-title">{{ editConfig.title }}</h3>
+                        </div>
+                        <div class="modal-body">
+                            <!-- Song Title -->
+                            <div class="row">
+                                <div class="col-xs-12">
+                                    <label style="font-size: 12pt; font-weight: bold;">Название:</label>
+                                    <input type="text"
+                                           ng-model="editConfig.songName"
+                                           class="form-control"
+                                           style="font-size: 14pt; margin-top: 5px;">
+                                </div>
+                            </div>
+
+                            <!-- Song Texts -->
+                            <div class="row" style="margin-top: 20px;">
+                                <div class="col-xs-4">
+                                    <label style="font-size: 12pt; font-weight: bold;">Текст (RU):</label>
+                                    <textarea ng-model="editConfig.songText"
+                                              rows="15"
+                                              class="form-control verse-editor"
+                                              style="font-size: 12pt; width: 100%; margin-top: 5px; font-family: monospace; white-space: pre-wrap;">
+                                </textarea>
+                                    <small style="color: gray;">Куплеты разделяются строкой с символом ¶</small>
+                                </div>
+                                <div class="col-xs-4">
+                                    <label style="font-size: 12pt; font-weight: bold;">Текст (LT):</label>
+                                    <textarea ng-model="editConfig.songTextLt"
+                                              rows="15"
+                                              class="form-control verse-editor"
+                                              style="font-size: 12pt; width: 100%; margin-top: 5px; font-family: monospace; white-space: pre-wrap;">
+                                </textarea>
+                                    <small style="color: gray;">Опционально</small>
+                                </div>
+                                <div class="col-xs-4">
+                                    <label style="font-size: 12pt; font-weight: bold;">Текст (EN):</label>
+                                    <textarea ng-model="editConfig.songTextEn"
+                                              rows="15"
+                                              class="form-control verse-editor"
+                                              style="font-size: 12pt; width: 100%; margin-top: 5px; font-family: monospace; white-space: pre-wrap;">
+                                </textarea>
+                                    <small style="color: gray;">Опционально</small>
+                                </div>
+                            </div>
+
+                            <!-- Image Preview -->
+                            <div class="row" style="margin-top: 20px;">
+                                <div class="col-xs-6">
+                                    <label style="font-size: 12pt; font-weight: bold;">Текущее изображение:</label>
+                                    <div ng-show="editConfig.currentImage" style="margin-top: 10px;">
+                                        <img ng-src="{{ editConfig.currentImage }}"
+                                             style="max-width: 200px; max-height: 150px; border-radius: 10px;"
+                                             ng-click="showEnlargedImage(editConfig.currentImage)" />
+                                    </div>
+                                    <div ng-show="!editConfig.currentImage" style="margin-top: 10px; color: gray;">
+                                        Нет изображения
+                                    </div>
+                                </div>
+                                <div class="col-xs-6" ng-show="editConfig.previewImage">
+                                    <label style="font-size: 12pt; font-weight: bold;">Новое изображение:</label>
+                                    <div style="margin-top: 10px;">
+                                        <img ng-src="{{ editConfig.previewImage }}"
+                                             style="max-width: 200px; max-height: 150px; border-radius: 10px;" />
+                                        <br>
+                                        <button class="btn btn-danger btn-sm" style="margin-top: 5px;"
+                                                ng-click="clearImagePreview()">✕ Убрать</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Upload Button -->
+                            <div class="row" style="margin-top: 15px;">
+                                <div class="col-xs-12">
+                                    <input type="file"
+                                           id="imageUpload"
+                                           accept="image/*"
+                                           onchange="angular.element(this).scope().previewImage()"
+                                           style="display: none;" />
+                                    <button class="btn btn-info btn-lg"
+                                            onclick="document.getElementById('imageUpload').click()"
+                                            style="width: 100%;">
+                                        📷 Выбрать новое изображение
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="modal-footer">
+                            <button type="button"
+                                    class="btn btn-default btn-lg"
+                                    data-dismiss="modal">Отмена</button>
+                            <button type="button"
+                                    class="btn btn-success btn-lg"
+                                    ng-click="saveSongEdits()">
+                                💾 Сохранить все изменения
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
 
-</div>
+        <!-- Enlarged image view -->
+        <div id="enlarged-image-popup">
+            <div class="modal fade enlarged-image-popup" role="dialog" ng-if="editConfig.previewImage">
+                <div class="modal-dialog modal-lg" style="width: 90%; max-width: 1200px;">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <button type="button" class="close" data-dismiss="modal" style="font-size: 30pt;">&times;</button>
+                            <h3 class="modal-title">Полный размер изображения</h3>
+                        </div>
+                        <div class="modal-body" style="text-align: center;">
+                            <img ng-src="{{ editConfig.previewImage }}"
+                                 style="max-width: 100%; max-height: 80vh;" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /tech-wrapper -->
+</div><!-- /ng-controller -->
 
 <script src="/js/tech.js?v=7" type="text/javascript"></script>
