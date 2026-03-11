@@ -986,11 +986,38 @@ app.controller('Tech', function ($scope, $http, $timeout)
         $scope.$apply(function() {
             if ($scope.pageMode === 'bible') {
                 navigateBibleVerse(dir);
+            } else if ($scope.pageMode === 'messages') {
+                navigateMessageParagraph(dir);
             } else {
                 navigateSongChapter(dir);
             }
         });
     });
+
+    function navigateMessageParagraph(dir) {
+        var list = $scope.messageParagraphs;
+        if (!list || list.length === 0) return;
+
+        var currentIdx = list.indexOf($scope.showingMessagePara);
+        var nextIdx;
+
+        if (currentIdx === -1) {
+            nextIdx = dir === 1 ? 0 : list.length - 1;
+        } else {
+            nextIdx = currentIdx + dir;
+            if (nextIdx < 0 || nextIdx >= list.length) return;
+        }
+
+        var nextPara = list[nextIdx];
+        $scope.toggleMessageParagraph(nextPara);
+
+        $timeout(function() {
+            var panel = document.getElementById('messages-para-panel');
+            if (!panel) return;
+            var items = panel.querySelectorAll('.bible-verse-item');
+            if (items[nextIdx]) items[nextIdx].scrollIntoView({ block: 'nearest' });
+        }, 50);
+    }
 
     function navigateSongChapter(dir) {
         var list = $scope.preparedChapters;
@@ -1054,7 +1081,6 @@ app.controller('Tech', function ($scope, $http, $timeout)
             if (items[nextIdx]) items[nextIdx].scrollIntoView({ block: 'nearest' });
         }, 50);
     }
-
 
     // ==========================================================
     // INIT
