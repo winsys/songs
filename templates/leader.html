@@ -489,79 +489,80 @@
     }
 </style>
 
-<div ng-controller="Leader" class="leader-wrapper">
-    <div class="leader-card">
+<div ng-controller="Leader">
+    <div class="leader-wrapper">
+        <div class="leader-card">
 
-        <!-- Header: Back button + Title -->
-        <div class="leader-header">
-            <button class="btn-back" onclick="window.location.href='/index/<?php echo $_SESSION['userId'] ?>'">
-                ← Главная
-            </button>
-            <div class="leader-title-block">
-                <div class="leader-page-title">🎤 Ведущий пения</div>
-                <div class="leader-page-subtitle">Управление списком песен службы</div>
+            <!-- Header: Back button + Title -->
+            <div class="leader-header">
+                <button class="btn-back" onclick="window.location.href='/index/<?php echo $_SESSION['userId'] ?>'">
+                    ← Главная
+                </button>
+                <div class="leader-title-block">
+                    <div class="leader-page-title">🎤 Ведущий пения</div>
+                    <div class="leader-page-subtitle">Управление списком песен службы</div>
+                </div>
             </div>
-        </div>
 
-        <!-- Song list selector -->
-        <div class="section-label">Список песен</div>
+            <!-- Song list selector -->
+            <div class="section-label">Список песен</div>
 
-        <div class="songlist-row">
-            <button class="btn-list songlist-btn"
-                    ng-repeat="list in visibleSongLists"
-                    ng-class="listId == list.LIST_ID ? 'btn-selected' : ''"
-                    ng-click="setList(list.LIST_ID)">
-                {{ list.LIST_NAME }}
-            </button>
-            <button class="btn-show-all" ng-click="openList()">
-                Весь список
-            </button>
-        </div>
+            <div class="songlist-row">
+                <button class="btn-list songlist-btn"
+                        ng-repeat="list in visibleSongLists"
+                        ng-class="listId == list.LIST_ID ? 'btn-selected' : ''"
+                        ng-click="setList(list.LIST_ID)">
+                    {{ list.LIST_NAME }}
+                </button>
+                <button class="btn-show-all" ng-click="openList()">
+                    Весь список
+                </button>
+            </div>
 
-        <!-- Search -->
-        <div class="section-label" style="margin-top: 20px;">Поиск песни</div>
+            <!-- Search -->
+            <div class="section-label" style="margin-top: 20px;">Поиск песни</div>
 
-        <angucomplete-alt id="ccf6"
-                          placeholder="название, текст или номер"
-                          pause="100"
-                          local-data="songList"
-                          search-fields="dispName"
-                          title-field="dispName"
-                          description-field="langInfo"
-                          selected-object="selectedItem"
-                          minlength="2"
-                          input-class="form-control">
-        </angucomplete-alt>
+            <angucomplete-alt id="ccf6"
+                              placeholder="название, текст или номер"
+                              pause="100"
+                              local-data="songList"
+                              search-fields="dispName"
+                              title-field="dispName"
+                              description-field="langInfo"
+                              selected-object="selectedItem"
+                              minlength="2"
+                              input-class="form-control">
+            </angucomplete-alt>
 
-        <!-- Selected songs -->
-        <div class="section-label" style="margin-top: 20px;">
-            Выбранные песни
-            <span ng-if="favorites.length > 0"
-                  style="background:#ebf3fb; color:#1a6db5; border-radius:20px;
+            <!-- Selected songs -->
+            <div class="section-label" style="margin-top: 20px;">
+                Выбранные песни
+                <span ng-if="favorites.length > 0"
+                      style="background:#ebf3fb; color:#1a6db5; border-radius:20px;
                          padding:1px 8px; font-size:10px; margin-left:6px; font-weight:700;">
                 {{ favorites.length }}
             </span>
-        </div>
+            </div>
 
-        <!-- Empty state -->
-        <div ng-if="favorites.length === 0"
-             style="text-align:center; padding: 28px 16px; color: #b0b8c1;">
-            <div style="font-size: 32px; margin-bottom: 8px;">🎵</div>
-            <div style="font-size: 13px;">Нет выбранных песен.<br>Найдите песню в поиске выше.</div>
-        </div>
+            <!-- Empty state -->
+            <div ng-if="favorites.length === 0"
+                 style="text-align:center; padding: 28px 16px; color: #b0b8c1;">
+                <div style="font-size: 32px; margin-bottom: 8px;">🎵</div>
+                <div style="font-size: 13px;">Нет выбранных песен.<br>Найдите песню в поиске выше.</div>
+            </div>
 
-        <!-- Favorites list -->
-        <div class="favorites-list">
-            <div class="prod-list-item"
-                 ng-repeat="listItem in favorites">
+            <!-- Favorites list -->
+            <div class="favorites-list">
+                <div class="prod-list-item"
+                     ng-repeat="listItem in favorites">
 
-                <!-- Delete button -->
-                <button class="btn-delete"
-                        ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)"
-                        title="Удалить">✕</button>
+                    <!-- Delete button -->
+                    <button class="btn-delete"
+                            ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)"
+                            title="Удалить">✕</button>
 
-                <!-- Song info -->
-                <span style="flex: 1; min-width: 0;">
+                    <!-- Song info -->
+                    <span style="flex: 1; min-width: 0;">
                     <span class="item-text">{{ listItem.dispName }}</span>
                     <span class="song-meta">
                         <span class="song-book-name" ng-if="listItem.bookName">{{ listItem.bookName }}</span>
@@ -573,131 +574,127 @@
                     </span>
                 </span>
 
-                <!-- Song image thumbnail -->
-                <div class="song-thumb-wrap"
-                     ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"
-                     title="Открыть ноты">
-                    <img class="song-thumb"
-                         ng-attr-id="{{ 'img' + listItem.ID }}"
-                         ng-src="{{ listItem.imageName }}"/>
-                </div>
-            </div>
-        </div>
-
-        <!-- Bottom actions -->
-        <div class="bottom-actions" ng-if="favorites.length > 0">
-            <button class="btn-clear" ng-click="clearFavorites()">
-                🗑 Очистить список
-            </button>
-        </div>
-
-    </div><!-- /leader-card -->
-</div><!-- /leader-wrapper -->
-
-
-<!-- ============================================================
-     Modal: confirmation dialog (required by leader.js)
-     ============================================================ -->
-<div id="confirmation-dialog">
-    <div class="modal fade confirmation-dialog" role="dialog">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header" style="border-bottom: 1px solid #f0f2f5; padding: 16px 20px;">
-                    <h4 class="modal-title" style="font-size:16px; font-weight:600; color:#2c3e50;">
-                        {{ confirmationDialogConfig.title }}
-                    </h4>
-                </div>
-                <div class="modal-body" style="padding: 16px 20px;">
-                    <p style="font-size: 14px; color: #5a6272;">
-                        <strong>{{ confirmationDialogConfig.message }}</strong>
-                    </p>
-                </div>
-                <div class="modal-footer" style="border-top: 1px solid #f0f2f5; padding: 12px 20px; display:flex; gap:8px; justify-content:flex-end;">
-                    <button type="button"
-                            class="btn-select"
-                            style="background:#f4f5f7; color:#5a6272;"
-                            data-dismiss="modal">Отмена</button>
-                    <button type="button"
-                            ng-repeat="button in confirmationDialogConfig.buttons"
-                            ng-click="button.action()"
-                            class="btn-select"
-                            style="background:#fdecea; color:#c0392b; border:1.5px solid #fad7d4;">
-                        {{ button.label }}
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<script src="/js/leader.js?v=10027" type="text/javascript"></script>
-
-<script type="text/javascript">
-    function forceFullScreen(){}
-</script>
-
-
-<!-- ============================================================
-     Modal: full song list
-     ============================================================ -->
-<div id="list-popup">
-    <div class="modal fade list-popup" role="dialog">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <div style="font-size: 12px; font-weight: 600; color: #b0b8c1;
-                                text-transform: uppercase; letter-spacing: 0.8px;
-                                margin-bottom: 12px;">
-                        Все песни
+                    <!-- Song image thumbnail -->
+                    <div class="song-thumb-wrap"
+                         ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"
+                         title="Открыть ноты">
+                        <img class="song-thumb"
+                             ng-attr-id="{{ 'img' + listItem.ID }}"
+                             ng-src="{{ listItem.imageName }}"/>
                     </div>
-                    <div class="modal-song-row"
-                         ng-repeat="song in songList">
-                        <div class="modal-song-name">
-                            {{ song.dispName }}
-                            <span class="song-lang-badges" style="margin-left: 6px; vertical-align: middle;">
-                                <span class="lang-badge lang-ru" ng-if="song.hasTextRu == '1'">RU</span>
-                                <span class="lang-badge lang-lt" ng-if="song.hasTextLt == '1'">LT</span>
-                                <span class="lang-badge lang-en" ng-if="song.hasTextEn == '1'">EN</span>
-                            </span>
-                        </div>
-                        <button class="btn-select" ng-click="addSongToFavorites(song.ID)">
-                            Выбрать
+                </div>
+            </div>
+
+            <!-- Bottom actions -->
+            <div class="bottom-actions" ng-if="favorites.length > 0">
+                <button class="btn-clear" ng-click="clearFavorites()">
+                    🗑 Очистить список
+                </button>
+            </div>
+
+        </div><!-- /leader-card -->
+    </div><!-- /leader-wrapper -->
+
+
+    <!-- ============================================================
+         Modal: confirmation dialog
+         ============================================================ -->
+    <div id="confirmation-dialog">
+        <div class="modal fade confirmation-dialog" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header" style="border-bottom: 1px solid #f0f2f5; padding: 16px 20px;">
+                        <h4 class="modal-title" style="font-size:16px; font-weight:600; color:#2c3e50;">
+                            {{ confirmationDialogConfig.title }}
+                        </h4>
+                    </div>
+                    <div class="modal-body" style="padding: 16px 20px;">
+                        <p style="font-size: 14px; color: #5a6272;">
+                            <strong>{{ confirmationDialogConfig.message }}</strong>
+                        </p>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #f0f2f5; padding: 12px 20px; display:flex; gap:8px; justify-content:flex-end;">
+                        <button type="button"
+                                class="btn-select"
+                                style="background:#f4f5f7; color:#5a6272;"
+                                data-dismiss="modal">Отмена</button>
+                        <button type="button"
+                                ng-repeat="button in confirmationDialogConfig.buttons"
+                                ng-click="button.action()"
+                                class="btn-select"
+                                style="background:#fdecea; color:#c0392b; border:1.5px solid #fad7d4;">
+                            &nbsp;&nbsp;&nbsp;{{ button.label }}&nbsp;&nbsp;&nbsp;
                         </button>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
 
-<!-- ============================================================
-     Modal: add song / upload image
-     ============================================================ -->
-<div id="add-song-popup">
-    <div class="modal fade add-song-popup" role="dialog">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-body">
-                    <div class="row">
-                        <div class="col-xs-9 col-s-9 col-md-9" style="font-size: 16pt">
-                            <input capture
-                                   accept="image/*"
-                                   id="imageCapDialog"
-                                   type="file"
-                                   ng-model="addConfig.image"
-                                   change="uploadPhoto(addConfig)" />
-                        </div>
-                        <div class="col-xs-3 col-s-3 col-md-3">
-                            <button class="btn-select"
-                                    style="width:100%; padding: 12px 8px;"
-                                    ng-click="closeAddSong()">
-                                Закрыть
-                            </button>
+    <!-- ============================================================
+         Modal: full song list
+         ============================================================ -->
+    <div id="list-popup">
+        <div class="modal fade list-popup" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="row"
+                             style="padding-top: 10px; padding-bottom: 10px; border-bottom: #204d74 solid 1px"
+                             ng-repeat="song in songList">
+                            <div class="col-xs-9 col-s-9 col-md-9" style="font-size: 16pt">
+                                {{ song.dispName }}
+                                <span class="song-lang-badges" style="margin-left: 6px; vertical-align: middle;">
+                                <span class="lang-badge lang-ru" ng-if="song.hasTextRu == '1'">RU</span>
+                                <span class="lang-badge lang-lt" ng-if="song.hasTextLt == '1'">LT</span>
+                                <span class="lang-badge lang-en" ng-if="song.hasTextEn == '1'">EN</span>
+                            </span>
+                            </div>
+                            <div class="col-xs-3 col-s-3 col-md-3">
+                                <button class="btn btn-lg" style="font-size: 16pt"
+                                        ng-click="addSongToFavorites(song.ID)">Выбрать</button>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
+
+
+    <!-- ============================================================
+         Modal: add song / upload image
+         ============================================================ -->
+    <div id="add-song-popup">
+        <div class="modal fade add-song-popup" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-xs-9 col-s-9 col-md-9" style="font-size: 16pt">
+                                <input capture
+                                       accept="image/*"
+                                       id="imageCapDialog"
+                                       type="file"
+                                       ng-model="addConfig.image"
+                                       change="uploadPhoto(addConfig)" />
+                            </div>
+                            <div class="col-xs-3 col-s-3 col-md-3">
+                                <button class="btn btn-lg" style="font-size: 16pt"
+                                        ng-click="closeAddSong()">Закрыть</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div><!-- /ng-controller -->
+
+<script src="/js/leader.js?v=10027" type="text/javascript"></script>
+
+<script type="text/javascript">
+    function forceFullScreen(){}
+</script>
