@@ -484,7 +484,67 @@
             <div class="import-section" ng-show="msgSubTab==='manual'">
                 <h4>Импорт текста послания (вручную)</h4>
                 <p>Введите данные вручную и вставьте текст перевода из буфера обмена.</p>
-                <!-- ... весь остальной контент этого блока без изменений ... -->
+
+                <label class="import-label">Режим</label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" ng-model="txtMode" value="new" /> Новое послание
+                    </label>
+                    <label>
+                        <input type="radio" ng-model="txtMode" value="translate" /> Добавить перевод к существующему
+                    </label>
+                </div>
+
+                <label class="import-label">Код послания (YY-MMDD[x])</label>
+                <div style="position:relative;">
+                    <input type="text" class="import-input" ng-model="txtCode"
+                           placeholder="например: 62-0318"
+                           style="font-family:monospace;"
+                           ng-change="onTxtCodeInput()"
+                           ng-blur="clearCodeSuggestions()" />
+                    <span ng-show="txtCodeSearching"
+                          style="position:absolute; right:14px; top:10px; color:#aab; font-size:12px;">⏳</span>
+
+                    <!-- Suggestions dropdown -->
+                    <div class="code-suggest-dropdown"
+                         ng-show="txtCodeSuggestions.length > 0">
+                        <div class="code-suggest-item"
+                             ng-repeat="msg in txtCodeSuggestions"
+                             ng-click="selectCodeSuggestion(msg)">
+                            <span class="code-suggest-code">{{msg.CODE}}</span>
+                            <span class="code-suggest-city" ng-show="msg.CITY"> · {{msg.CITY}}</span>
+                            <span style="display:block; color:#34495e;">{{msg.TITLE}}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div ng-show="txtMode === 'new'">
+                    <label class="import-label">Название</label>
+                    <input type="text" class="import-input" ng-model="txtTitle"
+                           placeholder="Название послания" />
+
+                    <label class="import-label">Место перевода</label>
+                    <input type="text" class="import-input" ng-model="txtCity"
+                           placeholder="Город / источник перевода" />
+                </div>
+
+                <label class="import-label">Разделитель абзацев</label>
+                <select class="import-select" ng-model="txtParaSep">
+                    <option value="newline">Перевод строки (каждая строка — абзац)</option>
+                    <option value="emptyline">Пустая строка (блоки между пустыми строками)</option>
+                </select>
+
+                <label class="import-label">Текст перевода</label>
+                <textarea class="import-input" ng-model="txtBody" rows="12"
+                          placeholder="Вставьте текст из буфера обмена (Ctrl+V)…"></textarea>
+                <div class="char-counter">Символов: {{txtBody.length}}</div>
+
+                <button class="btn-import-success"
+                        ng-click="importMessagesText()"
+                        ng-disabled="!txtCode || (txtMode==='new' && !txtTitle) || !txtBody || txtImporting">
+                    <span ng-if="!txtImporting">💾 Сохранить послание</span>
+                    <span ng-if="txtImporting">⏳ Сохраняется…</span>
+                </button>
             </div>
 
             <!-- Message log -->
