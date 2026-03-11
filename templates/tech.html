@@ -257,21 +257,31 @@
     .angucomplete-description { font-size: 10px !important; color: #95a5a6 !important; }
 
     /* ---- Songs mode: favorites list --------------------------- */
-    .song-item {
+    .song-name {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 10px 12px;
-        border-radius: 10px;
-        border: 1.5px solid #eef0f3;
+        gap: 12px;
+        width: 97%;
+        padding: 14px 14px 14px 16px;
+        border: 1.5px solid #d0d7e2;
+        border-radius: 12px;
         background: #fff;
-        margin-bottom: 8px;
-        transition: border-color 0.15s;
+        cursor: pointer;
+        margin-bottom: 4px;
+        transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
+        user-select: none;
     }
-    .song-item:hover { border-color: #d0d7e2; }
-    .song-item.box-selected { background: #fff9f0; border-color: #ffd591; }
+    .song-name:hover {
+        border-color: #a0b4c8;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+    }
+    .box-selected {
+        background: #fff8ee !important;
+        border-color: #f0a832 !important;
+        box-shadow: 0 2px 10px rgba(240,168,50,0.18) !important;
+    }
 
-    .text-container { flex: 1; min-width: 0; }
+    .song-name .text-container { flex: 1; min-width: 0; }
     .item-text {
         font-size: 14px;
         font-weight: 600;
@@ -286,19 +296,22 @@
         margin-top: 3px;
     }
 
+    /* Right block: thumb + edit button stacked */
+    .song-right-block {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+    }
+
     .song-image {
-        width: 60px;
-        height: 60px;
+        width: 64px;
+        height: 64px;
         object-fit: cover;
         border-radius: 8px;
         border: 1.5px solid #8fa3b8;
-        cursor: pointer;
-        flex-shrink: 0;
-        transition: transform 0.15s, box-shadow 0.15s;
-    }
-    .song-image:hover {
-        transform: scale(1.06);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.14);
+        display: block;
     }
     /* fullscreen reset */
     .song-image:-webkit-full-screen { width:100vw!important; height:100vh!important; object-fit:contain!important; border-radius:0!important; background:#000; }
@@ -306,19 +319,20 @@
     .song-image:fullscreen          { width:100vw!important; height:100vh!important; object-fit:contain!important; border-radius:0!important; background:#000; }
 
     .btn-edit {
-        padding: 6px 12px;
-        border-radius: 7px;
-        font-size: 12px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 11px;
         font-weight: 500;
-        border: none;
+        border: 1px solid #c9b8e8;
         background: #f3eafb;
         color: #6f42c1;
         cursor: pointer;
         transition: all 0.15s;
         white-space: nowrap;
-        flex-shrink: 0;
+        width: 100%;
+        text-align: center;
     }
-    .btn-edit:hover { background: #e8d5f5; }
+    .btn-edit:hover { background: #e8d5f5; border-color: #a07ad0; }
 
     /* ---- Text chapters (right column, songs mode) ------------- */
     .text-chapter {
@@ -606,28 +620,33 @@
                         <div class="song-name col-xs-12 col-sm-12 col-md-12 col-lg-12"
                              ng-class="{'box-selected': showingSong === listItem}"
                              ng-click="prepareText(listItem.TEXT, listItem)">
+
+                            <!-- Left: title + meta -->
                             <div class="text-container">
                                 <span class="item-text">{{ listItem.dispName }}</span>
-                                <span class="book-name">
-                                {{ listItem.bookName }}
-                                <span class="song-lang-badges">
-                                    <span class="lang-badge lang-ru" ng-if="listItem.TEXT    && listItem.TEXT    != ''">RU</span>
-                                    <span class="lang-badge lang-lt" ng-if="listItem.TEXT_LT && listItem.TEXT_LT != ''">LT</span>
-                                    <span class="lang-badge lang-en" ng-if="listItem.TEXT_EN && listItem.TEXT_EN != ''">EN</span>
-                                </span>
+                                <span class="book-name">{{ listItem.bookName }}</span>
+                                <span class="song-lang-badges" style="margin-top: 4px;">
+                                <span class="lang-badge lang-ru" ng-if="listItem.TEXT    && listItem.TEXT    != ''">RU</span>
+                                <span class="lang-badge lang-lt" ng-if="listItem.TEXT_LT && listItem.TEXT_LT != ''">LT</span>
+                                <span class="lang-badge lang-en" ng-if="listItem.TEXT_EN && listItem.TEXT_EN != ''">EN</span>
                             </span>
                             </div>
-                            <img class="song-image" ng-src="{{ listItem.imageName }}" />
+
+                            <!-- Right: image + edit button -->
+                            <div class="song-right-block" ng-click="$event.stopPropagation()">
+                                <img class="song-image"
+                                     ng-attr-id="{{ 'img' + listItem.ID }}"
+                                     ng-src="{{ listItem.imageName }}" />
+                                <button class="btn-edit"
+                                        ng-click="editFavorite(listItem)">✏️ Ред.</button>
+                            </div>
                         </div>
 
-                        <!-- Action buttons below card -->
-                        <div style="display: flex; justify-content: space-between; margin-top: 5px;"
-                             class="col-xs-12 col-sm-12 col-md-12 col-lg-12">
-                            <button class="btn btn-default btn-sm"
-                                    ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">❌</button>
-                            <button class="btn btn-default btn-sm edit-button"
-                                    style="color: green;"
-                                    ng-click="editFavorite(listItem)">Редактировать</button>
+                        <!-- Delete button below card -->
+                        <div style="margin-top: 3px; margin-bottom: 2px; width: 97%;">
+                            <button class="btn btn-default btn-xs"
+                                    style="color: #c0392b; font-size: 11px;"
+                                    ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)">❌ Удалить</button>
                         </div>
 
                     </div>
