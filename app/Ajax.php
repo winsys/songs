@@ -1169,6 +1169,30 @@ class Ajax
     // КОНЕЦ - Импорт послания (ввод текстом)
     // --------------------------------------------------------
 
+    // --------------------------------------------------------
+    // Поиск посланий по коду (для автодополнения)
+    // Параметры: query
+    // --------------------------------------------------------
+    private static function search_messages_by_code()
+    {
+        $dbh = Info::get('dbh');
+        $query = mysqli_real_escape_string($dbh, trim(self::$args['query'] ?? ''));
+
+        if ($query === '') {
+            return json_encode([]);
+        }
+
+        $list = Info::get('db')->select(
+            "SELECT ID, CODE, TITLE, CITY
+             FROM messages
+             WHERE CODE LIKE '{$query}%' OR CODE LIKE '%{$query}%'
+             ORDER BY CODE
+             LIMIT 20"
+        );
+
+        return json_encode($list);
+    }
+
 
     private static function updateSocket()
     {

@@ -46,6 +46,8 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     $scope.msgLog        = [];
 
     $scope.txtMode      = 'new';
+    $scope.txtCodeSuggestions = [];
+    $scope.txtCodeSearching   = false;
 
     // ─────────────────────────────────────────────────────────
     // Загрузить список сборников
@@ -277,4 +279,42 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
             }
         );
     };
+
+// ─────────────────────────────────────────────────────────
+    // Автодополнение кода послания (режим translate)
+    // ─────────────────────────────────────────────────────────
+    var codeSearchTimer = null;
+
+    $scope.onTxtCodeInput = function () {
+        if ($scope.txtMode !== 'translate' || $scope.txtCode.length < 2) {
+            $scope.txtCodeSuggestions = [];
+            return;
+        }
+        if (codeSearchTimer) $timeout.cancel(codeSearchTimer);
+        codeSearchTimer = $timeout(function () {
+            $scope.txtCodeSearching = true;
+            $http({
+                method: 'POST',
+                url: '/ajax',
+                data: { command: 'search_messages_by_code', query: $scope.txtCode }
+            }).then(function (r) {
+                $scope.txtCodeSearching = false;
+                $scope.txtCodeSuggestions = r.data || [];
+            }, function () {
+                $scope.txtCodeSearching = false;
+            });
+        }, 300);
+    };
+
+    $scope.selectCodeSuggestion = function (msg) {
+        $scope.txtCode = msg.CODE;
+        $scope.txtCodeSuggestions = [];
+    };
+
+    $scope.clearCodeSuggestions = function () {
+        $timeout(function () {
+            $scope.txtCodeSuggestions = [];
+        }, 200);
+    };
+
 });
