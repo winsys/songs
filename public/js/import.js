@@ -45,6 +45,8 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     $scope.msgProgress   = 0;
     $scope.msgLog        = [];
 
+    $scope.txtMode      = 'new';
+
     // ─────────────────────────────────────────────────────────
     // Загрузить список сборников
     // ─────────────────────────────────────────────────────────
@@ -249,6 +251,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                 title:    $scope.txtTitle.trim(),
                 city:     $scope.txtCity.trim(),
                 para_sep: $scope.txtParaSep,
+                mode:     $scope.txtMode,
                 body:     $scope.txtBody
             }
         }).then(
