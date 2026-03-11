@@ -1,8 +1,4 @@
 <style>
-    /* ============================================================
-       LEADER PAGE — design consistent with index.html / login.html
-       ============================================================ */
-
     body {
         background: #f0f2f5;
         min-height: 100vh;
@@ -503,7 +499,7 @@
 
         <!-- Header: Back button + Title -->
         <div class="leader-header">
-            <button class="btn-back" onclick="window.location.href='/index/'+userId">
+            <button class="btn-back" onclick="window.location.href='/index/<?php echo $_SESSION['userId'] ?>'">
                 ← Главная
             </button>
             <div class="leader-title-block">
@@ -603,6 +599,48 @@
 
     </div><!-- /leader-card -->
 </div><!-- /leader-wrapper -->
+
+
+<!-- ============================================================
+     Modal: confirmation dialog (required by leader.js)
+     ============================================================ -->
+<div id="confirmation-dialog">
+    <div class="modal fade confirmation-dialog" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header" style="border-bottom: 1px solid #f0f2f5; padding: 16px 20px;">
+                    <h4 class="modal-title" style="font-size:16px; font-weight:600; color:#2c3e50;">
+                        {{ confirmationDialogConfig.title }}
+                    </h4>
+                </div>
+                <div class="modal-body" style="padding: 16px 20px;">
+                    <p style="font-size: 14px; color: #5a6272;">
+                        <strong>{{ confirmationDialogConfig.message }}</strong>
+                    </p>
+                </div>
+                <div class="modal-footer" style="border-top: 1px solid #f0f2f5; padding: 12px 20px; display:flex; gap:8px; justify-content:flex-end;">
+                    <button type="button"
+                            class="btn-select"
+                            style="background:#f4f5f7; color:#5a6272;"
+                            data-dismiss="modal">Отмена</button>
+                    <button type="button"
+                            ng-repeat="button in confirmationDialogConfig.buttons"
+                            ng-click="button.action()"
+                            class="btn-select"
+                            style="background:#fdecea; color:#c0392b; border:1.5px solid #fad7d4;">
+                        {{ button.label }}
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/js/leader.js?v=10027" type="text/javascript"></script>
+
+<script type="text/javascript">
+    function forceFullScreen(){}
+</script>
 
 
 <!-- ============================================================
