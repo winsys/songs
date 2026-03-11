@@ -9,6 +9,21 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     // ── Общее ────────────────────────────────────────────────
     $scope.tab = 'songs';
 
+    // ── Послания ─────────────────────────────────────────────
+    $scope.msgLang       = 'ru';
+    $scope.selectedMsgFile = null;
+    $scope.msgImporting  = false;
+    $scope.msgProgress   = 0;
+    $scope.msgLog        = [];
+
+    // ── Послания (ввод текстом) ───────────────────────────────
+    $scope.txtCode      = '';
+    $scope.txtTitle     = '';
+    $scope.txtCity      = '';
+    $scope.txtBody      = '';
+    $scope.txtParaSep   = 'emptyline';
+    $scope.txtImporting = false;
+
     // ── Сборники ─────────────────────────────────────────────
     $scope.songLists      = [];
     $scope.songListId     = '';
@@ -212,6 +227,50 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                 }
             },
             function () { $scope.msgImporting = false; msgLog('error', '❌ Ошибка соединения'); }
+        );
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Импорт послания (ввод текстом вручную)
+    // ─────────────────────────────────────────────────────────
+    $scope.importMessagesText = function () {
+        if (!$scope.txtCode || !$scope.txtTitle || !$scope.txtBody) return;
+        $scope.txtImporting = true;
+        $scope.msgLog = [];
+        msgLog('ok', 'Сохраняем послание [' + $scope.txtCode + ']…');
+
+        $http({
+            method: 'POST',
+            url: '/ajax',
+            data: {
+                command:  'import_messages_text',
+                lang:     $scope.msgLang,
+                code:     $scope.txtCode.trim(),
+                title:    $scope.txtTitle.trim(),
+                city:     $scope.txtCity.trim(),
+                para_sep: $scope.txtParaSep,
+                body:     $scope.txtBody
+            }
+        }).then(
+            function (r) {
+                $scope.txtImporting = false;
+                var d = r.data;
+                if (d.status === 'success') {
+                    msgLog('ok', '✅ ' + d.message);
+                    if (d.action === 'inserted') {
+                        $scope.txtCode = '';
+                        $scope.txtTitle = '';
+                        $scope.txtCity = '';
+                        $scope.txtBody = '';
+                    }
+                } else {
+                    msgLog('error', '❌ ' + (d.message || 'Ошибка сервера'));
+                }
+            },
+            function () {
+                $scope.txtImporting = false;
+                msgLog('error', '❌ Ошибка соединения');
+            }
         );
     };
 });
