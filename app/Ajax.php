@@ -1268,6 +1268,184 @@ class Ajax
     }
 
 
+
+
+
+    // ============================================================
+    // ЯЗЫКИ
+    // ============================================================
+
+    // --------------------------------------------------------
+    // Получить список языков
+    // Доступно всем авторизованным пользователям.
+    // Возвращает массив: [{code, label, col_suffix, sort_order, is_default}, ...]
+    // --------------------------------------------------------
+    private static function get_languages()
+    {
+        $langs = Info::get('db')->select(
+            "SELECT code, label, col_suffix, sort_order, is_default
+             FROM languages
+             ORDER BY sort_order ASC"
+        );
+        return json_encode($langs);
+    }
+
+    // --------------------------------------------------------
+    // Добавить новый язык
+    // Только admin.
+    // Параметры: code (напр. "de"), label (напр. "DE")
+    //
+    // Автоматически:
+    //   1. Проверяет корректность кода (только a-z, 2-5 символов)
+    //   2. Вычисляет col_suffix = '_' + strtoupper(code)
+    //   3. Добавляет запись в таблицу languages
+    //   4. ALTER TABLE song_list ADD COLUMN TEXT_DE LONGTEXT NULL
+    //   5. ALTER TABLE messages  ADD COLUMN TEXT_DE LONGTEXT NULL
+    // --------------------------------------------------------
+    private static function add_language()
+    {
+        if (!Security::isAdmin()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+
+        $dbh = Info::get('dbh');
+        $db = Info::get('db');
+        $code = strtolower(trim(self::$args['code'] ?? ''));
+        $label = strtoupper(trim(self::$args['label'] ?? ''));
+
+        // --- Валидация кода ---
+        if (!preg_match('/^[a-z]{2,5}$/', $code)) {
+            return json_encode([
+                'status' => 'error',
+                'message' => 'Код языка должен содержать 2–5 латинских букв (напр. "de", "pl")'
+            ]);
+        }
+        if (empty($label)) {
+            return json_encode(['status' => 'error', 'message' => 'Метка языка не может быть пустой']);
+        }
+
+        // --- Проверка на дубликат ---
+        $existing = $db->get(
+            "SELECT code FROM languages WHERE code = '" . mysqli_real_escape_string($dbh, $code) . "'"
+        );
+        if ($existing) {
+            return json_encode(['status' => 'error', 'message' => "Язык «{$code}» уже существует"]);
+        }
+
+        // --- Вычислить суффикс и имя колонки ---
+        $colSuffix = '_' . strtoupper($code);          // напр. _DE
+        $colName = 'TEXT' . $colSuffix;               // напр. TEXT_DE
+        $labelEsc = mysqli_real_escape_string($dbh, $label);
+        $codeEsc = mysqli_real_escape_string($dbh, $code);
+        $colNameEsc = mysqli_real_escape_string($dbh, $colName);
+
+        // --- Определить следующий sort_order ---
+        $maxOrder = $db->get("SELECT MAX(sort_order) AS m FROM languages");
+        $sortOrder = ($maxOrder && $maxOrder['m'] !== null) ? (int)$maxOrder['m'] + 1 : 1;
+
+        // --- ALTER TABLE: добавить колонку в song_list ---
+        $tables = ['song_list', 'messages'];
+        foreach ($tables as $table) {
+            // Проверить, нет ли уже такой колонки (защита от повторного запуска)
+            $colExists = $db->get(
+                "SELECT COLUMN_NAME
+                 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME   = '{$table}'
+                   AND COLUMN_NAME  = '{$colName}'"
+            );
+            if (!$colExists) {
+                $db->exec("ALTER TABLE `{$table}` ADD COLUMN `{$colName}` LONGTEXT NULL");
+            }
+        }
+
+        // --- Вставить запись в languages ---
+        $db->exec(
+            "INSERT INTO languages (code, label, col_suffix, sort_order, is_default)
+             VALUES ('{$codeEsc}', '{$labelEsc}', '{$colSuffix}', {$sortOrder}, 0)"
+        );
+
+        return json_encode([
+            'status' => 'success',
+            'message' => "Язык «{$label}» добавлен. Колонка {$colName} создана в song_list и messages."
+        ]);
+    }
+
+    // --------------------------------------------------------
+    // Удалить язык
+    // Только admin + требует спецпароль из config.php.
+    //
+    // Параметры: code, delete_password
+    //
+    // Защиты:
+    //   - нельзя удалить язык с is_default = 1 (русский)
+    //   - проверяется спецпароль из config['lang_delete_password']
+    //   - DROP COLUMN из song_list и messages
+    // --------------------------------------------------------
+    private static function delete_language()
+    {
+        if (!Security::isAdmin()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+
+        $dbh = Info::get('dbh');
+        $db = Info::get('db');
+        $code = strtolower(trim(self::$args['code'] ?? ''));
+        $givenPassword = trim(self::$args['delete_password'] ?? '');
+        $config = Info::get('config');
+
+        // --- Проверить спецпароль ---
+        $correctPassword = $config['lang_delete_password'] ?? '';
+        if ($correctPassword === '' || $givenPassword !== $correctPassword) {
+            return json_encode(['status' => 'error', 'message' => 'Неверный пароль удаления']);
+        }
+
+        // --- Найти язык ---
+        $codeEsc = mysqli_real_escape_string($dbh, $code);
+        $lang = $db->get("SELECT * FROM languages WHERE code = '{$codeEsc}'");
+        if (!$lang) {
+            return json_encode(['status' => 'error', 'message' => "Язык «{$code}» не найден"]);
+        }
+
+        // --- Запретить удаление языка по умолчанию ---
+        if ((int)$lang['is_default'] === 1) {
+            return json_encode([
+                'status' => 'error',
+                'message' => "Нельзя удалить язык по умолчанию («{$code}»). Сначала смените флаг is_default."
+            ]);
+        }
+
+        // --- Вычислить имя колонки ---
+        $colSuffix = $lang['col_suffix'];              // напр. _DE
+        $colName = 'TEXT' . $colSuffix;              // напр. TEXT_DE
+
+        // --- DROP COLUMN из song_list и messages ---
+        $tables = ['song_list', 'messages'];
+        foreach ($tables as $table) {
+            $colExists = $db->get(
+                "SELECT COLUMN_NAME
+                 FROM information_schema.COLUMNS
+                 WHERE TABLE_SCHEMA = DATABASE()
+                   AND TABLE_NAME   = '{$table}'
+                   AND COLUMN_NAME  = '{$colName}'"
+            );
+            if ($colExists) {
+                $db->exec("ALTER TABLE `{$table}` DROP COLUMN `{$colName}`");
+            }
+        }
+
+        // --- Удалить запись из languages ---
+        $db->exec("DELETE FROM languages WHERE code = '{$codeEsc}'");
+
+        return json_encode([
+            'status' => 'success',
+            'message' => "Язык «{$lang['label']}» удалён. Колонка {$colName} удалена из song_list и messages."
+        ]);
+    }
+
+
+
+
     private static function updateSocket()
     {
         $err1 = '';
@@ -1406,7 +1584,7 @@ class Ajax
         return json_encode(['status' => 'success']);
     }
 
-// ============================================================
+    // ============================================================
     // ПОЛЬЗОВАТЕЛИ ГРУППЫ
     // ============================================================
 
@@ -1763,4 +1941,6 @@ class Ajax
         self::updateSocket();
         return json_encode(['status' => 'success', 'path' => $path, 'name' => $name]);
     }
+
+
 }

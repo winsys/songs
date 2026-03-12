@@ -326,6 +326,82 @@
         border-color: #1a6db5;
     }
 
+    /* ── Languages tab ───────────────────────────────────────── */
+    .lang-list {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+        margin-bottom: 20px;
+    }
+    .lang-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #f8f9fa;
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        padding: 10px 14px;
+    }
+    .lang-badge-big {
+        display: inline-block;
+        min-width: 38px;
+        padding: 4px 10px;
+        background: #1a6db5;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        border-radius: 6px;
+        text-align: center;
+        letter-spacing: 0.5px;
+    }
+    .lang-badge-default {
+        font-size: 10px;
+        color: #27ae60;
+        font-weight: 600;
+        margin-left: 4px;
+    }
+    .lang-col-hint {
+        flex: 1;
+        font-size: 11px;
+        color: #aab;
+        font-family: monospace;
+    }
+    .btn-lang-delete {
+        padding: 5px 12px;
+        border-radius: 7px;
+        font-size: 11px;
+        font-weight: 600;
+        border: 1.5px solid #e74c3c;
+        background: #fff5f5;
+        color: #c0392b;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .btn-lang-delete:hover { background: #fde8e8; }
+    .btn-lang-delete:disabled { opacity: 0.4; cursor: default; }
+
+    .lang-delete-panel {
+        background: #fff5f5;
+        border: 1.5px solid #f5c6c6;
+        border-radius: 10px;
+        padding: 14px 16px;
+        margin-top: -4px;
+        margin-bottom: 4px;
+    }
+    .lang-delete-panel p {
+        font-size: 12px;
+        color: #7f3030;
+        margin: 0 0 10px;
+    }
+    .lang-delete-confirm-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .lang-delete-confirm-row input {
+        flex: 1;
+    }
+
 </style>
 
 <div ng-controller="ImportCtrl">
@@ -341,8 +417,9 @@
 
         <!-- Tab bar -->
         <div class="tab-bar">
-            <button class="tab-btn" ng-class="{active: tab==='songs'}" ng-click="tab='songs'">🎵 Сборники песен</button>
+            <button class="tab-btn" ng-class="{active: tab==='songs'}"    ng-click="tab='songs'">🎵 Сборники песен</button>
             <button class="tab-btn" ng-class="{active: tab==='messages'}" ng-click="tab='messages'">📖 Послания</button>
+            <button class="tab-btn" ng-class="{active: tab==='languages'}" ng-click="tab='languages'; loadLanguages()">🌐 Языки</button>
         </div>
 
         <!-- ===================== SONGS TAB ===================== -->
@@ -377,10 +454,8 @@
             <!-- 2. Язык -->
             <div class="import-section" ng-show="songListId">
                 <h4>2. Язык импорта</h4>
-                <select class="import-select" ng-model="songLang">
-                    <option value="ru">Русский (TEXT)</option>
-                    <option value="lt">Литовский (TEXT_LT)</option>
-                    <option value="en">Английский (TEXT_EN)</option>
+                <select class="import-select" ng-model="songLang"
+                        ng-options="l.code as (l.label + ' (TEXT' + l.col_suffix + ')') for l in langList">
                 </select>
             </div>
 
@@ -444,10 +519,8 @@
             <!-- 1. Язык -->
             <div class="import-section">
                 <h4>1. Язык импорта</h4>
-                <select class="import-select" ng-model="msgLang">
-                    <option value="ru">Русский (TEXT)</option>
-                    <option value="lt">Литовский (TEXT_LT)</option>
-                    <option value="en">Английский (TEXT_EN)</option>
+                <select class="import-select" ng-model="msgLang"
+                        ng-options="l.code as (l.label + ' (TEXT' + l.col_suffix + ')') for l in langList">
                 </select>
             </div>
 
@@ -556,6 +629,111 @@
             </div>
 
         </div><!-- /messages tab -->
+
+        <!-- ===================== LANGUAGES TAB ===================== -->
+        <div ng-show="tab==='languages'">
+
+            <!-- Текущие языки -->
+            <div class="import-section">
+                <h4>Зарегистрированные языки</h4>
+
+                <div ng-if="langLoading" style="color:#aab; font-size:13px; padding:8px 0;">⏳ Загрузка…</div>
+
+                <div class="lang-list" ng-if="!langLoading">
+                    <div ng-repeat="lang in langList">
+
+                        <!-- Строка языка -->
+                        <div class="lang-row">
+                            <span class="lang-badge-big">{{lang.label}}</span>
+                            <span style="font-size:13px; color:#2c3e50; font-weight:500;">{{lang.code}}</span>
+                            <span class="lang-badge-default" ng-if="lang.is_default == '1'">✔ по умолчанию</span>
+                            <span class="lang-col-hint">TEXT{{lang.col_suffix}}</span>
+                            <button class="btn-lang-delete"
+                                    ng-if="lang.is_default != '1'"
+                                    ng-click="toggleDeletePanel(lang)">
+                                🗑 Удалить
+                            </button>
+                            <span ng-if="lang.is_default == '1'"
+                                  style="font-size:11px; color:#aab; padding: 5px 12px;">защищён</span>
+                        </div>
+
+                        <!-- Панель подтверждения удаления -->
+                        <div class="lang-delete-panel" ng-if="langDeleteTarget === lang.code">
+                            <p>⚠️ Удаление языка <strong>{{lang.label}} ({{lang.code}})</strong> необратимо удалит
+                                колонку <code>TEXT{{lang.col_suffix}}</code> из таблиц <code>song_list</code>
+                                и <code>messages</code> со всеми данными.</p>
+                            <div class="lang-delete-confirm-row">
+                                <input type="password"
+                                       class="import-input"
+                                       ng-model="langDeletePassword"
+                                       placeholder="Введите пароль удаления…"
+                                       style="margin-bottom:0;" />
+                                <button class="btn-import-primary"
+                                        style="background:#e74c3c; border-color:#c0392b; white-space:nowrap;"
+                                        ng-click="deleteLanguage(lang)"
+                                        ng-disabled="!langDeletePassword || langDeleting">
+                                    <span ng-if="!langDeleting">🗑 Подтвердить</span>
+                                    <span ng-if="langDeleting">⏳ Удаляем…</span>
+                                </button>
+                                <button class="btn-import-success"
+                                        style="white-space:nowrap;"
+                                        ng-click="langDeleteTarget=null; langDeletePassword=''">
+                                    Отмена
+                                </button>
+                            </div>
+                        </div>
+
+                    </div><!-- /ng-repeat lang -->
+                </div><!-- /lang-list -->
+            </div>
+
+            <!-- Добавить язык -->
+            <div class="import-section">
+                <h4>Добавить новый язык</h4>
+                <p style="font-size:12px; color:#7f8c8d; margin-bottom:14px;">
+                    Код — 2–5 латинских букв в нижнем регистре (напр. <code>de</code>).
+                    Метка — то, что будет отображаться на кнопке (напр. <code>DE</code>).
+                    Колонка <code>TEXT_DE</code> будет добавлена автоматически.
+                </p>
+
+                <div style="display:flex; gap:10px; margin-bottom:12px;">
+                    <div style="flex:1;">
+                        <label class="import-label">Код</label>
+                        <input type="text"
+                               class="import-input"
+                               ng-model="newLangCode"
+                               placeholder="de"
+                               maxlength="5"
+                               style="font-family:monospace; text-transform:lowercase;" />
+                    </div>
+                    <div style="flex:1;">
+                        <label class="import-label">Метка кнопки</label>
+                        <input type="text"
+                               class="import-input"
+                               ng-model="newLangLabel"
+                               placeholder="DE"
+                               maxlength="8"
+                               style="font-family:monospace; text-transform:uppercase;" />
+                    </div>
+                </div>
+
+                <button class="btn-import-success"
+                        ng-click="addLanguage()"
+                        ng-disabled="!newLangCode || !newLangLabel || langAdding">
+                    <span ng-if="!langAdding">➕ Добавить язык</span>
+                    <span ng-if="langAdding">⏳ Добавляем…</span>
+                </button>
+            </div>
+
+            <!-- Лог операций с языками -->
+            <div class="import-section" ng-show="langLog.length">
+                <h4>Протокол</h4>
+                <div class="import-log" id="langLogEl">
+                    <div ng-repeat="entry in langLog" ng-class="'log-' + entry.type">{{entry.msg}}</div>
+                </div>
+            </div>
+
+        </div><!-- /languages tab -->
 
         <div style="margin-bottom:80px;"></div>
     </div>

@@ -51,13 +51,9 @@ app.controller('Tech', function ($scope, $http, $timeout)
     // ── Page mode ─────────────────────────────────────────────
     $scope.pageMode = 'songs';  // 'songs' | 'bible' | 'messages'
 
-    // ── Language selection ────────────────────────────────────
-    $scope.languages = {
-        ru: true,
-        lt: false,
-        en: false
-    };
-
+// ── Language selection ────────────────────────────────────
+    $scope.languages = {};   // заполняется динамически из get_languages
+    $scope.langList  = [];   // [{code, label, col_suffix, is_default}, ...]
 
     // ==========================================================
     // MODE SWITCHING
@@ -83,19 +79,146 @@ app.controller('Tech', function ($scope, $http, $timeout)
     // ==========================================================
 
     $scope.toggleLanguage = function(lang) {
-        $scope.languages[lang] = !$scope.languages[lang];
-        // Keep at least one language enabled
-        if (!$scope.languages.ru && !$scope.languages.lt && !$scope.languages.en) {
-            $scope.languages.ru = true;
+        // Найти объект языка в langList
+        var langObj = null;
+        for (var i = 0; i < $scope.langList.length; i++) {
+            if ($scope.langList[i].code === lang) { langObj = $scope.langList[i]; break; }
         }
-        // Refresh display
+
+        // Если язык недоступен в данном контексте — не включать
+        if (!$scope.languages[lang] && langObj && !$scope.isLangAvailable(langObj)) return;
+
+        $scope.languages[lang] = !$scope.languages[lang];
+
+        // Хотя бы один язык должен быть включён.
+        // Фолбэк — язык с is_default=1, иначе первый в списке.
+        var anyActive = false;
+        for (var k in $scope.languages) {
+            if ($scope.languages[k]) { anyActive = true; break; }
+        }
+        if (!anyActive) {
+            var fallback = null;
+            for (var i = 0; i < $scope.langList.length; i++) {
+                if ($scope.langList[i].is_default == '1') { fallback = $scope.langList[i].code; break; }
+            }
+            if (!fallback && $scope.langList.length > 0) fallback = $scope.langList[0].code;
+            if (fallback) $scope.languages[fallback] = true;
+        }
+
+        // Обновить отображение (эти строки остаются без изменений)
         if ($scope.pageMode === 'songs' && $scope.showingSong) {
-            splitText($scope.showingSong.TEXT, $scope.showingSong.TEXT_LT, $scope.showingSong.TEXT_EN);
+            splitText($scope.showingSong);
         }
         if ($scope.pageMode === 'bible' && $scope.bibleVerses.length > 0) {
             $scope.biblePreparedVerses = prepareBibleVerses($scope.bibleVerses);
         }
+        if ($scope.pageMode === 'messages' && $scope.showingMessage) {
+            prepareMessageText($scope.showingMessage);
+        }
     };
+
+    // ── Хелперы для динамических языков ──────────────────────
+
+    /** Возвращает языки из langList, которые сейчас включены. */
+    function getActiveLangs() {
+        return $scope.langList.filter(function(l) {
+            return $scope.languages[l.code];
+        });
+    }
+
+    /**
+     * Проверяет, есть ли данные для языка в текущем контексте.
+     * Используется для ng-disabled на кнопках языков.
+     *
+     * Правила:
+     *   songs   — если песня выбрана: есть ли текст в её колонке?
+     *             если не выбрана: доступны все (нечего ограничивать)
+     *   bible   — если стихи загружены: хотя бы один стих с текстом?
+     *             если нет: доступны все
+     *   messages — если послание выбрано (с полными данными): есть ли текст?
+     *              если нет: доступны все
+     *
+     * @param  {Object} lang  — элемент из langList {code, col_suffix, ...}
+     * @return {boolean}      true = кнопка активна, false = заблокирована
+     */
+    $scope.isLangAvailable = function(lang) {
+        var field = 'TEXT' + lang.col_suffix;   // 'TEXT', 'TEXT_LT', 'TEXT_DE'...
+
+        if ($scope.pageMode === 'songs') {
+            if (!$scope.showingSong) return true;
+            return !!($scope.showingSong[field] && $scope.showingSong[field].trim());
+        }
+
+        if ($scope.pageMode === 'bible') {
+            if (!$scope.bibleVerses || $scope.bibleVerses.length === 0) return true;
+            // Хватит одного стиха с данными
+            for (var i = 0; i < $scope.bibleVerses.length; i++) {
+                if ($scope.bibleVerses[i][field]) return true;
+            }
+            return false;
+        }
+
+        if ($scope.pageMode === 'messages') {
+            // selectedMessage обновляется полными данными в selectMessage()
+            if (!$scope.selectedMessage || !$scope.selectedMessage[field]) return true;
+            return !!$scope.selectedMessage[field].trim();
+        }
+
+        return true;   // неизвестный режим — не блокируем
+    };
+
+
+    /**
+     * Имя текстовой колонки для языка: '' → 'TEXT', '_LT' → 'TEXT_LT'.
+     * Работает для song_list (TEXT / TEXT_LT / TEXT_EN / TEXT_DE…)
+     * и для bible_verses (те же имена).
+     */
+    function textCol(lang) {
+        return 'TEXT' + lang.col_suffix;
+    }
+
+    /**
+     * Имя колонки названия для языка: '' → 'NAME', '_LT' → 'NAME_LT'.
+     * Нужно для bible_books.
+     */
+    function nameCol(lang) {
+        return 'NAME' + lang.col_suffix;
+    }
+
+    function loadLanguages() {
+        $http({ method: 'POST', url: '/ajax', data: { command: 'get_languages' } }).then(
+            function (r) {
+                var list = r.data || [];
+                $scope.langList = list;
+
+                // Найти язык по умолчанию
+                var defaultCode = null;
+                for (var i = 0; i < list.length; i++) {
+                    if (list[i].is_default == '1') { defaultCode = list[i].code; break; }
+                }
+                if (!defaultCode && list.length > 0) defaultCode = list[0].code;
+
+                // Инициализировать $scope.languages:
+                //   - язык по умолчанию включён,
+                //   - остальные выключены,
+                //   - уже существующие значения сохраняются (при перезагрузке).
+                var newLangs = {};
+                for (var j = 0; j < list.length; j++) {
+                    var code = list[j].code;
+                    // Если уже было значение — сохранить; иначе включить только дефолтный
+                    if (code in $scope.languages) {
+                        newLangs[code] = $scope.languages[code];
+                    } else {
+                        newLangs[code] = (code === defaultCode);
+                    }
+                }
+                $scope.languages = newLangs;
+            },
+            function () {
+                console.error('tech.js: не удалось загрузить список языков');
+            }
+        );
+    }
 
 
     // ==========================================================
@@ -127,32 +250,56 @@ app.controller('Tech', function ($scope, $http, $timeout)
             });
     };
 
-    function splitText(src, srcLt, srcEn){
-        if(src){
-            var ruChapters = src.split("\r\n");
-            var ltChapters = srcLt ? srcLt.split("\r\n") : [];
-            var enChapters = srcEn ? srcEn.split("\r\n") : [];
+    /**
+     * Строит $scope.preparedChapters для выбранной песни.
+     * Итерирует по активным языкам из langList — без хардкода.
+     *
+     * @param {Object} song  — объект из favorites (содержит TEXT, TEXT_LT, TEXT_DE…)
+     */
+    function splitText(song) {
+        $scope.preparedChapters = [];
+        if (!song) return;
 
-            $scope.preparedChapters = [];
-            angular.forEach(ruChapters, function(value, key){
-                var verseParts = [];
-                if($scope.languages.ru && value) {
-                    verseParts.push(value);
-                }
-                if($scope.languages.lt && ltChapters[key]) {
-                    verseParts.push(ltChapters[key]);
-                }
-                if($scope.languages.en && enChapters[key]) {
-                    verseParts.push(enChapters[key]);
-                }
-                var combinedVerse = verseParts.join('\r\n- - - - - - - -\r\n');
-                $scope.preparedChapters[key] = combinedVerse + '\n(' + key + ')';
-            });
-        } else {
-            $scope.preparedChapters = [];
+        // Язык по умолчанию задаёт «скелет» куплетов (количество и порядок).
+        var defaultLang = null;
+        for (var i = 0; i < $scope.langList.length; i++) {
+            if ($scope.langList[i].is_default == '1') { defaultLang = $scope.langList[i]; break; }
         }
-        return $scope.preparedChapters;
+        if (!defaultLang && $scope.langList.length > 0) defaultLang = $scope.langList[0];
+        if (!defaultLang) return;
+
+        var baseField  = textCol(defaultLang);
+        var baseText   = song[baseField] || '';
+        if (!baseText) {
+            // Фолбэк: попробовать первый активный язык с непустым текстом
+            var activeLangs = getActiveLangs();
+            for (var j = 0; j < activeLangs.length; j++) {
+                var t = song[textCol(activeLangs[j])];
+                if (t) { baseText = t; defaultLang = activeLangs[j]; baseField = textCol(activeLangs[j]); break; }
+            }
+        }
+        if (!baseText) return;
+
+        var baseVerses = baseText.split('\r\n');
+
+        baseVerses.forEach(function(baseVerse, idx) {
+            if (!baseVerse.trim()) return;
+
+            var parts = [];
+            getActiveLangs().forEach(function(lang) {
+                var field  = textCol(lang);
+                var verses = song[field] ? song[field].split('\r\n') : [];
+                var v = verses[idx];
+                if (v && v.trim()) parts.push(v);
+            });
+
+            if (parts.length === 0) return;
+
+            var combined = parts.join('\r\n- - - - - - - -\r\n');
+            $scope.preparedChapters.push(combined + '\n(' + idx + ')');
+        });
     }
+
 
     $scope.reloadFavorites = function () {
         $http({ method: "POST", url: "/ajax", data: { command: 'get_favorites_with_text' }}).then(
@@ -182,7 +329,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
             });
         } else {
             $scope.showingSong = favoriteItem;
-            splitText(aText, favoriteItem.TEXT_LT, favoriteItem.TEXT_EN);
+            splitText(favoriteItem);
             $scope.showingChapter = null;
             $scope.selectedChapters = [];
             $http({ method: "POST",
@@ -215,30 +362,23 @@ app.controller('Tech', function ($scope, $http, $timeout)
                     $scope.showingChapter = null;
                 });
             } else {
-                var ruChapters = $scope.showingSong.TEXT ? $scope.showingSong.TEXT.split("\r\n") : [];
-                var ltChapters = $scope.showingSong.TEXT_LT ? $scope.showingSong.TEXT_LT.split("\r\n") : [];
-                var enChapters = $scope.showingSong.TEXT_EN ? $scope.showingSong.TEXT_EN.split("\r\n") : [];
-                var languageParts = [];
-
                 var verseIndices = $scope.selectedChapters.map(function(chapter) {
                     var match = chapter.match(/\n\((\d+)\)$/);
                     return match ? parseInt(match[1]) : -1;
                 }).filter(function(idx) { return idx >= 0; });
 
-                if ($scope.languages.ru) {
-                    var ruVerses = verseIndices.map(function(idx) { return ruChapters[idx]; }).filter(function(v) { return v; });
-                    if (ruVerses.length > 0) languageParts.push(ruVerses.join('\r\n'));
-                }
-                if ($scope.languages.lt) {
-                    var ltVerses = verseIndices.map(function(idx) { return ltChapters[idx]; }).filter(function(v) { return v; });
-                    if (ltVerses.length > 0) languageParts.push(ltVerses.join('\r\n'));
-                }
-                if ($scope.languages.en) {
-                    var enVerses = verseIndices.map(function(idx) { return enChapters[idx]; }).filter(function(v) { return v; });
-                    if (enVerses.length > 0) languageParts.push(enVerses.join('\r\n'));
-                }
+                var languageParts = [];
+                getActiveLangs().forEach(function(lang) {
+                    var field    = textCol(lang);
+                    var chapters = $scope.showingSong[field] ? $scope.showingSong[field].split('\r\n') : [];
+                    var verses   = verseIndices
+                        .map(function(idx) { return chapters[idx]; })
+                        .filter(function(v) { return v; });
+                    if (verses.length > 0) languageParts.push(verses.join('\r\n'));
+                });
 
                 var combinedText = languageParts.join('\r\n- - - - - - - -\r\n');
+
                 $http({ method: "POST",
                     url: "/ajax",
                     data: { command: 'set_text',
@@ -634,21 +774,13 @@ app.controller('Tech', function ($scope, $http, $timeout)
     function prepareBibleVerses(verses) {
         var result = [];
         angular.forEach(verses, function(verse, idx) {
-            var parts = [];
+            var parts    = [];
             var verseNum = verse.VERSE_NUM;
-
-            if ($scope.languages.ru && verse.TEXT) {
-                parts.push(verseNum + '. ' + verse.TEXT);
-            }
-            if ($scope.languages.lt && verse.TEXT_LT) {
-                parts.push(verseNum + '. ' + verse.TEXT_LT);
-            }
-            if ($scope.languages.en && verse.TEXT_EN) {
-                parts.push(verseNum + '. ' + verse.TEXT_EN);
-            }
-
-            if (parts.length === 0) return; // skip empty verses
-
+            getActiveLangs().forEach(function(lang) {
+                var field = textCol(lang);
+                if (verse[field]) parts.push(verseNum + '. ' + verse[field]);
+            });
+            if (parts.length === 0) return;
             var combined = parts.join('\r\n- - - - - - - -\r\n');
             result.push(combined + '\n(' + idx + ')');
         });
@@ -656,22 +788,33 @@ app.controller('Tech', function ($scope, $http, $timeout)
     }
 
     /**
-     * Get book display name based on active languages.
+     * Get a book display name based on active languages.
      */
     $scope.getBibleBookName = function(book) {
         if (!book) return '';
-        if ($scope.languages.lt && book.NAME_LT) return book.NAME_LT;
-        if ($scope.languages.en && book.NAME_EN) return book.NAME_EN;
-        return book.NAME;
+        // Перебираем активные языки в порядке sort_order.
+        // Первый не-русский (col_suffix != '') с заполненным полем победит.
+        // Если ничего нет — вернём базовое NAME.
+        var active = getActiveLangs();
+        for (var i = 0; i < active.length; i++) {
+            var lang  = active[i];
+            if (lang.col_suffix === '') continue;           // пропустить дефолтный язык
+            var field = nameCol(lang);
+            if (book[field]) return book[field];
+        }
+        return book.NAME || '';
     };
 
     /**
      * Get verse display text for search results.
      */
     $scope.getBibleVerseDisplay = function(verse) {
-        if ($scope.languages.ru && verse.TEXT) return verse.TEXT;
-        if ($scope.languages.lt && verse.TEXT_LT) return verse.TEXT_LT;
-        if ($scope.languages.en && verse.TEXT_EN) return verse.TEXT_EN;
+        // Вернуть текст первого активного языка с непустым полем.
+        var active = getActiveLangs();
+        for (var i = 0; i < active.length; i++) {
+            var v = verse[textCol(active[i])];
+            if (v) return v;
+        }
         return verse.TEXT || '';
     };
 
@@ -726,21 +869,24 @@ app.controller('Tech', function ($scope, $http, $timeout)
             return match ? parseInt(match[1]) : -1;
         }).filter(function(idx) { return idx >= 0; });
 
-        var ruParts = [], ltParts = [], enParts = [];
+        var langBuckets = {};
+        getActiveLangs().forEach(function(lang) { langBuckets[lang.code] = []; });
 
         verseIndices.forEach(function(idx) {
             var verse = $scope.bibleVerses[idx];
             if (!verse) return;
             var num = verse.VERSE_NUM;
-            if ($scope.languages.ru && verse.TEXT)    ruParts.push(num + '. ' + verse.TEXT);
-            if ($scope.languages.lt && verse.TEXT_LT) ltParts.push(num + '. ' + verse.TEXT_LT);
-            if ($scope.languages.en && verse.TEXT_EN) enParts.push(num + '. ' + verse.TEXT_EN);
+            getActiveLangs().forEach(function(lang) {
+                var field = textCol(lang);
+                if (verse[field]) langBuckets[lang.code].push(num + '. ' + verse[field]);
+            });
         });
 
         var languageParts = [];
-        if (ruParts.length > 0) languageParts.push(ruParts.join('\r\n'));
-        if (ltParts.length > 0) languageParts.push(ltParts.join('\r\n'));
-        if (enParts.length > 0) languageParts.push(enParts.join('\r\n'));
+        getActiveLangs().forEach(function(lang) {
+            var parts = langBuckets[lang.code];
+            if (parts.length > 0) languageParts.push(parts.join('\r\n'));
+        });
 
         return languageParts.join('\r\n- - - - - - - -\r\n');
     }
@@ -1271,6 +1417,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
     // ==========================================================
 
     $scope.loadSongLists();
+    loadLanguages();
     $scope.reloadFavorites();
     $scope.reloadSongList();
 
