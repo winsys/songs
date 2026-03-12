@@ -4,6 +4,27 @@ class Ajax
 {
     private static $args;
 
+
+    /**
+     * AJAX ENGINE
+     */
+    public static function execute($cmd)
+    {
+        $command = $cmd['command'];
+        if( !isset($_SESSION['userId']) ){
+            return json_encode(array('status'=>false, 'message'=>'User not logged in!'));
+        }
+
+        if (is_callable(array('Ajax', $command))){
+            self::$args = $cmd;
+            $data = self::$command();
+            return $data;
+        }else{
+            return json_encode(array('status'=>false, 'message'=>Info::get('db')->errors()));
+        }
+    }
+
+
     private static function get_song_list()
     {
         $listId = (int)self::$args['list_id'];
@@ -22,9 +43,26 @@ class Ajax
         return json_encode($list);
     }
 
+    // Новая версия учитывает sort_order = max(оба списка) + 1.
     private static function add_to_favorites()
     {
-        Info::get('db')->exec("insert into favorites (groupId, SONGID) values ({$_SESSION['userId']},".mysqli_escape_string(Info::get('dbh'), self::$args['id']).")");
+        $dbh    = Info::get('dbh');
+        $userId = (int)$_SESSION['userId'];
+        $songId = mysqli_real_escape_string($dbh, self::$args['id']);
+
+        // Общий max sort_order по обоим спискам
+        $maxSong  = Info::get('db')->get(
+            "SELECT IFNULL(MAX(sort_order), 0) AS m FROM favorites WHERE groupId = {$userId}"
+        );
+        $maxMedia = Info::get('db')->get(
+            "SELECT IFNULL(MAX(sort_order), 0) AS m FROM tech_media_favorites WHERE group_id = {$userId}"
+        );
+        $sortOrder = max((int)$maxSong['m'], (int)$maxMedia['m']) + 1;
+
+        Info::get('db')->exec(
+            "INSERT INTO favorites (groupId, SONGID, sort_order)
+         VALUES ({$userId}, '{$songId}', {$sortOrder})"
+        );
         self::updateSocket();
         return '';
     }
@@ -58,25 +96,72 @@ class Ajax
     }
 
 
+    // Теперь возвращает UNION двух таблиц:
+    // - songs: itemType='song', данные из favorites + song_list
+    // - media: itemType='image'/'video', данные из tech_media_favorites
+    // Оба отсортированы по sort_order.
     private static function get_favorites_with_text()
     {
-        $userId = $_SESSION['userId'];
+        $userId = (int)$_SESSION['userId'];
 
-        // Get user settings for favorites order
-        $settings = Info::get('db')->get("SELECT favorites_order FROM user_settings WHERE user_id = {$userId}");
+        $settings = Info::get('db')->get(
+            "SELECT favorites_order FROM user_settings WHERE user_id = {$userId}"
+        );
         $order = ($settings && $settings['favorites_order'] === 'latest_top') ? 'DESC' : 'ASC';
 
-        $sql = "SELECT f.ID as FID, l.*, concat(l.num, ' - ',l.name) as dispName, n.LIST_NAME as bookName,
-                        concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName, f.SONGID, l.TEXT, l.TEXT_LT, l.TEXT_EN FROM favorites f
-                left join song_list l ON l.ID=f.SONGID
-                left join list_names n ON n.LIST_ID=l.LISTID
-                where f.groupId={$userId}
-                ORDER BY FID {$order}";
+        // Songs из favorites
+        $songs = Info::get('db')->select(
+            "SELECT
+             f.ID           AS FID,
+             f.sort_order   AS sort_order,
+             'song'         AS itemType,
+             l.ID, l.LISTID, l.NUM, l.NAME,
+             l.TEXT, l.TEXT_LT, l.TEXT_EN,
+             CONCAT(l.NUM, ' - ', l.NAME)                    AS dispName,
+             n.LIST_NAME                                      AS bookName,
+             CONCAT('/images/', l.LISTID, '/', l.NUM, '.jpg') AS imageName,
+             f.SONGID,
+             (l.TEXT    IS NOT NULL AND l.TEXT    != '') AS hasTextRu,
+             (l.TEXT_LT IS NOT NULL AND l.TEXT_LT != '') AS hasTextLt,
+             (l.TEXT_EN IS NOT NULL AND l.TEXT_EN != '') AS hasTextEn,
+             NULL AS src,
+             NULL AS media_type
+         FROM favorites f
+         LEFT JOIN song_list l  ON l.ID      = f.SONGID
+         LEFT JOIN list_names n ON n.LIST_ID = l.LISTID
+         WHERE f.groupId = {$userId}"
+        );
 
-        $list = Info::get('db')->select($sql);
-        return json_encode($list);
+        // Media из tech_media_favorites
+        $media = Info::get('db')->select(
+            "SELECT
+             id             AS FID,
+             sort_order     AS sort_order,
+             media_type     AS itemType,
+             NULL AS ID, NULL AS LISTID, NULL AS NUM, name AS NAME,
+             NULL AS TEXT, NULL AS TEXT_LT, NULL AS TEXT_EN,
+             name           AS dispName,
+             NULL           AS bookName,
+             NULL           AS imageName,
+             NULL           AS SONGID,
+             0 AS hasTextRu, 0 AS hasTextLt, 0 AS hasTextEn,
+             src, media_type
+         FROM tech_media_favorites
+         WHERE group_id = {$userId}"
+        );
+
+        // Merge + sort by sort_order (then by FID for stable sort)
+        $all = array_merge($songs, $media);
+        usort($all, function($a, $b) use ($order) {
+            $diff = (int)$a['sort_order'] - (int)$b['sort_order'];
+            if ($diff !== 0) return $order === 'DESC' ? -$diff : $diff;
+            return $order === 'DESC'
+                ? (int)$b['FID'] - (int)$a['FID']
+                : (int)$a['FID'] - (int)$b['FID'];
+        });
+
+        return json_encode(array_values($all));
     }
-
 
     private static function get_piano_favorites()
     {
@@ -135,12 +220,15 @@ class Ajax
     private static function get_image()
     {
         $userId = $_SESSION['userId'];
-        $img = Info::get('db')->select("select image, text, song_name from current where groupId=".$userId);
+        $img = Info::get('db')->select(
+            "SELECT image, text, song_name, video_src, video_state
+         FROM current WHERE groupId = " . (int)$userId
+        );
 
-        // Get user settings
-        $settings = Info::get('db')->get("SELECT * FROM user_settings WHERE user_id = {$userId}");
+        $settings = Info::get('db')->get(
+            "SELECT * FROM user_settings WHERE user_id = " . (int)$userId
+        );
 
-        // Add settings to response
         if (count($img) > 0) {
             $img[0]['user_settings'] = $settings;
         }
@@ -157,10 +245,15 @@ class Ajax
 
     private static function set_tech_image()
     {
-        $image_name = self::$args['image_name'];
-        Info::get('db')->exec("delete from current where groupId=".$_SESSION['userId']);
-        Info::get('db')->exec("insert into current (groupId, image) 
-                                values ({$_SESSION['userId']}, \"{$image_name}\")");
+        $dbh        = Info::get('dbh');
+        $userId     = (int)$_SESSION['userId'];
+        $image_name = mysqli_real_escape_string($dbh, self::$args['image_name'] ?? '');
+
+        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$userId}");
+        Info::get('db')->exec(
+            "INSERT INTO current (groupId, image, video_src, video_state)
+         VALUES ({$userId}, '{$image_name}', '', 'stopped')"
+        );
         self::updateSocket();
         return '';
     }
@@ -183,25 +276,6 @@ class Ajax
         return '';
     }
 
-
-    /**
-     * AJAX ENGINE
-     */
-    public static function execute($cmd)
-    {
-        $command = $cmd['command'];
-        if( !isset($_SESSION['userId']) ){
-            return json_encode(array('status'=>false, 'message'=>'User not logged in!'));
-        }
-
-        if (is_callable(array('Ajax', $command))){
-            self::$args = $cmd;
-            $data = self::$command();
-            return $data;
-        }else{
-            return json_encode(array('status'=>false, 'message'=>Info::get('db')->errors()));
-        }
-    }
 
     private static function update_song()
     {
@@ -1460,5 +1534,229 @@ class Ajax
         }
 
         return json_encode(['status' => 'error', 'message' => 'No file uploaded']);
+    }
+
+    /**
+     * Загрузить видеофайл для проповеди.
+     * Input: multipart file 'video'
+     * Output: { status, path, name }
+     */
+    private static function upload_sermon_video()
+    {
+        $userId = (int)$_SESSION['userId'];
+
+        if (!isset($_FILES['video']) || $_FILES['video']['error'] !== UPLOAD_ERR_OK) {
+            $code = isset($_FILES['video']) ? $_FILES['video']['error'] : -1;
+            return json_encode(['status' => 'error', 'message' => 'Upload error code: ' . $code]);
+        }
+
+        $ext     = strtolower(pathinfo($_FILES['video']['name'], PATHINFO_EXTENSION));
+        $allowed = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'];
+        if (!in_array($ext, $allowed)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid video type: ' . $ext]);
+        }
+
+        $uploadDir = __DIR__ . '/../public/sermon_videos/' . $userId . '/';
+        if (!file_exists($uploadDir) && !mkdir($uploadDir, 0777, true)) {
+            return json_encode(['status' => 'error', 'message' => 'Cannot create upload dir']);
+        }
+
+        $filename   = uniqid('vid_', true) . '.' . $ext;
+        $targetFile = $uploadDir . $filename;
+
+        if (!move_uploaded_file($_FILES['video']['tmp_name'], $targetFile)) {
+            return json_encode(['status' => 'error', 'message' => 'move_uploaded_file failed']);
+        }
+
+        $origName = $_FILES['video']['name'];
+
+        return json_encode([
+            'status' => 'success',
+            'path'   => '/sermon_videos/' . $userId . '/' . $filename,
+            'name'   => $origName,
+        ]);
+    }
+
+    /**
+     * Отправить видео на текстовый дисплей.
+     * Params: video_src (string), video_state ('playing'|'paused'|'stopped')
+     */
+    private static function set_video()
+    {
+        $dbh        = Info::get('dbh');
+        $userId     = (int)$_SESSION['userId'];
+        $videoSrc   = mysqli_real_escape_string($dbh, self::$args['video_src']   ?? '');
+        $videoState = mysqli_real_escape_string($dbh, self::$args['video_state'] ?? 'playing');
+
+        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$userId}");
+        Info::get('db')->exec(
+            "INSERT INTO current (groupId, image, text, song_name, video_src, video_state)
+         VALUES ({$userId}, '', '', '', '{$videoSrc}', '{$videoState}')"
+        );
+        self::updateSocket();
+        return json_encode(['status' => 'ok']);
+    }
+
+    /**
+     * Управление воспроизведением (без смены источника).
+     * Params: video_state ('playing'|'paused'|'stopped')
+     */
+    private static function video_control()
+    {
+        $dbh        = Info::get('dbh');
+        $userId     = (int)$_SESSION['userId'];
+        $videoState = mysqli_real_escape_string($dbh, self::$args['video_state'] ?? 'stopped');
+
+        $row = Info::get('db')->get("SELECT groupId FROM current WHERE groupId = {$userId}");
+        if ($row) {
+            Info::get('db')->exec(
+                "UPDATE current SET video_state = '{$videoState}' WHERE groupId = {$userId}"
+            );
+        }
+        self::updateSocket();
+        return json_encode(['status' => 'ok']);
+    }
+
+
+    /**
+     * Добавить медиафайл в плейлист техника.
+     * Params: name, src, media_type ('image'|'video')
+     */
+    private static function add_media_to_favorites()
+    {
+        $dbh       = Info::get('dbh');
+        $userId    = (int)$_SESSION['userId'];
+        $name      = mysqli_real_escape_string($dbh, self::$args['name']       ?? '');
+        $src       = mysqli_real_escape_string($dbh, self::$args['src']        ?? '');
+        $mediaType = mysqli_real_escape_string($dbh, self::$args['media_type'] ?? 'image');
+
+        if (!in_array($mediaType, ['image', 'video'])) $mediaType = 'image';
+        if (empty($src)) return json_encode(['status' => 'error', 'message' => 'Empty src']);
+
+        $maxSong  = Info::get('db')->get(
+            "SELECT IFNULL(MAX(sort_order), 0) AS m FROM favorites WHERE groupId = {$userId}"
+        );
+        $maxMedia = Info::get('db')->get(
+            "SELECT IFNULL(MAX(sort_order), 0) AS m FROM tech_media_favorites WHERE group_id = {$userId}"
+        );
+        $sortOrder = max((int)$maxSong['m'], (int)$maxMedia['m']) + 1;
+
+        Info::get('db')->exec(
+            "INSERT INTO tech_media_favorites (group_id, name, src, media_type, sort_order)
+         VALUES ({$userId}, '{$name}', '{$src}', '{$mediaType}', {$sortOrder})"
+        );
+        self::updateSocket();
+        return json_encode(['status' => 'ok', 'id' => Info::get('dbh')->insert_id]);
+    }
+
+    /**
+     * Удалить медиафайл из плейлиста.
+     * Params: id
+     */
+    private static function delete_media_favorite()
+    {
+        $userId = (int)$_SESSION['userId'];
+        $id     = (int)self::$args['id'];
+
+        Info::get('db')->exec(
+            "DELETE FROM tech_media_favorites WHERE id = {$id} AND group_id = {$userId}"
+        );
+        self::updateSocket();
+        return json_encode(['status' => 'ok']);
+    }
+
+    /**
+     * Загрузить медиа-изображение и добавить в плейлист.
+     * Input: multipart file 'file'
+     */
+    private static function upload_media_image()
+    {
+        $userId = (int)$_SESSION['userId'];
+
+        if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+            return json_encode(['status' => 'error', 'message' => 'Upload error']);
+        }
+
+        $ext     = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
+        $allowed = ['jpg','jpeg','png','gif','webp'];
+        if (!in_array($ext, $allowed)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid image type: ' . $ext]);
+        }
+
+        $dir = __DIR__ . '/../public/tech_media/' . $userId . '/';
+        if (!file_exists($dir) && !mkdir($dir, 0777, true)) {
+            return json_encode(['status' => 'error', 'message' => 'Cannot create dir']);
+        }
+
+        $filename = uniqid('img_', true) . '.' . $ext;
+        if (!move_uploaded_file($_FILES['file']['tmp_name'], $dir . $filename)) {
+            return json_encode(['status' => 'error', 'message' => 'move failed']);
+        }
+
+        $path = '/tech_media/' . $userId . '/' . $filename;
+        $name = $_FILES['file']['name'];
+
+        // Сразу добавляем в плейлист
+        $dbh      = Info::get('dbh');
+        $nameSafe = mysqli_real_escape_string($dbh, $name);
+        $pathSafe = mysqli_real_escape_string($dbh, $path);
+
+        $maxSong  = Info::get('db')->get("SELECT IFNULL(MAX(sort_order),0) AS m FROM favorites WHERE groupId={$userId}");
+        $maxMedia = Info::get('db')->get("SELECT IFNULL(MAX(sort_order),0) AS m FROM tech_media_favorites WHERE group_id={$userId}");
+        $sortOrder = max((int)$maxSong['m'], (int)$maxMedia['m']) + 1;
+
+        Info::get('db')->exec(
+            "INSERT INTO tech_media_favorites (group_id, name, src, media_type, sort_order)
+         VALUES ({$userId}, '{$nameSafe}', '{$pathSafe}', 'image', {$sortOrder})"
+        );
+        self::updateSocket();
+        return json_encode(['status' => 'success', 'path' => $path, 'name' => $name]);
+    }
+
+    /**
+     * Загрузить видеофайл и добавить в плейлист.
+     * Input: multipart file 'file'
+     */
+    private static function upload_media_video()
+    {
+        $userId = (int)$_SESSION['userId'];
+
+        if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+            return json_encode(['status' => 'error', 'message' => 'Upload error']);
+        }
+
+        $ext     = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
+        $allowed = ['mp4','webm','ogg','mov','avi'];
+        if (!in_array($ext, $allowed)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid video type: ' . $ext]);
+        }
+
+        $dir = __DIR__ . '/../public/tech_media/' . $userId . '/';
+        if (!file_exists($dir) && !mkdir($dir, 0777, true)) {
+            return json_encode(['status' => 'error', 'message' => 'Cannot create dir']);
+        }
+
+        $filename = uniqid('vid_', true) . '.' . $ext;
+        if (!move_uploaded_file($_FILES['file']['tmp_name'], $dir . $filename)) {
+            return json_encode(['status' => 'error', 'message' => 'move failed']);
+        }
+
+        $path = '/tech_media/' . $userId . '/' . $filename;
+        $name = $_FILES['file']['name'];
+
+        $dbh      = Info::get('dbh');
+        $nameSafe = mysqli_real_escape_string($dbh, $name);
+        $pathSafe = mysqli_real_escape_string($dbh, $path);
+
+        $maxSong  = Info::get('db')->get("SELECT IFNULL(MAX(sort_order),0) AS m FROM favorites WHERE groupId={$userId}");
+        $maxMedia = Info::get('db')->get("SELECT IFNULL(MAX(sort_order),0) AS m FROM tech_media_favorites WHERE group_id={$userId}");
+        $sortOrder = max((int)$maxSong['m'], (int)$maxMedia['m']) + 1;
+
+        Info::get('db')->exec(
+            "INSERT INTO tech_media_favorites (group_id, name, src, media_type, sort_order)
+         VALUES ({$userId}, '{$nameSafe}', '{$pathSafe}', 'video', {$sortOrder})"
+        );
+        self::updateSocket();
+        return json_encode(['status' => 'success', 'path' => $path, 'name' => $name]);
     }
 }

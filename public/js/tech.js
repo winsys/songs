@@ -28,7 +28,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
     $scope.bibleSearchQuery     = '';
     var bibleSearchTimer        = null;
 
-// ── Messages mode state ───────────────────────────────────
+    // ── Messages mode state ───────────────────────────────────
     $scope.messageTitleQuery    = '';
     $scope.messageTextQuery     = '';
     $scope.messageSearchResults = [];
@@ -36,6 +36,17 @@ app.controller('Tech', function ($scope, $http, $timeout)
     $scope.messageParagraphs    = [];
     $scope.showingMessagePara   = null;
     var messageSearchTimer      = null;
+
+    // ── Tech Media state ──────────────────────────────────────
+    $scope.showMediaAddPanel  = false;   // панель добавления медиа
+    $scope.mediaUrlInput      = '';      // поле ввода URL
+    $scope.mediaUrlType       = 'video'; // 'image' | 'video'
+    $scope.mediaUrlName       = '';      // имя для URL-ссылки
+
+    // ── Active media item (video controls) ────────────────────
+    $scope.activeMediaItem    = null;    // { FID, itemType, name, src }
+    $scope.techVideoPlaying   = false;
+    var techVideoSrc          = '';
 
     // ── Page mode ─────────────────────────────────────────────
     $scope.pageMode = 'songs';  // 'songs' | 'bible' | 'messages'
@@ -143,43 +154,20 @@ app.controller('Tech', function ($scope, $http, $timeout)
         return $scope.preparedChapters;
     }
 
-    $scope.reloadFavorites = function()
-    {
-        $http({ method: "POST", url: "/ajax", data: {command: 'get_image' } }).then(
-            function success(respond){
-                let current = respond.data;
-                if (current.length === 0){
-                    $scope.curImage = null;
-                    $scope.curChapter = null;
-                    $scope.preparedChapters = [];
-                } else {
-                    if( $scope.curImage !== current[0].image || $scope.curChapter !== current[0].text ){
-                        $scope.curImage = current[0].image;
-                        $scope.curChapter = current[0].text;
+    $scope.reloadFavorites = function () {
+        $http({ method: "POST", url: "/ajax", data: { command: 'get_favorites_with_text' }}).then(
+            function success(respond) {
+                $scope.favorites = respond.data;
+                // Восстанавливаем состояние showingSong после перезагрузки
+                angular.forEach($scope.favorites, function (item) {
+                    if (item.itemType === 'song' &&
+                        $scope.showingSong && item.FID === $scope.showingSong.FID) {
+                        $scope.showingSong = item;
                     }
-                }
-                $http({ method: "POST", url: "/ajax", data: {command: 'get_favorites_with_text' } }).then(
-                    function success(respond){
-                        $scope.favorites = respond.data;
-                        angular.forEach($scope.favorites, function(value, key){
-                            if(($scope.curImage) && (value.imageName === $scope.curImage)) {
-                                $scope.showingSong = value;
-                                $scope.preparedChapters = splitText(value.TEXT, value.TEXT_LT, value.TEXT_EN);
-                                angular.forEach($scope.preparedChapters, function (value, key) {
-                                    if (value === $scope.curChapter) {
-                                        $scope.showingChapter = value;
-                                    }
-                                });
-                            }
-                        });
-                    },
-                    function error(erespond){
-                        console.log('Ajax call error: ',erespond);
-                    });
+                });
             },
-            function error(erespond){
-                console.log('Ajax call error: ',erespond);
-            });
+            function error(e) { console.log('reloadFavorites error:', e); }
+        );
     };
 
     $scope.prepareText = function(aText, favoriteItem) {
@@ -336,21 +324,217 @@ app.controller('Tech', function ($scope, $http, $timeout)
             });
     };
 
-    $scope.deleteFavoriteItem = function(fav_id, fav_title){
-        $scope.confirmationDialog(fav_title, function(){
-            var deletingItem = null;
-            angular.forEach($scope.favorites, function(item) {
-                if (item.FID === fav_id) deletingItem = item;
-            });
-            var isDeletingCurrentSong = ($scope.showingSong && deletingItem &&
-                $scope.showingSong.FID === deletingItem.FID);
-            $http({ method: "POST", url: "/ajax", data: {command: 'delete_favorite_item', id: fav_id } }).then(
-                function success(){
-                    if (isDeletingCurrentSong) {
-                        $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' } });
-                        $scope.showingSong = null;
-                        $scope.preparedChapters = [];
-                        $scope.showingChapter = null;
+    // ─────────────────────────────────────────────────────────
+    // Открыть/закрыть панель добавления медиа
+    // ─────────────────────────────────────────────────────────
+
+    $scope.toggleMediaAddPanel = function () {
+        $scope.showMediaAddPanel = !$scope.showMediaAddPanel;
+        if ($scope.showMediaAddPanel) {
+            $scope.mediaUrlInput = '';
+            $scope.mediaUrlName  = '';
+            $scope.mediaUrlType  = 'video';
+        }
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Определить тип медиа по URL
+    // ─────────────────────────────────────────────────────────
+
+    function _detectMediaType(url) {
+        if (/(?:youtube\.com|youtu\.be)/.test(url)) return 'video';
+        if (/\.(mp4|webm|ogg|mov|avi)$/i.test(url)) return 'video';
+        return 'image';
+    }
+
+    function _ytId(url) {
+        var m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
+        return m ? m[1] : null;
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // Добавить медиа по URL
+    // ─────────────────────────────────────────────────────────
+
+    $scope.addMediaUrl = function () {
+        var url  = ($scope.mediaUrlInput || '').trim();
+        if (!url) return;
+
+        var type = _detectMediaType(url);
+        var name = ($scope.mediaUrlName || '').trim();
+
+        if (!name) {
+            var ytId = _ytId(url);
+            if (ytId) {
+                name = 'YouTube · ' + ytId;
+            } else {
+                var parts = url.split('/');
+                name = parts[parts.length - 1] || url;
+                if (name.length > 60) name = name.substring(0, 60) + '…';
+            }
+        }
+
+        $http({ method: "POST", url: "/ajax", data: {
+                command:    'add_media_to_favorites',
+                name:       name,
+                src:        url,
+                media_type: type
+            }}).then(
+            function () {
+                $scope.mediaUrlInput     = '';
+                $scope.mediaUrlName      = '';
+                $scope.showMediaAddPanel = false;
+                $scope.reloadFavorites();
+            }
+        );
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Загрузить изображение → добавить в плейлист
+    // ─────────────────────────────────────────────────────────
+
+    $scope.triggerMediaImageUpload = function () {
+        document.getElementById('techMediaImageInput').click();
+    };
+
+    $scope.onMediaImageSelected = function (input) {
+        if (!input.files || !input.files[0]) return;
+        var formData = new FormData();
+        formData.append('file',    input.files[0]);
+        formData.append('command', 'upload_media_image');
+        $http.post('/ajax', formData, {
+            transformRequest: angular.identity,
+            headers: { 'Content-Type': undefined }
+        }).then(
+            function (r) {
+                if (r.data && r.data.status === 'success') {
+                    $scope.showMediaAddPanel = false;
+                    $scope.reloadFavorites();
+                } else {
+                    alert('Ошибка: ' + (r.data && r.data.message ? r.data.message : ''));
+                }
+                input.value = '';
+            },
+            function (e) { alert('HTTP error: ' + e.status); input.value = ''; }
+        );
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Загрузить видео → добавить в плейлист
+    // ─────────────────────────────────────────────────────────
+
+    $scope.triggerMediaVideoUpload = function () {
+        document.getElementById('techMediaVideoInput').click();
+    };
+
+    $scope.onMediaVideoSelected = function (input) {
+        if (!input.files || !input.files[0]) return;
+        var formData = new FormData();
+        formData.append('file',    input.files[0]);
+        formData.append('command', 'upload_media_video');
+        $http.post('/ajax', formData, {
+            transformRequest: angular.identity,
+            headers: { 'Content-Type': undefined }
+        }).then(
+            function (r) {
+                if (r.data && r.data.status === 'success') {
+                    $scope.showMediaAddPanel = false;
+                    $scope.reloadFavorites();
+                } else {
+                    alert('Ошибка: ' + (r.data && r.data.message ? r.data.message : ''));
+                }
+                input.value = '';
+            },
+            function (e) { alert('HTTP error: ' + e.status); input.value = ''; }
+        );
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Кликнуть на медиа-элемент в плейлисте
+    // ─────────────────────────────────────────────────────────
+
+    $scope.activateMediaItem = function (item) {
+        // Повторный клик = деактивация
+        if ($scope.activeMediaItem && $scope.activeMediaItem.FID === item.FID) {
+            $scope.activeMediaItem  = null;
+            $scope.techVideoPlaying = false;
+            $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' }});
+            return;
+        }
+
+        // Снять выделение с песни
+        $scope.showingSong      = null;
+        $scope.preparedChapters = [];
+        $scope.showingChapter   = null;
+        $scope.selectedChapters = [];
+
+        $scope.activeMediaItem = item;
+
+        if (item.itemType === 'image') {
+            // Изображение → set_tech_image
+            $scope.techVideoPlaying = false;
+            $http({ method: "POST", url: "/ajax", data: {
+                    command:    'set_tech_image',
+                    image_name: item.src
+                }});
+        } else {
+            // Видео → set_video
+            $scope.techVideoPlaying = true;
+            techVideoSrc = item.src;
+            $http({ method: "POST", url: "/ajax", data: {
+                    command:     'set_video',
+                    video_src:   item.src,
+                    video_state: 'playing'
+                }});
+        }
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Управление видео в техническом режиме
+    // ─────────────────────────────────────────────────────────
+
+    $scope.techToggleVideo = function () {
+        if ($scope.techVideoPlaying) {
+            $scope.techVideoPlaying = false;
+            $http({ method: "POST", url: "/ajax", data: { command: 'video_control', video_state: 'paused' }});
+        } else {
+            $scope.techVideoPlaying = true;
+            $http({ method: "POST", url: "/ajax", data: { command: 'video_control', video_state: 'playing' }});
+        }
+    };
+
+    $scope.techStopVideo = function () {
+        $scope.activeMediaItem  = null;
+        $scope.techVideoPlaying = false;
+        techVideoSrc = '';
+        $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' }});
+    };
+
+    $scope.deleteFavoriteItem = function (fav_id, fav_title, itemType) {
+        $scope.confirmationDialog(fav_title || '?', function () {
+
+            var isMedia  = (itemType === 'image' || itemType === 'video');
+            var command  = isMedia ? 'delete_media_favorite' : 'delete_favorite_item';
+
+            // Если удаляем активный элемент — очистить дисплей
+            var isDeletingActive = $scope.showingSong && $scope.showingSong.FID === fav_id &&
+                (!isMedia);
+            var isDeletingActiveMedia = $scope.activeMediaItem &&
+                $scope.activeMediaItem.FID === fav_id && isMedia;
+
+            $http({ method: "POST", url: "/ajax", data: { command: command, id: fav_id }}).then(
+                function success() {
+                    if (isDeletingActive) {
+                        $scope.showingSong       = null;
+                        $scope.preparedChapters  = [];
+                        $scope.showingChapter    = null;
+                        $scope.selectedChapters  = [];
+                        $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' }});
+                    }
+                    if (isDeletingActiveMedia) {
+                        $scope.activeMediaItem = null;
+                        $scope.techVideoPlaying = false;
+                        $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' }});
                     }
                     $scope.reloadFavorites();
                 }
