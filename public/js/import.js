@@ -62,83 +62,6 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     $scope.langLog            = [];
 
     // ─────────────────────────────────────────────────────────
-    // ─────────────────────────────────────────────────────────
-    // Загрузить список сборников
-    // ─────────────────────────────────────────────────────────
-    function loadSongLists() {
-        $http({ method: 'POST', url: '/ajax', data: { command: 'get_all_song_lists' } }).then(
-            function (r) { $scope.songLists = r.data || []; }
-        );
-    }
-    loadSongLists();
-    $scope.loadLanguages();
-
-    // ─────────────────────────────────────────────────────────
-    // Создать новый сборник
-    // ─────────────────────────────────────────────────────────
-    $scope.createSongList = function () {
-        if (!$scope.newListName) return;
-        $scope.creating = true;
-        $http({ method: 'POST', url: '/ajax', data: { command: 'create_song_list', name: $scope.newListName } }).then(
-            function (r) {
-                $scope.creating = false;
-                if (r.data && r.data.status === 'success') {
-                    $scope.newListName = '';
-                    loadSongLists();
-                    $scope.songListId = r.data.list_id;
-                    songLog('ok', 'Сборник создан, ID=' + r.data.list_id);
-                } else {
-                    songLog('error', 'Ошибка: ' + (r.data && r.data.message ? r.data.message : 'неизвестная'));
-                }
-            },
-            function () { $scope.creating = false; songLog('error', 'Ошибка соединения'); }
-        );
-    };
-
-    // ─────────────────────────────────────────────────────────
-    // Выбор файлов
-    // ─────────────────────────────────────────────────────────
-    $scope.onSongSogSelected = function () {
-        var f = document.getElementById('songSogFile');
-        $scope.$apply(function () {
-            $scope.selectedSogFile = f && f.files[0] ? f.files[0] : null;
-        });
-    };
-
-    $scope.onSongZipSelected = function () {
-        var f = document.getElementById('songZipFile');
-        $scope.$apply(function () {
-            $scope.selectedZipFile = f && f.files[0] ? f.files[0] : null;
-        });
-    };
-
-    $scope.onMsgSogSelected = function () {
-        var f = document.getElementById('msgSogFile');
-        $scope.$apply(function () {
-            $scope.selectedMsgFile = f && f.files[0] ? f.files[0] : null;
-        });
-    };
-
-    // ─────────────────────────────────────────────────────────
-    // Helpers: лог
-    // ─────────────────────────────────────────────────────────
-    function songLog(type, msg) {
-        $scope.songLog.push({ type: type, msg: msg });
-        $timeout(function () {
-            var el = document.getElementById('songLogEl');
-            if (el) el.scrollTop = el.scrollHeight;
-        }, 50);
-    }
-
-    function msgLog(type, msg) {
-        $scope.msgLog.push({ type: type, msg: msg });
-        $timeout(function () {
-            var el = document.getElementById('msgLogEl');
-            if (el) el.scrollTop = el.scrollHeight;
-        }, 50);
-    }
-
-    // ─────────────────────────────────────────────────────────
     // ── УПРАВЛЕНИЕ ЯЗЫКАМИ ────────────────────────────────────
     // ─────────────────────────────────────────────────────────
 
@@ -279,6 +202,83 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
         $scope.langLog.push({ type: type, msg: msg });
         $timeout(function () {
             var el = document.getElementById('langLogEl');
+            if (el) el.scrollTop = el.scrollHeight;
+        }, 50);
+    }
+
+    // ─────────────────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────
+    // Загрузить список сборников
+    // ─────────────────────────────────────────────────────────
+    function loadSongLists() {
+        $http({ method: 'POST', url: '/ajax', data: { command: 'get_all_song_lists' } }).then(
+            function (r) { $scope.songLists = r.data || []; }
+        );
+    }
+    loadSongLists();
+    $scope.loadLanguages();
+
+    // ─────────────────────────────────────────────────────────
+    // Создать новый сборник
+    // ─────────────────────────────────────────────────────────
+    $scope.createSongList = function () {
+        if (!$scope.newListName) return;
+        $scope.creating = true;
+        $http({ method: 'POST', url: '/ajax', data: { command: 'create_song_list', name: $scope.newListName } }).then(
+            function (r) {
+                $scope.creating = false;
+                if (r.data && r.data.status === 'success') {
+                    $scope.newListName = '';
+                    loadSongLists();
+                    $scope.songListId = r.data.list_id;
+                    songLog('ok', 'Сборник создан, ID=' + r.data.list_id);
+                } else {
+                    songLog('error', 'Ошибка: ' + (r.data && r.data.message ? r.data.message : 'неизвестная'));
+                }
+            },
+            function () { $scope.creating = false; songLog('error', 'Ошибка соединения'); }
+        );
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Выбор файлов
+    // ─────────────────────────────────────────────────────────
+    $scope.onSongSogSelected = function () {
+        var f = document.getElementById('songSogFile');
+        $scope.$apply(function () {
+            $scope.selectedSogFile = f && f.files[0] ? f.files[0] : null;
+        });
+    };
+
+    $scope.onSongZipSelected = function () {
+        var f = document.getElementById('songZipFile');
+        $scope.$apply(function () {
+            $scope.selectedZipFile = f && f.files[0] ? f.files[0] : null;
+        });
+    };
+
+    $scope.onMsgSogSelected = function () {
+        var f = document.getElementById('msgSogFile');
+        $scope.$apply(function () {
+            $scope.selectedMsgFile = f && f.files[0] ? f.files[0] : null;
+        });
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Helpers: лог
+    // ─────────────────────────────────────────────────────────
+    function songLog(type, msg) {
+        $scope.songLog.push({ type: type, msg: msg });
+        $timeout(function () {
+            var el = document.getElementById('songLogEl');
+            if (el) el.scrollTop = el.scrollHeight;
+        }, 50);
+    }
+
+    function msgLog(type, msg) {
+        $scope.msgLog.push({ type: type, msg: msg });
+        $timeout(function () {
+            var el = document.getElementById('msgLogEl');
             if (el) el.scrollTop = el.scrollHeight;
         }, 50);
     }
