@@ -958,14 +958,15 @@
         <!-- ── Строка 3: Доп. действия (только Песни) ──────────────── -->
         <div ng-show="pageMode === 'songs'">
             <div class="btn-row" style="margin-top: 8px;">
-                <button class="btn-action-blue" ng-click="openList()">📋 Весь список</button>
+                <button class="btn-action-blue" ng-click="openList()">📋 Весь список песен сборника</button>
                 <button class="btn-action-orange" ng-click="addNewSong()">＋ Добавить песню в сборник</button>
             </div>
+            <div class="section-label" style="margin-top: 16px;">Дополнительные материалы</div>
             <div class="btn-row" style="margin-top: 8px;">
                 <button class="btn-action-blue"
                         ng-click="toggleMediaAddPanel()"
                         ng-class="showMediaAddPanel ? 'mode-btn-active' : ''">
-                    🖼️ + Медиа
+                    🖼️ Фотографии / Медиа
                 </button>
             </div>
         </div>
