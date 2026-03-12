@@ -73,12 +73,51 @@
             background: black;
             z-index: 10;
         }
+
+        /* Видео-оверлей — поверх всего (z-index > image overlay z:10) */
+        #video-overlay {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 20;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #video-overlay iframe,
+        #video-overlay video {
+            width: 100%;
+            height: 100%;
+            border: none;
+            object-fit: contain;
+        }
     </style>
 </head>
 <body ng-controller="TextController" ng-click="enterFullscreen()">
 
 <!-- Full-screen image overlay (sermon images, tech images) -->
 <img id="overlay-image" ng-show="overlayImageSrc" ng-src="{{ overlayImageSrc }}" />
+
+<!-- Full-screen video overlay -->
+<div id="video-overlay" ng-show="videoOverlaySrc">
+
+    <!-- YouTube -->
+    <iframe ng-if="videoIsYouTube"
+            ng-src="{{ videoEmbedSrc }}"
+            frameborder="0"
+            allow="autoplay; fullscreen; picture-in-picture"
+            allowfullscreen>
+    </iframe>
+
+    <!-- HTML5 видео -->
+    <video ng-if="!videoIsYouTube"
+           id="text-video-el"
+           ng-src="{{ videoFileSrc }}"
+           autoplay
+           style="background:#000;">
+    </video>
+
+</div>
 
 <div id="wrapper">
     <!-- Show text when available -->
@@ -90,13 +129,17 @@
 
 <script>
     angular.module('TextApp', [])
-        .controller('TextController', function($scope, $http, $timeout) {
+        .controller('TextController', function($scope, $http, $timeout, $sce) {
             $scope.text = "";
             $scope.songName = "";
             $scope.fontSize = 10;
             $scope.fontMaxSize = 64;
             $scope.userSettings = null;
             $scope.overlayImageSrc = "";
+            $scope.videoOverlaySrc = '';
+            $scope.videoIsYouTube  = false;
+            $scope.videoEmbedSrc   = null;
+            $scope.videoFileSrc    = null;
 
             $scope.enterFullscreen = function() {
                 if (!document.fullscreenElement) {
@@ -149,6 +192,56 @@
                 }, 0);
             }
 
+            function _ytId(url) {
+                var m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
+                return m ? m[1] : null;
+            }
+
+            function applyVideoState(videoSrc, videoState) {
+                if (videoSrc && videoState === 'playing') {
+
+                    var ytId = _ytId(videoSrc);
+                    if (ytId) {
+                        $scope.videoIsYouTube  = true;
+                        $scope.videoEmbedSrc   = $sce.trustAsResourceUrl(
+                            'https://www.youtube.com/embed/' + ytId +
+                            '?autoplay=1&rel=0&modestbranding=1&enablejsapi=1'
+                        );
+                        $scope.videoFileSrc    = null;
+                    } else {
+                        $scope.videoIsYouTube  = false;
+                        $scope.videoEmbedSrc   = null;
+                        $scope.videoFileSrc    = $sce.trustAsResourceUrl(videoSrc);
+                    }
+                    $scope.videoOverlaySrc = videoSrc;   // показать оверлей
+
+                    // Скрываем текст и картинку-оверлей
+                    $scope.overlayImageSrc = '';
+                    $scope.srcText  = '';
+                    $scope.text     = '';
+                    $scope.songName = '';
+                    return true;   // видео обработано, дальше не читать
+
+                } else if (videoState === 'paused') {
+                    // Пауза: оверлей остаётся, ставим паузу на видео-элемент
+                    var el = document.getElementById('text-video-el');
+                    if (el) el.pause();
+                    return true;
+
+                } else {
+                    // Остановлено или нет видео — скрыть оверлей
+                    if ($scope.videoOverlaySrc) {
+                        var el2 = document.getElementById('text-video-el');
+                        if (el2) { el2.pause(); el2.src = ''; }
+                        $scope.videoOverlaySrc = '';
+                        $scope.videoIsYouTube  = false;
+                        $scope.videoEmbedSrc   = null;
+                        $scope.videoFileSrc    = null;
+                    }
+                    return false;  // продолжать обработку image/text
+                }
+            }
+
             function fetchText() {
                 $http.post('/ajax', { command: "get_image" })
                     .then(function(response) {
@@ -159,6 +252,10 @@
                             $scope.overlayImageSrc = "";
                         } else {
                             var row = response.data[0];
+
+                            var videoSrc   = (row.video_src   || '').trim();
+                            var videoState = (row.video_state || 'stopped').trim();
+                            if (applyVideoState(videoSrc, videoState)) return;
 
                             // Apply user settings
                             if (row.user_settings) {

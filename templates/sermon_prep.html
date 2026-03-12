@@ -657,6 +657,147 @@
         background: #fde8e8;
         color: #e53935;
     }
+
+    /* ── Video chip in editor ────────────────────────────────────── */
+    .sermon-video-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: #1a1a2e;
+        border: 2px solid #3a3a6e;
+        border-radius: 8px;
+        padding: 4px 28px 4px 8px;   /* right padding for × button */
+        margin: 3px 2px;
+        vertical-align: middle;
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+        max-width: 260px;
+        transition: border-color .15s, background .15s;
+    }
+    .sermon-video-wrap:hover  { border-color: #6a7fff; background: #22224a; }
+    .sermon-video-wrap.svw-active { border-color: #6a7fff; background: #2a2a5a; box-shadow: 0 0 0 3px rgba(106,127,255,.22); }
+
+    .svw-icon  { font-size: 14px; flex-shrink: 0; line-height: 1; }
+    .svw-label {
+        font-size: 10.5pt;
+        color: #c0ccff;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 180px;
+    }
+    .svw-del {
+        position: absolute;
+        top: 2px; right: 5px;
+        color: #888;
+        font-size: 11pt;
+        line-height: 1;
+        cursor: pointer;
+    }
+    .svw-del:hover { color: #ff6b6b; }
+
+    /* ── Video insert dropdown ───────────────────────────────────── */
+    .video-insert-wrap { position: relative; display: inline-block; }
+
+    .video-insert-panel {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        z-index: 500;
+        background: #fff;
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        padding: 12px 14px;
+        box-shadow: 0 4px 18px rgba(0,0,0,.13);
+        width: 320px;
+        display: flex;
+        flex-direction: column;
+        gap: 9px;
+    }
+    .vip-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #5a6272;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+    .vip-row {
+        display: flex;
+        gap: 6px;
+    }
+    .vip-row input {
+        flex: 1;
+        padding: 7px 10px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 7px;
+        font-size: 12px;
+        outline: none;
+    }
+    .vip-row input:focus { border-color: #3498db; }
+    .vip-btn-add {
+        padding: 7px 12px;
+        border-radius: 7px;
+        border: 1.5px solid #3498db;
+        background: #3498db;
+        color: #fff;
+        font-size: 12px;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .vip-btn-add:hover { background: #2980b9; }
+    .vip-sep { text-align: center; color: #b0b8c1; font-size: 11px; }
+    .vip-btn-file {
+        padding: 8px 12px;
+        border-radius: 7px;
+        border: 1.5px solid #27ae60;
+        background: #27ae60;
+        color: #fff;
+        font-size: 12px;
+        cursor: pointer;
+        text-align: center;
+    }
+    .vip-btn-file:hover { background: #219a52; }
+
+    /* ── Video preview modal ─────────────────────────────────────── */
+    #sermon-video-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.87);
+        z-index: 3000;
+        align-items: center;
+        justify-content: center;
+    }
+    #sermon-video-modal.open { display: flex; }
+    #svm-inner {
+        position: relative;
+        width: 90vw;
+        max-width: 940px;
+        background: #000;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    #svm-inner video,
+    #svm-inner iframe {
+        width: 100%;
+        height: 60vh;
+        display: block;
+        border: none;
+    }
+    .svm-close {
+        position: absolute;
+        top: 10px; right: 14px;
+        color: #fff;
+        font-size: 20pt;
+        cursor: pointer;
+        background: rgba(0,0,0,.5);
+        border-radius: 50%;
+        width: 34px; height: 34px;
+        text-align: center;
+        line-height: 32px;
+        z-index: 10;
+    }
 </style>
 
 <div ng-controller="SermonPrep">
@@ -894,6 +1035,42 @@
                     </button>
                     <input type="file" id="prep-img-upload" accept="image/*" style="display:none;"
                            onchange="angular.element(this).scope().insertImage(this)" />
+
+                    <div class="toolbar-sep"></div>
+
+                    <!-- Кнопка вставки видео -->
+                    <div class="video-insert-wrap">
+                        <button class="toolbar-btn"
+                                title="Вставить видео (файл или URL)"
+                                ng-mousedown="$event.preventDefault()"
+                                ng-click="toggleVideoPanel($event)"
+                                style="padding:5px 8px; font-size:13px;">🎬</button>
+
+                        <div class="video-insert-panel" ng-show="showVideoPanel"
+                             ng-mousedown="$event.stopPropagation()">
+                            <div class="vip-title">Вставить видео</div>
+
+                            <!-- URL-поле -->
+                            <div class="vip-row">
+                                <input type="text"
+                                       ng-model="videoUrlInput"
+                                       placeholder="Ссылка: YouTube, .mp4, …"
+                                       ng-keydown="$event.keyCode===13 && insertVideoUrl()">
+                                <button class="vip-btn-add" ng-click="insertVideoUrl()">➕</button>
+                            </div>
+
+                            <div class="vip-sep">— или —</div>
+
+                            <!-- Загрузка файла -->
+                            <div class="vip-btn-file" ng-click="triggerVideoUpload()">
+                                📁 Загрузить видеофайл
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Скрытый input для видеофайла -->
+                    <input type="file" id="sermon-video-input" accept="video/*" style="display:none"
+                           onchange="angular.element(this).scope().onVideoSelected(this)">
                 </div>
 
                 <!-- Contenteditable editor -->
@@ -946,6 +1123,26 @@
         <div id="sermon-img-modal" ng-click="closeImgModal()">
             <span class="close-modal">×</span>
             <img ng-src="{{ modalImgSrc }}" ng-click="$event.stopPropagation()" />
+        </div>
+
+        <!-- Video preview modal -->
+        <div id="sermon-video-modal" ng-click="closeVideoModal()">
+            <div id="svm-inner" ng-click="$event.stopPropagation()">
+                <span class="svm-close" ng-click="closeVideoModal()">×</span>
+                <!-- Локальный файл -->
+                <video ng-if="modalVideoSrcTrusted"
+                       ng-src="{{ modalVideoSrcTrusted }}"
+                       controls autoplay
+                       style="background:#000;">
+                </video>
+                <!-- YouTube embed -->
+                <iframe ng-if="modalVideoEmbedSrc"
+                        ng-src="{{ modalVideoEmbedSrc }}"
+                        frameborder="0"
+                        allow="autoplay; fullscreen"
+                        allowfullscreen>
+                </iframe>
+            </div>
         </div>
 
     </div><!-- /prep-page-wrapper -->
