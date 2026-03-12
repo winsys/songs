@@ -187,6 +187,29 @@
         border-color: #1a6db5;
     }
 
+    /* ── Language toggle checkboxes ──────────────────────────────── */
+    .lang-toggle-btn {
+        width: 30px;
+        height: 30px;
+        font-size: 10px;
+        font-weight: 700;
+        border-radius: 6px;
+        border: 1.5px solid #dee2e6;
+        background: #f8f9fa;
+        color: #95a5a6;
+        cursor: pointer;
+        transition: all 0.15s;
+        padding: 0;
+        letter-spacing: 0.3px;
+    }
+    .lang-toggle-btn:hover { border-color: #1a6db5; color: #1a6db5; }
+    .lang-toggle-btn.lang-active {
+        background: #e8f4fd;
+        border-color: #1a6db5;
+        color: #1a6db5;
+        box-shadow: inset 0 0 0 1.5px #1a6db5;
+    }
+
     /* ── Bible search input ──────────────────────────────────────── */
     .prep-bible-search {
         width: 100%;
@@ -883,12 +906,27 @@
                     <!-- ── BIBLE TAB ── -->
                     <div ng-show="leftPanelTab === 'bible'" class="prep-bible-inner">
 
-                        <!-- Translation buttons -->
-                        <div style="margin-bottom:8px; display:flex; flex-wrap:wrap; gap:4px;">
+                        <!-- Translation buttons + language toggles -->
+                        <div style="margin-bottom:8px; display:flex; flex-wrap:wrap; gap:4px; align-items:center;">
                             <button ng-repeat="tr in bibleTranslations"
                                     class="tr-btn"
                                     ng-class="{'active-tr': bibleTranslationId == tr.ID}"
                                     ng-click="setBibleTranslation(tr.ID)">{{ tr.NAME }}</button>
+
+                            <div style="margin-left:6px; display:flex; gap:3px; flex-shrink:0;">
+                                <button class="lang-toggle-btn"
+                                        ng-class="{'lang-active': prepLangs.ru}"
+                                        ng-click="togglePrepLang('ru')"
+                                        title="Русский">RU</button>
+                                <button class="lang-toggle-btn"
+                                        ng-class="{'lang-active': prepLangs.lt}"
+                                        ng-click="togglePrepLang('lt')"
+                                        title="Литовский">LT</button>
+                                <button class="lang-toggle-btn"
+                                        ng-class="{'lang-active': prepLangs.en}"
+                                        ng-click="togglePrepLang('en')"
+                                        title="English">EN</button>
+                            </div>
                         </div>
 
                         <!-- Book search -->
