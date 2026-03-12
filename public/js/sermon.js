@@ -14,6 +14,19 @@ angular.module('Songs', [])
         $scope.displayTitle     = '';
         $scope.displayImageSrc  = '';
 
+         $scope.displayVideoSrc       = '';   // непустое = показывать оверлей
+         $scope.displayVideoIsYouTube = false;
+         $scope.displayVideoEmbedSrc  = null;  // trustAsResourceUrl для YT
+         $scope.displayVideoSrcLocal  = null;  // trustAsResourceUrl для файла
+         $scope.videoActive      = false;
+         $scope.videoPlaying     = false;
+         $scope.videoIsYouTube   = false;
+         $scope.videoCurrentName = '';
+         $scope.videoProgress    = 0;
+         $scope.videoCurrentTime = '0:00';
+         $scope.videoSeeking     = false;
+         var videoProgressTimer  = null;
+
         var userSettings = null;
         var activeEl     = null;
 
@@ -278,10 +291,39 @@ angular.module('Songs', [])
                     });
                 };
             });
+
+            // ── VIDEO CHIPS ──────────────────────────────────────
+            body.querySelectorAll('.sermon-video-wrap').forEach(function (el) {
+                el.style.cursor = 'pointer';
+                el.onclick = function (e) {
+                    e.preventDefault();
+
+                    // Деактивировать при повторном клике
+                    if (activeEl === el) {
+                        el.classList.remove('active-video');
+                        activeEl = null;
+                        $timeout(function () { clearVideoDisplay(); sendVideoClear(); });
+                        return;
+                    }
+
+                    // Деактивировать предыдущий элемент
+                    if (activeEl) activeEl.classList.remove('active-cite', 'active-img', 'active-video');
+                    activeEl = el;
+                    el.classList.add('active-video');
+
+                    var src  = el.getAttribute('data-video-src');
+                    var name = el.getAttribute('data-video-label') || src;
+
+                    $timeout(function () {
+                        showVideo(src, name);
+                        sendVideoToDisplay(src);
+                    });
+                };
+            });
         }
 
         function activateElement(el) {
-            if (activeEl && activeEl !== el) activeEl.classList.remove('active-cite', 'active-img');
+            if (activeEl && activeEl !== el) activeEl.classList.remove('active-cite', 'active-img', 'active-video');
             activeEl = el;
             el.classList.add(
                 (el.classList.contains('bible-cite') || el.classList.contains('message-cite'))
@@ -290,7 +332,7 @@ angular.module('Songs', [])
         }
 
         function deactivateAll() {
-            if (activeEl) { activeEl.classList.remove('active-cite', 'active-img'); activeEl = null; }
+            if (activeEl) { activeEl.classList.remove('active-cite', 'active-img', 'active-video'); activeEl = null; }
         }
 
         function clearDisplayScope() {
@@ -345,6 +387,130 @@ angular.module('Songs', [])
         function sendImageToDisplay(path) {
             $http({ method: "POST", url: "/ajax", data: { command: path ? 'set_tech_image' : 'clear_image', image_name: path }});
         }
+
+        // ---------- helpers ----------
+
+        function _ytId(url) {
+            var m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
+            return m ? m[1] : null;
+        }
+        function _fmtTime(s) {
+            if (!s || isNaN(s)) return '0:00';
+            var m = Math.floor(s / 60), sec = Math.floor(s % 60);
+            return m + ':' + (sec < 10 ? '0' : '') + sec;
+        }
+
+        // ---------- show/hide video on right panel ----------
+
+        function showVideo(src, name) {
+            var ytId = _ytId(src);
+
+            $scope.displayVideoSrc = src;          // non-empty triggers ng-show
+            if (ytId) {
+                $scope.displayVideoIsYouTube = true;
+                $scope.displayVideoEmbedSrc  = $sce.trustAsResourceUrl(
+                    'https://www.youtube.com/embed/' + ytId + '?autoplay=1&rel=0&modestbranding=1'
+                );
+                $scope.displayVideoSrcLocal  = null;
+                $scope.videoIsYouTube        = true;
+            } else {
+                $scope.displayVideoIsYouTube = false;
+                $scope.displayVideoEmbedSrc  = null;
+                $scope.displayVideoSrcLocal  = $sce.trustAsResourceUrl(src);
+                $scope.videoIsYouTube        = false;
+            }
+
+            $scope.videoActive      = true;
+            $scope.videoPlaying     = true;
+            $scope.videoCurrentName = name || src.split('/').pop();
+
+            // Очищаем текст/картинку
+            clearDisplayScope();
+
+            if (!ytId) { _startProgress(); }
+        }
+
+        function clearVideoDisplay() {
+            $scope.displayVideoSrc       = '';
+            $scope.displayVideoIsYouTube = false;
+            $scope.displayVideoEmbedSrc  = null;
+            $scope.displayVideoSrcLocal  = null;
+            $scope.videoActive           = false;
+            $scope.videoPlaying          = false;
+            $scope.videoProgress         = 0;
+            $scope.videoCurrentTime      = '0:00';
+            _stopProgress();
+        }
+
+        function sendVideoToDisplay(src) {
+            $http({ method: 'POST', url: '/ajax', data: {
+                    command:     'set_video',
+                    video_src:   src || '',
+                    video_state: 'playing'
+                }});
+        }
+
+        function sendVideoClear() {
+            $http({ method: 'POST', url: '/ajax', data: { command: 'clear_image' }});
+        }
+
+        function _sendVideoControl(state) {
+            $http({ method: 'POST', url: '/ajax', data: { command: 'video_control', video_state: state }});
+        }
+
+        // ---------- progress bar for local files ----------
+
+        function _startProgress() {
+            _stopProgress();
+            videoProgressTimer = setInterval(function () {
+                if ($scope.videoSeeking) return;
+                var el = document.getElementById('sermon-display-video');
+                if (el && el.duration) {
+                    $scope.$apply(function () {
+                        $scope.videoProgress    = (el.currentTime / el.duration) * 100;
+                        $scope.videoCurrentTime = _fmtTime(el.currentTime);
+                    });
+                }
+            }, 500);
+        }
+        function _stopProgress() {
+            if (videoProgressTimer) { clearInterval(videoProgressTimer); videoProgressTimer = null; }
+        }
+
+        // ---------- controls (called from left panel) ----------
+
+        $scope.toggleVideoPlayback = function () {
+            var el = document.getElementById('sermon-display-video');
+            if ($scope.videoPlaying) {
+                if (el) el.pause();
+                $scope.videoPlaying = false;
+                _sendVideoControl('paused');
+            } else {
+                if (el) el.play().catch(function(){});
+                $scope.videoPlaying = true;
+                _sendVideoControl('playing');
+            }
+        };
+
+        $scope.stopVideo = function () {
+            var el = document.getElementById('sermon-display-video');
+            if (el) { el.pause(); el.currentTime = 0; }
+            clearVideoDisplay();
+            sendVideoClear();
+            // Снять активность с чипа
+            if (activeEl) {
+                activeEl.classList.remove('active-cite', 'active-img', 'active-video');
+                activeEl = null;
+            }
+        };
+
+        $scope.seekVideo = function () {
+            var el = document.getElementById('sermon-display-video');
+            if (el && el.duration) {
+                el.currentTime = (el.duration * $scope.videoProgress) / 100;
+            }
+        };
+
 
         /**
          * autoFitText — grows font until the text fills the display panel.
