@@ -271,11 +271,18 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             function () { $scope.saveStatus = ''; alert('Ошибка сохранения'); }
         );
     };
-    $scope.confirmDelete = function () {
-        if (!$scope.sermon.id) return;
+
+    $scope.deleteSermonFromList = function (id, $event) {
+        $event.stopPropagation(); // не открывать проповедь при клике
         if (!confirm('Удалить эту проповедь?')) return;
-        $http({ method: "POST", url: "/ajax", data: { command: 'delete_sermon', id: $scope.sermon.id } }).then(
-            function () { $scope.newSermon(); $scope.loadSermonList(); }
+        $http({ method: "POST", url: "/ajax", data: { command: 'delete_sermon', id: id } }).then(
+            function () {
+                // Если удаляем текущую открытую — сбросить редактор
+                if ($scope.sermon.id == id) {
+                    $scope.newSermon();
+                }
+                $scope.loadSermonList();
+            }
         );
     };
 
