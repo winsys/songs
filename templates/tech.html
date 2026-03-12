@@ -1013,14 +1013,10 @@
         <div class="section-label" style="margin-top: 16px;">Языки</div>
         <div style="display: flex; gap: 8px; flex-wrap: wrap;">
             <button class="btn-lang"
-                    ng-class="languages.ru ? 'lang-active' : ''"
-                    ng-click="toggleLanguage('ru')">RU</button>
-            <button class="btn-lang"
-                    ng-class="languages.lt ? 'lang-active' : ''"
-                    ng-click="toggleLanguage('lt')">LT</button>
-            <button class="btn-lang"
-                    ng-class="languages.en ? 'lang-active' : ''"
-                    ng-click="toggleLanguage('en')">EN</button>
+                    ng-repeat="lang in langList"
+                    ng-disabled="!isLangAvailable(lang)"
+                    ng-class="languages[lang.code] ? 'lang-active' : ''"
+                    ng-click="toggleLanguage(lang.code)">{{lang.label}}</button>
         </div>
 
         <!-- ══════════════════════════════════════════════════════════

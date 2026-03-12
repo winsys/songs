@@ -50,6 +50,18 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     $scope.txtCodeSuggestions = [];
     $scope.txtCodeSearching   = false;
 
+    // Состояние
+    $scope.langList           = [];
+    $scope.langLoading        = false;
+    $scope.newLangCode        = '';
+    $scope.newLangLabel       = '';
+    $scope.langAdding         = false;
+    $scope.langDeleteTarget   = null;   // code языка, для которого открыта панель удаления
+    $scope.langDeletePassword = '';
+    $scope.langDeleting       = false;
+    $scope.langLog            = [];
+
+    // ─────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────
     // Загрузить список сборников
     // ─────────────────────────────────────────────────────────
@@ -59,6 +71,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
         );
     }
     loadSongLists();
+    $scope.loadLanguages();
 
     // ─────────────────────────────────────────────────────────
     // Создать новый сборник
@@ -124,6 +137,152 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
             if (el) el.scrollTop = el.scrollHeight;
         }, 50);
     }
+
+    // ─────────────────────────────────────────────────────────
+    // ── УПРАВЛЕНИЕ ЯЗЫКАМИ ────────────────────────────────────
+    // ─────────────────────────────────────────────────────────
+
+    // ─────────────────────────────────────────────────────────
+    // Загрузить список языков с сервера
+    // ─────────────────────────────────────────────────────────
+    $scope.loadLanguages = function () {
+        $scope.langLoading = true;
+        $http({ method: 'POST', url: '/ajax', data: { command: 'get_languages' } }).then(
+            function (r) {
+                $scope.langLoading = false;
+                var list = r.data || [];
+                $scope.langList = list;
+
+                if (list.length === 0) return;
+
+                // Найти язык по умолчанию (is_default == '1')
+                var defaultLang = null;
+                for (var i = 0; i < list.length; i++) {
+                    if (list[i].is_default == '1') { defaultLang = list[i].code; break; }
+                }
+                // Фолбэк — первый в списке
+                if (!defaultLang) defaultLang = list[0].code;
+
+                // Собрать множество допустимых кодов
+                var validCodes = {};
+                for (var j = 0; j < list.length; j++) validCodes[list[j].code] = true;
+
+                // Обновить songLang/msgLang только если текущее значение
+                // больше не присутствует в списке (напр. был удалён язык)
+                if (!validCodes[$scope.songLang]) $scope.songLang = defaultLang;
+                if (!validCodes[$scope.msgLang])  $scope.msgLang  = defaultLang;
+            },
+            function () {
+                $scope.langLoading = false;
+                // Не вызываем langLog здесь — langLog может быть не определён
+                // до того как пользователь открыл вкладку Языки.
+                console.error('Не удалось загрузить список языков');
+            }
+        );
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Добавить язык
+    // ─────────────────────────────────────────────────────────
+    $scope.addLanguage = function () {
+        var code  = ($scope.newLangCode  || '').toLowerCase().trim();
+        var label = ($scope.newLangLabel || '').toUpperCase().trim();
+
+        if (!code || !label) return;
+        if (!/^[a-z]{2,5}$/.test(code)) {
+            langLog('error', '❌ Код должен быть 2–5 латинских букв (напр. "de")');
+            return;
+        }
+
+        $scope.langAdding = true;
+        $scope.langLog    = [];
+
+        $http({
+            method: 'POST',
+            url:    '/ajax',
+            data:   { command: 'add_language', code: code, label: label }
+        }).then(
+            function (r) {
+                $scope.langAdding = false;
+                var d = r.data;
+                if (d.status === 'success') {
+                    langLog('ok', '✅ ' + d.message);
+                    $scope.newLangCode  = '';
+                    $scope.newLangLabel = '';
+                    $scope.loadLanguages();   // обновить список
+                } else {
+                    langLog('error', '❌ ' + (d.message || 'Ошибка сервера'));
+                }
+            },
+            function () {
+                $scope.langAdding = false;
+                langLog('error', '❌ Ошибка соединения');
+            }
+        );
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Показать / скрыть панель удаления для конкретного языка
+    // ─────────────────────────────────────────────────────────
+    $scope.toggleDeletePanel = function (lang) {
+        if ($scope.langDeleteTarget === lang.code) {
+            $scope.langDeleteTarget   = null;
+            $scope.langDeletePassword = '';
+        } else {
+            $scope.langDeleteTarget   = lang.code;
+            $scope.langDeletePassword = '';
+        }
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Удалить язык (после ввода пароля)
+    // ─────────────────────────────────────────────────────────
+    $scope.deleteLanguage = function (lang) {
+        if (!$scope.langDeletePassword) return;
+
+        $scope.langDeleting = true;
+        $scope.langLog      = [];
+
+        $http({
+            method: 'POST',
+            url:    '/ajax',
+            data:   {
+                command:         'delete_language',
+                code:            lang.code,
+                delete_password: $scope.langDeletePassword
+            }
+        }).then(
+            function (r) {
+                $scope.langDeleting       = false;
+                $scope.langDeletePassword = '';
+                $scope.langDeleteTarget   = null;
+
+                var d = r.data;
+                if (d.status === 'success') {
+                    langLog('ok', '✅ ' + d.message);
+                    $scope.loadLanguages();   // обновить список
+                } else {
+                    langLog('error', '❌ ' + (d.message || 'Неверный пароль или ошибка сервера'));
+                }
+            },
+            function () {
+                $scope.langDeleting = false;
+                langLog('error', '❌ Ошибка соединения');
+            }
+        );
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Лог операций с языками
+    // ─────────────────────────────────────────────────────────
+    function langLog(type, msg) {
+        $scope.langLog.push({ type: type, msg: msg });
+        $timeout(function () {
+            var el = document.getElementById('langLogEl');
+            if (el) el.scrollTop = el.scrollHeight;
+        }, 50);
+    }
+
 
     // ─────────────────────────────────────────────────────────
     // Импорт текстов песен (SOG)
