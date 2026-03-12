@@ -409,7 +409,7 @@ angular.module('Songs', [])
             if (ytId) {
                 $scope.displayVideoIsYouTube = true;
                 $scope.displayVideoEmbedSrc  = $sce.trustAsResourceUrl(
-                    'https://www.youtube.com/embed/' + ytId + '?autoplay=1&rel=0&modestbranding=1'
+                    'https://www.youtube.com/embed/' + ytId + '?autoplay=1&rel=0&modestbranding=1&enablejsapi=1'
                 );
                 $scope.displayVideoSrcLocal  = null;
                 $scope.videoIsYouTube        = true;
@@ -480,14 +480,29 @@ angular.module('Songs', [])
         // ---------- controls (called from left panel) ----------
 
         $scope.toggleVideoPlayback = function () {
-            var el = document.getElementById('sermon-display-video');
             if ($scope.videoPlaying) {
-                if (el) el.pause();
                 $scope.videoPlaying = false;
+                if ($scope.videoIsYouTube) {
+                    var iframe = document.getElementById('sermon-yt-player');
+                    if (iframe) iframe.contentWindow.postMessage(
+                        JSON.stringify({ event: 'command', func: 'pauseVideo', args: [] }), '*'
+                    );
+                } else {
+                    var el = document.getElementById('sermon-display-video');
+                    if (el) el.pause();
+                }
                 _sendVideoControl('paused');
             } else {
-                if (el) el.play().catch(function(){});
                 $scope.videoPlaying = true;
+                if ($scope.videoIsYouTube) {
+                    var iframe = document.getElementById('sermon-yt-player');
+                    if (iframe) iframe.contentWindow.postMessage(
+                        JSON.stringify({ event: 'command', func: 'playVideo', args: [] }), '*'
+                    );
+                } else {
+                    var el = document.getElementById('sermon-display-video');
+                    if (el) el.play().catch(function(){});
+                }
                 _sendVideoControl('playing');
             }
         };
