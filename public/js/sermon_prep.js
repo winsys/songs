@@ -624,22 +624,14 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.selectBook = function (book) {
         $scope.selectedBook           = book;
         $scope.selectedChapter        = null;
+        $scope.bibleChapters          = [];
         $scope.rawVerses              = [];
         $scope.preparedVerses         = [];
         $scope.selectedBibleVerseNums = [];
-        var max = 0;
-        $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_books', translation_id: $scope.bibleTranslationId } }).then(
-            function (r) {
-                for (var i = 0; i < r.data.length; i++) {
-                    if (r.data[i].ID === book.ID) { max = r.data[i].CHAPTER_COUNT || 50; break; }
-                }
-                $scope.bibleChapters = [];
-                for (var c = 1; c <= max; c++) $scope.bibleChapters.push(c);
-            }
+
+        $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_chapters', book_id: book.ID } }).then(
+            function (r) { $scope.bibleChapters = r.data; }
         );
-        // Simpler: just get chapter count via a quick verse probe
-        $scope.bibleChapters = [];
-        for (var c = 1; c <= 150; c++) $scope.bibleChapters.push(c);
     };
     $scope.selectChapter = function (ch) {
         $scope.selectedChapter        = ch;
