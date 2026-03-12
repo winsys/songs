@@ -606,6 +606,17 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             function (r) { $scope.bibleBooks = r.data; }
         );
     };
+    $scope.getFilteredBooks = function () {
+        if (!$scope.bookSearchQuery || $scope.bookSearchQuery.length === 0) {
+            return $scope.bibleBooks;
+        }
+        var q = $scope.bookSearchQuery.toLowerCase();
+        return $scope.bibleBooks.filter(function (book) {
+            return (book.NAME    && book.NAME.toLowerCase().indexOf(q)    >= 0) ||
+                (book.NAME_LT && book.NAME_LT.toLowerCase().indexOf(q) >= 0) ||
+                (book.NAME_EN && book.NAME_EN.toLowerCase().indexOf(q) >= 0);
+        });
+    };
     $scope.getBookName = function (book) {
         if (!book) return '';
         return book.NAME || book.NAME_LT || book.NAME_EN || '';
