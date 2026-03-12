@@ -269,7 +269,8 @@
                             // Only show full-screen image overlay for sermon images.
                             // Song images (/images/...) must NEVER trigger the overlay —
                             // they are handled by the musician screen, not the text screen.
-                            var isSermonImage = (imagePath.indexOf('/sermon_images/') === 0);
+                            var isSermonImage = (imagePath.indexOf('/sermon_images/') === 0 ||
+                                imagePath.indexOf('/tech_media/')    === 0);
 
                             if (isSermonImage) {
                                 // Sermon image — show full-screen overlay, hide text
