@@ -76,8 +76,20 @@ CREATE TABLE IF NOT EXISTS `favorites` (
                                            `SONGID` varchar(15) NOT NULL,
                                            `sort_order` int(11) NOT NULL DEFAULT '0',
                                            PRIMARY KEY (`ID`),
-                                           UNIQUE KEY `Index 1` (`SONGID`)
-) ENGINE=InnoDB AUTO_INCREMENT=7490 DEFAULT CHARSET=utf8;
+                                           UNIQUE KEY `Index 1` (`groupId`,`SONGID`)
+) ENGINE=InnoDB AUTO_INCREMENT=7514 DEFAULT CHARSET=utf8;
+
+-- Data exporting was unselected.
+
+-- Dumping structure for table songs.languages
+CREATE TABLE IF NOT EXISTS `languages` (
+                                           `code` varchar(10) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Код языка: ru, lt, en, de …',
+                                           `label` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Метка кнопки: RU, LT, EN …',
+                                           `col_suffix` varchar(16) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Суффикс колонки БД: пусто → TEXT, _LT → TEXT_LT …',
+                                           `sort_order` int(11) NOT NULL DEFAULT '0' COMMENT 'Порядок отображения',
+                                           `is_default` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 = язык по умолчанию (фолбэк)',
+                                           PRIMARY KEY (`code`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Список доступных языков. Добавление / удаление языка — только здесь.';
 
 -- Data exporting was unselected.
 
@@ -114,7 +126,7 @@ CREATE TABLE IF NOT EXISTS `piano_favorites` (
                                                  `ID` int(11) NOT NULL AUTO_INCREMENT,
                                                  `SONGID` varchar(15) NOT NULL,
                                                  PRIMARY KEY (`ID`) USING BTREE,
-                                                 UNIQUE KEY `Index 1` (`SONGID`) USING BTREE
+                                                 UNIQUE KEY `Index 1` (`groupId`,`SONGID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=145 DEFAULT CHARSET=utf8 ROW_FORMAT=DYNAMIC;
 
 -- Data exporting was unselected.
@@ -160,7 +172,7 @@ CREATE TABLE IF NOT EXISTS `tech_media_favorites` (
                                                       `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                                       PRIMARY KEY (`id`),
                                                       KEY `idx_tmf_group` (`group_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Data exporting was unselected.
 
@@ -174,7 +186,7 @@ CREATE TABLE IF NOT EXISTS `users` (
                                        `GROUP_ID` int(11) NOT NULL DEFAULT '0',
                                        `LAST_LOGIN` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                        PRIMARY KEY (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.
 
