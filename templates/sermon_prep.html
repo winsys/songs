@@ -454,6 +454,29 @@
     }
     .bible-cite .cite-remove:hover { color: #e53935; }
 
+    /* ── Message panel back button ───────────────────────────────── */
+    .msg-back-btn {
+        flex-shrink: 0;
+        width: 24px;
+        height: 24px;
+        padding: 0;
+        border: 1.5px solid #ce93d8;
+        border-radius: 6px;
+        background: #f3e5f5;
+        color: #6a1b9a;
+        font-size: 16px;
+        font-weight: 700;
+        line-height: 1;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s, transform 0.15s;
+    }
+    .msg-back-btn:hover {
+        background: #e8d5f5;
+        transform: translateX(-1px);
+    }
     /* ── Message citation chip ───────────────────────────────────── */
     .message-cite {
         display: inline-flex;
@@ -929,49 +952,57 @@
                     <!-- ── MESSAGES TAB ── -->
                     <div ng-show="leftPanelTab === 'messages'">
 
-                        <!-- Two search inputs -->
-                        <input type="text"
-                               class="prep-bible-search"
-                               placeholder="Поиск по названию..."
-                               ng-model="prepMsgTitleQuery"
-                               ng-change="searchMessagesPrep()" />
-                        <input type="text"
-                               class="prep-bible-search"
-                               placeholder="Поиск по тексту..."
-                               ng-model="prepMsgTextQuery"
-                               ng-change="searchMessagesPrep()"
-                               style="margin-top:4px;" />
+                        <!-- Search inputs + hints + results: скрываются при расширении -->
+                        <div ng-hide="prepMsgParaExpanded">
+                            <input type="text"
+                                   class="prep-bible-search"
+                                   placeholder="Поиск по названию..."
+                                   ng-model="prepMsgTitleQuery"
+                                   ng-change="searchMessagesPrep()" />
+                            <input type="text"
+                                   class="prep-bible-search"
+                                   placeholder="Поиск по тексту..."
+                                   ng-model="prepMsgTextQuery"
+                                   ng-change="searchMessagesPrep()"
+                                   style="margin-top:4px;" />
 
-                        <div style="color:#b0b8c1; font-size:11px; padding: 4px 2px 6px;"
-                             ng-show="prepMsgTitleQuery.length < 2 && prepMsgTextQuery.length < 2">
-                            Введите минимум 2 символа для поиска
-                        </div>
-
-                        <!-- Search results panel -->
-                        <div class="prep-panel"
-                             style="height:24vh; margin-top:4px;"
-                             ng-show="prepMsgTitleQuery.length >= 2 || prepMsgTextQuery.length >= 2">
-                            <div class="prep-panel-title">Результаты ({{ prepMsgResults.length }})</div>
-                            <div class="prep-list-item"
-                                 ng-repeat="msg in prepMsgResults"
-                                 ng-class="{selected: prepSelectedMessage && prepSelectedMessage.ID === msg.ID}"
-                                 ng-click="selectMessagePrep(msg)">
-                                <span style="color:#1a6db5; font-size:10px; font-weight:700; display:block; letter-spacing:0.3px;">{{ msg.CODE }}</span>
-                                <span style="display:block; line-height:1.3; font-size:12px;">{{ msg.TITLE }}</span>
-                                <span ng-if="msg.CITY" style="color:#95a5a6; font-size:10px; display:block; margin-top:1px;">{{ msg.CITY }}</span>
+                            <div style="color:#b0b8c1; font-size:11px; padding: 4px 2px 6px;"
+                                 ng-show="prepMsgTitleQuery.length < 2 && prepMsgTextQuery.length < 2">
+                                Введите минимум 2 символа для поиска
                             </div>
-                            <div ng-show="prepMsgResults.length === 0"
-                                 style="padding:10px; color:#b0b8c1; font-size:11px;">
-                                Ничего не найдено
+
+                            <!-- Search results panel -->
+                            <div class="prep-panel"
+                                 style="height:24vh; margin-top:4px;"
+                                 ng-show="prepMsgTitleQuery.length >= 2 || prepMsgTextQuery.length >= 2">
+                                <div class="prep-panel-title">Результаты ({{ prepMsgResults.length }})</div>
+                                <div class="prep-list-item"
+                                     ng-repeat="msg in prepMsgResults"
+                                     ng-class="{selected: prepSelectedMessage && prepSelectedMessage.ID === msg.ID}"
+                                     ng-click="selectMessagePrep(msg)">
+                                    <span style="color:#1a6db5; font-size:10px; font-weight:700; display:block; letter-spacing:0.3px;">{{ msg.CODE }}</span>
+                                    <span style="display:block; line-height:1.3; font-size:12px;">{{ msg.TITLE }}</span>
+                                    <span ng-if="msg.CITY" style="color:#95a5a6; font-size:10px; display:block; margin-top:1px;">{{ msg.CITY }}</span>
+                                </div>
+                                <div ng-show="prepMsgResults.length === 0"
+                                     style="padding:10px; color:#b0b8c1; font-size:11px;">
+                                    Ничего не найдено
+                                </div>
                             </div>
                         </div>
 
                         <!-- Paragraphs panel -->
                         <div class="prep-panel"
-                             style="height:50vh; margin-top:6px;"
+                             ng-style="{'height': prepMsgParaExpanded ? 'calc(100vh - 290px)' : '50vh'}"
+                             style="margin-top:6px; transition: height 0.2s ease;"
                              ng-show="prepSelectedMessage">
-                            <div class="prep-panel-title" style="color:#6a1b9a; text-transform:none; font-size:12px;">
-                                {{ prepSelectedMessage.TITLE }}
+                            <div class="prep-panel-title" style="color:#6a1b9a; text-transform:none; font-size:12px; display:flex; align-items:center; gap:6px;">
+                                <!-- Кнопка "назад" — появляется когда панель расширена -->
+                                <button ng-show="prepMsgParaExpanded"
+                                        ng-click="collapseMsgSearch()"
+                                        class="msg-back-btn"
+                                        title="Вернуться к поиску">‹</button>
+                                <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ prepSelectedMessage.TITLE }}</span>
                             </div>
                             <span class="prep-verse-item"
                                   ng-repeat="para in prepMsgParagraphs"
@@ -991,7 +1022,6 @@
                                 ng-click="insertMessageCitation()">
                             ✍️ Вставить цитату из послания
                         </button>
-
                     </div><!-- /messages tab -->
 
                 </div><!-- /left-tab-content -->

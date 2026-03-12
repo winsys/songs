@@ -56,6 +56,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.prepMsgParagraphs   = [];
     $scope.prepSelectedParaIdx = null;
     var prepMsgSearchTimer     = null;
+    $scope.prepMsgParaExpanded = false;
 
     // ── VIDEO state ──────────────────────────────────────────
     $scope.showVideoPanel  = false;   // toolbar dropdown open
@@ -64,7 +65,6 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.modalVideoSrc          = '';
     $scope.modalVideoSrcTrusted   = null;
     $scope.modalVideoEmbedSrc     = null;
-
     // ──────────────────────────────────────────────────────────
     // COLOUR UTILITIES (unchanged from v1)
     // ──────────────────────────────────────────────────────────
@@ -742,7 +742,16 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         );
     };
     $scope.togglePrepPara = function (para) {
-        $scope.prepSelectedParaIdx = ($scope.prepSelectedParaIdx === para.idx) ? null : para.idx;
+        if ($scope.prepSelectedParaIdx === para.idx) {
+            $scope.prepSelectedParaIdx = null;
+            // не сворачиваем — пусть пользователь жмёт стрелку сам
+        } else {
+            $scope.prepSelectedParaIdx = para.idx;
+            $scope.prepMsgParaExpanded = true;   // ← расширяем при выборе абзаца
+        }
+    };
+    $scope.collapseMsgSearch = function () {
+        $scope.prepMsgParaExpanded = false;
     };
     $scope.insertMessageCitation = function () {
         if ($scope.prepSelectedParaIdx === null || !editorEl) return;
