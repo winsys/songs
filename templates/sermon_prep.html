@@ -634,6 +634,29 @@
         z-index: 10000;
         line-height: 1;
     }
+
+    .btn-sermon-delete {
+        flex-shrink: 0;
+        margin-left: 6px;
+        width: 18px;
+        height: 18px;
+        border-radius: 50%;
+        border: none;
+        background: transparent;
+        color: #c0c8d0;
+        font-size: 14px;
+        line-height: 1;
+        cursor: pointer;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.12s, color 0.12s;
+    }
+    .btn-sermon-delete:hover {
+        background: #fde8e8;
+        color: #e53935;
+    }
 </style>
 
 <div ng-controller="SermonPrep">
@@ -908,6 +931,9 @@
                          ng-click="loadSermon(s.ID)">
                         <span>{{ s.TITLE || '(без названия)' }}</span>
                         <span class="sermon-list-date">{{ s.SERMON_DATE }}</span>
+                        <button class="btn-sermon-delete"
+                                ng-click="deleteSermonFromList(s.ID, $event)"
+                                title="Удалить">×</button>
                     </div>
                 </div>
 
