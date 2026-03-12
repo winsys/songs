@@ -304,6 +304,26 @@
         gap: 6px;
         flex-shrink: 0;
     }
+
+    .song-del {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        flex-shrink: 0;
+        color: #c0392b;
+        font-size: 12px;
+        background: #fdecea;
+        border: 1.5px solid #fad7d4;
+        border-radius: 6px;
+        padding: 3px 7px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background .12s;
+        z-index: 2;
+        line-height: 1.5;
+    }
+    .song-del:hover { background: #fad7d4; }
+
     /* Desktop: edit button inside text-container (right-aligned), hidden from right block */
     @media (min-width: 769px) {
         .song-right-block .btn-edit { display: none; }
@@ -1056,6 +1076,10 @@
                              ng-class="{'box-selected': showingSong === listItem}"
                              ng-click="prepareText(listItem.TEXT, listItem)">
 
+                            <button class="song-del"
+                                    ng-click="$event.stopPropagation(); deleteFavoriteItem(listItem.FID, listItem.dispName, listItem.itemType)"
+                                    title="Удалить из плейлиста">✕</button>
+
                             <!-- Left: title + meta -->
                             <div class="text-container">
                                 <span class="item-text">{{ listItem.dispName }}</span>
@@ -1082,14 +1106,6 @@
                                 <button class="btn-edit"
                                         ng-click="editFavorite(listItem)">✏️ Ред.</button>
                             </div>
-                        </div>
-
-                        <!-- Delete button below card -->
-                        <div ng-if="listItem.itemType === 'song'"
-                             style="margin-top: 3px; margin-bottom: 2px; width: 97%;">
-                            <button class="btn btn-default btn-xs"
-                                    style="color: #c0392b; font-size: 11px;"
-                                    ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName, listItem.itemType)">❌ Удалить</button>
                         </div>
 
                         <!-- ── Медиа-карточка (изображение или видео) ── -->
