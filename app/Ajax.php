@@ -28,17 +28,27 @@ class Ajax
     private static function get_song_list()
     {
         $listId = (int)self::$args['list_id'];
+
+        // Динамически строим hasText_code поля по таблице languages
+        $langs = Info::get('db')->select(
+            "SELECT code, col_suffix FROM languages ORDER BY sort_order ASC"
+        );
+        $hasTextFields = '';
+        foreach ($langs as $lang) {
+            $col   = 'TEXT' . $lang['col_suffix'];        // TEXT, TEXT_LT, TEXT_DE…
+            $alias = 'hasText_' . $lang['code'];           // hasText_ru, hasText_lt…
+            $hasTextFields .= ", (l.{$col} IS NOT NULL AND l.{$col} != '') AS {$alias}";
+        }
+
         $list = Info::get('db')->select(
             "SELECT l.*,
-                    concat(l.NUM, '   ', l.NAME) as dispName,
-                    n.LIST_NAME as bookName,
-                    (l.TEXT    IS NOT NULL AND l.TEXT    != '') AS hasTextRu,
-                    (l.TEXT_LT IS NOT NULL AND l.TEXT_LT != '') AS hasTextLt,
-                    (l.TEXT_EN IS NOT NULL AND l.TEXT_EN != '') AS hasTextEn
-             FROM song_list l
-             LEFT JOIN list_names n ON n.LIST_ID = l.LISTID
-             WHERE l.LISTID = {$listId}
-             ORDER BY l.NUM"
+                concat(l.NUM, '   ', l.NAME) as dispName,
+                n.LIST_NAME as bookName
+                {$hasTextFields}
+         FROM song_list l
+         LEFT JOIN list_names n ON n.LIST_ID = l.LISTID
+         WHERE l.LISTID = {$listId}
+         ORDER BY l.NUM"
         );
         return json_encode($list);
     }
@@ -60,9 +70,10 @@ class Ajax
         $sortOrder = max((int)$maxSong['m'], (int)$maxMedia['m']) + 1;
 
         Info::get('db')->exec(
-            "INSERT INTO favorites (groupId, SONGID, sort_order)
-         VALUES ({$userId}, '{$songId}', {$sortOrder})"
+            "INSERT IGNORE INTO favorites (groupId, SONGID, sort_order)
+             VALUES ({$userId}, '{$songId}', {$sortOrder})"
         );
+
         self::updateSocket();
         return '';
     }

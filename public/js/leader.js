@@ -6,6 +6,18 @@ app.controller('Leader', function ($scope, $http)
     $scope.fullScreen = false;
     $scope.availableSongLists = [];
     $scope.visibleSongLists = [];
+    $scope.langList = [];
+
+    function loadLanguages() {
+        $http({ method: 'POST', url: '/ajax', data: { command: 'get_languages' } }).then(
+            function (r) {
+                $scope.langList = r.data || [];
+            },
+            function () {
+                console.error('leader.js: не удалось загрузить список языков');
+            }
+        );
+    }
 
     // Load available song lists and user settings
     $scope.loadSongLists = function() {
@@ -206,6 +218,7 @@ app.controller('Leader', function ($scope, $http)
     }
 
     $scope.loadSongLists();
+    loadLanguages();
     $scope.reloadSongList();
     $scope.reloadFavorites();
 });
