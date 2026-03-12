@@ -741,10 +741,18 @@
         <div ng-show="pageMode === 'songs'">
             <div class="btn-row" style="margin-top: 8px;">
                 <button class="btn-action-blue" ng-click="openList()">📋 Весь список</button>
-                <button class="btn-action-orange" ng-click="addNewSong()">＋ Добавить песню</button>
+                <button class="btn-action-orange" ng-click="addNewSong()">＋ Добавить песню в сборник</button>
                 <button class="btn-action-blue"
                         ng-click="toggleMediaAddPanel()"
                         style="border-color:#8e44ad; color:#8e44ad;"
+                        ng-class="showMediaAddPanel ? 'mode-btn-active' : ''">
+                    🖼️ + Медиа
+                </button>
+            </div>
+            <div class="btn-row" style="margin-top: 8px;">
+                <button class="btn-action-blue"
+                        ng-click="toggleMediaAddPanel()"
+                        style="border-color:yellow; color:yellow;"
                         ng-class="showMediaAddPanel ? 'mode-btn-active' : ''">
                     🖼️ + Медиа
                 </button>
