@@ -360,7 +360,13 @@
 
                         if (videoSrc) {
                             if (videoState === 'playing') {
-                                showVideoOverlay(videoSrc);
+                                if (_currentVideoSrc === videoSrc) {
+                                    // Тот же источник — просто возобновить
+                                    resumeVideoOverlay();
+                                } else {
+                                    // Новый источник — создать плеер (он стартует с autoplay)
+                                    showVideoOverlay(videoSrc);
+                                }
                                 $scope.overlayImageSrc = '';
                                 $scope.text            = '';
                                 $scope.songName        = '';
