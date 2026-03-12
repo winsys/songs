@@ -493,19 +493,217 @@
         box-shadow: 0 3px 10px rgba(192,57,43,0.16);
     }
 
-    /* ---- Edit song popup specifics ---------------------------- */
+    /* ---- Edit song popup ----------------------------------------- */
     .enlarged-image-popup .modal-dialog { margin: 30px auto; }
     .enlarged-image-popup img { box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
 
-    #edit-song-popup textarea {
-        color: #222;
-        caret-color: #222;
+    #edit-song-popup .modal-dialog {
+        width: 96vw;
+        max-width: 1400px;
+        margin: 20px auto;
     }
-    #edit-song-popup .verse-editor {
-        background-color: #fafafa;
-        line-height: 1.6;
-        resize: vertical;
+    #edit-song-popup .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 12px 48px rgba(0,0,0,0.18);
+        overflow: hidden;
     }
+    #edit-song-popup .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        background: linear-gradient(135deg, #1a6db5 0%, #2980b9 100%);
+        border-bottom: none;
+    }
+    #edit-song-popup .modal-header .modal-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0;
+        letter-spacing: 0.3px;
+    }
+    #edit-song-popup .modal-header .close {
+        color: rgba(255,255,255,0.85);
+        opacity: 1;
+        font-size: 22px;
+        font-weight: 300;
+        text-shadow: none;
+        margin: 0;
+        padding: 0;
+        line-height: 1;
+        transition: color 0.15s;
+    }
+    #edit-song-popup .modal-header .close:hover { color: #fff; }
+    #edit-song-popup .modal-body {
+        padding: 20px 24px;
+        background: #f8f9fa;
+    }
+    #edit-song-popup .modal-footer {
+        padding: 12px 24px;
+        background: #fff;
+        border-top: 1px solid #f0f2f5;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    /* Name input */
+    #edit-song-popup .esp-name-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+        background: #fff;
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        padding: 10px 16px;
+    }
+    #edit-song-popup .esp-name-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    #edit-song-popup .esp-name-input {
+        flex: 1;
+        border: none;
+        outline: none;
+        font-size: 15px;
+        font-weight: 600;
+        color: #2c3e50;
+        background: transparent;
+        padding: 0;
+    }
+
+    /* Three-column text editors */
+    #edit-song-popup .esp-editors {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 14px;
+        margin-bottom: 16px;
+    }
+    #edit-song-popup .esp-editor-col {
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    #edit-song-popup .esp-editor-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        background: #f4f5f7;
+        border-bottom: 1px solid #e9ecef;
+    }
+    #edit-song-popup .esp-editor-header .lang-badge {
+        font-size: 9px;
+        padding: 2px 7px;
+        border-radius: 5px;
+    }
+    #edit-song-popup .esp-editor-hint {
+        font-size: 11px;
+        color: #95a5a6;
+        margin-left: auto;
+    }
+    #edit-song-popup textarea.verse-editor {
+        flex: 1;
+        border: none;
+        outline: none;
+        resize: none;
+        padding: 12px;
+        font-size: 13px;
+        font-family: 'Courier New', monospace;
+        line-height: 1.65;
+        color: #2c3e50;
+        caret-color: #1a6db5;
+        background: #fff;
+        height: 52vh;
+        min-height: 300px;
+        white-space: pre-wrap;
+    }
+    #edit-song-popup textarea.verse-editor:focus { background: #fafeff; }
+
+    /* Image section */
+    #edit-song-popup .esp-image-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        background: #fff;
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        padding: 12px 16px;
+    }
+    #edit-song-popup .esp-image-thumb {
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1.5px solid #dee2e6;
+        cursor: pointer;
+        transition: border-color 0.15s;
+    }
+    #edit-song-popup .esp-image-thumb:hover { border-color: #1a6db5; }
+    #edit-song-popup .esp-image-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+    #edit-song-popup .esp-image-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    /* Footer buttons */
+    .esp-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1.5px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s;
+        letter-spacing: 0.2px;
+    }
+    .esp-btn-cancel {
+        background: #f4f5f7;
+        color: #5a6272;
+        border-color: #dee2e6;
+    }
+    .esp-btn-cancel:hover { background: #e9eaec; }
+    .esp-btn-save {
+        background: #1a6db5;
+        color: #fff;
+        border-color: #1a6db5;
+    }
+    .esp-btn-save:hover { background: #155a9a; box-shadow: 0 3px 10px rgba(26,109,181,0.3); transform: translateY(-1px); }
+    .esp-btn-image {
+        background: #f0f8ff;
+        color: #1a6db5;
+        border-color: #b8d9f5;
+    }
+    .esp-btn-image:hover { background: #daeeff; }
+    .esp-btn-clear-img {
+        background: #fdecea;
+        color: #c0392b;
+        border-color: #fad7d4;
+    }
+    .esp-btn-clear-img:hover { background: #fad7d4; }
+
 
     /* ---- Number input fix ------------------------------------- */
     input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
@@ -1220,107 +1418,102 @@
         <!-- Edit song popup -->
         <div id="edit-song-popup">
             <div class="modal fade edit-song-popup" role="dialog">
-                <div class="modal-dialog modal-lg">
+                <div class="modal-dialog">
                     <div class="modal-content">
+
                         <div class="modal-header">
+                            <h3 class="modal-title">✏️ {{ editConfig.title }}</h3>
                             <button type="button" class="close" data-dismiss="modal">&times;</button>
-                            <h3 class="modal-title">{{ editConfig.title }}</h3>
                         </div>
+
                         <div class="modal-body">
-                            <!-- Song Title -->
-                            <div class="row">
-                                <div class="col-xs-12">
-                                    <label style="font-size: 12pt; font-weight: bold;">Название:</label>
-                                    <input type="text"
-                                           ng-model="editConfig.songName"
-                                           class="form-control"
-                                           style="font-size: 14pt; margin-top: 5px;">
+
+                            <!-- Song name -->
+                            <div class="esp-name-row">
+                                <span class="esp-name-label">Название</span>
+                                <input type="text"
+                                       class="esp-name-input"
+                                       placeholder="Введите название песни..."
+                                       ng-model="editConfig.songName">
+                            </div>
+
+                            <!-- Three text editors -->
+                            <div class="esp-editors">
+                                <div class="esp-editor-col">
+                                    <div class="esp-editor-header">
+                                        <span class="lang-badge lang-ru">RU</span>
+                                        <span style="font-size:12px; font-weight:600; color:#2c3e50;">Русский текст</span>
+                                        <span class="esp-editor-hint">¶ — разделитель куплетов</span>
+                                    </div>
+                                    <textarea class="verse-editor"
+                                              ng-model="editConfig.songText"
+                                              placeholder="Текст на русском..."></textarea>
+                                </div>
+                                <div class="esp-editor-col">
+                                    <div class="esp-editor-header">
+                                        <span class="lang-badge lang-lt">LT</span>
+                                        <span style="font-size:12px; font-weight:600; color:#2c3e50;">Литовский текст</span>
+                                        <span class="esp-editor-hint">Опционально</span>
+                                    </div>
+                                    <textarea class="verse-editor"
+                                              ng-model="editConfig.songTextLt"
+                                              placeholder="Текст на литовском..."></textarea>
+                                </div>
+                                <div class="esp-editor-col">
+                                    <div class="esp-editor-header">
+                                        <span class="lang-badge lang-en">EN</span>
+                                        <span style="font-size:12px; font-weight:600; color:#2c3e50;">English text</span>
+                                        <span class="esp-editor-hint">Optional</span>
+                                    </div>
+                                    <textarea class="verse-editor"
+                                              ng-model="editConfig.songTextEn"
+                                              placeholder="English text..."></textarea>
                                 </div>
                             </div>
 
-                            <!-- Song Texts -->
-                            <div class="row" style="margin-top: 20px;">
-                                <div class="col-xs-4">
-                                    <label style="font-size: 12pt; font-weight: bold;">Текст (RU):</label>
-                                    <textarea ng-model="editConfig.songText"
-                                              rows="15"
-                                              class="form-control verse-editor"
-                                              style="font-size: 12pt; width: 100%; margin-top: 5px; font-family: monospace; white-space: pre-wrap;">
-                                </textarea>
-                                    <small style="color: gray;">Куплеты разделяются строкой с символом ¶</small>
+                            <!-- Image -->
+                            <div class="esp-image-row">
+                                <span class="esp-image-label">Изображение</span>
+                                <img ng-if="editConfig.previewImage"
+                                     class="esp-image-thumb"
+                                     ng-src="{{ editConfig.previewImage }}"
+                                     ng-click="$parent.showEnlargedImage(editConfig.previewImage)"
+                                     title="Увеличить" />
+                                <img ng-if="!editConfig.previewImage && editConfig.currentImage"
+                                     class="esp-image-thumb"
+                                     ng-src="{{ editConfig.currentImage }}"
+                                     title="Текущее изображение" />
+                                <div ng-if="!editConfig.previewImage && !editConfig.currentImage"
+                                     style="width:64px; height:64px; border:1.5px dashed #dee2e6; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#b0b8c1; font-size:22px;">
+                                    🖼
                                 </div>
-                                <div class="col-xs-4">
-                                    <label style="font-size: 12pt; font-weight: bold;">Текст (LT):</label>
-                                    <textarea ng-model="editConfig.songTextLt"
-                                              rows="15"
-                                              class="form-control verse-editor"
-                                              style="font-size: 12pt; width: 100%; margin-top: 5px; font-family: monospace; white-space: pre-wrap;">
-                                </textarea>
-                                    <small style="color: gray;">Опционально</small>
-                                </div>
-                                <div class="col-xs-4">
-                                    <label style="font-size: 12pt; font-weight: bold;">Текст (EN):</label>
-                                    <textarea ng-model="editConfig.songTextEn"
-                                              rows="15"
-                                              class="form-control verse-editor"
-                                              style="font-size: 12pt; width: 100%; margin-top: 5px; font-family: monospace; white-space: pre-wrap;">
-                                </textarea>
-                                    <small style="color: gray;">Опционально</small>
-                                </div>
-                            </div>
-
-                            <!-- Image Preview -->
-                            <div class="row" style="margin-top: 20px;">
-                                <div class="col-xs-6">
-                                    <label style="font-size: 12pt; font-weight: bold;">Текущее изображение:</label>
-                                    <div ng-show="editConfig.currentImage" style="margin-top: 10px;">
-                                        <img ng-src="{{ editConfig.currentImage }}"
-                                             style="max-width: 200px; max-height: 150px; border-radius: 10px;"
-                                             ng-click="showEnlargedImage(editConfig.currentImage)" />
-                                    </div>
-                                    <div ng-show="!editConfig.currentImage" style="margin-top: 10px; color: gray;">
-                                        Нет изображения
-                                    </div>
-                                </div>
-                                <div class="col-xs-6" ng-show="editConfig.previewImage">
-                                    <label style="font-size: 12pt; font-weight: bold;">Новое изображение:</label>
-                                    <div style="margin-top: 10px;">
-                                        <img ng-src="{{ editConfig.previewImage }}"
-                                             style="max-width: 200px; max-height: 150px; border-radius: 10px;" />
-                                        <br>
-                                        <button class="btn btn-danger btn-sm" style="margin-top: 5px;"
-                                                ng-click="clearImagePreview()">✕ Убрать</button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Upload Button -->
-                            <div class="row" style="margin-top: 15px;">
-                                <div class="col-xs-12">
+                                <div class="esp-image-actions">
                                     <input type="file"
                                            id="imageUpload"
                                            accept="image/*"
-                                           onchange="angular.element(this).scope().previewImage()"
-                                           style="display: none;" />
-                                    <button class="btn btn-info btn-lg"
-                                            onclick="document.getElementById('imageUpload').click()"
-                                            style="width: 100%;">
-                                        📷 Выбрать новое изображение
+                                           style="display:none"
+                                           onchange="angular.element(this).scope().previewImage()" />
+                                    <button class="esp-btn esp-btn-image"
+                                            onclick="document.getElementById('imageUpload').click()">
+                                        📷 Выбрать изображение
+                                    </button>
+                                    <button class="esp-btn esp-btn-clear-img"
+                                            ng-if="editConfig.previewImage"
+                                            ng-click="clearImagePreview()">
+                                        ✕ Убрать
                                     </button>
                                 </div>
                             </div>
-                        </div>
+
+                        </div><!-- /modal-body -->
 
                         <div class="modal-footer">
-                            <button type="button"
-                                    class="btn btn-default btn-lg"
-                                    data-dismiss="modal">Отмена</button>
-                            <button type="button"
-                                    class="btn btn-success btn-lg"
-                                    ng-click="saveSongEdits()">
-                                💾 Сохранить все изменения
+                            <button class="esp-btn esp-btn-cancel" data-dismiss="modal">Отмена</button>
+                            <button class="esp-btn esp-btn-save" ng-click="saveSongEdits()">
+                                💾 Сохранить изменения
                             </button>
                         </div>
+
                     </div>
                 </div>
             </div>
