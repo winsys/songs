@@ -1413,11 +1413,15 @@ class Ajax
     private static function get_group_users()
     {
         $userId = (int)$_SESSION['userId'];
-        // Все пользователи группы: сам admin (ID=$userId) + остальные (GROUP_ID=$userId)
+        // GROUP_ID = $userId → все участники группы (включая admin, если GROUP_ID=userId)
+        // ID = $userId AND GROUP_ID = 0 → admin, у которого GROUP_ID=0 (самостоятельная группа)
+        // Условие "ID = $userId" без ограничения на GROUP_ID убрано —
+        // оно случайно подтягивало чужого пользователя, чей ID совпадал с номером группы.
         $users = Info::get('db')->select(
             "SELECT ID, NAME, LOGIN, PASS, ROLE
              FROM users
-             WHERE ID = {$userId} OR GROUP_ID = {$userId}
+             WHERE GROUP_ID = {$userId}
+                OR (ID = {$userId} AND (GROUP_ID = 0 OR GROUP_ID IS NULL))
              ORDER BY FIELD(ROLE, 'admin', 'leader', 'musician', 'preacher')"
         );
         return json_encode($users);
