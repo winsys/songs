@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1">
+    <meta name="csrf-token" content="<?php echo htmlspecialchars(Security::getCsrfToken(), ENT_QUOTES); ?>">
     <title>Текст</title>
     <script src="/js/angular.min.js"></script>
+    <script src="/js/csrf_interceptor.js"></script>
     <style>
         body {
             margin: 0;
@@ -108,7 +110,7 @@
 </div>
 
 <script>
-    angular.module('TextApp', [])
+    angular.module('TextApp', ['csrfModule'])
         .controller('TextController', function($scope, $http, $timeout, $sce) {
             $scope.text = "";
             $scope.songName = "";
