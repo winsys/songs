@@ -14,8 +14,8 @@ trait Ajax_Tech
 
         Info::get('db')->exec("DELETE FROM current WHERE groupId = {$userId}");
         Info::get('db')->exec(
-            "INSERT INTO current (groupId, image, video_src, video_state)
-         VALUES ({$userId}, '{$image_name}', '', 'stopped')"
+            "INSERT INTO current (groupId, image, text, song_name, video_src, video_state)
+         VALUES ({$userId}, '{$image_name}', '', '', '', 'stopped')"
         );
         self::updateSocket();
         return '';
