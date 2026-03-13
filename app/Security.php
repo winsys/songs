@@ -255,11 +255,8 @@ class Security
      */
     public static function generateWebSocketToken(): string
     {
-        if (!isset($_SESSION['userId'])) {
-            return '';
-        }
         $config = Info::get('config');
-        $userId = (int)$_SESSION['userId'];
+        $userId = isset($_SESSION['userId']) ? (int)$_SESSION['userId'] : 0;
         return hash_hmac('sha256', $userId, $config['encryption_key']);
     }
 
