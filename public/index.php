@@ -22,7 +22,7 @@ session_set_cookie_params(
 
 session_start();
 
-Info::set('config', include '../app/config.php');
+Info::set('config', include '../app/config_example.php');
 
 $database = new Database();
 Info::set('db', $database);
