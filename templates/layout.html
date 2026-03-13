@@ -6,6 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="csrf-token" content="<?php echo htmlspecialchars(Security::getCsrfToken(), ENT_QUOTES); ?>">
     <link href="/a-icon-120.png" rel="apple-touch-icon" />
     <link href="/a-icon-152.png" rel="apple-touch-icon" sizes="152x152" />
     <link href="/a-icon-167.png" rel="apple-touch-icon" sizes="167x167" />
@@ -17,6 +18,7 @@
     <script src="/js/jquery.min.js" type="text/javascript"></script>
     <script src="/js/bootstrap.min.js" type="text/javascript"></script>
     <script src="/js/angular.min.js" type="text/javascript"></script>
+    <script src="/js/csrf_interceptor.js"></script>
     <script src="/js/angular-touch.min.js" type="text/javascript"></script>
     <script src="/js/angucomplete-alt.min.js" type="text/javascript"></script>
     <script type="text/javascript">

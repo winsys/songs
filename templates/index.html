@@ -1,7 +1,3 @@
-<script>
-    userId = <?php echo $_SESSION["userId"] ?>;
-</script>
-
 <?php $role = isset($_SESSION['userRole']) ? $_SESSION['userRole'] : 'musician'; ?>
 
 <style>
@@ -141,47 +137,47 @@
         <?php endif; ?>
 
         <?php if ($role === 'admin' || $role === 'leader'): ?>
-        <button class="btn-home btn-blue" onclick="window.location.href='/leader/'+userId">
+        <button class="btn-home btn-blue" onclick="window.location.href='/leader'">
             <span class="btn-icon">🎤</span> Ведущий
         </button>
         <?php endif; ?>
 
         <?php if ($role === 'admin' || $role === 'musician'): ?>
-        <button class="btn-home btn-blue" onclick="window.location.href='/musician/'+userId">
+        <button class="btn-home btn-blue" onclick="window.location.href='/musician'">
             <span class="btn-icon">🎸</span> Музыкант
         </button>
         <?php endif; ?>
 
         <?php if ($role === 'admin' || $role === 'leader'): ?>
-        <button class="btn-home btn-blue" onclick="window.location.href='/tech/'+userId">
+        <button class="btn-home btn-blue" onclick="window.location.href='/tech'">
             <span class="btn-icon">🖥️</span> Технический режим
         </button>
         <?php endif; ?>
 
         <?php if ($role === 'admin' || $role === 'preacher'): ?>
         <div class="home-section-label">Проповедь</div>
-        <button class="btn-home btn-green" onclick="window.location.href='/sermon/'+userId">
+        <button class="btn-home btn-green" onclick="window.location.href='/sermon'">
             <span class="btn-icon">📖</span> Проповедь
         </button>
-        <button class="btn-home btn-green" onclick="window.location.href='/sermon_prep/'+userId">
+        <button class="btn-home btn-green" onclick="window.location.href='/sermon_prep'">
             <span class="btn-icon">✏️</span> Подготовка проповеди
         </button>
         <?php endif; ?>
 
         <?php if ($role === 'admin'): ?>
         <div class="home-section-label">Экраны</div>
-        <button class="btn-home btn-gray" onclick="window.location.href='/text/'+userId">
+        <button class="btn-home btn-gray" onclick="window.location.href='/text'">
             <span class="btn-icon">📝</span> Слова песни
         </button>
-        <button class="btn-home btn-gray" onclick="window.location.href='/text_stream/'+userId">
+        <button class="btn-home btn-gray" onclick="window.location.href='/text_stream'">
             <span class="btn-icon">📡</span> Слова для трансляции
         </button>
 
         <div class="home-section-label">Администрирование</div>
-        <button class="btn-home btn-purple" onclick="window.location.href='/settings/'+userId">
+        <button class="btn-home btn-purple" onclick="window.location.href='/settings'">
             <span class="btn-icon">⚙️</span> Настройки
         </button>
-        <button class="btn-home btn-red" onclick="window.location.href='/import/'+userId">
+        <button class="btn-home btn-red" onclick="window.location.href='/import'">
             <span class="btn-icon">📥</span> Импорт данных
         </button>
         <?php endif; ?>

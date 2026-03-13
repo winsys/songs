@@ -59,23 +59,23 @@ class App
                 echo Ajax::execute($cmds);
                 break;
             case 'text':
-                $this->render($route[0], $route[1], 'text_layout');
+                $this->render($route[0], null, 'text_layout');
                 break;
             case 'text_stream':
-                $this->render($route[0], $route[1], 'text_layout_streaming');
+                $this->render($route[0], null, 'text_layout_streaming');
                 break;
             case 'sermon':
-                $this->render($route[0], $route[1], 'sermon_layout');
+                $this->render($route[0], null, 'sermon_layout');
                 break;
             default:
-                $this->render($route[0], $route[1]);
+                $this->render($route[0], null);
                 break;
         }
     }
 
     private function render($view, $param = null, $layout = null)
     {
-        $userId   = $param;
+        $userId = (int)($_SESSION['userId'] ?? 0);
         $viewFile = '../templates/' . $view . '.html';
         if (is_readable($viewFile)) {
             ob_start();
