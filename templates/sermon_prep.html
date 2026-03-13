@@ -815,6 +815,28 @@
     }
     .vip-btn-file:hover { background: #219a52; }
 
+    /* ── Upload loading spinner ────────────────────────────────────── */
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .upload-spinner {
+        display: inline-block;
+        width: 12px;
+        height: 12px;
+        border: 2px solid rgba(39, 174, 96, 0.2);
+        border-top-color: #27ae60;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-right: 6px;
+        vertical-align: middle;
+    }
+    .vip-btn-file.uploading,
+    .toolbar-btn.uploading {
+        opacity: 0.7;
+        pointer-events: none;
+    }
+
     /* ── Video preview modal ─────────────────────────────────────── */
     #sermon-video-modal {
         display: none;
@@ -1001,7 +1023,7 @@
                         <div ng-hide="prepMsgParaExpanded">
                             <input type="text"
                                    class="prep-bible-search"
-                                   placeholder="Поиск по названию..."
+                                   placeholder="Поиск по номеру или названию..."
                                    ng-model="prepMsgTitleQuery"
                                    ng-change="searchMessagesPrep()" />
                             <input type="text"
@@ -1102,9 +1124,11 @@
 
                     <!-- Image upload -->
                     <button class="toolbar-btn" title="Вставить изображение"
+                            ng-class="{'uploading': uploadingImage}"
                             ng-mousedown="$event.preventDefault()"
-                            onclick="document.getElementById('prep-img-upload').click()" style="padding:5px 9px;">
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
+                            ng-click="!uploadingImage && document.getElementById('prep-img-upload').click()" style="padding:5px 9px;">
+                        <span ng-if="uploadingImage" class="upload-spinner"></span>
+                        <svg ng-if="!uploadingImage" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
                             <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
                         </svg>
                     </button>
@@ -1137,8 +1161,12 @@
                             <div class="vip-sep">— или —</div>
 
                             <!-- Загрузка файла -->
-                            <div class="vip-btn-file" ng-click="triggerVideoUpload()">
-                                📁 Загрузить видеофайл
+                            <div class="vip-btn-file"
+                                 ng-class="{'uploading': uploadingVideo}"
+                                 ng-click="!uploadingVideo && triggerVideoUpload()">
+                                <span ng-if="uploadingVideo" class="upload-spinner"></span>
+                                <span ng-if="uploadingVideo">Загрузка...</span>
+                                <span ng-if="!uploadingVideo">📁 Загрузить видеофайл</span>
                             </div>
                         </div>
                     </div>

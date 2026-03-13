@@ -67,6 +67,19 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.modalVideoSrc          = '';
     $scope.modalVideoSrcTrusted   = null;
     $scope.modalVideoEmbedSrc     = null;
+
+    // ── Upload loading state ─────────────────────────────────
+    $scope.uploadingImage = false;
+    $scope.uploadingVideo = false;
+
+    // ── Helper to delete uploaded media file ─────────────────
+    function deleteSermonMedia(path) {
+        // Only delete if it's an uploaded file (starts with /sermon_images/ or /sermon_videos/)
+        if (path && (path.indexOf('/sermon_images/') === 0 || path.indexOf('/sermon_videos/') === 0)) {
+            $http.post('/ajax', { command: 'delete_sermon_media', path: path });
+        }
+    }
+
     // ──────────────────────────────────────────────────────────
     // COLOUR UTILITIES (unchanged from v1)
     // ──────────────────────────────────────────────────────────
@@ -343,6 +356,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     };
     $scope.onImageSelected = function (input) {
         if (!input.files || input.files.length === 0) return;
+        $scope.uploadingImage = true;
         var file     = input.files[0];
         var formData = new FormData();
         formData.append('image',   file);
@@ -352,6 +366,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             headers: { 'Content-Type': undefined }
         }).then(
             function (r) {
+                $scope.uploadingImage = false;
                 if (r.data && r.data.path) {
                     insertImageNode(r.data.path);
                 } else {
@@ -361,6 +376,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 input.value = '';
             },
             function (e) {
+                $scope.uploadingImage = false;
                 alert('Ошибка загрузки (HTTP ' + (e.status || '?') + '): ' + (e.statusText || ''));
                 input.value = '';
             }
@@ -380,7 +396,12 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         var removeBtn       = document.createElement('span');
         removeBtn.className = 'sermon-img-remove';
         removeBtn.innerHTML = '×';
-        removeBtn.onclick   = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
+        removeBtn.onclick   = function (e) {
+            e.stopPropagation();
+            deleteSermonMedia(path);
+            span.remove();
+            scheduleAutoSave();
+        };
 
         span.onclick = function (e) {
             if (e.target === removeBtn) return;
@@ -436,6 +457,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     /** Обработчик выбора видеофайла */
     $scope.onVideoSelected = function (input) {
         if (!input.files || input.files.length === 0) return;
+        $scope.uploadingVideo = true;
         var file     = input.files[0];
         var formData = new FormData();
         formData.append('video',   file);
@@ -446,6 +468,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             headers: { 'Content-Type': undefined }
         }).then(
             function (r) {
+                $scope.uploadingVideo = false;
                 if (r.data && r.data.path) {
                     restoreRange();
                     insertVideoNode(r.data.path, r.data.name || r.data.path.split('/').pop());
@@ -455,6 +478,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 input.value = '';
             },
             function (e) {
+                $scope.uploadingVideo = false;
                 alert('Ошибка загрузки видео (HTTP ' + (e.status || '?') + ')');
                 input.value = '';
             }
@@ -481,7 +505,12 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         del.className  = 'svw-del';
         del.innerHTML  = '×';
         del.title      = 'Удалить';
-        del.onclick    = function (e) { e.stopPropagation(); wrap.remove(); scheduleAutoSave(); };
+        del.onclick    = function (e) {
+            e.stopPropagation();
+            deleteSermonMedia(src);
+            wrap.remove();
+            scheduleAutoSave();
+        };
 
         // Клик = предпросмотр в модалке
         wrap.onclick = function (e) {
@@ -575,7 +604,12 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         editorEl.querySelectorAll('.sermon-img-wrap').forEach(function (span) {
             var path      = span.getAttribute('data-image-path');
             var removeBtn = span.querySelector('.sermon-img-remove');
-            if (removeBtn) removeBtn.onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
+            if (removeBtn) removeBtn.onclick = function (e) {
+                e.stopPropagation();
+                deleteSermonMedia(path);
+                span.remove();
+                scheduleAutoSave();
+            };
             span.onclick = function (e) {
                 if (e.target === removeBtn) return;
                 $scope.$apply(function () {
@@ -589,7 +623,12 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         editorEl.querySelectorAll('.sermon-video-wrap').forEach(function (span) {
             var src = span.getAttribute('data-video-src');
             var del = span.querySelector('.svw-del');
-            if (del) del.onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
+            if (del) del.onclick = function (e) {
+                e.stopPropagation();
+                deleteSermonMedia(src);
+                span.remove();
+                scheduleAutoSave();
+            };
             span.onclick = function (e) {
                 if (e.target === del) return;
                 _openVideoModal(src);

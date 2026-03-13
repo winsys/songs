@@ -926,6 +926,30 @@
     }
     .tvb-btn:hover { background: rgba(255,255,255,.17); }
     .tvb-stop { border-color: rgba(244,67,54,.4); color: #ef9a9a; }
+
+    /* ── Анимированный спиннер загрузки ────────────────────────── */
+    @keyframes spin {
+        0% { transform: rotate(0deg); }
+        100% { transform: rotate(360deg); }
+    }
+    .upload-spinner {
+        display: inline-block;
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(52, 152, 219, 0.2);
+        border-top-color: #3498db;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+        margin-right: 6px;
+        vertical-align: middle;
+    }
+    .map-btn-upload.uploading {
+        background: #ebf5fb;
+        border-color: #3498db;
+        color: #2980b9;
+        pointer-events: none;
+        opacity: 0.8;
+    }
 </style>
 
 <div ng-controller="Tech">
@@ -999,11 +1023,21 @@
 
             <!-- Загрузка файлов -->
             <div class="map-upload-row">
-                <div class="map-btn-upload" ng-click="triggerMediaImageUpload()">
-                    🖼️ Изображение
+                <div class="map-btn-upload"
+                     ng-class="{'uploading': uploadingImage}"
+                     ng-click="!uploadingImage && triggerMediaImageUpload()">
+                    <span ng-if="uploadingImage" class="upload-spinner"></span>
+                    <span ng-if="!uploadingImage">🖼️</span>
+                    <span ng-if="uploadingImage">Загрузка...</span>
+                    <span ng-if="!uploadingImage">Изображение</span>
                 </div>
-                <div class="map-btn-upload" ng-click="triggerMediaVideoUpload()">
-                    🎬 Видеофайл
+                <div class="map-btn-upload"
+                     ng-class="{'uploading': uploadingVideo}"
+                     ng-click="!uploadingVideo && triggerMediaVideoUpload()">
+                    <span ng-if="uploadingVideo" class="upload-spinner"></span>
+                    <span ng-if="!uploadingVideo">🎬</span>
+                    <span ng-if="uploadingVideo">Загрузка...</span>
+                    <span ng-if="!uploadingVideo">Видеофайл</span>
                 </div>
             </div>
 
@@ -1191,7 +1225,7 @@
                 <div class="col-sm-5 col-xs-5" style="margin-bottom: 10px; padding-right: 5px;">
                     <input type="text"
                            class="search-input"
-                           placeholder="Поиск по названию..."
+                           placeholder="Поиск по номеру или названию..."
                            ng-model="messageTitleQuery"
                            ng-change="searchMessages()" />
                 </div>

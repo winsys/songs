@@ -42,6 +42,8 @@ app.controller('Tech', function ($scope, $http, $timeout)
     $scope.mediaUrlInput      = '';      // поле ввода URL
     $scope.mediaUrlType       = 'video'; // 'image' | 'video'
     $scope.mediaUrlName       = '';      // имя для URL-ссылки
+    $scope.uploadingImage     = false;   // флаг загрузки изображения
+    $scope.uploadingVideo     = false;   // флаг загрузки видео
 
     // ── Active media item (video controls) ────────────────────
     $scope.activeMediaItem    = null;    // { FID, itemType, name, src }
@@ -551,6 +553,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
 
     $scope.onMediaImageSelected = function (input) {
         if (!input.files || !input.files[0]) return;
+        $scope.uploadingImage = true;
         var formData = new FormData();
         formData.append('file',    input.files[0]);
         formData.append('command', 'upload_media_image');
@@ -559,6 +562,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
             headers: { 'Content-Type': undefined }
         }).then(
             function (r) {
+                $scope.uploadingImage = false;
                 if (r.data && r.data.status === 'success') {
                     $scope.showMediaAddPanel = false;
                     $scope.reloadFavorites();
@@ -567,7 +571,11 @@ app.controller('Tech', function ($scope, $http, $timeout)
                 }
                 input.value = '';
             },
-            function (e) { alert('HTTP error: ' + e.status); input.value = ''; }
+            function (e) {
+                $scope.uploadingImage = false;
+                alert('HTTP error: ' + e.status);
+                input.value = '';
+            }
         );
     };
 
@@ -581,6 +589,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
 
     $scope.onMediaVideoSelected = function (input) {
         if (!input.files || !input.files[0]) return;
+        $scope.uploadingVideo = true;
         var formData = new FormData();
         formData.append('file',    input.files[0]);
         formData.append('command', 'upload_media_video');
@@ -589,6 +598,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
             headers: { 'Content-Type': undefined }
         }).then(
             function (r) {
+                $scope.uploadingVideo = false;
                 if (r.data && r.data.status === 'success') {
                     $scope.showMediaAddPanel = false;
                     $scope.reloadFavorites();
@@ -597,7 +607,11 @@ app.controller('Tech', function ($scope, $http, $timeout)
                 }
                 input.value = '';
             },
-            function (e) { alert('HTTP error: ' + e.status); input.value = ''; }
+            function (e) {
+                $scope.uploadingVideo = false;
+                alert('HTTP error: ' + e.status);
+                input.value = '';
+            }
         );
     };
 
