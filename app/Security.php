@@ -81,26 +81,13 @@ class Security {
         return '/index/' . $_SESSION['userId'];
     }
 
-    public function doLogout()
+    public static function doLogout()
     {
         unset($_SESSION['loggedIn']);
         unset($_SESSION['userName']);
         unset($_SESSION['userId']);
         unset($_SESSION['userRole']);
         unset($_SESSION['loginError']);
-    }
-
-    public function userInfo($field)
-    {
-        if ($this->userLoggedIn()) {
-            return $_SESSION['user_info'][$field];
-        }
-        return false;
-    }
-
-    public function userLoggedIn()
-    {
-        return isset($_SESSION['loggedIn']) && $_SESSION['loggedIn'];
     }
 
 }
