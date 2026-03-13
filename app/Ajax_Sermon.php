@@ -244,21 +244,21 @@ trait Ajax_Sermon
      */
     private static function get_display_targets()
     {
-        $groupId = (int)$_SESSION['groupId'];
+        $userId = (int)$_SESSION['userId'];
 
-        // Own group
+        // Own group (userId in session is actually the GROUP_ID)
         $ownGroup = Info::get('db')->get(
             "SELECT us.user_id, us.display_name
              FROM user_settings us
              JOIN users u ON u.ID = us.user_id
-             WHERE u.GROUP_ID = {$groupId}
+             WHERE u.GROUP_ID = {$userId}
              LIMIT 1"
         );
 
         $targets = [];
         if ($ownGroup) {
             $targets[] = [
-                'group_id' => $groupId,
+                'group_id' => $userId,
                 'display_name' => $ownGroup['display_name'] ?: 'Мой дисплей',
                 'is_own' => true
             ];
@@ -270,7 +270,7 @@ trait Ajax_Sermon
              FROM display_access_requests dar
              JOIN users u ON u.GROUP_ID = dar.target_group_id
              JOIN user_settings us ON us.user_id = u.ID
-             WHERE dar.requester_group_id = {$groupId} AND dar.status = 'approved'
+             WHERE dar.requester_group_id = {$userId} AND dar.status = 'approved'
              GROUP BY dar.target_group_id"
         );
 
@@ -291,14 +291,14 @@ trait Ajax_Sermon
      */
     private static function get_available_groups()
     {
-        $groupId = (int)$_SESSION['groupId'];
+        $userId = (int)$_SESSION['userId'];
 
         // Get all groups except own
         $allGroups = Info::get('db')->select(
             "SELECT DISTINCT u.GROUP_ID as group_id, us.display_name
              FROM users u
              LEFT JOIN user_settings us ON us.user_id = u.ID
-             WHERE u.GROUP_ID != {$groupId} AND u.GROUP_ID > 0
+             WHERE u.GROUP_ID != {$userId} AND u.GROUP_ID > 0
              GROUP BY u.GROUP_ID"
         );
 
@@ -306,7 +306,7 @@ trait Ajax_Sermon
         $requests = Info::get('db')->select(
             "SELECT target_group_id, status
              FROM display_access_requests
-             WHERE requester_group_id = {$groupId} AND status IN ('pending', 'approved')"
+             WHERE requester_group_id = {$userId} AND status IN ('pending', 'approved')"
         );
 
         $requestedGroups = [];
@@ -333,10 +333,10 @@ trait Ajax_Sermon
      */
     private static function request_display_access()
     {
-        $groupId       = (int)$_SESSION['groupId'];
+        $userId        = (int)$_SESSION['userId'];
         $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : 0;
 
-        if ($targetGroupId <= 0 || $targetGroupId === $groupId) {
+        if ($targetGroupId <= 0 || $targetGroupId === $userId) {
             return json_encode(['status' => 'error', 'message' => 'Invalid target group']);
         }
 
@@ -345,15 +345,15 @@ trait Ajax_Sermon
             "SELECT us.display_name
              FROM users u
              LEFT JOIN user_settings us ON us.user_id = u.ID
-             WHERE u.GROUP_ID = {$groupId}
+             WHERE u.GROUP_ID = {$userId}
              LIMIT 1"
         );
-        $requesterName = $requester ? ($requester['display_name'] ?: 'Группа #' . $groupId) : 'Группа #' . $groupId;
+        $requesterName = $requester ? ($requester['display_name'] ?: 'Группа #' . $userId) : 'Группа #' . $userId;
 
         // Check if request already exists
         $existing = Info::get('db')->get(
             "SELECT id, status FROM display_access_requests
-             WHERE requester_group_id = {$groupId} AND target_group_id = {$targetGroupId}"
+             WHERE requester_group_id = {$userId} AND target_group_id = {$targetGroupId}"
         );
 
         $requestId = null;
@@ -373,7 +373,7 @@ trait Ajax_Sermon
             // Create new request
             Info::get('db')->exec(
                 "INSERT INTO display_access_requests (requester_group_id, target_group_id, status)
-                 VALUES ({$groupId}, {$targetGroupId}, 'pending')"
+                 VALUES ({$userId}, {$targetGroupId}, 'pending')"
             );
             $requestId = Info::get('dbh')->insert_id;
         }
@@ -383,7 +383,7 @@ trait Ajax_Sermon
             'type' => 'access_request',
             'data' => [
                 'id' => $requestId,
-                'requester_group_id' => $groupId,
+                'requester_group_id' => $userId,
                 'requester_name' => $requesterName,
                 'requested_at' => date('Y-m-d H:i:s')
             ]
@@ -397,14 +397,14 @@ trait Ajax_Sermon
      */
     private static function get_pending_access_requests()
     {
-        $groupId = (int)$_SESSION['groupId'];
+        $userId = (int)$_SESSION['userId'];
 
         $requests = Info::get('db')->select(
             "SELECT dar.id, dar.requester_group_id, us.display_name, dar.requested_at
              FROM display_access_requests dar
              JOIN users u ON u.GROUP_ID = dar.requester_group_id
              LEFT JOIN user_settings us ON us.user_id = u.ID
-             WHERE dar.target_group_id = {$groupId} AND dar.status = 'pending'
+             WHERE dar.target_group_id = {$userId} AND dar.status = 'pending'
              GROUP BY dar.id
              ORDER BY dar.requested_at DESC"
         );
@@ -427,7 +427,7 @@ trait Ajax_Sermon
      */
     private static function respond_to_access_request()
     {
-        $groupId   = (int)$_SESSION['groupId'];
+        $userId    = (int)$_SESSION['userId'];
         $requestId = isset(self::$args['request_id']) ? (int)self::$args['request_id'] : 0;
         $action    = isset(self::$args['action']) ? self::$args['action'] : '';
 
@@ -441,7 +441,7 @@ trait Ajax_Sermon
              FROM display_access_requests dar
              LEFT JOIN users u ON u.GROUP_ID = dar.target_group_id
              LEFT JOIN user_settings us ON us.user_id = u.ID
-             WHERE dar.id = {$requestId} AND dar.target_group_id = {$groupId} AND dar.status = 'pending'
+             WHERE dar.id = {$requestId} AND dar.target_group_id = {$userId} AND dar.status = 'pending'
              LIMIT 1"
         );
 
@@ -457,11 +457,11 @@ trait Ajax_Sermon
         );
 
         // Broadcast response to requester group
-        $targetName = $request['target_name'] ?: 'Группа #' . $groupId;
+        $targetName = $request['target_name'] ?: 'Группа #' . $userId;
         self::broadcastToGroup((int)$request['requester_group_id'], [
             'type' => 'access_response',
             'data' => [
-                'target_group_id' => $groupId,
+                'target_group_id' => $userId,
                 'target_name' => $targetName,
                 'status' => $newStatus
             ]
