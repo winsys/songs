@@ -57,7 +57,8 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.prepSelectedParaIdx = null;
     var prepMsgSearchTimer     = null;
     $scope.prepMsgParaExpanded = false;
-    $scope.prepLangs = { ru: true, lt: false, en: false };
+    $scope.prepLangList = [];   // [{code, label, col_suffix, is_default}, ...]
+    $scope.prepLangs    = {};   // code → bool
 
     // ── VIDEO state ──────────────────────────────────────────
     $scope.showVideoPanel  = false;   // toolbar dropdown open
@@ -150,6 +151,23 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         );
     }
 
+    function loadPrepLanguages() {
+        $http({ method: 'POST', url: '/ajax', data: { command: 'get_languages' } }).then(
+            function (r) {
+                var list = r.data || [];
+                $scope.prepLangList = list;
+                var newLangs = {};
+                list.forEach(function (l) {
+                    // сохранить уже выбранное, иначе: включён только язык по умолчанию
+                    newLangs[l.code] = ($scope.prepLangs[l.code] !== undefined)
+                        ? $scope.prepLangs[l.code]
+                        : (l.is_default == '1');
+                });
+                $scope.prepLangs = newLangs;
+            }
+        );
+    }
+
     // ──────────────────────────────────────────────────────────
     // INIT
     // ──────────────────────────────────────────────────────────
@@ -174,6 +192,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             $scope.sermon.date = d.toISOString().slice(0, 10);
             $scope.loadSermonList();
             $scope.loadBibleTranslations();
+            loadPrepLanguages();
             loadPrepUserSettings();
         });
 
@@ -648,12 +667,17 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             }
         );
     };
-    $scope.togglePrepLang = function (lang) {
-        $scope.prepLangs[lang] = !$scope.prepLangs[lang];
-        // хотя бы один язык должен быть включён
-        if (!$scope.prepLangs.ru && !$scope.prepLangs.lt && !$scope.prepLangs.en) {
-            $scope.prepLangs[lang] = true;
-        }
+    $scope.togglePrepLang = function (code) {
+        $scope.prepLangs[code] = !$scope.prepLangs[code];
+        // хотя бы один язык должен быть активен
+        var anyOn = $scope.prepLangList.some(function (l) { return $scope.prepLangs[l.code]; });
+        if (!anyOn) $scope.prepLangs[code] = true;
+    };
+    $scope.langHasData = function (lang) {
+        if (lang.is_default == '1') return true;             // язык по умолчанию всегда доступен
+        if (!$scope.rawVerses || $scope.rawVerses.length === 0) return true;  // стихи ещё не загружены — не блокировать
+        var col = 'TEXT' + lang.col_suffix;
+        return $scope.rawVerses.some(function (v) { return v[col] && v[col].trim() !== ''; });
     };
     $scope.toggleVerse = function (v, $event) {
         var idx     = $scope.selectedBibleVerseNums.indexOf(v.num);
@@ -687,55 +711,69 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.insertBibleCitation = function () {
         if ($scope.selectedBibleVerseNums.length === 0) return;
         var nums     = $scope.selectedBibleVerseNums.slice().sort(function(a,b){return a-b;});
-        var bookName = $scope.getBookName($scope.selectedBook);
         var refLabel = $scope.getRefLabel();
+        var book     = $scope.selectedBook;
 
-        // Собрать тексты стихов для каждого активного языка
-        var langDefs = [
-            { key: 'ru', field: 'TEXT' },
-            { key: 'lt', field: 'TEXT_LT' },
-            { key: 'en', field: 'TEXT_EN' }
-        ];
+        // Только активные и доступные языки
+        var activeLangs = $scope.prepLangList.filter(function (l) {
+            return $scope.prepLangs[l.code] && $scope.langHasData(l);
+        });
 
+        // Собрать тексты стихов для каждого языка
         var langTexts = {};
-        langDefs.forEach(function (ld) {
-            if (!$scope.prepLangs[ld.key]) return;
+        activeLangs.forEach(function (l) {
+            var col  = 'TEXT' + l.col_suffix;
             var text = '';
             nums.forEach(function (n) {
                 for (var i = 0; i < $scope.rawVerses.length; i++) {
                     if (parseInt($scope.rawVerses[i].VERSE_NUM) === n) {
-                        text += (text ? ' / ' : '') + ($scope.rawVerses[i][ld.field] || '');
+                        text += (text ? ' / ' : '') + ($scope.rawVerses[i][col] || '');
                         break;
                     }
                 }
             });
-            langTexts[ld.key] = text;
+            langTexts[l.code] = text;
         });
 
-        // Подсчитаем сколько активных языков
-        var activeLangs = langDefs.filter(function(ld) { return $scope.prepLangs[ld.key]; });
-
-        $http({ method:"POST", url:"/ajax", data:{ command:'get_bible_verses', book_id:$scope.selectedBook.ID, chapter_num:$scope.selectedChapter }}).then(
+        $http({ method:"POST", url:"/ajax", data:{ command:'get_bible_verses', book_id:book.ID, chapter_num:$scope.selectedChapter }}).then(
             function () {
-                activeLangs.forEach(function (ld) {
-                    var verseText = langTexts[ld.key] || '';
-                    var langSuffix = activeLangs.length > 1 ? ' [' + ld.key.toUpperCase() + ']' : '';
+                activeLangs.forEach(function (l) {
+                    var verseText  = langTexts[l.code] || '';
+                    var langSuffix = activeLangs.length > 1 ? ' [' + l.label + ']' : '';
+
+                    // Имя книги на языке цитаты
+                    var nameField   = 'NAME' + l.col_suffix;
+                    var langBookName = (book[nameField] && book[nameField].trim())
+                        ? book[nameField]
+                        : book.NAME || '';
+
+                    // Ссылка с языковым именем книги
+                    var langRefLabel = langBookName + ' ' + $scope.selectedChapter + ':' + nums[0];
+                    if (nums.length > 1) {
+                        var consecutive = true;
+                        for (var ci = 1; ci < nums.length; ci++) {
+                            if (nums[ci] !== nums[ci-1]+1) { consecutive = false; break; }
+                        }
+                        langRefLabel = consecutive
+                            ? langBookName + ' ' + $scope.selectedChapter + ':' + nums[0] + '-' + nums[nums.length-1]
+                            : langBookName + ' ' + $scope.selectedChapter + ':' + nums.join(',');
+                    }
 
                     var span = document.createElement('span');
                     span.className       = 'bible-cite';
                     span.contentEditable = 'false';
                     span.setAttribute('data-translation-id', $scope.bibleTranslationId || 1);
-                    span.setAttribute('data-book-id',   $scope.selectedBook ? $scope.selectedBook.ID : '');
-                    span.setAttribute('data-book-name',  bookName);
-                    span.setAttribute('data-chapter',    $scope.selectedChapter || '');
+                    span.setAttribute('data-book-id',    book ? book.ID : '');
+                    span.setAttribute('data-book-name',   langBookName);
+                    span.setAttribute('data-chapter',     $scope.selectedChapter || '');
                     span.setAttribute('data-verse-nums',  nums.join(','));
-                    span.setAttribute('data-ref-label',   refLabel);
-                    span.setAttribute('data-lang',        ld.key);
+                    span.setAttribute('data-ref-label',   langRefLabel);
+                    span.setAttribute('data-lang',        l.code);
                     span.setAttribute('data-verse-text',  verseText);
 
                     span.innerHTML =
                         '<span class="cite-body">' +
-                        '<span class="cite-ref">📖 ' + refLabel + langSuffix + '</span>' +
+                        '<span class="cite-ref">📖 ' + langRefLabel + langSuffix + '</span>' +
                         (verseText ? '<span class="cite-verse-text">' + verseText + '</span>' : '') +
                         '</span>' +
                         '<span class="cite-remove" title="Удалить">×</span>';
