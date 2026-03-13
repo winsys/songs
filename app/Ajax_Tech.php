@@ -263,9 +263,24 @@ trait Ajax_Tech
         $userId = (int)$_SESSION['userId'];
         $id     = (int)self::$args['id'];
 
+        // Get media info before deleting
+        $media = Info::get('db')->get(
+            "SELECT src, media_type FROM tech_media_favorites WHERE id = {$id} AND group_id = {$userId}"
+        );
+
+        // Delete from database
         Info::get('db')->exec(
             "DELETE FROM tech_media_favorites WHERE id = {$id} AND group_id = {$userId}"
         );
+
+        // Delete the physical file if it's an uploaded file (starts with /tech_media/)
+        if ($media && isset($media['src']) && strpos($media['src'], '/tech_media/') === 0) {
+            $filePath = __DIR__ . '/../public' . $media['src'];
+            if (file_exists($filePath)) {
+                unlink($filePath);
+            }
+        }
+
         self::updateSocket();
         return json_encode(['status' => 'ok']);
     }

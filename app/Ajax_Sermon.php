@@ -195,4 +195,46 @@ trait Ajax_Sermon
         }
         return json_encode(['status' => 'success']);
     }
+
+    /**
+     * Удалить медиафайл проповеди (изображение или видео).
+     * Params: path (относительный путь типа /sermon_images/123/img_abc.jpg)
+     */
+    private static function delete_sermon_media()
+    {
+        $userId = (int)$_SESSION['userId'];
+        $path   = isset(self::$args['path']) ? self::$args['path'] : '';
+
+        if (empty($path)) {
+            return json_encode(['status' => 'error', 'message' => 'Empty path']);
+        }
+
+        // Проверяем, что путь относится к разрешённым директориям пользователя
+        $allowedPrefixes = [
+            '/sermon_images/' . $userId . '/',
+            '/sermon_videos/' . $userId . '/'
+        ];
+
+        $isAllowed = false;
+        foreach ($allowedPrefixes as $prefix) {
+            if (strpos($path, $prefix) === 0) {
+                $isAllowed = true;
+                break;
+            }
+        }
+
+        if (!$isAllowed) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid path']);
+        }
+
+        // Формируем полный путь к файлу
+        $filePath = __DIR__ . '/../public' . $path;
+
+        // Удаляем файл, если он существует
+        if (file_exists($filePath)) {
+            unlink($filePath);
+        }
+
+        return json_encode(['status' => 'ok']);
+    }
 }
