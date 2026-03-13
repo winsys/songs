@@ -34,7 +34,7 @@ $ws_worker->onMessage = function($connection, $data) use ($ws_worker, &$authenti
             return;
         }
 
-        if (!isset($auth_data['token']) || !isset($auth_data['userId']) || !isset($auth_data['groupId'])) {
+        if (!isset($auth_data['token']) || !isset($auth_data['userId'])) {
             $connection->send(json_encode(['error' => 'Invalid auth data']));
             $connection->close();
             return;
@@ -53,7 +53,7 @@ $ws_worker->onMessage = function($connection, $data) use ($ws_worker, &$authenti
         // Authentication successful
         $connection->authenticated = true;
         $connection->userId = (int)$auth_data['userId'];
-        $connection->groupId = (int)$auth_data['groupId'];
+        $connection->groupId = isset($auth_data['groupId']) ? (int)$auth_data['groupId'] : null;
 
         // Store connection by userId
         if (!isset($authenticated_connections[$connection->userId])) {
@@ -61,11 +61,13 @@ $ws_worker->onMessage = function($connection, $data) use ($ws_worker, &$authenti
         }
         $authenticated_connections[$connection->userId][$connection->id] = $connection;
 
-        // Store connection by groupId
-        if (!isset($connections_by_group[$connection->groupId])) {
-            $connections_by_group[$connection->groupId] = [];
+        // Store connection by groupId (if provided)
+        if ($connection->groupId !== null) {
+            if (!isset($connections_by_group[$connection->groupId])) {
+                $connections_by_group[$connection->groupId] = [];
+            }
+            $connections_by_group[$connection->groupId][$connection->id] = $connection;
         }
-        $connections_by_group[$connection->groupId][$connection->id] = $connection;
 
         $connection->send(json_encode(['type' => 'auth_success', 'message' => 'Authenticated']));
         return;
