@@ -10,7 +10,7 @@
     <script type="text/javascript">
         // [SECURITY] WebSocket authentication credentials
         window.WS_USER_ID = <?php echo Security::getUserId(); ?>;
-        window.WS_GROUP_ID = <?php echo (int)$_SESSION['groupId']; ?>;
+        window.WS_GROUP_ID = <?php echo isset($_SESSION['groupId']) ? (int)$_SESSION['groupId'] : 0; ?>;
         window.WS_AUTH_TOKEN = "<?php echo Security::generateWebSocketToken(); ?>";
     </script>
     <link href="/a-icon-120.png" rel="apple-touch-icon" />
