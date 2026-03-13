@@ -212,9 +212,15 @@ trait Ajax_Common
 
     private static function set_image()
     {
-        Info::get('db')->exec("insert into current (groupId, image) values ({$_SESSION['userId']}, '/images/".
-            mysqli_escape_string(Info::get('dbh'), self::$args['list_id'])."/".
-            mysqli_escape_string(Info::get('dbh'), self::$args['image_num']).".jpg')");
+        $userId = (int)$_SESSION['userId'];
+        $listId = mysqli_escape_string(Info::get('dbh'), self::$args['list_id']);
+        $imageNum = mysqli_escape_string(Info::get('dbh'), self::$args['image_num']);
+
+        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$userId}");
+        Info::get('db')->exec(
+            "INSERT INTO current (groupId, image, text, song_name)
+             VALUES ({$userId}, '/images/{$listId}/{$imageNum}.jpg', '', '')"
+        );
         self::updateSocket();
         return '';
     }
