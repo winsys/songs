@@ -1324,8 +1324,6 @@ app.controller('Tech', function ($scope, $http, $timeout)
 
     const socket = new WebSocket("wss://" + window.location.host + "/ws");
 
-    console.log(socket);
-
     socket.onmessage = function(event) {
         let data = JSON.parse(event.data);
         if (data.type === 'update_needed') {
