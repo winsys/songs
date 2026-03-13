@@ -159,9 +159,21 @@ app.controller('Tech', function ($scope, $http, $timeout)
         }
 
         if ($scope.pageMode === 'messages') {
-            // selectedMessage обновляется полными данными в selectMessage()
-            if (!$scope.selectedMessage || !$scope.selectedMessage[field]) return true;
-            return !!$scope.selectedMessage[field].trim();
+            // Пока послание не выбрано — не блокируем ничего
+            if (!$scope.selectedMessage) return true;
+
+            // Если selectedMessage ещё не обновился полными данными
+            // (нет ни одного поля TEXT*) — не блокируем
+            var hasAnyTextField = false;
+            for (var fi = 0; fi < $scope.langList.length; fi++) {
+                var f = 'TEXT' + $scope.langList[fi].col_suffix;
+                if (f in $scope.selectedMessage) { hasAnyTextField = true; break; }
+            }
+            if (!hasAnyTextField) return true;
+
+            // Полные данные загружены — проверяем конкретное поле
+            var val = $scope.selectedMessage[field];
+            return !!(val && val.trim());
         }
 
         return true;   // неизвестный режим — не блокируем
@@ -946,21 +958,45 @@ app.controller('Tech', function ($scope, $http, $timeout)
     };
 
     $scope.selectMessage = function(msg) {
-        $scope.selectedMessage   = msg;
-        $scope.messageParagraphs = [];
+        $scope.selectedMessage    = msg;   // предварительно (для подсветки списка)
+        $scope.messageParagraphs  = [];
         $scope.showingMessagePara = null;
 
         $http({ method: "POST", url: "/ajax", data: {
                 command: 'get_message',
                 id: msg.ID
             }}).then(function(r) {
-            if (r.data && r.data.TEXT) {
-                // Split by newline — each line is a paragraph (same as song verses)
-                var lines = r.data.TEXT.split(/\r?\n/);
+            if (!r.data) return;
+
+            // Всегда обновляем полными данными (TEXT, TEXT_LT, TEXT_EN, …)
+            $scope.selectedMessage = r.data;
+
+            // Строим абзацы из первого активного языка с данными
+            var text = '';
+            var active = getActiveLangs();
+            for (var i = 0; i < active.length; i++) {
+                var field = 'TEXT' + active[i].col_suffix;
+                if (r.data[field] && r.data[field].trim()) {
+                    text = r.data[field];
+                    break;
+                }
+            }
+            // Фолбэк: любое непустое поле
+            if (!text) {
+                var allFields = ['TEXT', 'TEXT_LT', 'TEXT_EN'];
+                for (var j = 0; j < allFields.length; j++) {
+                    if (r.data[allFields[j]] && r.data[allFields[j]].trim()) {
+                        text = r.data[allFields[j]];
+                        break;
+                    }
+                }
+            }
+
+            if (text) {
+                var lines = text.split(/\r?\n/);
                 $scope.messageParagraphs = lines.filter(function(l) {
                     return l.trim().length > 0;
                 });
-                $scope.selectedMessage = r.data; // full data with TEXT
             }
         });
     };

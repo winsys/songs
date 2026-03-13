@@ -199,6 +199,28 @@
         color: #fff;
     }
 
+    .btn-lang:disabled,
+    .btn-lang[disabled] {
+        opacity: 1;                   /* не тушим — меняем цвет */
+        cursor: not-allowed;
+        pointer-events: none;
+        background: #f0f2f5;
+        color: #b0b8c1;
+        border-color: #d8dce3;
+        box-shadow: none;
+        transform: none;
+    }
+    /* Активная (включённая) кнопка никогда не выглядит серой,
+       даже если AngularJS добавляет disabled — защита на случай гонки */
+    .btn-lang.lang-active:disabled,
+    .btn-lang.lang-active[disabled] {
+        opacity: 1;
+        background: #1a6db5;
+        color: #fff;
+        border-color: #1a6db5;
+        cursor: default;
+    }
+
     /* ---- Search inputs ---------------------------------------- */
     .search-input {
         width: 100%;
