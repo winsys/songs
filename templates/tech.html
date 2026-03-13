@@ -950,6 +950,60 @@
         pointer-events: none;
         opacity: 0.8;
     }
+
+    /* ── Access Request Notification Popup ──────────────────────── */
+    .access-request-popup {
+        position: fixed;
+        top: 80px;
+        right: 20px;
+        background: #fff;
+        border: 2px solid #3498db;
+        border-radius: 10px;
+        padding: 16px 20px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+        z-index: 4000;
+        min-width: 320px;
+        max-width: 400px;
+        animation: slideInRight 0.3s ease-out;
+    }
+    @keyframes slideInRight {
+        from { transform: translateX(120%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    .arp-title {
+        font-size: 16px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 8px;
+    }
+    .arp-requester {
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 12px;
+    }
+    .arp-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    .arp-btn {
+        flex: 1;
+        padding: 8px 12px;
+        border: none;
+        border-radius: 5px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .arp-btn-approve {
+        background: #27ae60;
+        color: #fff;
+    }
+    .arp-btn-approve:hover { background: #229954; }
+    .arp-btn-reject {
+        background: #e74c3c;
+        color: #fff;
+    }
+    .arp-btn-reject:hover { background: #c0392b; }
 </style>
 
 <div ng-controller="Tech">
@@ -1625,6 +1679,22 @@
                 {{ techVideoPlaying ? '⏸ Пауза' : '▶ Играть' }}
             </button>
             <button class="tvb-btn tvb-stop" ng-click="techStopVideo()">⏹ Стоп</button>
+        </div>
+
+        <!-- Access Request Popup -->
+        <div class="access-request-popup" ng-if="currentAccessRequest">
+            <div class="arp-title">Запрос доступа к дисплею</div>
+            <div class="arp-requester">
+                <strong>{{currentAccessRequest.requester_name}}</strong> запрашивает доступ к отображению проповедей на вашем дисплее.
+            </div>
+            <div class="arp-buttons">
+                <button class="arp-btn arp-btn-approve" ng-click="respondToAccessRequest('approve')">
+                    ✓ Разрешить
+                </button>
+                <button class="arp-btn arp-btn-reject" ng-click="respondToAccessRequest('reject')">
+                    ✗ Отказать
+                </button>
+            </div>
         </div>
 
     </div><!-- /tech-wrapper -->

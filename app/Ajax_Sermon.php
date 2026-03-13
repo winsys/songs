@@ -237,4 +237,249 @@ trait Ajax_Sermon
 
         return json_encode(['status' => 'ok']);
     }
+
+    /**
+     * Get list of groups where user can display sermons.
+     * Returns own group + groups that approved access.
+     */
+    private static function get_display_targets()
+    {
+        $groupId = (int)$_SESSION['groupId'];
+
+        // Own group
+        $ownGroup = Info::get('db')->get(
+            "SELECT us.user_id, us.display_name
+             FROM user_settings us
+             JOIN users u ON u.ID = us.user_id
+             WHERE u.GROUP_ID = {$groupId}
+             LIMIT 1"
+        );
+
+        $targets = [];
+        if ($ownGroup) {
+            $targets[] = [
+                'group_id' => $groupId,
+                'display_name' => $ownGroup['display_name'] ?: 'Мой дисплей',
+                'is_own' => true
+            ];
+        }
+
+        // Groups that approved access
+        $approved = Info::get('db')->select(
+            "SELECT dar.target_group_id, us.display_name
+             FROM display_access_requests dar
+             JOIN users u ON u.GROUP_ID = dar.target_group_id
+             JOIN user_settings us ON us.user_id = u.ID
+             WHERE dar.requester_group_id = {$groupId} AND dar.status = 'approved'
+             GROUP BY dar.target_group_id"
+        );
+
+        foreach ($approved as $row) {
+            $targets[] = [
+                'group_id' => (int)$row['target_group_id'],
+                'display_name' => $row['display_name'] ?: 'Группа #' . $row['target_group_id'],
+                'is_own' => false
+            ];
+        }
+
+        return json_encode(['status' => 'ok', 'targets' => $targets]);
+    }
+
+    /**
+     * Get list of groups available to request access.
+     * Returns groups that haven't been requested yet or were rejected.
+     */
+    private static function get_available_groups()
+    {
+        $groupId = (int)$_SESSION['groupId'];
+
+        // Get all groups except own
+        $allGroups = Info::get('db')->select(
+            "SELECT DISTINCT u.GROUP_ID as group_id, us.display_name
+             FROM users u
+             LEFT JOIN user_settings us ON us.user_id = u.ID
+             WHERE u.GROUP_ID != {$groupId} AND u.GROUP_ID > 0
+             GROUP BY u.GROUP_ID"
+        );
+
+        // Get pending/approved requests
+        $requests = Info::get('db')->select(
+            "SELECT target_group_id, status
+             FROM display_access_requests
+             WHERE requester_group_id = {$groupId} AND status IN ('pending', 'approved')"
+        );
+
+        $requestedGroups = [];
+        foreach ($requests as $req) {
+            $requestedGroups[(int)$req['target_group_id']] = $req['status'];
+        }
+
+        $available = [];
+        foreach ($allGroups as $group) {
+            $gid = (int)$group['group_id'];
+            if (!isset($requestedGroups[$gid])) {
+                $available[] = [
+                    'group_id' => $gid,
+                    'display_name' => $group['display_name'] ?: 'Группа #' . $gid
+                ];
+            }
+        }
+
+        return json_encode(['status' => 'ok', 'groups' => $available]);
+    }
+
+    /**
+     * Send access request to a group.
+     */
+    private static function request_display_access()
+    {
+        $groupId       = (int)$_SESSION['groupId'];
+        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : 0;
+
+        if ($targetGroupId <= 0 || $targetGroupId === $groupId) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid target group']);
+        }
+
+        // Get requester's display name
+        $requester = Info::get('db')->get(
+            "SELECT us.display_name
+             FROM users u
+             LEFT JOIN user_settings us ON us.user_id = u.ID
+             WHERE u.GROUP_ID = {$groupId}
+             LIMIT 1"
+        );
+        $requesterName = $requester ? ($requester['display_name'] ?: 'Группа #' . $groupId) : 'Группа #' . $groupId;
+
+        // Check if request already exists
+        $existing = Info::get('db')->get(
+            "SELECT id, status FROM display_access_requests
+             WHERE requester_group_id = {$groupId} AND target_group_id = {$targetGroupId}"
+        );
+
+        $requestId = null;
+        if ($existing) {
+            if ($existing['status'] === 'rejected') {
+                // Update rejected request to pending
+                Info::get('db')->exec(
+                    "UPDATE display_access_requests
+                     SET status = 'pending', requested_at = NOW(), responded_at = NULL
+                     WHERE id = {$existing['id']}"
+                );
+                $requestId = (int)$existing['id'];
+            } else {
+                return json_encode(['status' => 'error', 'message' => 'Request already exists']);
+            }
+        } else {
+            // Create new request
+            Info::get('db')->exec(
+                "INSERT INTO display_access_requests (requester_group_id, target_group_id, status)
+                 VALUES ({$groupId}, {$targetGroupId}, 'pending')"
+            );
+            $requestId = Info::get('dbh')->insert_id;
+        }
+
+        // Broadcast WebSocket notification to target group
+        self::broadcastToGroup($targetGroupId, [
+            'type' => 'access_request',
+            'data' => [
+                'id' => $requestId,
+                'requester_group_id' => $groupId,
+                'requester_name' => $requesterName,
+                'requested_at' => date('Y-m-d H:i:s')
+            ]
+        ]);
+
+        return json_encode(['status' => 'ok']);
+    }
+
+    /**
+     * Get pending access requests for current group (to be shown on Tech page).
+     */
+    private static function get_pending_access_requests()
+    {
+        $groupId = (int)$_SESSION['groupId'];
+
+        $requests = Info::get('db')->select(
+            "SELECT dar.id, dar.requester_group_id, us.display_name, dar.requested_at
+             FROM display_access_requests dar
+             JOIN users u ON u.GROUP_ID = dar.requester_group_id
+             LEFT JOIN user_settings us ON us.user_id = u.ID
+             WHERE dar.target_group_id = {$groupId} AND dar.status = 'pending'
+             GROUP BY dar.id
+             ORDER BY dar.requested_at DESC"
+        );
+
+        $result = [];
+        foreach ($requests as $req) {
+            $result[] = [
+                'id' => (int)$req['id'],
+                'requester_group_id' => (int)$req['requester_group_id'],
+                'requester_name' => $req['display_name'] ?: 'Группа #' . $req['requester_group_id'],
+                'requested_at' => $req['requested_at']
+            ];
+        }
+
+        return json_encode(['status' => 'ok', 'requests' => $result]);
+    }
+
+    /**
+     * Approve or reject access request.
+     */
+    private static function respond_to_access_request()
+    {
+        $groupId   = (int)$_SESSION['groupId'];
+        $requestId = isset(self::$args['request_id']) ? (int)self::$args['request_id'] : 0;
+        $action    = isset(self::$args['action']) ? self::$args['action'] : '';
+
+        if (!in_array($action, ['approve', 'reject'])) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid action']);
+        }
+
+        // Verify this request is for current group and get requester info
+        $request = Info::get('db')->get(
+            "SELECT dar.id, dar.requester_group_id, us.display_name as target_name
+             FROM display_access_requests dar
+             LEFT JOIN users u ON u.GROUP_ID = dar.target_group_id
+             LEFT JOIN user_settings us ON us.user_id = u.ID
+             WHERE dar.id = {$requestId} AND dar.target_group_id = {$groupId} AND dar.status = 'pending'
+             LIMIT 1"
+        );
+
+        if (!$request) {
+            return json_encode(['status' => 'error', 'message' => 'Request not found']);
+        }
+
+        $newStatus = ($action === 'approve') ? 'approved' : 'rejected';
+        Info::get('db')->exec(
+            "UPDATE display_access_requests
+             SET status = '{$newStatus}', responded_at = NOW()
+             WHERE id = {$requestId}"
+        );
+
+        // Broadcast response to requester group
+        $targetName = $request['target_name'] ?: 'Группа #' . $groupId;
+        self::broadcastToGroup((int)$request['requester_group_id'], [
+            'type' => 'access_response',
+            'data' => [
+                'target_group_id' => $groupId,
+                'target_name' => $targetName,
+                'status' => $newStatus
+            ]
+        ]);
+
+        return json_encode(['status' => 'ok']);
+    }
+
+    /**
+     * Helper to broadcast WebSocket message to a specific group.
+     */
+    private static function broadcastToGroup($groupId, $message)
+    {
+        $message['groupId'] = $groupId;
+        $instance = @stream_socket_client("tcp://127.0.0.1:2346", $err1, $err2, 1);
+        if ($instance) {
+            fwrite($instance, json_encode($message) . "\n");
+            fclose($instance);
+        }
+    }
 }

@@ -8,6 +8,7 @@
     <script type="text/javascript">
         // [SECURITY] WebSocket authentication credentials
         window.WS_USER_ID = <?php echo Security::getUserId(); ?>;
+        window.WS_GROUP_ID = <?php echo (int)$_SESSION['groupId']; ?>;
         window.WS_AUTH_TOKEN = "<?php echo Security::generateWebSocketToken(); ?>";
     </script>
     <script src="/js/angular.min.js"></script>

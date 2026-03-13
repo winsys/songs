@@ -28,6 +28,7 @@
             const authMessage = JSON.stringify({
                 type: 'auth',
                 userId: window.WS_USER_ID,
+                groupId: window.WS_GROUP_ID,
                 token: window.WS_AUTH_TOKEN
             });
             socket.send(authMessage);
@@ -57,6 +58,11 @@
                 // Pass other messages to callback
                 if (authenticated && onMessage) {
                     onMessage(data);
+                }
+
+                // Also dispatch as custom event for global listeners
+                if (authenticated) {
+                    window.dispatchEvent(new CustomEvent('websocket_message', { detail: data }));
                 }
             } catch (e) {
                 console.error('WebSocket message parse error:', e);

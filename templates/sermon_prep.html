@@ -837,6 +837,86 @@
         pointer-events: none;
     }
 
+    /* ── Request Access Modal ──────────────────────────────────────── */
+    .access-request-modal {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.75);
+        z-index: 3500;
+        align-items: center;
+        justify-content: center;
+    }
+    .access-request-modal.open { display: flex; }
+    .arm-inner {
+        background: #fff;
+        border-radius: 10px;
+        padding: 24px;
+        width: 90%;
+        max-width: 480px;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    }
+    .arm-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 16px;
+    }
+    .arm-groups-list {
+        max-height: 300px;
+        overflow-y: auto;
+        margin-bottom: 16px;
+    }
+    .arm-group-item {
+        padding: 12px;
+        border: 1px solid #e0e0e0;
+        border-radius: 6px;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        background: #f9f9f9;
+    }
+    .arm-group-name {
+        font-size: 14px;
+        color: #34495e;
+    }
+    .arm-request-btn {
+        padding: 6px 14px;
+        background: #3498db;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        font-size: 13px;
+        cursor: pointer;
+        transition: background 0.2s;
+    }
+    .arm-request-btn:hover { background: #2980b9; }
+    .arm-request-btn.requested {
+        background: #95a5a6;
+        cursor: default;
+    }
+    .arm-buttons {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+    .arm-btn-close {
+        padding: 8px 16px;
+        background: #95a5a6;
+        color: #fff;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+    .arm-btn-close:hover { background: #7f8c8d; }
+    .arm-empty {
+        text-align: center;
+        color: #7f8c8d;
+        padding: 20px;
+        font-size: 14px;
+    }
+
     /* ── Video preview modal ─────────────────────────────────────── */
     #sermon-video-modal {
         display: none;
@@ -895,20 +975,33 @@
             </button>
         </div>
 
-        <!-- ── Title + Date ───────────────────────────────────────── -->
+        <!-- ── Title + Date + Display To ─────────────────────────── -->
         <div class="row" style="margin-bottom: 16px;">
-            <div class="col-xs-7 col-sm-8">
+            <div class="col-xs-12 col-sm-5">
                 <label class="prep-field-label">Название проповеди</label>
                 <input type="text"
                        class="prep-input prep-title-input"
                        ng-model="sermon.title" />
             </div>
-            <div class="col-xs-5 col-sm-4">
+            <div class="col-xs-6 col-sm-3">
                 <label class="prep-field-label">Дата проповеди</label>
                 <input type="text"
                        class="prep-input"
                        placeholder="ГГГГ-ММ-ДД"
                        ng-model="sermon.date" />
+            </div>
+            <div class="col-xs-6 col-sm-4">
+                <label class="prep-field-label">Показать на дисплее</label>
+                <select class="prep-input"
+                        ng-model="selectedDisplayTarget"
+                        ng-change="onDisplayTargetChange()">
+                    <option ng-repeat="target in displayTargets"
+                            ng-value="target.group_id"
+                            ng-selected="target.group_id === selectedDisplayTarget">
+                        {{target.display_name}}{{target.is_own ? ' (мой)' : ''}}
+                    </option>
+                    <option value="__request__">➕ Запросить доступ...</option>
+                </select>
             </div>
         </div>
 
@@ -1245,6 +1338,33 @@
                         allow="autoplay; fullscreen"
                         allowfullscreen>
                 </iframe>
+            </div>
+        </div>
+
+        <!-- Request Access Modal -->
+        <div class="access-request-modal" ng-class="{open: showAccessRequestModal}" ng-click="closeAccessRequestModal()">
+            <div class="arm-inner" ng-click="$event.stopPropagation()">
+                <div class="arm-title">Запросить доступ к дисплею</div>
+
+                <div class="arm-groups-list" ng-if="availableGroups.length > 0">
+                    <div class="arm-group-item" ng-repeat="group in availableGroups">
+                        <div class="arm-group-name">{{group.display_name}}</div>
+                        <button class="arm-request-btn"
+                                ng-class="{requested: group.requested}"
+                                ng-click="!group.requested && sendAccessRequest(group.group_id)"
+                                ng-disabled="group.requested">
+                            {{group.requested ? 'Отправлено' : 'Отправить'}}
+                        </button>
+                    </div>
+                </div>
+
+                <div class="arm-empty" ng-if="availableGroups.length === 0">
+                    Нет доступных групп для запроса
+                </div>
+
+                <div class="arm-buttons">
+                    <button class="arm-btn-close" ng-click="closeAccessRequestModal()">Закрыть</button>
+                </div>
             </div>
         </div>
 
