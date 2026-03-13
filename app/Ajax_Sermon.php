@@ -295,11 +295,10 @@ trait Ajax_Sermon
 
         // Get all groups except own
         $allGroups = Info::get('db')->select(
-            "SELECT DISTINCT u.GROUP_ID as group_id, us.display_name
-             FROM users u
-             LEFT JOIN user_settings us ON us.user_id = u.ID
-             WHERE u.GROUP_ID != {$userId} AND u.GROUP_ID > 0
-             GROUP BY u.GROUP_ID"
+            "SELECT DISTINCT u.GROUP_ID as group_id, us.display_name FROM users u
+                LEFT JOIN user_settings us ON us.user_id = u.GROUP_ID
+                LEFT JOIN display_access_requests da ON da.requester_group_id = {$userId} AND da.target_group_id <> u.GROUP_ID
+                WHERE u.GROUP_ID != {$userId} AND u.GROUP_ID > 0 AND NOT (us.display_name IS NULL)"
         );
 
         // Get pending/approved requests
