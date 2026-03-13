@@ -1323,8 +1323,9 @@ app.controller('Tech', function ($scope, $http, $timeout)
     // ==========================================================
 
     // [SECURITY] Use authenticated WebSocket connection
+    // URL is auto-detected (wss:// for HTTPS, ws:// for HTTP)
     const socket = window.createAuthenticatedWebSocket(
-        "ws://" + window.location.hostname + ":2345",
+        null, // Use default /ws endpoint
         function(data) {
             // Handle incoming messages (only after authentication)
             if (data.type === 'update_needed') {
