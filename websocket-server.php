@@ -34,17 +34,20 @@ $ws_worker->onMessage = function($connection, $data) use ($ws_worker, &$authenti
             return;
         }
 
-        if (!isset($auth_data['token']) || !isset($auth_data['userId'])) {
-            $connection->send(json_encode(['error' => 'Invalid auth data']));
+        if (!isset($auth_data['userId'])) {
+            $connection->send(json_encode(['error' => 'Invalid auth data - missing userId']));
             $connection->close();
             return;
         }
 
         // Validate token (simple token = hash of userId + secret key)
-        $config = include __DIR__ . '/app/config_example.php';
-        $expectedToken = hash_hmac('sha256', $auth_data['userId'], $config['encryption_key']);
+        $config = include __DIR__ . '/app/config.php';
+        $userId = $auth_data['userId'];
+        $expectedToken = hash_hmac('sha256', $userId, $config['encryption_key']);
+        $providedToken = isset($auth_data['token']) ? $auth_data['token'] : '';
 
-        if (!hash_equals($expectedToken, $auth_data['token'])) {
+        // Token must match (even for userId=0, empty token should match hash of '0')
+        if (!hash_equals($expectedToken, $providedToken)) {
             $connection->send(json_encode(['error' => 'Invalid token']));
             $connection->close();
             return;
