@@ -11,11 +11,12 @@ trait Ajax_Tech
         $dbh        = Info::get('dbh');
         $userId     = (int)$_SESSION['userId'];
         $image_name = mysqli_real_escape_string($dbh, self::$args['image_name'] ?? '');
+        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
 
-        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$userId}");
+        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
         Info::get('db')->exec(
             "INSERT INTO current (groupId, image, text, song_name, video_src, video_state)
-         VALUES ({$userId}, '{$image_name}', '', '', '', 'stopped')"
+         VALUES ({$targetGroupId}, '{$image_name}', '', '', '', 'stopped')"
         );
         self::updateSocket();
         return '';
@@ -141,13 +142,14 @@ trait Ajax_Tech
         $userId    = (int)$_SESSION['userId'];
         $text      = mysqli_escape_string(Info::get('dbh'), self::$args['text']);
         $song_name = mysqli_escape_string(Info::get('dbh'), self::$args['song_name']);
+        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
 
-        Info::get('db')->exec("DELETE FROM current WHERE groupId={$userId}");
+        Info::get('db')->exec("DELETE FROM current WHERE groupId={$targetGroupId}");
 
         if ($text !== '') {
             Info::get('db')->exec(
                 "INSERT INTO current (groupId, image, text, song_name)
-                 VALUES ({$userId}, '__bible__', '{$text}', '{$song_name}')"
+                 VALUES ({$targetGroupId}, '__bible__', '{$text}', '{$song_name}')"
             );
         }
 
@@ -209,13 +211,14 @@ trait Ajax_Tech
         $dbh = Info::get('dbh');
         $text = mysqli_real_escape_string($dbh, self::$args['text']);
         $song_name = mysqli_real_escape_string($dbh, self::$args['song_name']);
+        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
 
-        Info::get('db')->exec("DELETE FROM current WHERE groupId={$userId}");
+        Info::get('db')->exec("DELETE FROM current WHERE groupId={$targetGroupId}");
 
         if ($text !== '') {
             Info::get('db')->exec(
                 "INSERT INTO current (groupId, image, text, song_name)
-                 VALUES ({$userId}, '__bible__', '{$text}', '{$song_name}')"
+                 VALUES ({$targetGroupId}, '__bible__', '{$text}', '{$song_name}')"
             );
         }
 
@@ -407,11 +410,12 @@ trait Ajax_Tech
         $userId     = (int)$_SESSION['userId'];
         $videoSrc   = mysqli_real_escape_string($dbh, self::$args['video_src']   ?? '');
         $videoState = mysqli_real_escape_string($dbh, self::$args['video_state'] ?? 'playing');
+        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
 
-        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$userId}");
+        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
         Info::get('db')->exec(
             "INSERT INTO current (groupId, image, text, song_name, video_src, video_state)
-         VALUES ({$userId}, '', '', '', '{$videoSrc}', '{$videoState}')"
+         VALUES ({$targetGroupId}, '', '', '', '{$videoSrc}', '{$videoState}')"
         );
         self::updateSocket();
         return json_encode(['status' => 'ok']);
@@ -426,11 +430,12 @@ trait Ajax_Tech
         $dbh        = Info::get('dbh');
         $userId     = (int)$_SESSION['userId'];
         $videoState = mysqli_real_escape_string($dbh, self::$args['video_state'] ?? 'stopped');
+        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
 
-        $row = Info::get('db')->get("SELECT groupId FROM current WHERE groupId = {$userId}");
+        $row = Info::get('db')->get("SELECT groupId FROM current WHERE groupId = {$targetGroupId}");
         if ($row) {
             Info::get('db')->exec(
-                "UPDATE current SET video_state = '{$videoState}' WHERE groupId = {$userId}"
+                "UPDATE current SET video_state = '{$videoState}' WHERE groupId = {$targetGroupId}"
             );
         }
         self::updateSocket();

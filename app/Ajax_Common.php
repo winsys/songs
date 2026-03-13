@@ -253,7 +253,10 @@ trait Ajax_Common
 
     private static function clear_image()
     {
-        Info::get('db')->exec("delete from current where groupId=".$_SESSION['userId']);
+        $userId = (int)$_SESSION['userId'];
+        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
+
+        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
         self::updateSocket();
         return '';
     }

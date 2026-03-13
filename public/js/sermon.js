@@ -14,6 +14,13 @@ angular.module('Songs', ['csrfModule'])
         $scope.displayTitle     = '';
         $scope.displayImageSrc  = '';
 
+        // Display target management
+        $scope.displayTargets           = [];
+        $scope.selectedDisplayTarget    = null;
+        $scope.showAccessRequestModal   = false;
+        $scope.availableGroups          = [];
+        $scope.selectedGroupForRequest  = '';
+
          $scope.displayVideoSrc       = '';   // непустое = показывать оверлей
          $scope.displayVideoIsYouTube = false;
          $scope.displayVideoEmbedSrc  = null;  // trustAsResourceUrl для YT
@@ -43,6 +50,7 @@ angular.module('Songs', ['csrfModule'])
         angular.element(document).ready(function () {
             loadUserSettings();
             $scope.loadSermonList();
+            loadDisplayTargets();
         });
 
         // ==========================================================
@@ -287,7 +295,12 @@ angular.module('Songs', ['csrfModule'])
                     var msgTitle = el.getAttribute('data-msg-title') || '';
                     $timeout(function () {
                         showText(paraText, msgTitle);
-                        $http({ method: "POST", url: "/ajax", data: { command: 'set_message_text', text: paraText, song_name: msgTitle }});
+                        $http({ method: "POST", url: "/ajax", data: {
+                            command: 'set_message_text',
+                            text: paraText,
+                            song_name: msgTitle,
+                            target_group_id: $scope.selectedDisplayTarget
+                        }});
                     });
                 };
             });
@@ -355,7 +368,12 @@ angular.module('Songs', ['csrfModule'])
                     if (found) {
                         var text = verseNum + '. ' + (found.TEXT || '');
                         showText(text, refLabel);
-                        $http({ method: "POST", url: "/ajax", data: { command: 'set_message_text', text: text, song_name: refLabel }});
+                        $http({ method: "POST", url: "/ajax", data: {
+                            command: 'set_message_text',
+                            text: text,
+                            song_name: refLabel,
+                            target_group_id: $scope.selectedDisplayTarget
+                        }});
                     }
                 });
         }
@@ -385,7 +403,11 @@ angular.module('Songs', ['csrfModule'])
         }
 
         function sendImageToDisplay(path) {
-            $http({ method: "POST", url: "/ajax", data: { command: path ? 'set_tech_image' : 'clear_image', image_name: path }});
+            $http({ method: "POST", url: "/ajax", data: {
+                command: path ? 'set_tech_image' : 'clear_image',
+                image_name: path,
+                target_group_id: $scope.selectedDisplayTarget
+            }});
         }
 
         // ---------- helpers ----------
@@ -446,16 +468,24 @@ angular.module('Songs', ['csrfModule'])
             $http({ method: 'POST', url: '/ajax', data: {
                     command:     'set_video',
                     video_src:   src || '',
-                    video_state: 'playing'
+                    video_state: 'playing',
+                    target_group_id: $scope.selectedDisplayTarget
                 }});
         }
 
         function sendVideoClear() {
-            $http({ method: 'POST', url: '/ajax', data: { command: 'clear_image' }});
+            $http({ method: 'POST', url: '/ajax', data: {
+                command: 'clear_image',
+                target_group_id: $scope.selectedDisplayTarget
+            }});
         }
 
         function _sendVideoControl(state) {
-            $http({ method: 'POST', url: '/ajax', data: { command: 'video_control', video_state: state }});
+            $http({ method: 'POST', url: '/ajax', data: {
+                command: 'video_control',
+                video_state: state,
+                target_group_id: $scope.selectedDisplayTarget
+            }});
         }
 
         // ---------- progress bar for local files ----------
@@ -613,5 +643,61 @@ angular.module('Songs', ['csrfModule'])
         $scope.toggleFullscreen = function () {
             if (!document.fullscreenElement) { document.documentElement.requestFullscreen(); }
             else { document.exitFullscreen(); }
+        };
+
+        // ==========================================================
+        // DISPLAY TARGET MANAGEMENT
+        // ==========================================================
+
+        function loadDisplayTargets() {
+            $http.post('/ajax', { command: 'get_display_targets' }).then(
+                function (r) {
+                    if (r.data && r.data.status === 'ok') {
+                        $scope.displayTargets = r.data.targets || [];
+                        // Set default to own group (first item)
+                        if ($scope.displayTargets.length > 0 && !$scope.selectedDisplayTarget) {
+                            $scope.selectedDisplayTarget = $scope.displayTargets[0].group_id;
+                        }
+                    }
+                }
+            );
+        }
+
+        function loadAvailableGroups() {
+            $http.post('/ajax', { command: 'get_available_groups' }).then(
+                function (r) {
+                    if (r.data && r.data.status === 'ok') {
+                        $scope.availableGroups = r.data.groups || [];
+                    }
+                }
+            );
+        }
+
+        $scope.$watch('showAccessRequestModal', function(newVal) {
+            if (newVal) {
+                loadAvailableGroups();
+            }
+        });
+
+        $scope.sendAccessRequest = function() {
+            if (!$scope.selectedGroupForRequest) return;
+
+            $http.post('/ajax', {
+                command: 'request_display_access',
+                target_group_id: parseInt($scope.selectedGroupForRequest)
+            }).then(
+                function(r) {
+                    if (r.data && r.data.status === 'ok') {
+                        alert('✓ Запрос отправлен. Ожидайте подтверждения от владельца дисплея.');
+                        $scope.showAccessRequestModal = false;
+                        $scope.selectedGroupForRequest = '';
+                    } else {
+                        alert('Ошибка: ' + (r.data.message || 'Неизвестная ошибка'));
+                    }
+                },
+                function(err) {
+                    alert('Ошибка отправки запроса');
+                }
+            );
         };
     });
