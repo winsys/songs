@@ -8,6 +8,6 @@ return array(
         'database' => 'songs',
         'port' => '33306',
     ),
-    "encryption_key" => "xnIgUJx32R0/Z8ddD8kKwxzeqfLmMDJ+Jo5J631iaJw=",
-    "lang_delete_password" => 'Genius647',
+    "encryption_key" => "....",
+    "lang_delete_password" => '...',
 );
