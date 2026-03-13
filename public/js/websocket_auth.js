@@ -25,13 +25,18 @@
 
         socket.addEventListener('open', function() {
             // [SECURITY] Send authentication as first message
-            const authMessage = JSON.stringify({
+            const authData = {
                 type: 'auth',
                 userId: window.WS_USER_ID,
-                groupId: window.WS_GROUP_ID,
                 token: window.WS_AUTH_TOKEN
-            });
-            socket.send(authMessage);
+            };
+
+            // Only include groupId if it's set and valid
+            if (window.WS_GROUP_ID && window.WS_GROUP_ID > 0) {
+                authData.groupId = window.WS_GROUP_ID;
+            }
+
+            socket.send(JSON.stringify(authData));
         });
 
         socket.addEventListener('message', function(event) {

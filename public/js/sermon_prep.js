@@ -213,7 +213,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             $scope.loadBibleTranslations();
             loadPrepLanguages();
             loadPrepUserSettings();
-not            loadDisplayTargets();
+            loadDisplayTargets();
         });
 
         $timeout(function () {
