@@ -15,6 +15,12 @@ class Ajax
             return json_encode(array('status'=>false, 'message'=>'User not logged in!'));
         }
 
+        // [SECURITY #3] CSRF-проверка для всех команд
+        if (!Security::validateCsrf()) {
+            http_response_code(403);
+            return json_encode(['status' => false, 'message' => 'CSRF token mismatch']);
+        }
+
         if (is_callable(array('Ajax', $command))){
             self::$args = $cmd;
             $data = self::$command();
@@ -22,6 +28,26 @@ class Ajax
         }else{
             return json_encode(array('status'=>false, 'message'=>Info::get('db')->errors()));
         }
+    }
+
+
+    /**
+     * Проверить MIME-тип файла через finfo (читает реальные байты файла).
+     * @param  string $tmpPath  путь к временному файлу
+     * @param  array  $allowed  разрешённые MIME-типы
+     * @return bool
+     */
+    private static function checkMime(string $tmpPath, array $allowed): bool
+    {
+        if (!function_exists('finfo_open')) {
+            // Если finfo недоступен — пропускаем (не блокируем)
+            error_log('finfo extension not available — MIME check skipped');
+            return true;
+        }
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime  = finfo_file($finfo, $tmpPath);
+        finfo_close($finfo);
+        return in_array($mime, $allowed, true);
     }
 
 
@@ -107,10 +133,6 @@ class Ajax
     }
 
 
-    // Теперь возвращает UNION двух таблиц:
-    // - songs: itemType='song', данные из favorites + song_list
-    // - media: itemType='image'/'video', данные из tech_media_favorites
-    // Оба отсортированы по sort_order.
     private static function get_favorites_with_text()
     {
         $userId = (int)$_SESSION['userId'];
@@ -271,10 +293,17 @@ class Ajax
 
     private static function set_text()
     {
-        $text = mysqli_escape_string(Info::get('dbh'), self::$args['text']);
-        $image_name = self::$args['image_name'];
-        $song_name = self::$args['song_name'];
-        Info::get('db')->exec("update current set text=\"{$text}\", song_name=\"{$song_name}\" WHERE groupId={$_SESSION['userId']} and image=\"{$image_name}\"");
+        $dbh        = Info::get('dbh');
+        $userId     = (int)$_SESSION['userId'];
+        $text       = mysqli_real_escape_string($dbh, self::$args['text']       ?? '');
+        $image_name = mysqli_real_escape_string($dbh, self::$args['image_name'] ?? ''); // [FIX #2]
+        $song_name  = mysqli_real_escape_string($dbh, self::$args['song_name']  ?? ''); // [FIX #2]
+
+        Info::get('db')->exec(
+            "UPDATE current
+             SET text='{$text}', song_name='{$song_name}'
+             WHERE groupId={$userId} AND image='{$image_name}'"
+        );
         self::updateSocket();
         return '';
     }
@@ -350,65 +379,46 @@ class Ajax
 
     private static function upload_song_image()
     {
-        // Log for debugging
-        error_log("upload_song_image called");
-        error_log("POST data: " . print_r($_POST, true));
-        error_log("FILES data: " . print_r($_FILES, true));
-
         if (!isset($_POST['song_id'])) {
             return json_encode(['status' => 'error', 'message' => 'No song_id provided']);
         }
 
-        $songId = mysqli_escape_string(Info::get('dbh'), $_POST['song_id']);
-
-        // Get song details for proper path
-        $song = Info::get('db')->get("SELECT LISTID, NUM FROM song_list WHERE ID = {$songId}");
-
+        $songId = (int)$_POST['song_id'];
+        $song   = Info::get('db')->get("SELECT LISTID, NUM FROM song_list WHERE ID = {$songId}");
         if (!$song) {
             return json_encode(['status' => 'error', 'message' => 'Song not found']);
         }
-        
-        if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-            $uploadDir = __DIR__ . '/../public/images/' . $song['LISTID'] . '/';
-            
-            if (!file_exists($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
 
-            // Ensure UTF-8 encoding for filename with Cyrillic characters
-            $filename = $song['NUM'] . '.jpg';
-
-            // Convert to UTF-8 if needed
-            if (mb_detect_encoding($filename, 'UTF-8', true) === false) {
-                $filename = mb_convert_encoding($filename, 'UTF-8');
-            }
-
-            $targetFile = $uploadDir . $filename;
-
-            error_log("Attempting to save file to: " . $targetFile);
-
-            if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
-                error_log("File uploaded successfully");
-                self::updateSocket();
-                return json_encode([
-                    'status' => 'success',
-                    'path' => '/images/' . $song['LISTID'] . '/' . $filename
-                ]);
-            } else {
-                error_log("move_uploaded_file failed");
-                return json_encode(['status' => 'error', 'message' => 'Failed to move uploaded file']);
-            }
+        if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+            return json_encode(['status' => 'error', 'message' => 'Upload error']);
         }
 
-        $errorMsg = 'Upload failed';
-        if (isset($_FILES['image'])) {
-            $errorMsg .= ' - Error code: ' . $_FILES['image']['error'];
-        } else {
-            $errorMsg .= ' - No file received';
+        // [SECURITY #5] Проверка расширения
+        $ext         = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        $allowedExt  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        if (!in_array($ext, $allowedExt, true)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid extension: ' . $ext]);
         }
 
-        error_log($errorMsg);
-        return json_encode(['status' => 'error', 'message' => $errorMsg]);
+        // [SECURITY #5] Проверка реального MIME-типа
+        $allowedMime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!self::checkMime($_FILES['image']['tmp_name'], $allowedMime)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid file type (MIME mismatch)']);
+        }
+
+        $uploadDir = __DIR__ . '/../public/images/' . $song['LISTID'] . '/';
+        if (!file_exists($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $filename   = $song['NUM'] . '.jpg';
+        $targetFile = $uploadDir . $filename;
+
+        if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
+            self::updateSocket();
+            return json_encode(['status' => 'success', 'path' => '/images/' . $song['LISTID'] . '/' . $filename]);
+        }
+        return json_encode(['status' => 'error', 'message' => 'Failed to move uploaded file']);
     }
 
     // -----------------------------------------------------------
@@ -619,47 +629,42 @@ class Ajax
         $userId = (int)$_SESSION['userId'];
 
         if (!isset($_FILES['image'])) {
-            return json_encode(array('status' => 'error', 'message' => 'No file in $_FILES["image"]'));
+            return json_encode(['status' => 'error', 'message' => 'No file in $_FILES["image"]']);
         }
         if ($_FILES['image']['error'] !== UPLOAD_ERR_OK) {
-            $codes = array(
-                1 => 'File too large (php.ini)',
-                2 => 'File too large (form)',
-                3 => 'Partial upload',
-                4 => 'No file uploaded',
-                6 => 'No tmp dir',
-                7 => 'Cannot write to disk',
-                8 => 'Blocked by extension',
-            );
+            $codes = [1=>'File too large (php.ini)',2=>'File too large (form)',
+                3=>'Partial upload',4=>'No file uploaded',6=>'No tmp dir',
+                7=>'Cannot write to disk',8=>'Blocked by extension'];
             $code = $_FILES['image']['error'];
-            $msg  = isset($codes[$code]) ? $codes[$code] : 'Error code ' . $code;
-            return json_encode(array('status' => 'error', 'message' => $msg));
+            return json_encode(['status' => 'error', 'message' => $codes[$code] ?? 'Error ' . $code]);
         }
 
-        $ext     = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
-        $allowed = array('jpg', 'jpeg', 'png', 'gif', 'webp');
-        if (!in_array($ext, $allowed)) {
-            return json_encode(array('status' => 'error', 'message' => 'Invalid file type: ' . $ext));
+        // [SECURITY #5] Проверка расширения
+        $ext         = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        $allowedExt  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        if (!in_array($ext, $allowedExt, true)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid file type: ' . $ext]);
+        }
+
+        // [SECURITY #5] Проверка реального MIME-типа
+        $allowedMime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!self::checkMime($_FILES['image']['tmp_name'], $allowedMime)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid file type (MIME mismatch)']);
         }
 
         $uploadDir = __DIR__ . '/../public/sermon_images/' . $userId . '/';
-        if (!file_exists($uploadDir)) {
-            if (!mkdir($uploadDir, 0777, true)) {
-                return json_encode(array('status' => 'error', 'message' => 'Cannot create dir'));
-            }
+        if (!file_exists($uploadDir) && !mkdir($uploadDir, 0755, true)) {
+            return json_encode(['status' => 'error', 'message' => 'Cannot create dir']);
         }
 
         $filename   = uniqid('img_', true) . '.' . $ext;
         $targetFile = $uploadDir . $filename;
 
         if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
-            return json_encode(array(
-                'status' => 'success',
-                'path'   => '/sermon_images/' . $userId . '/' . $filename
-            ));
+            return json_encode(['status' => 'success',
+                'path' => '/sermon_images/' . $userId . '/' . $filename]);
         }
-
-        return json_encode(array('status' => 'error', 'message' => 'move_uploaded_file failed'));
+        return json_encode(['status' => 'error', 'message' => 'move_uploaded_file failed']);
     }
 
     /**
@@ -1602,28 +1607,30 @@ class Ajax
     private static function get_group_users()
     {
         $userId = (int)$_SESSION['userId'];
-        // GROUP_ID = $userId → все участники группы (включая admin, если GROUP_ID=userId)
-        // ID = $userId AND GROUP_ID = 0 → admin, у которого GROUP_ID=0 (самостоятельная группа)
-        // Условие "ID = $userId" без ограничения на GROUP_ID убрано —
-        // оно случайно подтягивало чужого пользователя, чей ID совпадал с номером группы.
-        $users = Info::get('db')->select(
+        $users  = Info::get('db')->select(
             "SELECT ID, NAME, LOGIN, PASS, ROLE
              FROM users
              WHERE GROUP_ID = {$userId}
                 OR (ID = {$userId} AND (GROUP_ID = 0 OR GROUP_ID IS NULL))
              ORDER BY FIELD(ROLE, 'admin', 'leader', 'musician', 'preacher')"
         );
+
+        foreach ($users as &$u) {
+            $u['PASS'] = Security::decryptPassword($u['PASS']);
+        }
+        unset($u);
+
         return json_encode($users);
     }
 
     private static function update_group_user()
     {
-        $userId  = (int)$_SESSION['userId'];
-        $dbh     = Info::get('dbh');
-        $id      = (int)self::$args['id'];
-        $name    = mysqli_real_escape_string($dbh, self::$args['name']);
-        $login   = mysqli_real_escape_string($dbh, self::$args['login']);
-        $pass    = mysqli_real_escape_string($dbh, self::$args['pass']);
+        $userId = (int)$_SESSION['userId'];
+        $dbh    = Info::get('dbh');
+        $id     = (int)self::$args['id'];
+        $name   = mysqli_real_escape_string($dbh, self::$args['name']  ?? '');
+        $login  = mysqli_real_escape_string($dbh, self::$args['login'] ?? '');
+        $pass   = self::$args['pass'] ?? '';
 
         // Убедимся, что редактируем только своего пользователя
         $check = Info::get('db')->get(
@@ -1633,25 +1640,28 @@ class Ajax
             return json_encode(['status' => 'error', 'message' => 'Access denied']);
         }
 
+        // [SECURITY #1] Шифруем пароль перед сохранением
+        $encryptedPass = Security::encryptPassword($pass);
+        $escapedPass   = mysqli_real_escape_string($dbh, $encryptedPass);
+
         Info::get('db')->exec(
-            "UPDATE users SET NAME = '{$name}', LOGIN = '{$login}', PASS = '{$pass}'
-             WHERE ID = {$id}"
+            "UPDATE users SET NAME='{$name}', LOGIN='{$login}', PASS='{$escapedPass}'
+             WHERE ID={$id}"
         );
         return json_encode(['status' => 'success']);
     }
 
     private static function create_group_user()
     {
-        $userId  = (int)$_SESSION['userId'];
-        $dbh     = Info::get('dbh');
-        $role    = mysqli_real_escape_string($dbh, self::$args['role']);
+        $userId = (int)$_SESSION['userId'];
+        $dbh    = Info::get('dbh');
+        $role   = mysqli_real_escape_string($dbh, self::$args['role'] ?? '');
 
         $allowed = ['admin', 'leader', 'musician', 'preacher'];
         if (!in_array($role, $allowed)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid role']);
         }
 
-        // Проверить, не существует ли уже такой пользователь
         $existing = Info::get('db')->get(
             "SELECT ID FROM users
              WHERE ROLE = '{$role}' AND (ID = {$userId} OR GROUP_ID = {$userId})"
@@ -1660,7 +1670,6 @@ class Ajax
             return json_encode(['status' => 'error', 'message' => 'User already exists']);
         }
 
-        // Получить имя группы (из admin-пользователя)
         $adminUser = Info::get('db')->get("SELECT NAME FROM users WHERE ID = {$userId}");
         $groupName = $adminUser ? $adminUser['NAME'] : 'Group';
 
@@ -1668,7 +1677,7 @@ class Ajax
             'admin'    => 'Администратор',
             'leader'   => 'Ведущий',
             'musician' => 'Музыкант',
-            'preacher' => 'Проповедник'
+            'preacher' => 'Проповедник',
         ];
         $defaultName  = $groupName . ' - ' . $roleLabels[$role];
         $defaultLogin = strtolower(preg_replace('/\s+/', '_', $groupName)) . '_' . $role;
@@ -1680,9 +1689,12 @@ class Ajax
             $password .= $chars[random_int(0, strlen($chars) - 1)];
         }
 
+        // [SECURITY #1] Шифруем пароль перед сохранением
+        $encryptedPass = Security::encryptPassword($password);
+
         $escapedName  = mysqli_real_escape_string($dbh, $defaultName);
         $escapedLogin = mysqli_real_escape_string($dbh, $defaultLogin);
-        $escapedPass  = mysqli_real_escape_string($dbh, $password);
+        $escapedPass  = mysqli_real_escape_string($dbh, $encryptedPass);
 
         Info::get('db')->exec(
             "INSERT INTO users (NAME, LOGIN, PASS, ROLE, GROUP_ID)
@@ -1696,37 +1708,44 @@ class Ajax
                 'ID'    => $newId,
                 'NAME'  => $defaultName,
                 'LOGIN' => $defaultLogin,
-                'PASS'  => $password,
-                'ROLE'  => $role
-            ]
+                'PASS'  => $password,   // plaintext возвращается только один раз при создании
+                'ROLE'  => $role,
+            ],
         ]);
     }
 
     private static function upload_placeholder_image()
     {
-        if (isset($_FILES['image']) && $_FILES['image']['error'] == 0) {
-            $uploadDir = __DIR__ . '/../public/images/placeholders/';
-
-            if (!file_exists($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
-
-            $userId = $_SESSION['userId'];
-            $extension = pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION);
-            $filename = 'placeholder_' . $userId . '.' . $extension;
-            $targetFile = $uploadDir . $filename;
-
-            if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
-                return json_encode([
-                    'status' => 'success',
-                    'path' => '/images/placeholders/' . $filename
-                ]);
-            } else {
-                return json_encode(['status' => 'error', 'message' => 'Failed to move uploaded file']);
-            }
+        if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+            return json_encode(['status' => 'error', 'message' => 'No file uploaded']);
         }
 
-        return json_encode(['status' => 'error', 'message' => 'No file uploaded']);
+        // [SECURITY #5] Проверка расширения
+        $ext     = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        $allowedExt  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        if (!in_array($ext, $allowedExt, true)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid file extension: ' . $ext]);
+        }
+
+        // [SECURITY #5] Проверка реального MIME-типа файла
+        $allowedMime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!self::checkMime($_FILES['image']['tmp_name'], $allowedMime)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid file type (MIME mismatch)']);
+        }
+
+        $uploadDir = __DIR__ . '/../public/images/placeholders/';
+        if (!file_exists($uploadDir)) {
+            mkdir($uploadDir, 0755, true);
+        }
+
+        $userId   = (int)$_SESSION['userId'];
+        $filename = 'placeholder_' . $userId . '.' . $ext;
+        $target   = $uploadDir . $filename;
+
+        if (move_uploaded_file($_FILES['image']['tmp_name'], $target)) {
+            return json_encode(['status' => 'success', 'path' => '/images/placeholders/' . $filename]);
+        }
+        return json_encode(['status' => 'error', 'message' => 'Failed to move uploaded file']);
     }
 
     /**
@@ -1743,14 +1762,25 @@ class Ajax
             return json_encode(['status' => 'error', 'message' => 'Upload error code: ' . $code]);
         }
 
-        $ext     = strtolower(pathinfo($_FILES['video']['name'], PATHINFO_EXTENSION));
-        $allowed = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'];
-        if (!in_array($ext, $allowed)) {
+        // [SECURITY #5] Проверка расширения
+        $ext         = strtolower(pathinfo($_FILES['video']['name'], PATHINFO_EXTENSION));
+        $allowedExt  = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'];
+        if (!in_array($ext, $allowedExt, true)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid video type: ' . $ext]);
         }
 
+        // [SECURITY #5] Проверка реального MIME-типа
+        $allowedMime = [
+            'video/mp4', 'video/webm', 'video/ogg',
+            'video/quicktime', 'video/x-msvideo', 'video/x-matroska',
+            'application/octet-stream', // некоторые .mkv/.mov
+        ];
+        if (!self::checkMime($_FILES['video']['tmp_name'], $allowedMime)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid file type (MIME mismatch)']);
+        }
+
         $uploadDir = __DIR__ . '/../public/sermon_videos/' . $userId . '/';
-        if (!file_exists($uploadDir) && !mkdir($uploadDir, 0777, true)) {
+        if (!file_exists($uploadDir) && !mkdir($uploadDir, 0755, true)) {
             return json_encode(['status' => 'error', 'message' => 'Cannot create upload dir']);
         }
 
@@ -1761,12 +1791,10 @@ class Ajax
             return json_encode(['status' => 'error', 'message' => 'move_uploaded_file failed']);
         }
 
-        $origName = $_FILES['video']['name'];
-
         return json_encode([
             'status' => 'success',
             'path'   => '/sermon_videos/' . $userId . '/' . $filename,
-            'name'   => $origName,
+            'name'   => $_FILES['video']['name'],
         ]);
     }
 
@@ -1870,14 +1898,21 @@ class Ajax
             return json_encode(['status' => 'error', 'message' => 'Upload error']);
         }
 
-        $ext     = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
-        $allowed = ['jpg','jpeg','png','gif','webp'];
-        if (!in_array($ext, $allowed)) {
+        // [SECURITY #5] Проверка расширения
+        $ext         = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
+        $allowedExt  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        if (!in_array($ext, $allowedExt, true)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid image type: ' . $ext]);
         }
 
+        // [SECURITY #5] Проверка реального MIME-типа
+        $allowedMime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!self::checkMime($_FILES['file']['tmp_name'], $allowedMime)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid file type (MIME mismatch)']);
+        }
+
         $dir = __DIR__ . '/../public/tech_media/' . $userId . '/';
-        if (!file_exists($dir) && !mkdir($dir, 0777, true)) {
+        if (!file_exists($dir) && !mkdir($dir, 0755, true)) {
             return json_encode(['status' => 'error', 'message' => 'Cannot create dir']);
         }
 
@@ -1889,7 +1924,6 @@ class Ajax
         $path = '/tech_media/' . $userId . '/' . $filename;
         $name = $_FILES['file']['name'];
 
-        // Сразу добавляем в плейлист
         $dbh      = Info::get('dbh');
         $nameSafe = mysqli_real_escape_string($dbh, $name);
         $pathSafe = mysqli_real_escape_string($dbh, $path);
@@ -1900,7 +1934,7 @@ class Ajax
 
         Info::get('db')->exec(
             "INSERT INTO tech_media_favorites (group_id, name, src, media_type, sort_order)
-         VALUES ({$userId}, '{$nameSafe}', '{$pathSafe}', 'image', {$sortOrder})"
+             VALUES ({$userId}, '{$nameSafe}', '{$pathSafe}', 'image', {$sortOrder})"
         );
         self::updateSocket();
         return json_encode(['status' => 'success', 'path' => $path, 'name' => $name]);
@@ -1918,14 +1952,25 @@ class Ajax
             return json_encode(['status' => 'error', 'message' => 'Upload error']);
         }
 
-        $ext     = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
-        $allowed = ['mp4','webm','ogg','mov','avi'];
-        if (!in_array($ext, $allowed)) {
+        // [SECURITY #5] Проверка расширения
+        $ext         = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
+        $allowedExt  = ['mp4', 'webm', 'ogg', 'mov', 'avi'];
+        if (!in_array($ext, $allowedExt, true)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid video type: ' . $ext]);
         }
 
+        // [SECURITY #5] Проверка реального MIME-типа
+        $allowedMime = [
+            'video/mp4', 'video/webm', 'video/ogg',
+            'video/quicktime', 'video/x-msvideo',
+            'application/octet-stream',
+        ];
+        if (!self::checkMime($_FILES['file']['tmp_name'], $allowedMime)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid file type (MIME mismatch)']);
+        }
+
         $dir = __DIR__ . '/../public/tech_media/' . $userId . '/';
-        if (!file_exists($dir) && !mkdir($dir, 0777, true)) {
+        if (!file_exists($dir) && !mkdir($dir, 0755, true)) {
             return json_encode(['status' => 'error', 'message' => 'Cannot create dir']);
         }
 
@@ -1947,11 +1992,12 @@ class Ajax
 
         Info::get('db')->exec(
             "INSERT INTO tech_media_favorites (group_id, name, src, media_type, sort_order)
-         VALUES ({$userId}, '{$nameSafe}', '{$pathSafe}', 'video', {$sortOrder})"
+             VALUES ({$userId}, '{$nameSafe}', '{$pathSafe}', 'video', {$sortOrder})"
         );
         self::updateSocket();
         return json_encode(['status' => 'success', 'path' => $path, 'name' => $name]);
     }
+
 
 
 }
