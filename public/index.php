@@ -27,7 +27,7 @@ session_set_cookie_params(
 
 session_start();
 
-Info::set('config', include '../app/config_example.php');
+Info::set('config', include '../app/config.php');
 
 $database = new Database();
 Info::set('db', $database);
