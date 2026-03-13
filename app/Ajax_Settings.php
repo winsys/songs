@@ -119,6 +119,12 @@ trait Ajax_Settings
             "UPDATE users SET NAME='{$name}', LOGIN='{$login}', PASS='{$escapedPass}'
              WHERE ID={$id}"
         );
+
+        // [SECURITY #4] Regenerate session ID after password change for current user
+        if ($id === $userId) {
+            session_regenerate_id(true);
+        }
+
         return json_encode(['status' => 'success']);
     }
 
