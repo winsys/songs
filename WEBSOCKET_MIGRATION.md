@@ -23,8 +23,9 @@ socket.addEventListener('message', function(event) {
 
 ### New Code (SECURE)
 ```javascript
+// Protocol is auto-detected (wss:// for HTTPS, ws:// for HTTP)
 const socket = window.createAuthenticatedWebSocket(
-    "wss://" + window.location.host + "/ws",
+    null, // Use default /ws endpoint (auto-detects protocol)
     function(data) {
         // Handle message (called only after successful authentication)
         console.log('Received:', data);
@@ -35,6 +36,8 @@ const socket = window.createAuthenticatedWebSocket(
     }
 );
 ```
+
+**Note**: The URL parameter can be `null` to auto-detect the protocol based on the page (HTTPS → wss://, HTTP → ws://). This is the recommended approach.
 
 ## Files That Need Updating
 
@@ -122,19 +125,59 @@ After updating, verify:
 - Tokens are regenerated on each page load (not persistent)
 - Failed authentication attempts close the connection immediately
 
-## Nginx/Proxy Configuration
+## Nginx/Proxy Configuration (REQUIRED for HTTPS)
 
-If using a reverse proxy, ensure WebSocket upgrade headers are passed:
+**IMPORTANT**: A reverse proxy is **REQUIRED** for production use, especially when serving the site over HTTPS.
+
+### Why Reverse Proxy is Needed
+
+1. **HTTPS Compatibility**: Browsers block insecure WebSocket (`ws://`) connections from HTTPS pages
+2. **Port Flexibility**: WebSocket server runs on port 2345, but clients connect via standard HTTPS port 443
+3. **Security**: WebSocket server only binds to localhost (127.0.0.1), so external access must go through proxy
+
+### Quick Setup
+
+See the complete configuration in `nginx-websocket-config.conf`
+
+**Minimal Nginx configuration:**
 
 ```nginx
+# Add to http {} block (OUTSIDE server block)
+map $http_upgrade $connection_upgrade {
+    default upgrade;
+    '' close;
+}
+
+# Add to your server {} block
 location /ws {
     proxy_pass http://127.0.0.1:2345;
     proxy_http_version 1.1;
     proxy_set_header Upgrade $http_upgrade;
-    proxy_set_header Connection "upgrade";
+    proxy_set_header Connection $connection_upgrade;
     proxy_set_header Host $host;
+    proxy_buffering off;
 }
 ```
+
+**Apply configuration:**
+```bash
+sudo nginx -t                    # Test configuration
+sudo systemctl reload nginx      # Apply changes
+```
+
+### Verification
+
+1. **Start WebSocket server**: `php websocket-server.php`
+2. **Open browser DevTools** → Network → WS tab
+3. **Should see**: Connection to `wss://your-domain.com/ws`
+4. **Status**: 101 Switching Protocols
+5. **First message**: `{type: 'auth', userId: X, token: '...'}`
+6. **Response**: `{type: 'auth_success', message: 'Authenticated'}`
+
+If you see errors, check:
+- Nginx error log: `sudo tail -f /var/log/nginx/error.log`
+- WebSocket is running: `netstat -tlnp | grep 2345`
+- Configuration syntax: `sudo nginx -t`
 
 ## Rollback
 

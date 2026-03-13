@@ -7,12 +7,19 @@
 
     /**
      * Create an authenticated WebSocket connection
-     * @param {string} url - WebSocket URL (e.g., "wss://example.com/ws")
+     * @param {string} url - WebSocket URL (optional, defaults to current host /ws endpoint)
      * @param {function} onMessage - Callback for incoming messages
      * @param {function} onError - Optional error callback
      * @returns {WebSocket}
      */
     window.createAuthenticatedWebSocket = function(url, onMessage, onError) {
+        // [SECURITY] Auto-detect protocol and use /ws endpoint via reverse proxy
+        if (!url || typeof url !== 'string') {
+            // Default: use current host with /ws endpoint (goes through reverse proxy)
+            const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+            url = protocol + '//' + window.location.host + '/ws';
+        }
+
         const socket = new WebSocket(url);
         let authenticated = false;
 
