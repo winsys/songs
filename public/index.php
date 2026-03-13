@@ -4,6 +4,11 @@ error_reporting(E_ALL);
 
 include '../app/Info.php';
 include "../app/Database.php";
+include "../app/Ajax_Common.php";
+include "../app/Ajax_Tech.php";
+include "../app/Ajax_Sermon.php";
+include "../app/Ajax_Settings.php";
+include "../app/Ajax_Import.php";
 include "../app/Ajax.php";
 include "../app/Security.php";
 include "../app/App.php";

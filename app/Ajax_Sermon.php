@@ -1,0 +1,198 @@
+<?php
+
+/**
+ * Sermon page Ajax methods
+ * Handles sermon CRUD operations, uploads, and settings
+ */
+trait Ajax_Sermon
+{
+    private static function get_sermon_list()
+    {
+        $userId = (int)$_SESSION['userId'];
+        $list = Info::get('db')->select(
+            "SELECT ID, TITLE, SERMON_DATE, UPDATED_AT
+             FROM sermons
+             WHERE USER_ID = {$userId}
+             ORDER BY SERMON_DATE DESC, UPDATED_AT DESC"
+        );
+        return json_encode($list);
+    }
+
+    private static function get_sermon()
+    {
+        $userId   = (int)$_SESSION['userId'];
+        $sermonId = (int)self::$args['id'];
+        $list = Info::get('db')->select(
+            "SELECT ID, TITLE, SERMON_DATE, CONTENT
+             FROM sermons
+             WHERE ID = {$sermonId} AND USER_ID = {$userId}
+             LIMIT 1"
+        );
+        return json_encode(count($list) > 0 ? $list[0] : null);
+    }
+
+    private static function save_sermon()
+    {
+        $userId = (int)$_SESSION['userId'];
+        $dbh    = Info::get('dbh');
+
+        $sermonId = isset(self::$args['id']) ? (int)self::$args['id'] : 0;
+        $title    = isset(self::$args['title'])   ? mysqli_real_escape_string($dbh, self::$args['title'])   : '';
+        $date     = isset(self::$args['date'])    ? mysqli_real_escape_string($dbh, self::$args['date'])    : '';
+        $content  = isset(self::$args['content']) ? mysqli_real_escape_string($dbh, self::$args['content']) : '';
+
+        $dateVal = ($date !== '') ? "'{$date}'" : 'NULL';
+
+        if ($sermonId > 0) {
+            $existing = Info::get('db')->select(
+                "SELECT ID FROM sermons WHERE ID = {$sermonId} AND USER_ID = {$userId} LIMIT 1"
+            );
+            if (count($existing) > 0) {
+                $dbh->query(
+                    "UPDATE sermons
+                     SET TITLE = '{$title}', SERMON_DATE = {$dateVal}, CONTENT = '{$content}'
+                     WHERE ID = {$sermonId} AND USER_ID = {$userId}"
+                );
+                $err = $dbh->error;
+                if ($err) {
+                    error_log("save_sermon UPDATE error: " . $err);
+                    return json_encode(array('status' => 'error', 'message' => $err));
+                }
+                return json_encode(array('id' => $sermonId, 'status' => 'ok'));
+            }
+        }
+
+        $dbh->query(
+            "INSERT INTO sermons (USER_ID, TITLE, SERMON_DATE, CONTENT)
+             VALUES ({$userId}, '{$title}', {$dateVal}, '{$content}')"
+        );
+        $err = $dbh->error;
+        if ($err) {
+            error_log("save_sermon INSERT error: " . $err);
+            return json_encode(array('status' => 'error', 'message' => $err));
+        }
+        $newId = $dbh->insert_id;
+        return json_encode(array('id' => $newId, 'status' => 'ok'));
+    }
+
+    private static function delete_sermon()
+    {
+        $userId   = (int)$_SESSION['userId'];
+        $sermonId = (int)self::$args['id'];
+        Info::get('db')->exec(
+            "DELETE FROM sermons WHERE ID = {$sermonId} AND USER_ID = {$userId}"
+        );
+        return json_encode(array('status' => 'ok'));
+    }
+
+    private static function upload_sermon_image()
+    {
+        $userId = (int)$_SESSION['userId'];
+
+        if (!isset($_FILES['image'])) {
+            return json_encode(['status' => 'error', 'message' => 'No file in $_FILES["image"]']);
+        }
+        if ($_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+            $codes = [1=>'File too large (php.ini)',2=>'File too large (form)',
+                3=>'Partial upload',4=>'No file uploaded',6=>'No tmp dir',
+                7=>'Cannot write to disk',8=>'Blocked by extension'];
+            $code = $_FILES['image']['error'];
+            return json_encode(['status' => 'error', 'message' => $codes[$code] ?? 'Error ' . $code]);
+        }
+
+        // [SECURITY #5] Проверка расширения
+        $ext         = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        $allowedExt  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        if (!in_array($ext, $allowedExt, true)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid file type: ' . $ext]);
+        }
+
+        // [SECURITY #5] Проверка реального MIME-типа
+        $allowedMime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!self::checkMime($_FILES['image']['tmp_name'], $allowedMime)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid file type (MIME mismatch)']);
+        }
+
+        $uploadDir = __DIR__ . '/../public/sermon_images/' . $userId . '/';
+        if (!file_exists($uploadDir) && !mkdir($uploadDir, 0755, true)) {
+            return json_encode(['status' => 'error', 'message' => 'Cannot create dir']);
+        }
+
+        $filename   = uniqid('img_', true) . '.' . $ext;
+        $targetFile = $uploadDir . $filename;
+
+        if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
+            return json_encode(['status' => 'success',
+                'path' => '/sermon_images/' . $userId . '/' . $filename]);
+        }
+        return json_encode(['status' => 'error', 'message' => 'move_uploaded_file failed']);
+    }
+
+    /**
+     * Загрузить видеофайл для проповеди.
+     * Input: multipart file 'video'
+     * Output: { status, path, name }
+     */
+    private static function upload_sermon_video()
+    {
+        $userId = (int)$_SESSION['userId'];
+
+        if (!isset($_FILES['video']) || $_FILES['video']['error'] !== UPLOAD_ERR_OK) {
+            $code = isset($_FILES['video']) ? $_FILES['video']['error'] : -1;
+            return json_encode(['status' => 'error', 'message' => 'Upload error code: ' . $code]);
+        }
+
+        // [SECURITY #5] Проверка расширения
+        $ext         = strtolower(pathinfo($_FILES['video']['name'], PATHINFO_EXTENSION));
+        $allowedExt  = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'];
+        if (!in_array($ext, $allowedExt, true)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid video type: ' . $ext]);
+        }
+
+        // [SECURITY #5] Проверка реального MIME-типа
+        $allowedMime = [
+            'video/mp4', 'video/webm', 'video/ogg',
+            'video/quicktime', 'video/x-msvideo', 'video/x-matroska',
+            'application/octet-stream', // некоторые .mkv/.mov
+        ];
+        if (!self::checkMime($_FILES['video']['tmp_name'], $allowedMime)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid file type (MIME mismatch)']);
+        }
+
+        $uploadDir = __DIR__ . '/../public/sermon_videos/' . $userId . '/';
+        if (!file_exists($uploadDir) && !mkdir($uploadDir, 0755, true)) {
+            return json_encode(['status' => 'error', 'message' => 'Cannot create upload dir']);
+        }
+
+        $filename   = uniqid('vid_', true) . '.' . $ext;
+        $targetFile = $uploadDir . $filename;
+
+        if (!move_uploaded_file($_FILES['video']['tmp_name'], $targetFile)) {
+            return json_encode(['status' => 'error', 'message' => 'move_uploaded_file failed']);
+        }
+
+        return json_encode([
+            'status' => 'success',
+            'path'   => '/sermon_videos/' . $userId . '/' . $filename,
+            'name'   => $_FILES['video']['name'],
+        ]);
+    }
+
+    private static function save_sermon_notes_settings()
+    {
+        $userId   = (int)$_SESSION['userId'];
+        $fontSize = isset(self::$args['sermon_notes_font_size']) ? intval(self::$args['sermon_notes_font_size']) : 13;
+        $scale    = isset(self::$args['sermon_scale_chips'])     ? intval(self::$args['sermon_scale_chips'])     : 0;
+
+        $existing = Info::get('db')->get("SELECT user_id FROM user_settings WHERE user_id = {$userId}");
+        if ($existing) {
+            Info::get('db')->exec("
+            UPDATE user_settings
+            SET sermon_notes_font_size = {$fontSize},
+                sermon_scale_chips     = {$scale}
+            WHERE user_id = {$userId}
+        ");
+        }
+        return json_encode(['status' => 'success']);
+    }
+}
