@@ -7,6 +7,11 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="csrf-token" content="<?php echo htmlspecialchars(Security::getCsrfToken(), ENT_QUOTES); ?>">
+    <script type="text/javascript">
+        // [SECURITY] WebSocket authentication credentials
+        window.WS_USER_ID = <?php echo Security::getUserId(); ?>;
+        window.WS_AUTH_TOKEN = "<?php echo Security::generateWebSocketToken(); ?>";
+    </script>
     <link href="/a-icon-120.png" rel="apple-touch-icon" />
     <link href="/a-icon-152.png" rel="apple-touch-icon" sizes="152x152" />
     <link href="/a-icon-167.png" rel="apple-touch-icon" sizes="167x167" />
@@ -19,6 +24,7 @@
     <script src="/js/bootstrap.min.js" type="text/javascript"></script>
     <script src="/js/angular.min.js" type="text/javascript"></script>
     <script src="/js/csrf_interceptor.js"></script>
+    <script src="/js/websocket_auth.js"></script>
     <script src="/js/angular-touch.min.js" type="text/javascript"></script>
     <script src="/js/angucomplete-alt.min.js" type="text/javascript"></script>
     <script type="text/javascript">

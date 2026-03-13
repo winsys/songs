@@ -362,7 +362,9 @@ trait Ajax_Common
         $err2 = '';
         $instance = stream_socket_client("tcp://127.0.0.1:2346", $err1, $err2);
         if ($instance) {
-            fwrite($instance, json_encode(['type' => 'update_needed']) . "\n");
+            // [SECURITY] Include userId so WebSocket broadcasts only to authenticated user
+            $userId = isset($_SESSION['userId']) ? (int)$_SESSION['userId'] : null;
+            fwrite($instance, json_encode(['type' => 'update_needed', 'userId' => $userId]) . "\n");
             fclose($instance);
         }
     }

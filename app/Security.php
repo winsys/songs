@@ -244,4 +244,32 @@ class Security
         return '/index';
     }
 
+    // ============================================================
+    //  [SECURITY] WebSocket Authentication Token
+    // ============================================================
+
+    /**
+     * Generate WebSocket authentication token for current user.
+     * Token is HMAC-SHA256 of userId with encryption key.
+     * @return string
+     */
+    public static function generateWebSocketToken(): string
+    {
+        if (!isset($_SESSION['userId'])) {
+            return '';
+        }
+        $config = Info::get('config');
+        $userId = (int)$_SESSION['userId'];
+        return hash_hmac('sha256', $userId, $config['encryption_key']);
+    }
+
+    /**
+     * Get current user ID for WebSocket connection.
+     * @return int
+     */
+    public static function getUserId(): int
+    {
+        return isset($_SESSION['userId']) ? (int)$_SESSION['userId'] : 0;
+    }
+
 }

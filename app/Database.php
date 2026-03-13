@@ -30,7 +30,7 @@ class Database
     {
         $res = $this->f_handle->query($q);
         if ($res === false) {
-            error_log('Database::select() SQL error: ' . $this->f_handle->error . ' | Query: ' . $q);
+            error_log('Database::select() SQL error: ' . $this->f_handle->error);
             return array();
         }
         $result = array();
@@ -44,7 +44,7 @@ class Database
     {
         $res = $this->f_handle->query($q);
         if ($res === false) {
-            error_log('Database::get() SQL error: ' . $this->f_handle->error . ' | Query: ' . $q);
+            error_log('Database::get() SQL error: ' . $this->f_handle->error);
             return null;
         }
         return $res->fetch_array(MYSQLI_ASSOC);
