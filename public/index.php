@@ -12,14 +12,12 @@ include "../app/App.php";
 $sessionLifetime = 3 * 60 * 60;
 ini_set('session.gc_maxlifetime', $sessionLifetime);
 
-// session_set_cookie_params with array syntax requires PHP 7.3+.
-// Use the old 5-argument form for compatibility with PHP 5.x / 7.0 / 7.1 / 7.2.
 session_set_cookie_params(
     $sessionLifetime,   // lifetime
     '/',                // path
     '',                 // domain (empty = current)
-    false,              // secure
-    true                // httponly
+    true,               // только HTTPS
+    true                // httponly: недоступен из JS
 );
 
 session_start();
@@ -30,6 +28,7 @@ $database = new Database();
 Info::set('db', $database);
 Info::set('dbh', $database->db_handle());
 
-$app = new App();
+Security::initCsrfToken();
 
+$app = new App();
 $app->run();
