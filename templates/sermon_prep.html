@@ -210,6 +210,16 @@
         box-shadow: inset 0 0 0 1.5px #1a6db5;
     }
 
+    .lang-toggle-btn[disabled],
+    .lang-toggle-btn.lang-disabled {
+        opacity: 0.35;
+        cursor: not-allowed;
+        border-color: #dee2e6;
+        color: #b0b8c1;
+        background: #f4f5f7;
+        pointer-events: none;
+    }
+
     /* ── Bible search input ──────────────────────────────────────── */
     .prep-bible-search {
         width: 100%;
@@ -913,20 +923,17 @@
                                     ng-class="{'active-tr': bibleTranslationId == tr.ID}"
                                     ng-click="setBibleTranslation(tr.ID)">{{ tr.NAME }}</button>
 
-                            <div style="margin-left:6px; display:flex; gap:3px; flex-shrink:0;">
-                                <button class="lang-toggle-btn"
-                                        ng-class="{'lang-active': prepLangs.ru}"
-                                        ng-click="togglePrepLang('ru')"
-                                        title="Русский">RU</button>
-                                <button class="lang-toggle-btn"
-                                        ng-class="{'lang-active': prepLangs.lt}"
-                                        ng-click="togglePrepLang('lt')"
-                                        title="Литовский">LT</button>
-                                <button class="lang-toggle-btn"
-                                        ng-class="{'lang-active': prepLangs.en}"
-                                        ng-click="togglePrepLang('en')"
-                                        title="English">EN</button>
-                            </div>
+                            <<div style="margin-left:6px; display:flex; gap:3px; flex-shrink:0;">
+                            <button ng-repeat="lang in prepLangList"
+                                    class="lang-toggle-btn"
+                                    ng-class="{
+                                        'lang-active':    prepLangs[lang.code] && langHasData(lang),
+                                        'lang-disabled':  !langHasData(lang)
+                                    }"
+                                    ng-click="langHasData(lang) && togglePrepLang(lang.code)"
+                                    ng-disabled="!langHasData(lang)"
+                                    title="{{ lang.label }}">{{ lang.label }}</button>
+                        </div>
                         </div>
 
                         <!-- Book search -->
