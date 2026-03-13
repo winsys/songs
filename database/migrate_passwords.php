@@ -7,7 +7,7 @@ require_once __DIR__ . '/../app/Info.php';
 require_once __DIR__ . '/../app/Database.php';
 require_once __DIR__ . '/../app/Security.php';
 
-Info::set('config', include __DIR__ . '/../app/config.php');
+Info::set('config', include __DIR__ . '/../app/config_example.php');
 
 $database = new Database();
 Info::set('db', $database);
@@ -21,7 +21,7 @@ echo "=== Миграция паролей ===\n";
 // Проверяем ключ шифрования
 $conf = Info::get('config');
 if (empty($conf['encryption_key']) || $conf['encryption_key'] === 'ЗАМЕНИТЕ_НА_СЛУЧАЙНЫЙ_КЛЮЧ_32_БАЙТА_base64==') {
-    die("❌ ОШИБКА: Сначала задайте encryption_key в app/config.php!\n"
+    die("❌ ОШИБКА: Сначала задайте encryption_key в app/config_example.php!\n"
         . "   Команда для генерации ключа:\n"
         . "   php -r \"echo base64_encode(random_bytes(32));\" \n");
 }

@@ -13,7 +13,7 @@ class Security
     // ============================================================
     //  [SECURITY #1] AES-256-CBC шифрование/расшифровка паролей
     //  Пароли хранятся в виде: "enc:" + base64(iv + ciphertext)
-    //  Ключ берётся из config.php → 'encryption_key'
+    //  Ключ берётся из config_example.php → 'encryption_key'
     // ============================================================
 
     /**
@@ -59,7 +59,7 @@ class Security
         $conf = Info::get('config');
         $key = base64_decode($conf['encryption_key'] ?? '');
         if (strlen($key) < 16) {
-            throw new \RuntimeException('encryption_key в config.php не задан или слишком короткий.');
+            throw new \RuntimeException('encryption_key в config_example.php не задан или слишком короткий.');
         }
         return $key;
     }
