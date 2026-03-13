@@ -50,6 +50,10 @@ app.controller('Tech', function ($scope, $http, $timeout)
     $scope.techVideoPlaying   = false;
     var techVideoSrc          = '';
 
+    // ── Access Request state ──────────────────────────────────
+    $scope.currentAccessRequest = null;  // Currently shown access request
+    var accessRequestQueue = [];         // Queue of pending requests
+
     // ── Page mode ─────────────────────────────────────────────
     $scope.pageMode = 'songs';  // 'songs' | 'bible' | 'messages'
 
@@ -1467,6 +1471,79 @@ app.controller('Tech', function ($scope, $http, $timeout)
     }
 
     // ==========================================================
+    // ACCESS REQUEST MANAGEMENT (WebSocket-based)
+    // ==========================================================
+
+    // Load pending requests on page load
+    function loadPendingAccessRequests() {
+        $http.post('/ajax', { command: 'get_pending_access_requests' }).then(
+            function (r) {
+                if (r.data && r.data.status === 'ok') {
+                    var requests = r.data.requests || [];
+                    if (requests.length > 0) {
+                        accessRequestQueue = requests;
+                        $scope.currentAccessRequest = accessRequestQueue[0];
+                    }
+                }
+            },
+            function (e) { console.error('Failed to load pending access requests', e); }
+        );
+    }
+
+    $scope.respondToAccessRequest = function (action) {
+        if (!$scope.currentAccessRequest) return;
+
+        var requestId = $scope.currentAccessRequest.id;
+        $http.post('/ajax', {
+            command: 'respond_to_access_request',
+            request_id: requestId,
+            action: action
+        }).then(
+            function (r) {
+                if (r.data && r.data.status === 'ok') {
+                    // Remove from queue and show next if any
+                    accessRequestQueue.shift();
+                    $scope.currentAccessRequest = accessRequestQueue.length > 0 ? accessRequestQueue[0] : null;
+                } else {
+                    alert('Ошибка: ' + (r.data.message || 'unknown'));
+                }
+            },
+            function (e) { alert('HTTP error: ' + e.status); }
+        );
+    };
+
+    // ==========================================================
+    // WEBSOCKET MESSAGE HANDLER
+    // ==========================================================
+
+    // Listen for WebSocket messages (setup in common.js)
+    window.addEventListener('websocket_message', function(event) {
+        var message = event.detail;
+
+        if (message.type === 'access_request') {
+            // New access request received
+            $scope.$apply(function() {
+                var request = message.data;
+                // Add to queue if not already there
+                var exists = false;
+                for (var i = 0; i < accessRequestQueue.length; i++) {
+                    if (accessRequestQueue[i].id === request.id) {
+                        exists = true;
+                        break;
+                    }
+                }
+                if (!exists) {
+                    accessRequestQueue.push(request);
+                    // Show if no current request
+                    if (!$scope.currentAccessRequest) {
+                        $scope.currentAccessRequest = request;
+                    }
+                }
+            });
+        }
+    });
+
+    // ==========================================================
     // INIT
     // ==========================================================
 
@@ -1474,5 +1551,6 @@ app.controller('Tech', function ($scope, $http, $timeout)
     loadLanguages();
     $scope.reloadFavorites();
     $scope.reloadSongList();
+    loadPendingAccessRequests();  // Load any existing pending requests on page load
 
 });

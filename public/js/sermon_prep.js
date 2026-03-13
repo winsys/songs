@@ -72,6 +72,12 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.uploadingImage = false;
     $scope.uploadingVideo = false;
 
+    // ── Display Access state ─────────────────────────────────
+    $scope.displayTargets = [];
+    $scope.selectedDisplayTarget = null;
+    $scope.showAccessRequestModal = false;
+    $scope.availableGroups = [];
+
     // ── Helper to delete uploaded media file ─────────────────
     function deleteSermonMedia(path) {
         // Only delete if it's an uploaded file (starts with /sermon_images/ or /sermon_videos/)
@@ -207,6 +213,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             $scope.loadBibleTranslations();
             loadPrepLanguages();
             loadPrepUserSettings();
+not            loadDisplayTargets();
         });
 
         $timeout(function () {
@@ -887,5 +894,98 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         insertNodeAtCursor(span);
         $scope.prepSelectedParaIdx = null;
     };
+
+    // ──────────────────────────────────────────────────────────
+    // DISPLAY ACCESS MANAGEMENT
+    // ──────────────────────────────────────────────────────────
+
+    function loadDisplayTargets() {
+        $http.post('/ajax', { command: 'get_display_targets' }).then(
+            function (r) {
+                if (r.data && r.data.status === 'ok') {
+                    $scope.displayTargets = r.data.targets || [];
+                    // Set default to own group (first item)
+                    if ($scope.displayTargets.length > 0) {
+                        $scope.selectedDisplayTarget = $scope.displayTargets[0].group_id;
+                    }
+                }
+            },
+            function (e) { console.error('Failed to load display targets', e); }
+        );
+    }
+
+    $scope.onDisplayTargetChange = function () {
+        if ($scope.selectedDisplayTarget === '__request__') {
+            // Reset to own group
+            if ($scope.displayTargets.length > 0) {
+                $scope.selectedDisplayTarget = $scope.displayTargets[0].group_id;
+            }
+            // Show request access modal
+            $scope.showAccessRequestModal = true;
+            loadAvailableGroups();
+        }
+    };
+
+    function loadAvailableGroups() {
+        $http.post('/ajax', { command: 'get_available_groups' }).then(
+            function (r) {
+                if (r.data && r.data.status === 'ok') {
+                    $scope.availableGroups = r.data.groups || [];
+                    $scope.availableGroups.forEach(function (g) { g.requested = false; });
+                }
+            },
+            function (e) { console.error('Failed to load available groups', e); }
+        );
+    }
+
+    $scope.sendAccessRequest = function (groupId) {
+        $http.post('/ajax', { command: 'request_display_access', target_group_id: groupId }).then(
+            function (r) {
+                if (r.data && r.data.status === 'ok') {
+                    // Mark as requested
+                    for (var i = 0; i < $scope.availableGroups.length; i++) {
+                        if ($scope.availableGroups[i].group_id === groupId) {
+                            $scope.availableGroups[i].requested = true;
+                            break;
+                        }
+                    }
+                    alert('Запрос отправлен');
+                } else {
+                    alert('Ошибка: ' + (r.data.message || 'unknown'));
+                }
+            },
+            function (e) { alert('HTTP error: ' + e.status); }
+        );
+    };
+
+    $scope.closeAccessRequestModal = function () {
+        $scope.showAccessRequestModal = false;
+        // Reload targets in case access was granted
+        loadDisplayTargets();
+    };
+
+    // ──────────────────────────────────────────────────────────
+    // WEBSOCKET MESSAGE HANDLER
+    // ──────────────────────────────────────────────────────────
+
+    // Listen for WebSocket messages (setup in common.js)
+    window.addEventListener('websocket_message', function(event) {
+        var message = event.detail;
+
+        if (message.type === 'access_response') {
+            // Access request response received
+            $scope.$apply(function() {
+                var data = message.data;
+                if (data.status === 'approved') {
+                    // Show success notification
+                    alert('✓ Доступ одобрен: ' + data.target_name);
+                    // Reload display targets to include new approved group
+                    loadDisplayTargets();
+                } else if (data.status === 'rejected') {
+                    alert('✗ Доступ отклонен: ' + data.target_name);
+                }
+            });
+        }
+    });
 
 });
