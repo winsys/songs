@@ -1322,16 +1322,21 @@ app.controller('Tech', function ($scope, $http, $timeout)
     // WEBSOCKET
     // ==========================================================
 
-    const socket = new WebSocket("wss://" + window.location.host + "/ws");
-
-    socket.onmessage = function(event) {
-        let data = JSON.parse(event.data);
-        if (data.type === 'update_needed') {
-            $scope.$apply(function() {
-                $scope.reloadFavorites();
-            });
+    // [SECURITY] Use authenticated WebSocket connection
+    const socket = window.createAuthenticatedWebSocket(
+        "ws://" + window.location.hostname + ":2345",
+        function(data) {
+            // Handle incoming messages (only after authentication)
+            if (data.type === 'update_needed') {
+                $scope.$apply(function() {
+                    $scope.reloadFavorites();
+                });
+            }
+        },
+        function(error) {
+            console.error('WebSocket error:', error);
         }
-    };
+    );
 
 
     // ==========================================================
