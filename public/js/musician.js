@@ -54,24 +54,26 @@ app.controller('Musician', function ($scope, $http)
     }
 
     function initSocket() {
-        const socket = new WebSocket("wss://" + window.location.host + "/ws");
-
-        socket.onmessage = function(event) {
-            let data = JSON.parse(event.data);
-            if (data.type === 'update_needed') {
-                $scope.$apply(function() {
-                    $scope.checkImage();
-                });
+        // [SECURITY] Use authenticated WebSocket connection
+        const socket = window.createAuthenticatedWebSocket(
+            "ws://" + window.location.hostname + ":2345",
+            function(data) {
+                // Handle incoming messages (only after authentication)
+                if (data.type === 'update_needed') {
+                    $scope.$apply(function() {
+                        $scope.checkImage();
+                    });
+                }
+            },
+            function(error) {
+                console.error('WebSocket error:', error);
             }
-        };
+        );
 
-        socket.onclose = function(event) {
+        socket.addEventListener('close', function(event) {
+            console.log('WebSocket closed, reconnecting in 2s...');
             setTimeout(initSocket, 2000);
-        };
-
-        socket.onopen = function(event) {
-            setInterval(() => { socket.send(JSON.stringify({type: 'ping'})); }, 30000);
-        };
+        });
     }
 
     $scope.loadPlaceholderImage();

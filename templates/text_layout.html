@@ -5,8 +5,14 @@
     <meta name="viewport" content="width=device-width, height=device-height, initial-scale=1">
     <meta name="csrf-token" content="<?php echo htmlspecialchars(Security::getCsrfToken(), ENT_QUOTES); ?>">
     <title>Текст</title>
+    <script type="text/javascript">
+        // [SECURITY] WebSocket authentication credentials
+        window.WS_USER_ID = <?php echo Security::getUserId(); ?>;
+        window.WS_AUTH_TOKEN = "<?php echo Security::generateWebSocketToken(); ?>";
+    </script>
     <script src="/js/angular.min.js"></script>
     <script src="/js/csrf_interceptor.js"></script>
+    <script src="/js/websocket_auth.js"></script>
     <style>
         body {
             margin: 0;
@@ -415,24 +421,26 @@
             }
 
             function initSocket() {
-                const socket = new WebSocket("wss://" + window.location.host + "/ws");
-
-                socket.onmessage = function(event) {
-                    let data = JSON.parse(event.data);
-                    if (data.type === 'update_needed') {
-                        $scope.$apply(function() {
-                            fetchText();
-                        });
+                // [SECURITY] Use authenticated WebSocket connection
+                const socket = window.createAuthenticatedWebSocket(
+                    "ws://" + window.location.hostname + ":2345",
+                    function(data) {
+                        // Handle incoming messages (only after authentication)
+                        if (data.type === 'update_needed') {
+                            $scope.$apply(function() {
+                                fetchText();
+                            });
+                        }
+                    },
+                    function(error) {
+                        console.error('WebSocket error:', error);
                     }
-                };
+                );
 
-                socket.onclose = function(event) {
+                socket.addEventListener('close', function(event) {
+                    console.log('WebSocket closed, reconnecting in 2s...');
                     setTimeout(initSocket, 2000);
-                };
-
-                socket.onopen = function(event) {
-                    setInterval(() => { socket.send(JSON.stringify({type: 'ping'})); }, 30000);
-                };
+                });
             }
 
             angular.element(window).on('load resize', adjustTextSize);
