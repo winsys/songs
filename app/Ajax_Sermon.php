@@ -399,12 +399,14 @@ trait Ajax_Sermon
         $userId = (int)$_SESSION['userId'];
 
         $requests = Info::get('db')->select(
-            "SELECT dar.id, dar.requester_group_id, us.display_name, dar.requested_at
+            "SELECT dar.id, dar.requester_group_id, dar.requested_at,
+                    (SELECT us.display_name
+                     FROM users u
+                     LEFT JOIN user_settings us ON us.user_id = u.ID
+                     WHERE u.GROUP_ID = dar.requester_group_id
+                     LIMIT 1) as display_name
              FROM display_access_requests dar
-             JOIN users u ON u.GROUP_ID = dar.requester_group_id
-             LEFT JOIN user_settings us ON us.user_id = u.ID
              WHERE dar.target_group_id = {$userId} AND dar.status = 'pending'
-             GROUP BY dar.id
              ORDER BY dar.requested_at DESC"
         );
 
