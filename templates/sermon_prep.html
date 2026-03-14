@@ -977,31 +977,18 @@
 
         <!-- ── Title + Date + Display To ─────────────────────────── -->
         <div class="row" style="margin-bottom: 16px;">
-            <div class="col-xs-12 col-sm-5">
+            <div class="col-xs-12 col-sm-8">
                 <label class="prep-field-label">Название проповеди</label>
                 <input type="text"
                        class="prep-input prep-title-input"
                        ng-model="sermon.title" />
             </div>
-            <div class="col-xs-6 col-sm-3">
+            <div class="col-xs-12 col-sm-5">
                 <label class="prep-field-label">Дата проповеди</label>
                 <input type="text"
                        class="prep-input"
                        placeholder="ГГГГ-ММ-ДД"
                        ng-model="sermon.date" />
-            </div>
-            <div class="col-xs-6 col-sm-4">
-                <label class="prep-field-label">Показать на дисплее</label>
-                <select class="prep-input"
-                        ng-model="selectedDisplayTarget"
-                        ng-change="onDisplayTargetChange()">
-                    <option ng-repeat="target in displayTargets"
-                            ng-value="target.group_id"
-                            ng-selected="target.group_id === selectedDisplayTarget">
-                        {{target.display_name}}{{target.is_own ? ' (мой)' : ''}}
-                    </option>
-                    <option value="__request__">➕ Запросить доступ...</option>
-                </select>
             </div>
         </div>
 

@@ -109,7 +109,7 @@ trait Ajax_Common
         $userId = (int)$_SESSION['userId'];
 
         $settings = Info::get('db')->get(
-            "SELECT favorites_order FROM user_settings WHERE user_id = {$userId}"
+            "SELECT favorites_order FROM user_settings WHERE group_id = {$userId}"
         );
         $order = ($settings && $settings['favorites_order'] === 'latest_top') ? 'DESC' : 'ASC';
 
@@ -234,7 +234,7 @@ trait Ajax_Common
         );
 
         $settings = Info::get('db')->get(
-            "SELECT * FROM user_settings WHERE user_id = " . (int)$userId
+            "SELECT * FROM user_settings WHERE group_id = " . (int)$userId
         );
 
         if (count($img) > 0) {
@@ -387,11 +387,11 @@ trait Ajax_Common
     private static function get_user_settings()
     {
         $userId = $_SESSION['userId'];
-        $settings = Info::get('db')->get("SELECT * FROM user_settings WHERE user_id = {$userId}");
+        $settings = Info::get('db')->get("SELECT * FROM user_settings WHERE group_id = {$userId}");
 
         if (!$settings) {
             $settings = [
-                'user_id' => $userId,
+                'group_id' => $userId,
                 'display_name' => $_SESSION['userName'],
                 'favorites_order' => 'latest_bottom',
                 'available_lists' => '1,2,3,4,5,6',

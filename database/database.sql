@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 -- Dumping structure for table songs.user_settings
 CREATE TABLE IF NOT EXISTS `user_settings` (
-                                               `user_id` int(11) NOT NULL,
+                                               `group_id` int(11) NOT NULL COMMENT 'GROUP_ID from users table (not user ID)',
                                                `display_name` varchar(255) DEFAULT NULL,
                                                `favorites_order` enum('latest_top','latest_bottom') DEFAULT 'latest_bottom',
                                                `available_lists` varchar(255) DEFAULT NULL,
@@ -209,9 +209,8 @@ CREATE TABLE IF NOT EXISTS `user_settings` (
                                                `sermon_msg_base_color` varchar(20) NOT NULL DEFAULT '#ce93d8' COMMENT 'Base (header text) colour for Epistle/Message chips',
                                                `sermon_notes_font_size` tinyint(4) NOT NULL DEFAULT '13',
                                                `sermon_scale_chips` tinyint(4) NOT NULL DEFAULT '0',
-                                               PRIMARY KEY (`user_id`),
-                                               CONSTRAINT `fk_user_settings_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+                                               PRIMARY KEY (`group_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Settings per group (not per user). group_id matches users.GROUP_ID';
 
 -- Data exporting was unselected.
 
