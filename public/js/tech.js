@@ -1620,17 +1620,10 @@ app.controller('Tech', function ($scope, $http, $timeout)
     // Helper to restore chapters from song_name like "1,3,5"
     $scope.restoreChaptersFromSongName = function(songName, song) {
         if (!songName) return;
-
-        console.log('Restoring chapters from song_name:', songName);
-
         // Parse chapter numbers from song_name
         var chapterNums = songName.split(',').map(function(n) { return parseInt(n.trim()); });
-        console.log('Chapter numbers to restore:', chapterNums);
-
         // Build the chapters list
         splitText(song);
-        console.log('Total prepared chapters:', $scope.preparedChapters.length);
-
         // Select the chapters that were showing
         // preparedChapters format: "text\n(index)"
         $scope.selectedChapters = [];
@@ -1639,20 +1632,14 @@ app.controller('Tech', function ($scope, $http, $timeout)
             var match = $scope.preparedChapters[i].match(/\((\d+)\)$/);
             if (match) {
                 var chapterIndex = parseInt(match[1]);
-                console.log('Checking chapter index:', chapterIndex, 'against', chapterNums);
                 if (chapterNums.indexOf(chapterIndex) !== -1) {
-                    console.log('Adding chapter to selectedChapters:', $scope.preparedChapters[i].substring(0, 50));
                     $scope.selectedChapters.push($scope.preparedChapters[i]);
                 }
             }
         }
-
-        console.log('Total selected chapters:', $scope.selectedChapters.length);
-
         // Set the first selected chapter as showing
         if ($scope.selectedChapters.length > 0) {
             $scope.showingChapter = $scope.selectedChapters[0];
-            console.log('Set showingChapter to:', $scope.showingChapter.substring(0, 50));
         }
     };
 
