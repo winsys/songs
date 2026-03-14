@@ -228,7 +228,7 @@ class App
 
         // Find user by Google ID
         $user = Info::get('db')->get(
-            "SELECT ID, NAME, ROLE FROM users WHERE GOOGLE_ID = '" .
+            "SELECT ID, NAME, ROLE, GROUP_ID FROM users WHERE GOOGLE_ID = '" .
             mysqli_real_escape_string(Info::get('dbh'), $googleId) . "'"
         );
 
@@ -246,22 +246,30 @@ class App
             return;
         }
 
-        // Log in the user
-        $_SESSION['userId'] = $user['ID'];
+        // Log in the user - IMPORTANT: set loggedIn flag!
+        $_SESSION['loggedIn'] = true;
+        $_SESSION['userId'] = isset($user['GROUP_ID']) && $user['GROUP_ID'] > 0
+            ? (int)$user['GROUP_ID']
+            : (int)$user['ID'];
         $_SESSION['userName'] = $user['NAME'];
-        $_SESSION['userRole'] = $user['ROLE'];
+        $_SESSION['userRole'] = $user['ROLE'] ?? 'musician';
+        $_SESSION['loginError'] = '';
 
         // Update last login time
         Info::get('db')->exec(
             "UPDATE users SET LAST_LOGIN = NOW() WHERE ID = " . (int)$user['ID']
         );
 
+        // Regenerate session ID for security
+        session_regenerate_id(true);
+
         // Redirect to default page
         echo '<!DOCTYPE html>
 <html>
 <head>
     <title>Google Login Success</title>
-    <meta http-equiv="refresh" content="1;url=' . Security::defaultRedirect() . '">
+    <script>window.location.href = "' . Security::defaultRedirect() . '";</script>
+    <meta http-equiv="refresh" content="0;url=' . Security::defaultRedirect() . '">
 </head>
 <body style="font-family: Arial; padding: 40px; text-align: center;">
     <h2>✅ Успешный вход!</h2>
@@ -324,7 +332,7 @@ class App
 
         // Find user by Google ID
         $user = Info::get('db')->get(
-            "SELECT ID, NAME, ROLE FROM users WHERE GOOGLE_ID = '" .
+            "SELECT ID, NAME, ROLE, GROUP_ID FROM users WHERE GOOGLE_ID = '" .
             mysqli_real_escape_string(Info::get('dbh'), $googleId) . "'"
         );
 
@@ -342,15 +350,22 @@ class App
             return;
         }
 
-        // Log in the user
-        $_SESSION['userId'] = $user['ID'];
+        // Log in the user - IMPORTANT: set loggedIn flag!
+        $_SESSION['loggedIn'] = true;
+        $_SESSION['userId'] = isset($user['GROUP_ID']) && $user['GROUP_ID'] > 0
+            ? (int)$user['GROUP_ID']
+            : (int)$user['ID'];
         $_SESSION['userName'] = $user['NAME'];
-        $_SESSION['userRole'] = $user['ROLE'];
+        $_SESSION['userRole'] = $user['ROLE'] ?? 'musician';
+        $_SESSION['loginError'] = '';
 
         // Update last login time
         Info::get('db')->exec(
             "UPDATE users SET LAST_LOGIN = NOW() WHERE ID = " . (int)$user['ID']
         );
+
+        // Regenerate session ID for security
+        session_regenerate_id(true);
 
         // Redirect to default page
         echo '<!DOCTYPE html>
