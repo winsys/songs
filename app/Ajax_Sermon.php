@@ -295,7 +295,7 @@ trait Ajax_Sermon
             "SELECT DISTINCT u.GROUP_ID as group_id, us.display_name
              FROM users u
              LEFT JOIN user_settings us ON us.group_id = u.GROUP_ID
-             WHERE u.GROUP_ID != {$userId} AND u.GROUP_ID > 0
+             WHERE u.GROUP_ID != {$userId} AND u.GROUP_ID > 0 AND NOT (us.display_name IS NULL)
              GROUP BY u.GROUP_ID"
         );
 
