@@ -1,10 +1,3 @@
--- --------------------------------------------------------
--- Host:                         server.winsys.lv
--- Server version:               5.7.42-0ubuntu0.18.04.1 - (Ubuntu)
--- Server OS:                    Linux
--- HeidiSQL Version:             12.8.0.6908
--- --------------------------------------------------------
-
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET NAMES utf8 */;
 /*!50503 SET NAMES utf8mb4 */;
@@ -69,6 +62,21 @@ CREATE TABLE IF NOT EXISTS `current` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table songs.display_access_requests
+CREATE TABLE IF NOT EXISTS `display_access_requests` (
+                                                         `id` int(11) NOT NULL AUTO_INCREMENT,
+                                                         `requester_group_id` int(11) NOT NULL COMMENT 'Group ID of the requester (preacher)',
+                                                         `target_group_id` int(11) NOT NULL COMMENT 'Group ID of the target display owner',
+                                                         `status` enum('pending','approved','rejected') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'pending',
+                                                         `requested_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                                         `responded_at` timestamp NULL DEFAULT NULL,
+                                                         PRIMARY KEY (`id`),
+                                                         UNIQUE KEY `unique_request` (`requester_group_id`,`target_group_id`),
+                                                         KEY `idx_target_pending` (`target_group_id`,`status`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Stores display access requests between groups';
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table songs.favorites
 CREATE TABLE IF NOT EXISTS `favorites` (
                                            `groupId` int(11) DEFAULT NULL,
@@ -77,7 +85,7 @@ CREATE TABLE IF NOT EXISTS `favorites` (
                                            `sort_order` int(11) NOT NULL DEFAULT '0',
                                            PRIMARY KEY (`ID`),
                                            UNIQUE KEY `Index 1` (`groupId`,`SONGID`)
-) ENGINE=InnoDB AUTO_INCREMENT=7514 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=7526 DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.
 
@@ -114,6 +122,7 @@ CREATE TABLE IF NOT EXISTS `messages` (
                                           `TEXT_LT` longtext COLLATE utf8mb4_unicode_ci,
                                           `TEXT_EN` longtext COLLATE utf8mb4_unicode_ci,
                                           `CREATED_AT` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                          `TEXT_DE` longtext COLLATE utf8mb4_unicode_ci,
                                           PRIMARY KEY (`ID`),
                                           KEY `idx_messages_code` (`CODE`)
 ) ENGINE=InnoDB AUTO_INCREMENT=665 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -143,7 +152,7 @@ CREATE TABLE IF NOT EXISTS `sermons` (
                                          PRIMARY KEY (`ID`),
                                          KEY `idx_sermons_user` (`USER_ID`),
                                          CONSTRAINT `fk_sermons_user` FOREIGN KEY (`USER_ID`) REFERENCES `users` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=17 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Data exporting was unselected.
 
@@ -156,6 +165,7 @@ CREATE TABLE IF NOT EXISTS `song_list` (
                                            `TEXT` text,
                                            `TEXT_LT` text,
                                            `TEXT_EN` text,
+                                           `TEXT_DE` longtext,
                                            PRIMARY KEY (`ID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=3264 DEFAULT CHARSET=utf8;
 
@@ -172,7 +182,7 @@ CREATE TABLE IF NOT EXISTS `tech_media_favorites` (
                                                       `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                                       PRIMARY KEY (`id`),
                                                       KEY `idx_tmf_group` (`group_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Data exporting was unselected.
 
@@ -192,7 +202,7 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 -- Dumping structure for table songs.user_settings
 CREATE TABLE IF NOT EXISTS `user_settings` (
-                                               `group_id` int(11) NOT NULL COMMENT 'GROUP_ID from users table (not user ID)',
+                                               `group_id` int(11) NOT NULL,
                                                `display_name` varchar(255) DEFAULT NULL,
                                                `favorites_order` enum('latest_top','latest_bottom') DEFAULT 'latest_bottom',
                                                `available_lists` varchar(255) DEFAULT NULL,
@@ -210,12 +220,7 @@ CREATE TABLE IF NOT EXISTS `user_settings` (
                                                `sermon_notes_font_size` tinyint(4) NOT NULL DEFAULT '13',
                                                `sermon_scale_chips` tinyint(4) NOT NULL DEFAULT '0',
                                                PRIMARY KEY (`group_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Settings per group (not per user). group_id matches users.GROUP_ID';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.
 
-/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
-/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
-/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;
