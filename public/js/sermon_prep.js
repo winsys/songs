@@ -238,6 +238,9 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     $scope.$apply(function () { $scope.onVideoSelected(videoInput); });
                 });
             }
+
+            // Setup drag and drop for chips
+            setupEditorDropZone();
         }, 0);
     });
 
@@ -270,6 +273,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     // DRAG AND DROP FOR CHIPS
     // ──────────────────────────────────────────────────────────
     var draggedChip = null;
+    var dropRange = null;
 
     function makeDraggable(chip) {
         chip.setAttribute('draggable', 'true');
@@ -278,30 +282,55 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         chip.addEventListener('dragstart', function(e) {
             draggedChip = chip;
             e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', chip.outerHTML);
             chip.style.opacity = '0.5';
         });
 
         chip.addEventListener('dragend', function(e) {
             chip.style.opacity = '1';
             draggedChip = null;
+            dropRange = null;
         });
+    }
 
-        chip.addEventListener('dragover', function(e) {
-            if (e.preventDefault) e.preventDefault();
+    // Setup editor drop zone
+    function setupEditorDropZone() {
+        if (!editorEl) return;
+
+        editorEl.addEventListener('dragover', function(e) {
+            if (!draggedChip) return;
+            e.preventDefault();
             e.dataTransfer.dropEffect = 'move';
 
-            if (draggedChip && draggedChip !== chip) {
-                var rect = chip.getBoundingClientRect();
-                var midpoint = rect.left + rect.width / 2;
-
-                if (e.clientX < midpoint) {
-                    chip.parentNode.insertBefore(draggedChip, chip);
-                } else {
-                    chip.parentNode.insertBefore(draggedChip, chip.nextSibling);
-                }
-                scheduleAutoSave();
+            // Get caret position from mouse coordinates
+            var range;
+            if (document.caretRangeFromPoint) {
+                range = document.caretRangeFromPoint(e.clientX, e.clientY);
+            } else if (document.caretPositionFromPoint) {
+                var pos = document.caretPositionFromPoint(e.clientX, e.clientY);
+                range = document.createRange();
+                range.setStart(pos.offsetNode, pos.offset);
             }
-            return false;
+            dropRange = range;
+        });
+
+        editorEl.addEventListener('drop', function(e) {
+            if (!draggedChip || !dropRange) return;
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Remove chip from old position
+            var chipToMove = draggedChip;
+            chipToMove.remove();
+
+            // Insert at drop position
+            dropRange.insertNode(chipToMove);
+
+            // Clean up
+            draggedChip = null;
+            dropRange = null;
+            chipToMove.style.opacity = '1';
+            scheduleAutoSave();
         });
     }
 
