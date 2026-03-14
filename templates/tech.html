@@ -1558,13 +1558,25 @@
 
                         <div class="modal-body">
 
-                            <!-- Song name -->
+                            <!-- Song name and number -->
                             <div class="esp-name-row">
                                 <span class="esp-name-label">Название</span>
                                 <input type="text"
                                        class="esp-name-input"
                                        placeholder="Введите название песни..."
                                        ng-model="editConfig.songName">
+                            </div>
+
+                            <div class="esp-name-row" ng-if="editConfig.isNewSong">
+                                <span class="esp-name-label">Номер песни</span>
+                                <input type="number"
+                                       class="esp-name-input"
+                                       style="width: 120px;"
+                                       placeholder="№"
+                                       min="1"
+                                       ng-model="editConfig.songNum"
+                                       ng-blur="checkSongNumUniqueness()">
+                                <span ng-if="songNumError" style="color: #e74c3c; font-size: 11px; margin-left: 10px;">{{ songNumError }}</span>
                             </div>
 
                             <!-- Three text editors -->

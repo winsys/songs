@@ -281,6 +281,16 @@ trait Ajax_Common
         return json_encode(['status' => 'success']);
     }
 
+    private static function check_song_num_exists()
+    {
+        $listId = (int)self::$args['list_id'];
+        $songNum = mysqli_escape_string(Info::get('dbh'), self::$args['song_num']);
+
+        $existing = Info::get('db')->get("SELECT ID FROM song_list WHERE LISTID = {$listId} AND NUM = '{$songNum}'");
+
+        return json_encode(['exists' => $existing !== null]);
+    }
+
     private static function create_song()
     {
         $listId = mysqli_escape_string(Info::get('dbh'), self::$args['list_id']);
@@ -299,19 +309,31 @@ trait Ajax_Common
         // Get the newly created song's ID
         $newSongId = Info::get('db')->insert_id();
 
-        // Generate NUM based on the ID
-        $baseNum = (string)$newSongId;
-        $num = $baseNum;
-        $suffix = 1;
-
-        // Check if NUM already exists in this song list and add suffix if needed
-        while (true) {
+        // Use provided song_num or generate based on ID
+        if (isset(self::$args['song_num']) && self::$args['song_num'] !== '') {
+            $num = mysqli_escape_string(Info::get('dbh'), self::$args['song_num']);
+            // Check uniqueness
             $existing = Info::get('db')->get("SELECT ID FROM song_list WHERE LISTID = {$listId} AND NUM = '{$num}' AND ID != {$newSongId}");
-            if (!$existing) {
-                break;
+            if ($existing) {
+                // Delete the created song and return error
+                Info::get('db')->exec("DELETE FROM song_list WHERE ID = {$newSongId}");
+                return json_encode(['status' => 'error', 'message' => 'Номер песни уже используется']);
             }
-            $num = $baseNum . '_' . $suffix;
-            $suffix++;
+        } else {
+            // Generate NUM based on the ID
+            $baseNum = (string)$newSongId;
+            $num = $baseNum;
+            $suffix = 1;
+
+            // Check if NUM already exists in this song list and add suffix if needed
+            while (true) {
+                $existing = Info::get('db')->get("SELECT ID FROM song_list WHERE LISTID = {$listId} AND NUM = '{$num}' AND ID != {$newSongId}");
+                if (!$existing) {
+                    break;
+                }
+                $num = $baseNum . '_' . $suffix;
+                $suffix++;
+            }
         }
 
         // Update the NUM field

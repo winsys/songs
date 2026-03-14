@@ -1260,18 +1260,43 @@ app.controller('Tech', function ($scope, $http, $timeout)
         document.getElementById('imageUpload').value = '';
     };
 
+    $scope.checkSongNumUniqueness = function() {
+        if (!$scope.editConfig.isNewSong || !$scope.editConfig.songNum) {
+            $scope.songNumError = '';
+            return;
+        }
+        $http({ method: "POST", url: "/ajax",
+            data: { command: 'check_song_num_exists',
+                list_id: $scope.listId,
+                song_num: $scope.editConfig.songNum } }).then(
+            function(response) {
+                if (response.data.exists) {
+                    $scope.songNumError = 'Номер уже используется';
+                } else {
+                    $scope.songNumError = '';
+                }
+            }
+        );
+    };
+
     $scope.saveSongEdits = function() {
         var textWithCRLF   = $scope.editConfig.songText.replace(/\r?\n/g, '\r\n');
         var textLtWithCRLF = $scope.editConfig.songTextLt   || ''.replace(/\r?\n/g, '\r\n');
         var textEnWithCRLF = $scope.editConfig.songTextEn   || ''.replace(/\r?\n/g, '\r\n');
         if ($scope.editConfig.isNewSong) {
+            // Check if song number is provided and unique
+            if ($scope.songNumError) {
+                alert('Исправьте ошибки перед сохранением');
+                return;
+            }
             $http({ method: "POST", url: "/ajax",
                 data: { command: 'create_song',
                     list_id: $scope.listId,
                     text: textWithCRLF,
                     text_lt: textLtWithCRLF,
                     text_en: textEnWithCRLF,
-                    name: $scope.editConfig.songName } }).then(
+                    name: $scope.editConfig.songName,
+                    song_num: $scope.editConfig.songNum } }).then(
                 function success(response) {
                     $scope.editConfig.songId  = response.data.song_id;
                     $scope.editConfig.songNum = $scope.listId + '/' + response.data.num;
