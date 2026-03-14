@@ -312,6 +312,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 range.setStart(pos.offsetNode, pos.offset);
             }
             dropRange = range;
+
+            // Show visual cursor at drop position
+            if (range) {
+                var sel = window.getSelection();
+                sel.removeAllRanges();
+                sel.addRange(range);
+            }
         });
 
         editorEl.addEventListener('drop', function(e) {
@@ -331,6 +338,15 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             dropRange = null;
             chipToMove.style.opacity = '1';
             scheduleAutoSave();
+        });
+
+        editorEl.addEventListener('dragleave', function(e) {
+            if (!draggedChip) return;
+            // Clear selection when dragging outside editor
+            if (e.target === editorEl) {
+                var sel = window.getSelection();
+                sel.removeAllRanges();
+            }
         });
     }
 
