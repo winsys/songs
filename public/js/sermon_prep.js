@@ -810,6 +810,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     span.contentEditable = 'false';
                     span.setAttribute('data-translation-id', $scope.bibleTranslationId || 1);
                     span.setAttribute('data-book-id',    book ? book.ID : '');
+                    span.setAttribute('data-book-num',   book ? book.BOOK_NUM : '');
                     span.setAttribute('data-book-name',   langBookName);
                     span.setAttribute('data-chapter',     $scope.selectedChapter || '');
                     span.setAttribute('data-verse-nums',  nums.join(','));
