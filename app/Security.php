@@ -171,6 +171,11 @@ class Security
                 : (int)$user['ID'];
             $_SESSION['userRole'] = isset($user['ROLE']) ? $user['ROLE'] : 'musician';
             $_SESSION['loginError'] = '';
+
+            // Update last login timestamp
+            $userId = (int)$user['ID'];
+            $db->exec("UPDATE users SET LAST_LOGIN = NOW() WHERE ID = {$userId}");
+
             // Обновить session ID для защиты от Session Fixation
             session_regenerate_id(true);
             return true;
