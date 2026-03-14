@@ -20,8 +20,7 @@ app.controller('Settings', function ($scope, $http)
     $scope.availableLists = [];
     $scope.selectedLists = {};
     $scope.placeholderImages = [
-        { path: '/field_small.jpg', name: 'field_small.jpg (по умолчанию)' },
-        { path: '/icon-192.png', name: 'icon-192.png' }
+        { path: '/field_small.jpg', name: 'field_small.jpg (по умолчанию)' }
     ];
 
     $scope.loadAvailableLists = function() {
@@ -33,7 +32,7 @@ app.controller('Settings', function ($scope, $http)
     $scope.loadSettings = function() {
         $http({ method: "POST", url: "/ajax", data: {command: 'get_user_settings' } }).then(
             function success(r){
-                if (r.data && r.data.user_id) {
+                if (r.data && r.data.group_id) {
                     angular.extend($scope.settings, r.data);
                     if ($scope.settings.available_lists) {
                         var ids = $scope.settings.available_lists.split(',');
