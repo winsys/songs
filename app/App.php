@@ -29,9 +29,21 @@ class App
             exit;
         }
 
+        // Google login initiation (before login check)
+        if ($route[0] == 'google-login') {
+            $this->initiateGoogleLogin();
+            exit;
+        }
+
         // Google OAuth callback (before login check)
         if ($route[0] == 'google-callback') {
             $this->handleGoogleCallback();
+            exit;
+        }
+
+        // Google login callback (for authentication)
+        if ($route[0] == 'google-login-callback') {
+            $this->handleGoogleLoginCallback();
             exit;
         }
 
@@ -77,6 +89,181 @@ class App
                 $this->render($route[0], null);
                 break;
         }
+    }
+
+    private function initiateGoogleLogin()
+    {
+        $clientId = Info::get('config')['GOOGLE_CLIENT_ID'];
+        if (!$clientId) {
+            echo '<!DOCTYPE html>
+<html>
+<head><title>Google Login Error</title></head>
+<body style="font-family: Arial; padding: 40px; text-align: center;">
+    <h2>❌ Ошибка</h2>
+    <p>Google OAuth не настроен.</p>
+    <p><a href="/login">Вернуться к входу</a></p>
+</body>
+</html>';
+            return;
+        }
+
+        $redirectUri = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') .
+                       $_SERVER['HTTP_HOST'] . '/google-login-callback';
+
+        $params = http_build_query([
+            'client_id'     => $clientId,
+            'redirect_uri'  => $redirectUri,
+            'response_type' => 'code',
+            'scope'         => 'openid email profile',
+            'access_type'   => 'online',
+            'prompt'        => 'select_account'
+        ]);
+
+        $authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' . $params;
+        header('Location: ' . $authUrl);
+    }
+
+    private function handleGoogleLoginCallback()
+    {
+        // Start session if not already started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        // Get authorization code
+        $code = $_GET['code'] ?? '';
+        if (!$code) {
+            echo '<!DOCTYPE html>
+<html>
+<head><title>Google Login Error</title></head>
+<body style="font-family: Arial; padding: 40px; text-align: center;">
+    <h2>❌ Ошибка</h2>
+    <p>Отсутствует код авторизации от Google.</p>
+    <p><a href="/login">Вернуться к входу</a></p>
+</body>
+</html>';
+            return;
+        }
+
+        $clientId     = Info::get('config')['GOOGLE_CLIENT_ID'];
+        $clientSecret = Info::get('config')['GOOGLE_CLIENT_SECRET'];
+
+        if (!$clientId || !$clientSecret) {
+            echo '<!DOCTYPE html>
+<html>
+<head><title>Google Login Error</title></head>
+<body style="font-family: Arial; padding: 40px; text-align: center;">
+    <h2>❌ Ошибка</h2>
+    <p>Google OAuth не настроен.</p>
+    <p><a href="/login">Вернуться к входу</a></p>
+</body>
+</html>';
+            return;
+        }
+
+        $redirectUri = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') .
+                       $_SERVER['HTTP_HOST'] . '/google-login-callback';
+
+        // Exchange code for access token
+        $tokenUrl = 'https://oauth2.googleapis.com/token';
+        $tokenData = [
+            'code'          => $code,
+            'client_id'     => $clientId,
+            'client_secret' => $clientSecret,
+            'redirect_uri'  => $redirectUri,
+            'grant_type'    => 'authorization_code'
+        ];
+
+        $ch = curl_init($tokenUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($tokenData));
+        $tokenResponse = curl_exec($ch);
+        curl_close($ch);
+
+        $tokenJson = json_decode($tokenResponse, true);
+        if (!isset($tokenJson['access_token'])) {
+            echo '<!DOCTYPE html>
+<html>
+<head><title>Google Login Error</title></head>
+<body style="font-family: Arial; padding: 40px; text-align: center;">
+    <h2>❌ Ошибка</h2>
+    <p>Не удалось получить токен доступа от Google.</p>
+    <p><a href="/login">Вернуться к входу</a></p>
+</body>
+</html>';
+            return;
+        }
+
+        // Get user info from Google
+        $userInfoUrl = 'https://www.googleapis.com/oauth2/v2/userinfo';
+        $ch = curl_init($userInfoUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $tokenJson['access_token']
+        ]);
+        $userInfoResponse = curl_exec($ch);
+        curl_close($ch);
+
+        $userInfo = json_decode($userInfoResponse, true);
+        if (!isset($userInfo['id'])) {
+            echo '<!DOCTYPE html>
+<html>
+<head><title>Google Login Error</title></head>
+<body style="font-family: Arial; padding: 40px; text-align: center;">
+    <h2>❌ Ошибка</h2>
+    <p>Не удалось получить информацию о пользователе от Google.</p>
+    <p><a href="/login">Вернуться к входу</a></p>
+</body>
+</html>';
+            return;
+        }
+
+        $googleId = $userInfo['id'];
+
+        // Find user by Google ID
+        $user = Info::get('db')->get(
+            "SELECT ID, NAME, ROLE FROM users WHERE GOOGLE_ID = '" .
+            mysqli_real_escape_string(Info::get('dbh'), $googleId) . "'"
+        );
+
+        if (!$user) {
+            echo '<!DOCTYPE html>
+<html>
+<head><title>Google Login Error</title></head>
+<body style="font-family: Arial; padding: 40px; text-align: center;">
+    <h2>❌ Аккаунт не привязан</h2>
+    <p>Ваш Google аккаунт (<strong>' . htmlspecialchars($userInfo['email']) . '</strong>) не привязан ни к одному пользователю системы.</p>
+    <p>Войдите с помощью логина и пароля, затем привяжите Google аккаунт в настройках.</p>
+    <p><a href="/login">Вернуться к входу</a></p>
+</body>
+</html>';
+            return;
+        }
+
+        // Log in the user
+        $_SESSION['userId'] = $user['ID'];
+        $_SESSION['userName'] = $user['NAME'];
+        $_SESSION['userRole'] = $user['ROLE'];
+
+        // Update last login time
+        Info::get('db')->exec(
+            "UPDATE users SET LAST_LOGIN = NOW() WHERE ID = " . (int)$user['ID']
+        );
+
+        // Redirect to default page
+        echo '<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Login Success</title>
+    <meta http-equiv="refresh" content="1;url=' . Security::defaultRedirect() . '">
+</head>
+<body style="font-family: Arial; padding: 40px; text-align: center;">
+    <h2>✅ Успешный вход!</h2>
+    <p>Добро пожаловать, <strong>' . htmlspecialchars($user['NAME']) . '</strong>!</p>
+    <p>Перенаправление...</p>
+</body>
+</html>';
     }
 
     private function handleGoogleCallback()
