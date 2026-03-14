@@ -267,6 +267,45 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     }
 
     // ──────────────────────────────────────────────────────────
+    // DRAG AND DROP FOR CHIPS
+    // ──────────────────────────────────────────────────────────
+    var draggedChip = null;
+
+    function makeDraggable(chip) {
+        chip.setAttribute('draggable', 'true');
+        chip.style.cursor = 'move';
+
+        chip.addEventListener('dragstart', function(e) {
+            draggedChip = chip;
+            e.dataTransfer.effectAllowed = 'move';
+            chip.style.opacity = '0.5';
+        });
+
+        chip.addEventListener('dragend', function(e) {
+            chip.style.opacity = '1';
+            draggedChip = null;
+        });
+
+        chip.addEventListener('dragover', function(e) {
+            if (e.preventDefault) e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+
+            if (draggedChip && draggedChip !== chip) {
+                var rect = chip.getBoundingClientRect();
+                var midpoint = rect.left + rect.width / 2;
+
+                if (e.clientX < midpoint) {
+                    chip.parentNode.insertBefore(draggedChip, chip);
+                } else {
+                    chip.parentNode.insertBefore(draggedChip, chip.nextSibling);
+                }
+                scheduleAutoSave();
+            }
+            return false;
+        });
+    }
+
+    // ──────────────────────────────────────────────────────────
     // SERMON CRUD (unchanged)
     // ──────────────────────────────────────────────────────────
 
@@ -428,6 +467,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
 
         span.appendChild(img);
         span.appendChild(removeBtn);
+        makeDraggable(span);
         insertNodeAtCursor(span);
     }
 
@@ -537,6 +577,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         wrap.appendChild(icon);
         wrap.appendChild(lbl);
         wrap.appendChild(del);
+        makeDraggable(wrap);
         insertNodeAtCursor(wrap);
     }
 
@@ -608,12 +649,14 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         editorEl.querySelectorAll('.bible-cite').forEach(function (span) {
             var removeBtn = span.querySelector('.cite-remove');
             if (removeBtn) removeBtn.onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
+            makeDraggable(span);
         });
 
         // Message citations — re-attach remove buttons
         editorEl.querySelectorAll('.message-cite').forEach(function (span) {
             var removeBtn = span.querySelector('.cite-remove');
             if (removeBtn) removeBtn.onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
+            makeDraggable(span);
         });
 
         // Images — re-attach remove + click
@@ -633,6 +676,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     document.getElementById('sermon-img-modal').classList.add('open');
                 });
             };
+            makeDraggable(span);
         });
 
         // ── VIDEO chips — re-attach (НОВЫЙ блок) ──
@@ -649,6 +693,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 if (e.target === del) return;
                 _openVideoModal(src);
             };
+            makeDraggable(span);
         });
     }
 
@@ -838,6 +883,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     span.querySelector('.cite-remove').onclick = function (e) {
                         e.stopPropagation(); span.remove(); scheduleAutoSave();
                     };
+                    makeDraggable(span);
                     insertNodeAtCursor(span);
                 });
                 $scope.selectedBibleVerseNums = [];
