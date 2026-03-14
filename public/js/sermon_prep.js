@@ -344,9 +344,11 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         );
     };
     $scope.newSermon = function () {
-        $scope.sermon = { id: null, title: '', date: '' };
-        var d = new Date(); d.setDate(d.getDate() + 1);
-        $scope.sermon.date = d.toISOString().slice(0, 10);
+        // Set today's date in YYYY-MM-DD format
+        var today = new Date();
+        var dateStr = today.toISOString().slice(0, 10);
+
+        $scope.sermon = { id: null, title: '', date: dateStr };
         if (editorEl) editorEl.innerHTML = '';
         lastRange = null;
         $scope.saveStatus = '';
@@ -374,12 +376,19 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     };
     $scope.saveSermon = function () {
         var content = editorEl ? editorEl.innerHTML : '';
+        // Use current date if date is not set
+        var sermonDate = $scope.sermon.date;
+        if (!sermonDate) {
+            var today = new Date();
+            sermonDate = today.toISOString().slice(0, 10);
+            $scope.sermon.date = sermonDate;
+        }
         $scope.saveStatus = 'saving';
         $http({ method: "POST", url: "/ajax", data: {
                 command:      'save_sermon',
                 id:           $scope.sermon.id || '',
                 title:        $scope.sermon.title || '',
-                sermon_date:  $scope.sermon.date  || '',
+                sermon_date:  sermonDate,
                 content:      content
             }}).then(
             function (r) {
