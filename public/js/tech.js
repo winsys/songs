@@ -1569,6 +1569,74 @@ app.controller('Tech', function ($scope, $http, $timeout)
     });
 
     // ==========================================================
+    // RESTORE CURRENT STATE
+    // ==========================================================
+
+    function restoreCurrentState() {
+        $http({ method: "POST", url: "/ajax", data: { command: 'get_current_state' } }).then(
+            function(response) {
+                var state = response.data;
+
+                // Restore song if image path matches song image pattern
+                if (state.image && state.image.match(/\/images\/\d+\/\d+\.jpg/)) {
+                    var matches = state.image.match(/\/images\/(\d+)\/(\d+)\.jpg/);
+                    if (matches) {
+                        var listId = parseInt(matches[1]);
+                        var songNum = matches[2];
+
+                        // Find and select the song in favorites
+                        for (var i = 0; i < $scope.favorites.length; i++) {
+                            if ($scope.favorites[i].LISTID == listId && $scope.favorites[i].NUM == songNum) {
+                                $scope.showingSong = $scope.favorites[i];
+                                // Also restore chapters if song_name has chapter info
+                                if (state.song_name) {
+                                    $scope.restoreChaptersFromSongName(state.song_name, $scope.favorites[i]);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+
+                // Restore Bible verse if text and song_name indicate Bible content
+                if (state.text && state.song_name && state.song_name.match(/\d+:\d+/)) {
+                    // Mark as showing Bible verse
+                    $scope.showingBibleVerse = { text: state.text, reference: state.song_name };
+                }
+
+                // Restore message paragraph if song_name doesn't match other patterns
+                if (state.text && state.song_name && !state.song_name.match(/\d+:\d+/)) {
+                    $scope.showingMessagePara = { text: state.text, title: state.song_name };
+                }
+
+                // Restore video if video_src is set
+                if (state.video_src) {
+                    $scope.activeMediaItem = { src: state.video_src, itemType: 'video' };
+                }
+            }
+        );
+    }
+
+    // Helper to restore chapters from song_name like "1,3,5"
+    $scope.restoreChaptersFromSongName = function(songName, song) {
+        if (!songName) return;
+        var chapterNums = songName.split(',').map(function(n) { return parseInt(n.trim()); });
+        $scope.prepareChapters(song);
+
+        // Select the chapters that were showing
+        for (var i = 0; i < $scope.preparedChapters.length; i++) {
+            if (chapterNums.indexOf($scope.preparedChapters[i].num) !== -1) {
+                $scope.preparedChapters[i].selected = true;
+                $scope.selectedChapters.push($scope.preparedChapters[i]);
+            }
+        }
+
+        if ($scope.selectedChapters.length > 0) {
+            $scope.showingChapter = $scope.selectedChapters[0];
+        }
+    };
+
+    // ==========================================================
     // INIT
     // ==========================================================
 
@@ -1577,5 +1645,10 @@ app.controller('Tech', function ($scope, $http, $timeout)
     $scope.reloadFavorites();
     $scope.reloadSongList();
     loadPendingAccessRequests();  // Load any existing pending requests on page load
+
+    // Restore state after favorites are loaded
+    $timeout(function() {
+        restoreCurrentState();
+    }, 1000);
 
 });
