@@ -1287,8 +1287,13 @@
                          ng-repeat="s in sermonList"
                          ng-class="{active: sermon.id == s.ID}"
                          ng-click="loadSermon(s.ID)">
-                        <span>{{ s.TITLE || '(без названия)' }}</span>
-                        <span class="sermon-list-date">{{ s.SERMON_DATE }}</span>
+                        <div style="flex: 1; min-width: 0;">
+                            <div>{{ s.TITLE || '(без названия)' }}</div>
+                            <div style="font-size: 10px; color: #95a5a6; margin-top: 2px;">
+                                <span ng-if="s.SERMON_DATE && s.SERMON_DATE !== '0000-00-00'">{{ s.SERMON_DATE }}</span>
+                                <span ng-if="s.UPDATED_AT" style="color: #b0b8c1;">(изм: {{ s.UPDATED_AT.substring(0, 16).replace('T', ' ') }})</span>
+                            </div>
+                        </div>
                         <button class="btn-sermon-delete"
                                 ng-click="deleteSermonFromList(s.ID, $event)"
                                 title="Удалить">×</button>

@@ -356,7 +356,12 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         $http({ method: "POST", url: "/ajax", data: { command: 'get_sermon', id: id } }).then(
             function (r) {
                 var s = r.data;
-                $scope.sermon = { id: s.ID, title: s.TITLE, date: s.SERMON_DATE };
+                // Handle date: convert "0000-00-00" or null to empty string
+                var sermonDate = s.SERMON_DATE;
+                if (!sermonDate || sermonDate === '0000-00-00') {
+                    sermonDate = '';
+                }
+                $scope.sermon = { id: s.ID, title: s.TITLE, date: sermonDate };
                 if (editorEl) {
                     editorEl.innerHTML = s.CONTENT || '';
                     attachEditorHandlers();
@@ -977,6 +982,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         span.setAttribute('data-para-text',   para.text);
         span.innerHTML = '✍️ ' + para.text + ' <span class="cite-remove" title="Удалить">×</span>';
         span.querySelector('.cite-remove').onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
+        makeDraggable(span);
         insertNodeAtCursor(span);
         $scope.prepSelectedParaIdx = null;
     };
