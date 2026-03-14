@@ -184,13 +184,13 @@ trait Ajax_Sermon
         $fontSize = isset(self::$args['sermon_notes_font_size']) ? intval(self::$args['sermon_notes_font_size']) : 13;
         $scale    = isset(self::$args['sermon_scale_chips'])     ? intval(self::$args['sermon_scale_chips'])     : 0;
 
-        $existing = Info::get('db')->get("SELECT user_id FROM user_settings WHERE user_id = {$userId}");
+        $existing = Info::get('db')->get("SELECT group_id FROM user_settings WHERE group_id = {$userId}");
         if ($existing) {
             Info::get('db')->exec("
             UPDATE user_settings
             SET sermon_notes_font_size = {$fontSize},
                 sermon_scale_chips     = {$scale}
-            WHERE user_id = {$userId}
+            WHERE group_id = {$userId}
         ");
         }
         return json_encode(['status' => 'success']);
@@ -248,10 +248,9 @@ trait Ajax_Sermon
 
         // Own group (userId in session is actually the GROUP_ID)
         $ownGroup = Info::get('db')->get(
-            "SELECT us.user_id, us.display_name
+            "SELECT us.group_id, us.display_name
              FROM user_settings us
-             JOIN users u ON u.ID = us.user_id
-             WHERE u.GROUP_ID = {$userId}
+             WHERE us.group_id = {$userId}
              LIMIT 1"
         );
 
@@ -266,9 +265,10 @@ trait Ajax_Sermon
 
         // Groups that approved access
         $approved = Info::get('db')->select(
-            "SELECT dar.target_group_id, us.display_name FROM display_access_requests dar
-                LEFT JOIN user_settings us ON us.user_id = dar.target_group_id
-                WHERE dar.requester_group_id = {$userId} AND dar.status = 'approved'"
+            "SELECT dar.target_group_id, us.display_name
+             FROM display_access_requests dar
+             LEFT JOIN user_settings us ON us.group_id = dar.target_group_id
+             WHERE dar.requester_group_id = {$userId} AND dar.status = 'approved'"
         );
 
         foreach ($approved as $row) {
@@ -292,10 +292,11 @@ trait Ajax_Sermon
 
         // Get all groups except own
         $allGroups = Info::get('db')->select(
-            "SELECT DISTINCT u.GROUP_ID as group_id, us.display_name FROM users u
-                LEFT JOIN user_settings us ON us.user_id = u.GROUP_ID
-                LEFT JOIN display_access_requests da ON da.requester_group_id = {$userId} AND da.target_group_id <> u.GROUP_ID
-                WHERE u.GROUP_ID != {$userId} AND u.GROUP_ID > 0 AND NOT (us.display_name IS NULL)"
+            "SELECT DISTINCT u.GROUP_ID as group_id, us.display_name
+             FROM users u
+             LEFT JOIN user_settings us ON us.group_id = u.GROUP_ID
+             WHERE u.GROUP_ID != {$userId} AND u.GROUP_ID > 0
+             GROUP BY u.GROUP_ID"
         );
 
         // Get pending/approved requests
@@ -339,9 +340,8 @@ trait Ajax_Sermon
         // Get requester's display name
         $requester = Info::get('db')->get(
             "SELECT us.display_name
-             FROM users u
-             LEFT JOIN user_settings us ON us.user_id = u.ID
-             WHERE u.GROUP_ID = {$userId}
+             FROM user_settings us
+             WHERE us.group_id = {$userId}
              LIMIT 1"
         );
         $requesterName = $requester ? ($requester['display_name'] ?: 'Группа #' . $userId) : 'Группа #' . $userId;
@@ -398,9 +398,8 @@ trait Ajax_Sermon
         $requests = Info::get('db')->select(
             "SELECT dar.id, dar.requester_group_id, dar.requested_at,
                     (SELECT us.display_name
-                     FROM users u
-                     LEFT JOIN user_settings us ON us.user_id = u.ID
-                     WHERE u.GROUP_ID = dar.requester_group_id
+                     FROM user_settings us
+                     WHERE us.group_id = dar.requester_group_id
                      LIMIT 1) as display_name
              FROM display_access_requests dar
              WHERE dar.target_group_id = {$userId} AND dar.status = 'pending'
@@ -437,8 +436,7 @@ trait Ajax_Sermon
         $request = Info::get('db')->get(
             "SELECT dar.id, dar.requester_group_id, us.display_name as target_name
              FROM display_access_requests dar
-             LEFT JOIN users u ON u.GROUP_ID = dar.target_group_id
-             LEFT JOIN user_settings us ON us.user_id = u.ID
+             LEFT JOIN user_settings us ON us.group_id = dar.target_group_id
              WHERE dar.id = {$requestId} AND dar.target_group_id = {$userId} AND dar.status = 'pending'
              LIMIT 1"
         );
