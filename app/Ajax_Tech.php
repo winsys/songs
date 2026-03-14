@@ -6,6 +6,18 @@
  */
 trait Ajax_Tech
 {
+    private static function get_current_state()
+    {
+        $userId = (int)$_SESSION['userId'];
+        $row = Info::get('db')->get("SELECT image, text, song_name, video_src FROM current WHERE groupId = {$userId}");
+
+        if (!$row) {
+            return json_encode(['image' => '', 'text' => '', 'song_name' => '', 'video_src' => '']);
+        }
+
+        return json_encode($row);
+    }
+
     private static function set_tech_image()
     {
         $dbh        = Info::get('dbh');
