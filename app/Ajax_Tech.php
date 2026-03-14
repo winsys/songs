@@ -18,7 +18,7 @@ trait Ajax_Tech
             "INSERT INTO current (groupId, image, text, song_name, video_src, video_state)
          VALUES ({$targetGroupId}, '{$image_name}', '', '', '', 'stopped')"
         );
-        self::updateSocket();
+        self::updateSocket($targetGroupId);
         return '';
     }
 
@@ -153,7 +153,7 @@ trait Ajax_Tech
             );
         }
 
-        self::updateSocket();
+        self::updateSocket($targetGroupId);
         return '';
     }
 
@@ -222,7 +222,7 @@ trait Ajax_Tech
             );
         }
 
-        self::updateSocket();
+        self::updateSocket($targetGroupId);
         return '';
     }
 
@@ -417,7 +417,7 @@ trait Ajax_Tech
             "INSERT INTO current (groupId, image, text, song_name, video_src, video_state)
          VALUES ({$targetGroupId}, '', '', '', '{$videoSrc}', '{$videoState}')"
         );
-        self::updateSocket();
+        self::updateSocket($targetGroupId);
         return json_encode(['status' => 'ok']);
     }
 
@@ -438,7 +438,7 @@ trait Ajax_Tech
                 "UPDATE current SET video_state = '{$videoState}' WHERE groupId = {$targetGroupId}"
             );
         }
-        self::updateSocket();
+        self::updateSocket($targetGroupId);
         return json_encode(['status' => 'ok']);
     }
 }

@@ -257,7 +257,7 @@ trait Ajax_Common
         $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
 
         Info::get('db')->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
-        self::updateSocket();
+        self::updateSocket($targetGroupId);
         return '';
     }
 
@@ -365,15 +365,16 @@ trait Ajax_Common
         return json_encode(['status' => 'error', 'message' => 'Failed to move uploaded file']);
     }
 
-    private static function updateSocket()
+    private static function updateSocket($targetGroupId = null)
     {
         $err1 = '';
         $err2 = '';
         $instance = stream_socket_client("tcp://127.0.0.1:2346", $err1, $err2);
         if ($instance) {
-            // [SECURITY] Include userId so WebSocket broadcasts only to authenticated user
-            $userId = isset($_SESSION['userId']) ? (int)$_SESSION['userId'] : null;
-            fwrite($instance, json_encode(['type' => 'update_needed', 'userId' => $userId]) . "\n");
+            // [SECURITY] Include userId (groupId) so WebSocket broadcasts to the correct group
+            // If $targetGroupId is specified, notify that group; otherwise notify current user's group
+            $groupId = $targetGroupId !== null ? (int)$targetGroupId : (isset($_SESSION['userId']) ? (int)$_SESSION['userId'] : null);
+            fwrite($instance, json_encode(['type' => 'update_needed', 'groupId' => $groupId]) . "\n");
             fclose($instance);
         }
     }

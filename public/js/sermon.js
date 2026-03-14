@@ -366,7 +366,19 @@ angular.module('Songs', ['csrfModule'])
                         if (parseInt(r.data[i].VERSE_NUM) === parseInt(verseNum)) { found = r.data[i]; break; }
                     }
                     if (found) {
-                        var text = verseNum + '. ' + (found.TEXT || '');
+                        // Select text based on translation ID
+                        // ID=1 (ru) → TEXT, ID=2 (lt) → TEXT_LT, ID=3 (en) → TEXT_EN
+                        var verseText = '';
+                        var tid = parseInt(translationId) || 1;
+                        if (tid === 2) {
+                            verseText = found.TEXT_LT || found.TEXT || '';
+                        } else if (tid === 3) {
+                            verseText = found.TEXT_EN || found.TEXT || '';
+                        } else {
+                            verseText = found.TEXT || '';
+                        }
+
+                        var text = verseNum + '. ' + verseText;
                         showText(text, refLabel);
                         $http({ method: "POST", url: "/ajax", data: {
                             command: 'set_message_text',
