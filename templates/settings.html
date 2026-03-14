@@ -579,6 +579,19 @@
                         <div class="user-slot-actions">
                             <button class="btn-save-user" ng-click="updateGroupUser(slot.user)">💾 Сохранить</button>
                             <button class="btn-share-user" ng-click="shareUser(slot.user, slot.roleLabel)" title="Скопировать данные">📋 Поделиться</button>
+                            <button class="btn-share-user"
+                                    ng-if="!slot.user.GOOGLE_ID"
+                                    ng-click="linkGoogleAccount(slot.user)"
+                                    title="Привязать Google аккаунт">
+                                🔗 Google
+                            </button>
+                            <button class="btn-share-user"
+                                    ng-if="slot.user.GOOGLE_ID"
+                                    ng-click="unlinkGoogleAccount(slot.user)"
+                                    title="Отвязать Google аккаунт"
+                                    style="border-color: #27ae60; color: #27ae60;">
+                                ✓ Google
+                            </button>
                         </div>
                     </div>
                 </div>

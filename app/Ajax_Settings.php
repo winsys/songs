@@ -79,7 +79,7 @@ trait Ajax_Settings
     {
         $userId = (int)$_SESSION['userId'];
         $users  = Info::get('db')->select(
-            "SELECT ID, NAME, LOGIN, PASS, ROLE
+            "SELECT ID, NAME, LOGIN, PASS, ROLE, GOOGLE_ID
              FROM users
              WHERE GROUP_ID = {$userId}
                 OR (ID = {$userId} AND (GROUP_ID = 0 OR GROUP_ID IS NULL))
@@ -223,5 +223,188 @@ trait Ajax_Settings
             return json_encode(['status' => 'success', 'path' => '/images/placeholders/' . $filename]);
         }
         return json_encode(['status' => 'error', 'message' => 'Failed to move uploaded file']);
+    }
+
+    // ============================================================
+    // GOOGLE OAUTH INTEGRATION
+    // ============================================================
+
+    /**
+     * Get Google OAuth URL for account linking
+     * Returns the URL where user should be redirected to link their Google account
+     */
+    private static function get_google_oauth_url()
+    {
+        $userId = (int)$_SESSION['userId'];
+        $targetUserId = isset(self::$args['user_id']) ? (int)self::$args['user_id'] : $userId;
+
+        // Verify permission: can only link own account or group members
+        $check = Info::get('db')->get(
+            "SELECT ID FROM users WHERE ID = {$targetUserId} AND (ID = {$userId} OR GROUP_ID = {$userId})"
+        );
+        if (!$check) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+
+        // Store target user ID in session for callback
+        $_SESSION['google_link_user_id'] = $targetUserId;
+
+        // Build Google OAuth URL
+        $clientId = Info::get('config')->GOOGLE_CLIENT_ID;
+        if (!$clientId) {
+            return json_encode(['status' => 'error', 'message' => 'Google OAuth not configured']);
+        }
+
+        $redirectUri = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') .
+                       $_SERVER['HTTP_HOST'] . '/google-callback';
+
+        $params = http_build_query([
+            'client_id'     => $clientId,
+            'redirect_uri'  => $redirectUri,
+            'response_type' => 'code',
+            'scope'         => 'openid email profile',
+            'access_type'   => 'online',
+            'prompt'        => 'select_account'
+        ]);
+
+        $authUrl = 'https://accounts.google.com/o/oauth2/v2/auth?' . $params;
+
+        return json_encode(['status' => 'ok', 'url' => $authUrl]);
+    }
+
+    /**
+     * Handle Google OAuth callback
+     * Exchanges authorization code for user info and links Google account
+     */
+    private static function handle_google_callback()
+    {
+        $code = self::$args['code'] ?? '';
+        if (!$code) {
+            return json_encode(['status' => 'error', 'message' => 'No authorization code']);
+        }
+
+        $targetUserId = $_SESSION['google_link_user_id'] ?? null;
+        if (!$targetUserId) {
+            return json_encode(['status' => 'error', 'message' => 'Session expired']);
+        }
+
+        $clientId     = Info::get('config')->GOOGLE_CLIENT_ID;
+        $clientSecret = Info::get('config')->GOOGLE_CLIENT_SECRET;
+
+        if (!$clientId || !$clientSecret) {
+            return json_encode(['status' => 'error', 'message' => 'Google OAuth not configured']);
+        }
+
+        $redirectUri = (isset($_SERVER['HTTPS']) ? 'https://' : 'http://') .
+                       $_SERVER['HTTP_HOST'] . '/google-callback';
+
+        // Exchange code for access token
+        $tokenUrl = 'https://oauth2.googleapis.com/token';
+        $tokenData = [
+            'code'          => $code,
+            'client_id'     => $clientId,
+            'client_secret' => $clientSecret,
+            'redirect_uri'  => $redirectUri,
+            'grant_type'    => 'authorization_code'
+        ];
+
+        $ch = curl_init($tokenUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_POST, true);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($tokenData));
+        $tokenResponse = curl_exec($ch);
+        curl_close($ch);
+
+        $tokenJson = json_decode($tokenResponse, true);
+        if (!isset($tokenJson['access_token'])) {
+            return json_encode(['status' => 'error', 'message' => 'Failed to get access token']);
+        }
+
+        // Get user info from Google
+        $userInfoUrl = 'https://www.googleapis.com/oauth2/v2/userinfo';
+        $ch = curl_init($userInfoUrl);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, [
+            'Authorization: Bearer ' . $tokenJson['access_token']
+        ]);
+        $userInfoResponse = curl_exec($ch);
+        curl_close($ch);
+
+        $userInfo = json_decode($userInfoResponse, true);
+        if (!isset($userInfo['id'])) {
+            return json_encode(['status' => 'error', 'message' => 'Failed to get user info']);
+        }
+
+        $googleId = mysqli_real_escape_string(Info::get('dbh'), $userInfo['id']);
+
+        // Check if this Google account is already linked to another user
+        $existing = Info::get('db')->get(
+            "SELECT ID FROM users WHERE GOOGLE_ID = '{$googleId}' AND ID != {$targetUserId}"
+        );
+        if ($existing) {
+            return json_encode(['status' => 'error', 'message' => 'This Google account is already linked to another user']);
+        }
+
+        // Link Google account to user
+        Info::get('db')->exec(
+            "UPDATE users SET GOOGLE_ID = '{$googleId}' WHERE ID = {$targetUserId}"
+        );
+
+        // Clean up session
+        unset($_SESSION['google_link_user_id']);
+
+        return json_encode([
+            'status' => 'ok',
+            'google_id' => $googleId,
+            'google_email' => $userInfo['email'] ?? '',
+            'google_name' => $userInfo['name'] ?? ''
+        ]);
+    }
+
+    /**
+     * Unlink Google account from user
+     */
+    private static function unlink_google_account()
+    {
+        $userId = (int)$_SESSION['userId'];
+        $targetUserId = isset(self::$args['user_id']) ? (int)self::$args['user_id'] : $userId;
+
+        // Verify permission
+        $check = Info::get('db')->get(
+            "SELECT ID FROM users WHERE ID = {$targetUserId} AND (ID = {$userId} OR GROUP_ID = {$userId})"
+        );
+        if (!$check) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+
+        Info::get('db')->exec(
+            "UPDATE users SET GOOGLE_ID = NULL WHERE ID = {$targetUserId}"
+        );
+
+        return json_encode(['status' => 'ok']);
+    }
+
+    /**
+     * Get Google account status for users
+     */
+    private static function get_google_account_status()
+    {
+        $userId = (int)$_SESSION['userId'];
+        $targetUserId = isset(self::$args['user_id']) ? (int)self::$args['user_id'] : $userId;
+
+        $user = Info::get('db')->get(
+            "SELECT ID, GOOGLE_ID FROM users
+             WHERE ID = {$targetUserId} AND (ID = {$userId} OR GROUP_ID = {$userId})"
+        );
+
+        if (!$user) {
+            return json_encode(['status' => 'error', 'message' => 'User not found']);
+        }
+
+        return json_encode([
+            'status' => 'ok',
+            'linked' => !empty($user['GOOGLE_ID']),
+            'google_id' => $user['GOOGLE_ID'] ?? null
+        ]);
     }
 }
