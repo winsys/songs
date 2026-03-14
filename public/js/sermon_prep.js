@@ -231,6 +231,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     $scope.$apply(function () { $scope.onImageSelected(fileInput); });
                 });
             }
+
+            var videoInput = document.getElementById('sermon-video-input');
+            if (videoInput) {
+                videoInput.addEventListener('change', function () {
+                    $scope.$apply(function () { $scope.onVideoSelected(videoInput); });
+                });
+            }
         }, 0);
     });
 
@@ -368,6 +375,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         var formData = new FormData();
         formData.append('image',   file);
         formData.append('command', 'upload_sermon_image');
+        formData.append('_csrf_token', window._getCsrfToken ? window._getCsrfToken() : '');
         $http.post('/ajax', formData, {
             transformRequest: angular.identity,
             headers: { 'Content-Type': undefined }
@@ -469,6 +477,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         var formData = new FormData();
         formData.append('video',   file);
         formData.append('command', 'upload_sermon_video');
+        formData.append('_csrf_token', window._getCsrfToken ? window._getCsrfToken() : '');
 
         $http.post('/ajax', formData, {
             transformRequest: angular.identity,
@@ -808,7 +817,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     var span = document.createElement('span');
                     span.className       = 'bible-cite';
                     span.contentEditable = 'false';
-                    span.setAttribute('data-translation-id', $scope.bibleTranslationId || 1);
+                    span.setAttribute('data-translation-id', l.translation_id || 1);
                     span.setAttribute('data-book-id',    book ? book.ID : '');
                     span.setAttribute('data-book-num',   book ? book.BOOK_NUM : '');
                     span.setAttribute('data-book-name',   langBookName);
