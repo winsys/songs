@@ -266,12 +266,9 @@ trait Ajax_Sermon
 
         // Groups that approved access
         $approved = Info::get('db')->select(
-            "SELECT dar.target_group_id, us.display_name
-             FROM display_access_requests dar
-             JOIN users u ON u.GROUP_ID = dar.target_group_id
-             JOIN user_settings us ON us.user_id = u.ID
-             WHERE dar.requester_group_id = {$userId} AND dar.status = 'approved'
-             GROUP BY dar.target_group_id"
+            "SELECT dar.target_group_id, us.display_name FROM display_access_requests dar
+                LEFT JOIN user_settings us ON us.user_id = dar.target_group_id
+                WHERE dar.requester_group_id = {$userId} AND dar.status = 'approved'"
         );
 
         foreach ($approved as $row) {
