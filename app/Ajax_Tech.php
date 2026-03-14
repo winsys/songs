@@ -90,14 +90,29 @@ trait Ajax_Tech
     // -----------------------------------------------------------
     private static function get_bible_verses()
     {
-        $bookId     = (int)self::$args['book_id'];
-        $chapterNum = (int)self::$args['chapter_num'];
-        $list = Info::get('db')->select(
-            "SELECT ID, VERSE_NUM, TEXT, TEXT_LT, TEXT_EN
-             FROM bible_verses
-             WHERE BOOK_ID = {$bookId} AND CHAPTER_NUM = {$chapterNum}
-             ORDER BY VERSE_NUM"
-        );
+        // Support both book_id (old) and book_num (new) for backwards compatibility
+        if (isset(self::$args['book_num'])) {
+            $bookNum = (int)self::$args['book_num'];
+            $chapterNum = (int)self::$args['chapter_num'];
+            $list = Info::get('db')->select(
+                "SELECT v.ID, v.VERSE_NUM, v.TEXT, v.TEXT_LT, v.TEXT_EN
+                 FROM bible_verses v
+                 JOIN bible_books b ON v.BOOK_ID = b.ID
+                 WHERE b.BOOK_NUM = {$bookNum} AND v.CHAPTER_NUM = {$chapterNum}
+                 ORDER BY v.VERSE_NUM
+                 LIMIT 1000"
+            );
+        } else {
+            // Fallback to old book_id method
+            $bookId = (int)self::$args['book_id'];
+            $chapterNum = (int)self::$args['chapter_num'];
+            $list = Info::get('db')->select(
+                "SELECT ID, VERSE_NUM, TEXT, TEXT_LT, TEXT_EN
+                 FROM bible_verses
+                 WHERE BOOK_ID = {$bookId} AND CHAPTER_NUM = {$chapterNum}
+                 ORDER BY VERSE_NUM"
+            );
+        }
         return json_encode($list);
     }
 

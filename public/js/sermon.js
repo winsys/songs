@@ -256,11 +256,12 @@ angular.module('Songs', ['csrfModule'])
                     }
                     activateElement(el);
                     var bookId   = el.getAttribute('data-book-id');
+                    var bookNum  = el.getAttribute('data-book-num') || bookId; // Fallback to bookId for old sermons
                     var chapter  = el.getAttribute('data-chapter');
                     var verseNum = el.getAttribute('data-verse-nums');
                     var refLabel = el.getAttribute('data-ref-label') || '';
                     var trId     = el.getAttribute('data-translation-id') || 1;
-                    $timeout(function () { fetchAndShowVerse(trId, bookId, chapter, verseNum, refLabel); });
+                    $timeout(function () { fetchAndShowVerse(trId, bookNum, chapter, verseNum, refLabel); });
                 };
             });
 
@@ -358,8 +359,16 @@ angular.module('Songs', ['csrfModule'])
         // FETCH BIBLE VERSE
         // ==========================================================
 
-        function fetchAndShowVerse(translationId, bookId, chapter, verseNum, refLabel) {
-            $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_verses', book_id: bookId, chapter_num: chapter }})
+        function fetchAndShowVerse(translationId, bookNumOrId, chapter, verseNum, refLabel) {
+            // Try book_num first (new method), fallback to book_id (old method)
+            var requestData = { command: 'get_bible_verses', chapter_num: chapter };
+            // If bookNumOrId is <= 66, it's probably BOOK_NUM, otherwise it's BOOK_ID
+            if (parseInt(bookNumOrId) <= 66) {
+                requestData.book_num = bookNumOrId;
+            } else {
+                requestData.book_id = bookNumOrId;
+            }
+            $http({ method: "POST", url: "/ajax", data: requestData})
                 .then(function (r) {
                     var found = null;
                     for (var i = 0; i < r.data.length; i++) {
