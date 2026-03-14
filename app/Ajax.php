@@ -25,8 +25,9 @@ class Ajax
             return json_encode(array('status'=>false, 'message'=>'User not logged in!'));
         }
 
-        // [SECURITY #3] CSRF-проверка для всех команд
-        if (!Security::validateCsrf()) {
+        // [SECURITY #3] CSRF-проверка для всех команд (кроме Google OAuth callback)
+        $csrfExempt = ['handle_google_callback'];
+        if (!in_array($command, $csrfExempt) && !Security::validateCsrf()) {
             http_response_code(403);
             return json_encode(['status' => false, 'message' => 'CSRF token mismatch']);
         }

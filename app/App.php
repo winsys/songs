@@ -29,6 +29,12 @@ class App
             exit;
         }
 
+        // Google OAuth callback (before login check)
+        if ($route[0] == 'google-callback') {
+            $this->handleGoogleCallback();
+            exit;
+        }
+
         if (!Security::isLoggedIn()) {
             if (Security::loginRequest()) {
                 if (Security::doLogin()) {
@@ -70,6 +76,81 @@ class App
             default:
                 $this->render($route[0], null);
                 break;
+        }
+    }
+
+    private function handleGoogleCallback()
+    {
+        // Start session if not already started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        // Check if user is logged in
+        if (!Security::isLoggedIn()) {
+            echo '<!DOCTYPE html>
+<html>
+<head><title>Google Auth Error</title></head>
+<body style="font-family: Arial; padding: 40px; text-align: center;">
+    <h2>❌ Ошибка авторизации</h2>
+    <p>Вы должны быть авторизованы для привязки Google аккаунта.</p>
+    <p><a href="/login">Войти в систему</a></p>
+</body>
+</html>';
+            return;
+        }
+
+        // Get authorization code from query string
+        $code = $_GET['code'] ?? '';
+        if (!$code) {
+            echo '<!DOCTYPE html>
+<html>
+<head><title>Google Auth Error</title></head>
+<body style="font-family: Arial; padding: 40px; text-align: center;">
+    <h2>❌ Ошибка</h2>
+    <p>Отсутствует код авторизации от Google.</p>
+    <p><a href="/settings">Вернуться в настройки</a></p>
+</body>
+</html>';
+            return;
+        }
+
+        // Call Ajax handler
+        $result = Ajax::execute([
+            'command' => 'handle_google_callback',
+            'code' => $code
+        ]);
+
+        $resultData = json_decode($result, true);
+
+        if ($resultData && $resultData['status'] === 'ok') {
+            // Success
+            echo '<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Account Linked</title>
+    <meta http-equiv="refresh" content="3;url=/settings">
+</head>
+<body style="font-family: Arial; padding: 40px; text-align: center;">
+    <h2>✅ Успешно!</h2>
+    <p>Google аккаунт успешно привязан.</p>
+    <p>Email: <strong>' . htmlspecialchars($resultData['google_email'] ?? '') . '</strong></p>
+    <p>Перенаправление в настройки через 3 секунды...</p>
+    <p><a href="/settings">Перейти сейчас</a></p>
+</body>
+</html>';
+        } else {
+            // Error
+            $errorMsg = $resultData['message'] ?? 'Unknown error';
+            echo '<!DOCTYPE html>
+<html>
+<head><title>Google Auth Error</title></head>
+<body style="font-family: Arial; padding: 40px; text-align: center;">
+    <h2>❌ Ошибка привязки</h2>
+    <p>' . htmlspecialchars($errorMsg) . '</p>
+    <p><a href="/settings">Вернуться в настройки</a></p>
+</body>
+</html>';
         }
     }
 
