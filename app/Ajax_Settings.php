@@ -250,7 +250,7 @@ trait Ajax_Settings
         $_SESSION['google_link_user_id'] = $targetUserId;
 
         // Build Google OAuth URL
-        $clientId = Info::get('config')->GOOGLE_CLIENT_ID;
+        $clientId = Info::get('config')['GOOGLE_CLIENT_ID'];
         if (!$clientId) {
             return json_encode(['status' => 'error', 'message' => 'Google OAuth not configured']);
         }
@@ -288,8 +288,8 @@ trait Ajax_Settings
             return json_encode(['status' => 'error', 'message' => 'Session expired']);
         }
 
-        $clientId     = Info::get('config')->GOOGLE_CLIENT_ID;
-        $clientSecret = Info::get('config')->GOOGLE_CLIENT_SECRET;
+        $clientId     = Info::get('config')['GOOGLE_CLIENT_ID'];
+        $clientSecret = Info::get('config')['GOOGLE_CLIENT_SECRET'];
 
         if (!$clientId || !$clientSecret) {
             return json_encode(['status' => 'error', 'message' => 'Google OAuth not configured']);
