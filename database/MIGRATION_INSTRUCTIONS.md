@@ -27,9 +27,18 @@ ALTER TABLE `user_settings` DROP PRIMARY KEY, ADD PRIMARY KEY (`group_id`);
 
 ### 2. Обновлённые файлы
 Все изменения уже внесены в код:
-- ✅ `app/Ajax_Common.php` - обновлены все запросы
-- ✅ `app/Ajax_Settings.php` - обновлены все запросы
-- ✅ `app/Ajax_Sermon.php` - обновлены все запросы
+
+**PHP (Backend):**
+- ✅ `app/Ajax_Common.php` - обновлены все SQL запросы (3 места)
+- ✅ `app/Ajax_Settings.php` - обновлены все SQL запросы (3 места)
+- ✅ `app/Ajax_Sermon.php` - обновлены все SQL запросы (7 мест)
+
+**HTML Templates:**
+- ✅ `templates/layout.html` - исправлен `WS_GROUP_ID`
+- ✅ `templates/text_layout.html` - исправлен `WS_GROUP_ID`
+- ✅ `templates/text_layout_streaming.html` - исправлен `WS_GROUP_ID`
+
+**Database:**
 - ✅ `database/database.sql` - обновлена схема таблицы
 - ✅ `database/migration_user_settings_rename.sql` - создана миграция
 
@@ -67,3 +76,9 @@ CREATE TABLE `user_settings` (
 - `group_id` содержит значение `users.GROUP_ID` (группа пользователей), а не `users.ID` (конкретный пользователь)
 - Все пользователи одной группы используют одни настройки
 - В сессии `$_SESSION['userId']` на самом деле хранится `GROUP_ID`, а не ID пользователя
+- Несуществующая `$_SESSION['groupId']` была заменена на `Security::getUserId()` во всех шаблонах
+
+## Исправленные баги
+1. **Text Layout страницы не отображали контент** - использовали несуществующую `$_SESSION['groupId']` вместо `$_SESSION['userId']`
+2. **WebSocket не доставлял обновления на дисплеи** - из-за неправильного `WS_GROUP_ID = 0` вместо реального GROUP_ID
+3. **Запросы доступа не отображались** - SQL запросы использовали неправильные JOIN'ы с `user_settings`
