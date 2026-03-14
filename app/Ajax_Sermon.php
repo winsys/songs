@@ -37,9 +37,9 @@ trait Ajax_Sermon
         $dbh    = Info::get('dbh');
 
         $sermonId = isset(self::$args['id']) ? (int)self::$args['id'] : 0;
-        $title    = isset(self::$args['title'])   ? mysqli_real_escape_string($dbh, self::$args['title'])   : '';
-        $date     = isset(self::$args['date'])    ? mysqli_real_escape_string($dbh, self::$args['date'])    : '';
-        $content  = isset(self::$args['content']) ? mysqli_real_escape_string($dbh, self::$args['content']) : '';
+        $title    = isset(self::$args['title'])       ? mysqli_real_escape_string($dbh, self::$args['title'])       : '';
+        $date     = isset(self::$args['sermon_date']) ? mysqli_real_escape_string($dbh, self::$args['sermon_date']) : '';
+        $content  = isset(self::$args['content'])     ? mysqli_real_escape_string($dbh, self::$args['content'])     : '';
 
         $dateVal = ($date !== '') ? "'{$date}'" : 'NULL';
 
