@@ -43,7 +43,12 @@ class App
 
         // Google login callback (for authentication)
         if ($route[0] == 'google-login-callback') {
-            $this->handleGoogleLoginCallback();
+            // Check if this is a One Tap POST request with credential
+            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['credential'])) {
+                $this->handleGoogleOneTapLogin();
+            } else {
+                $this->handleGoogleLoginCallback();
+            }
             exit;
         }
 
@@ -257,6 +262,103 @@ class App
 <head>
     <title>Google Login Success</title>
     <meta http-equiv="refresh" content="1;url=' . Security::defaultRedirect() . '">
+</head>
+<body style="font-family: Arial; padding: 40px; text-align: center;">
+    <h2>✅ Успешный вход!</h2>
+    <p>Добро пожаловать, <strong>' . htmlspecialchars($user['NAME']) . '</strong>!</p>
+    <p>Перенаправление...</p>
+</body>
+</html>';
+    }
+
+    private function handleGoogleOneTapLogin()
+    {
+        // Start session if not already started
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+
+        $credential = $_POST['credential'] ?? '';
+        if (!$credential) {
+            echo json_encode(['error' => 'No credential provided']);
+            return;
+        }
+
+        $clientId = Info::get('config')['GOOGLE_CLIENT_ID'];
+        if (!$clientId) {
+            echo json_encode(['error' => 'Google OAuth not configured']);
+            return;
+        }
+
+        // Decode JWT (it has 3 parts: header.payload.signature)
+        $parts = explode('.', $credential);
+        if (count($parts) !== 3) {
+            echo json_encode(['error' => 'Invalid credential format']);
+            return;
+        }
+
+        // Decode payload (second part)
+        $payload = json_decode(base64_decode(strtr($parts[1], '-_', '+/')), true);
+        if (!$payload) {
+            echo json_encode(['error' => 'Failed to decode credential']);
+            return;
+        }
+
+        // Verify the token is for our client
+        if ($payload['aud'] !== $clientId) {
+            echo json_encode(['error' => 'Invalid audience']);
+            return;
+        }
+
+        // Verify token hasn't expired
+        if (isset($payload['exp']) && $payload['exp'] < time()) {
+            echo json_encode(['error' => 'Token expired']);
+            return;
+        }
+
+        $googleId = $payload['sub'] ?? '';
+        if (!$googleId) {
+            echo json_encode(['error' => 'No Google ID in token']);
+            return;
+        }
+
+        // Find user by Google ID
+        $user = Info::get('db')->get(
+            "SELECT ID, NAME, ROLE FROM users WHERE GOOGLE_ID = '" .
+            mysqli_real_escape_string(Info::get('dbh'), $googleId) . "'"
+        );
+
+        if (!$user) {
+            echo '<!DOCTYPE html>
+<html>
+<head><title>Google Login Error</title></head>
+<body style="font-family: Arial; padding: 40px; text-align: center;">
+    <h2>❌ Аккаунт не привязан</h2>
+    <p>Ваш Google аккаунт (<strong>' . htmlspecialchars($payload['email'] ?? '') . '</strong>) не привязан ни к одному пользователю системы.</p>
+    <p>Войдите с помощью логина и пароля, затем привяжите Google аккаунт в настройках.</p>
+    <p><a href="/login">Вернуться к входу</a></p>
+</body>
+</html>';
+            return;
+        }
+
+        // Log in the user
+        $_SESSION['userId'] = $user['ID'];
+        $_SESSION['userName'] = $user['NAME'];
+        $_SESSION['userRole'] = $user['ROLE'];
+
+        // Update last login time
+        Info::get('db')->exec(
+            "UPDATE users SET LAST_LOGIN = NOW() WHERE ID = " . (int)$user['ID']
+        );
+
+        // Redirect to default page
+        echo '<!DOCTYPE html>
+<html>
+<head>
+    <title>Google Login Success</title>
+    <script>window.location.href = "' . Security::defaultRedirect() . '";</script>
+    <meta http-equiv="refresh" content="0;url=' . Security::defaultRedirect() . '">
 </head>
 <body style="font-family: Arial; padding: 40px; text-align: center;">
     <h2>✅ Успешный вход!</h2>
