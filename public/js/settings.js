@@ -210,6 +210,46 @@ app.controller('Settings', function ($scope, $http)
         }
     };
 
+    // ============================================================
+    // GOOGLE ACCOUNT LINKING
+    // ============================================================
+
+    $scope.linkGoogleAccount = function(user) {
+        $http({ method: 'POST', url: '/ajax', data: {
+            command: 'get_google_oauth_url',
+            user_id: user.ID
+        }}).then(
+            function success(r) {
+                if (r.data && r.data.status === 'ok') {
+                    // Redirect to Google OAuth
+                    window.location.href = r.data.url;
+                } else {
+                    alert('❌ Ошибка: ' + (r.data.message || 'Unknown error'));
+                }
+            },
+            function error(e) { alert('❌ Ошибка при получении OAuth URL!'); }
+        );
+    };
+
+    $scope.unlinkGoogleAccount = function(user) {
+        if (!confirm('Отвязать Google аккаунт от этого пользователя?')) return;
+
+        $http({ method: 'POST', url: '/ajax', data: {
+            command: 'unlink_google_account',
+            user_id: user.ID
+        }}).then(
+            function success(r) {
+                if (r.data && r.data.status === 'ok') {
+                    user.GOOGLE_ID = null;
+                    alert('✅ Google аккаунт отвязан!');
+                } else {
+                    alert('❌ Ошибка: ' + (r.data.message || 'Unknown error'));
+                }
+            },
+            function error(e) { alert('❌ Ошибка при отвязке Google аккаунта!'); }
+        );
+    };
+
     $scope.loadGroupUsers();
     $scope.loadSettings();
 });
