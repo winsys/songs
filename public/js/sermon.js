@@ -255,13 +255,13 @@ angular.module('Songs', ['csrfModule'])
                         return;
                     }
                     activateElement(el);
-                    var bookId   = el.getAttribute('data-book-id');
-                    var bookNum  = el.getAttribute('data-book-num') || bookId; // Fallback to bookId for old sermons
-                    var chapter  = el.getAttribute('data-chapter');
-                    var verseNum = el.getAttribute('data-verse-nums');
-                    var refLabel = el.getAttribute('data-ref-label') || '';
-                    var trId     = el.getAttribute('data-translation-id') || 1;
-                    $timeout(function () { fetchAndShowVerse(trId, bookNum, chapter, verseNum, refLabel); });
+                    var bookId     = el.getAttribute('data-book-id');
+                    var bookNum    = el.getAttribute('data-book-num') || bookId; // Fallback to bookId for old sermons
+                    var chapter    = el.getAttribute('data-chapter');
+                    var verseNum   = el.getAttribute('data-verse-nums');
+                    var refLabel   = el.getAttribute('data-ref-label') || '';
+                    var colSuffix  = el.getAttribute('data-col-suffix') || '';
+                    $timeout(function () { fetchAndShowVerse(colSuffix, bookNum, chapter, verseNum, refLabel); });
                 };
             });
 
@@ -359,7 +359,7 @@ angular.module('Songs', ['csrfModule'])
         // FETCH BIBLE VERSE
         // ==========================================================
 
-        function fetchAndShowVerse(translationId, bookNumOrId, chapter, verseNum, refLabel) {
+        function fetchAndShowVerse(colSuffix, bookNumOrId, chapter, verseNum, refLabel) {
             // Try book_num first (new method), fallback to book_id (old method)
             var requestData = { command: 'get_bible_verses', chapter_num: chapter };
             // If bookNumOrId is <= 66, it's probably BOOK_NUM, otherwise it's BOOK_ID
@@ -375,17 +375,10 @@ angular.module('Songs', ['csrfModule'])
                         if (parseInt(r.data[i].VERSE_NUM) === parseInt(verseNum)) { found = r.data[i]; break; }
                     }
                     if (found) {
-                        // Select text based on translation ID
-                        // ID=1 (ru) → TEXT, ID=2 (lt) → TEXT_LT, ID=3 (en) → TEXT_EN
-                        var verseText = '';
-                        var tid = parseInt(translationId) || 1;
-                        if (tid === 2) {
-                            verseText = found.TEXT_LT || found.TEXT || '';
-                        } else if (tid === 3) {
-                            verseText = found.TEXT_EN || found.TEXT || '';
-                        } else {
-                            verseText = found.TEXT || '';
-                        }
+                        // Select text based on col_suffix from languages table
+                        // '' → TEXT, '_LT' → TEXT_LT, '_EN' → TEXT_EN
+                        var fieldName = 'TEXT' + (colSuffix || '');
+                        var verseText = found[fieldName] || found.TEXT || '';
 
                         var text = verseNum + '. ' + verseText;
                         showText(text, refLabel);
