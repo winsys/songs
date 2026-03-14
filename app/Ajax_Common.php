@@ -424,9 +424,10 @@ trait Ajax_Common
     private static function get_languages()
     {
         $langs = Info::get('db')->select(
-            "SELECT code, label, col_suffix, sort_order, is_default
-             FROM languages
-             ORDER BY sort_order ASC"
+            "SELECT l.code, l.label, l.col_suffix, l.sort_order, l.is_default, bt.ID as translation_id
+             FROM languages l
+             LEFT JOIN bible_translations bt ON bt.LANG = l.code
+             ORDER BY l.sort_order ASC"
         );
         return json_encode($langs);
     }
