@@ -444,8 +444,8 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     // TEXT FORMATTING (unchanged)
     // ──────────────────────────────────────────────────────────
 
-    $scope.execFmt = function (cmd) {
-        document.execCommand(cmd, false, null);
+    $scope.execFmt = function (cmd, arg) {
+        document.execCommand(cmd, false, arg || null);
     };
     $scope.toggleColorPicker = function () {
         saveRange();
