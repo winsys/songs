@@ -319,7 +319,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
     }
 
 
-    $scope.reloadFavorites = function () {
+    $scope.reloadFavorites = function (callback) {
         $http({ method: "POST", url: "/ajax", data: { command: 'get_favorites_with_text' }}).then(
             function success(respond) {
                 $scope.favorites = respond.data;
@@ -330,6 +330,8 @@ app.controller('Tech', function ($scope, $http, $timeout)
                         $scope.showingSong = item;
                     }
                 });
+                // Call callback after favorites are loaded (for state restoration)
+                if (callback) callback();
             },
             function error(e) { console.log('reloadFavorites error:', e); }
         );
@@ -1380,11 +1382,10 @@ app.controller('Tech', function ($scope, $http, $timeout)
             // Handle incoming messages (only after authentication)
             if (data.type === 'update_needed') {
                 $scope.$apply(function() {
-                    $scope.reloadFavorites();
-                    // Restore state after favorites are reloaded
-                    $timeout(function() {
+                    // Restore state immediately after favorites are reloaded
+                    $scope.reloadFavorites(function() {
                         restoreCurrentState();
-                    }, 300);
+                    });
                 });
             }
         },
@@ -1697,13 +1698,12 @@ app.controller('Tech', function ($scope, $http, $timeout)
 
     $scope.loadSongLists();
     loadLanguages();
-    $scope.reloadFavorites();
     $scope.reloadSongList();
     loadPendingAccessRequests();  // Load any existing pending requests on page load
 
-    // Restore state after favorites are loaded
-    $timeout(function() {
+    // Restore state immediately after favorites are loaded
+    $scope.reloadFavorites(function() {
         restoreCurrentState();
-    }, 1000);
+    });
 
 });
