@@ -1,3 +1,10 @@
+-- --------------------------------------------------------
+-- Host:                         server.winsys.lv
+-- Server version:               5.7.42-0ubuntu0.18.04.1 - (Ubuntu)
+-- Server OS:                    Linux
+-- HeidiSQL Version:             12.16.0.7229
+-- --------------------------------------------------------
+
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET NAMES utf8 */;
 /*!50503 SET NAMES utf8mb4 */;
@@ -56,6 +63,7 @@ CREATE TABLE IF NOT EXISTS `current` (
                                          `image` varchar(2000) NOT NULL DEFAULT '',
                                          `text` text,
                                          `song_name` varchar(255) DEFAULT NULL,
+                                         `chapter_indices` varchar(255) DEFAULT '',
                                          `video_src` varchar(2000) NOT NULL DEFAULT '',
                                          `video_state` varchar(20) NOT NULL DEFAULT 'stopped'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -73,7 +81,7 @@ CREATE TABLE IF NOT EXISTS `display_access_requests` (
                                                          PRIMARY KEY (`id`),
                                                          UNIQUE KEY `unique_request` (`requester_group_id`,`target_group_id`),
                                                          KEY `idx_target_pending` (`target_group_id`,`status`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Stores display access requests between groups';
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Stores display access requests between groups';
 
 -- Data exporting was unselected.
 
@@ -85,7 +93,7 @@ CREATE TABLE IF NOT EXISTS `favorites` (
                                            `sort_order` int(11) NOT NULL DEFAULT '0',
                                            PRIMARY KEY (`ID`),
                                            UNIQUE KEY `Index 1` (`groupId`,`SONGID`)
-) ENGINE=InnoDB AUTO_INCREMENT=7526 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=7555 DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.
 
@@ -152,7 +160,7 @@ CREATE TABLE IF NOT EXISTS `sermons` (
                                          PRIMARY KEY (`ID`),
                                          KEY `idx_sermons_user` (`USER_ID`),
                                          CONSTRAINT `fk_sermons_user` FOREIGN KEY (`USER_ID`) REFERENCES `users` (`ID`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=21 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB AUTO_INCREMENT=26 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Data exporting was unselected.
 
@@ -171,6 +179,18 @@ CREATE TABLE IF NOT EXISTS `song_list` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table songs.standard_wallpapers
+CREATE TABLE IF NOT EXISTS `standard_wallpapers` (
+                                                     `id` int(11) NOT NULL AUTO_INCREMENT,
+                                                     `name` varchar(255) NOT NULL COMMENT 'Название заставки для отображения',
+                                                     `src` varchar(500) NOT NULL COMMENT 'URL или путь к изображению',
+                                                     `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                                     PRIMARY KEY (`id`),
+                                                     UNIQUE KEY `src` (`src`)
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb4 COMMENT='Список стандартных заставок, доступных всем пользователям';
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table songs.tech_media_favorites
 CREATE TABLE IF NOT EXISTS `tech_media_favorites` (
                                                       `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -182,37 +202,24 @@ CREATE TABLE IF NOT EXISTS `tech_media_favorites` (
                                                       `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                                       PRIMARY KEY (`id`),
                                                       KEY `idx_tmf_group` (`group_id`)
-) ENGINE=InnoDB AUTO_INCREMENT=19 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
--- Data exporting was unselected.
-
--- Dumping structure for table songs.users
-CREATE TABLE IF NOT EXISTS `users` (
-                                       `ID` int(11) NOT NULL AUTO_INCREMENT,
-                                       `NAME` varchar(64) NOT NULL,
-                                       `LOGIN` varchar(64) NOT NULL,
-                                       `PASS` varchar(128) NOT NULL,
-                                       `ROLE` enum('admin','leader','musician','preacher','tech') NOT NULL DEFAULT 'musician',
-                                       `GROUP_ID` int(11) NOT NULL DEFAULT '0',
-                                       `LAST_LOGIN` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                                       PRIMARY KEY (`ID`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=42 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Data exporting was unselected.
 
 -- Dumping structure for table songs.user_google_accounts
 CREATE TABLE IF NOT EXISTS `user_google_accounts` (
-    `id` int(11) NOT NULL AUTO_INCREMENT,
-    `user_id` int(11) NOT NULL COMMENT 'Reference to users.ID',
-    `google_id` varchar(255) NOT NULL COMMENT 'Google account ID (sub)',
-    `google_email` varchar(255) DEFAULT NULL COMMENT 'Google email for display',
-    `google_name` varchar(255) DEFAULT NULL COMMENT 'Google display name',
-    `linked_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    `last_used` timestamp NULL DEFAULT NULL COMMENT 'Last time used to login',
-    PRIMARY KEY (`id`),
-    UNIQUE KEY `unique_google_id` (`google_id`),
-    KEY `idx_user_id` (`user_id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+                                                      `id` int(11) NOT NULL AUTO_INCREMENT,
+                                                      `user_id` int(11) NOT NULL COMMENT 'Reference to users.ID',
+                                                      `google_id` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL COMMENT 'Google account ID (sub)',
+                                                      `google_email` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Google email for display',
+                                                      `google_name` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Google display name',
+                                                      `linked_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                                      `last_used` timestamp NULL DEFAULT NULL COMMENT 'Last time this Google account was used to login',
+                                                      PRIMARY KEY (`id`),
+                                                      UNIQUE KEY `unique_google_id` (`google_id`),
+                                                      KEY `idx_user_id` (`user_id`),
+                                                      CONSTRAINT `fk_user_google_accounts_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`ID`) ON DELETE CASCADE
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Stores multiple Google accounts linked to user logins';
 
 -- Data exporting was unselected.
 
@@ -240,3 +247,24 @@ CREATE TABLE IF NOT EXISTS `user_settings` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table songs.users
+CREATE TABLE IF NOT EXISTS `users` (
+                                       `ID` int(11) NOT NULL AUTO_INCREMENT,
+                                       `NAME` varchar(64) NOT NULL,
+                                       `LOGIN` varchar(64) NOT NULL,
+                                       `PASS` varchar(128) NOT NULL,
+                                       `GOOGLE_ID` varchar(255) DEFAULT NULL,
+                                       `ROLE` enum('admin','leader','musician','preacher','tech') NOT NULL DEFAULT 'musician',
+                                       `GROUP_ID` int(11) NOT NULL DEFAULT '0',
+                                       `LAST_LOGIN` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                                       PRIMARY KEY (`ID`),
+                                       UNIQUE KEY `idx_google_id` (`GOOGLE_ID`)
+) ENGINE=InnoDB AUTO_INCREMENT=18 DEFAULT CHARSET=utf8;
+
+-- Data exporting was unselected.
+
+/*!40103 SET TIME_ZONE=IFNULL(@OLD_TIME_ZONE, 'system') */;
+/*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
+/*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40111 SET SQL_NOTES=IFNULL(@OLD_SQL_NOTES, 1) */;
