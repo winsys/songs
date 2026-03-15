@@ -226,11 +226,31 @@ class App
 
         $googleId = $userInfo['id'];
 
-        // Find user by Google ID
-        $user = Info::get('db')->get(
-            "SELECT ID, NAME, ROLE, GROUP_ID FROM users WHERE GOOGLE_ID = '" .
+        // Find user by Google ID in new table
+        $googleAccount = Info::get('db')->get(
+            "SELECT user_id FROM user_google_accounts WHERE google_id = '" .
             mysqli_real_escape_string(Info::get('dbh'), $googleId) . "'"
         );
+
+        if (!$googleAccount) {
+            // Fallback: check old GOOGLE_ID column in users table (for migration compatibility)
+            $user = Info::get('db')->get(
+                "SELECT ID, NAME, ROLE, GROUP_ID FROM users WHERE GOOGLE_ID = '" .
+                mysqli_real_escape_string(Info::get('dbh'), $googleId) . "'"
+            );
+        } else {
+            // Get user from user_id
+            $userId = (int)$googleAccount['user_id'];
+            $user = Info::get('db')->get(
+                "SELECT ID, NAME, ROLE, GROUP_ID FROM users WHERE ID = {$userId}"
+            );
+
+            // Update last_used timestamp
+            Info::get('db')->exec(
+                "UPDATE user_google_accounts SET last_used = NOW()
+                 WHERE google_id = '" . mysqli_real_escape_string(Info::get('dbh'), $googleId) . "'"
+            );
+        }
 
         if (!$user) {
             echo '<!DOCTYPE html>
@@ -330,11 +350,31 @@ class App
             return;
         }
 
-        // Find user by Google ID
-        $user = Info::get('db')->get(
-            "SELECT ID, NAME, ROLE, GROUP_ID FROM users WHERE GOOGLE_ID = '" .
+        // Find user by Google ID in new table
+        $googleAccount = Info::get('db')->get(
+            "SELECT user_id FROM user_google_accounts WHERE google_id = '" .
             mysqli_real_escape_string(Info::get('dbh'), $googleId) . "'"
         );
+
+        if (!$googleAccount) {
+            // Fallback: check old GOOGLE_ID column in users table (for migration compatibility)
+            $user = Info::get('db')->get(
+                "SELECT ID, NAME, ROLE, GROUP_ID FROM users WHERE GOOGLE_ID = '" .
+                mysqli_real_escape_string(Info::get('dbh'), $googleId) . "'"
+            );
+        } else {
+            // Get user from user_id
+            $userId = (int)$googleAccount['user_id'];
+            $user = Info::get('db')->get(
+                "SELECT ID, NAME, ROLE, GROUP_ID FROM users WHERE ID = {$userId}"
+            );
+
+            // Update last_used timestamp
+            Info::get('db')->exec(
+                "UPDATE user_google_accounts SET last_used = NOW()
+                 WHERE google_id = '" . mysqli_real_escape_string(Info::get('dbh'), $googleId) . "'"
+            );
+        }
 
         if (!$user) {
             echo '<!DOCTYPE html>

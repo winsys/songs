@@ -585,20 +585,46 @@
                         <div class="user-slot-actions">
                             <button class="btn-save-user" ng-click="updateGroupUser(slot.user)">💾 Сохранить</button>
                             <button class="btn-share-user" ng-show="permissions.canManageUsers" ng-click="shareUser(slot.user, slot.roleLabel)" title="Скопировать данные">📋 Поделиться</button>
-                            <button class="btn-share-user"
-                                    ng-if="!slot.user.GOOGLE_ID"
-                                    ng-click="linkGoogleAccount(slot.user)"
-                                    title="Привязать Google аккаунт">
-                                🔗 Google
-                            </button>
-                            <button class="btn-share-user"
-                                    ng-if="slot.user.GOOGLE_ID"
-                                    ng-click="unlinkGoogleAccount(slot.user)"
-                                    title="Отвязать Google аккаунт"
-                                    style="border-color: #27ae60; color: #27ae60;">
-                                ✓ Google
-                            </button>
                         </div>
+                    </div>
+
+                    <!-- Google Accounts Section -->
+                    <div style="margin-top:12px; padding-top:12px; border-top:1.5px solid #dee2e6;">
+                        <label class="user-mini-label" style="margin-bottom:8px;">Google аккаунты ({{slot.user.googleAccounts.length}})</label>
+
+                        <!-- List of linked accounts -->
+                        <div ng-if="slot.user.googleAccounts.length > 0" style="margin-bottom:8px;">
+                            <div ng-repeat="account in slot.user.googleAccounts"
+                                 style="display:flex; align-items:center; justify-content:space-between; padding:6px 10px; margin-bottom:4px; background:#fff; border:1.5px solid #dee2e6; border-radius:8px; font-size:11px;">
+                                <div style="flex:1; min-width:0;">
+                                    <div style="font-weight:600; color:#2c3e50; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                                        {{account.google_email || account.google_name || 'Google User'}}
+                                    </div>
+                                    <div style="color:#95a5a6; margin-top:2px;">
+                                        Привязан: {{formatDate(account.linked_at)}}
+                                        <span ng-if="account.last_used"> • Использован: {{formatDate(account.last_used)}}</span>
+                                    </div>
+                                </div>
+                                <button ng-click="unlinkGoogleAccount(slot.user, account.id)"
+                                        style="padding:4px 8px; border:1.5px solid #e74c3c; background:#fff; color:#e74c3c; border-radius:6px; font-size:10px; cursor:pointer; flex-shrink:0; margin-left:8px;"
+                                        title="Отвязать этот аккаунт">
+                                    ✕
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- No accounts message -->
+                        <div ng-if="slot.user.googleAccounts.length === 0" style="font-size:11px; color:#95a5a6; margin-bottom:8px; padding:8px; background:#f8f9fa; border-radius:6px; text-align:center;">
+                            Нет привязанных Google аккаунтов
+                        </div>
+
+                        <!-- Link another account button -->
+                        <button class="btn-share-user"
+                                ng-click="linkGoogleAccount(slot.user)"
+                                style="width:100%; margin-top:4px;">
+                            🔗 Привязать Google аккаунт
+                        </button>
+                    </div>
                     </div>
                 </div>
 
@@ -614,4 +640,4 @@
     </div>
 </div>
 
-<script src="/js/settings.js?v=10006" type="text/javascript"></script>
+<script src="/js/settings.js?v=10007" type="text/javascript"></script>

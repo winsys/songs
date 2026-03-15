@@ -200,6 +200,22 @@ CREATE TABLE IF NOT EXISTS `users` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table songs.user_google_accounts
+CREATE TABLE IF NOT EXISTS `user_google_accounts` (
+    `id` int(11) NOT NULL AUTO_INCREMENT,
+    `user_id` int(11) NOT NULL COMMENT 'Reference to users.ID',
+    `google_id` varchar(255) NOT NULL COMMENT 'Google account ID (sub)',
+    `google_email` varchar(255) DEFAULT NULL COMMENT 'Google email for display',
+    `google_name` varchar(255) DEFAULT NULL COMMENT 'Google display name',
+    `linked_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    `last_used` timestamp NULL DEFAULT NULL COMMENT 'Last time used to login',
+    PRIMARY KEY (`id`),
+    UNIQUE KEY `unique_google_id` (`google_id`),
+    KEY `idx_user_id` (`user_id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table songs.user_settings
 CREATE TABLE IF NOT EXISTS `user_settings` (
                                                `group_id` int(11) NOT NULL,
