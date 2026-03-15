@@ -106,23 +106,28 @@ angular.module('Songs', ['csrfModule'])
 
         function hsl(h, s, l) { return rgbToHex.apply(null, hslToRgb(h, s, l)); }
 
-        function deriveChipColorsDark(baseHex) {
-            var rgb  = hexToRgb(baseHex);
-            var hsl_ = rgbToHsl(rgb[0], rgb[1], rgb[2]);
-            var h = hsl_[0];
-            var s = Math.max(55, Math.min(hsl_[1], 85));
-            var r = Math.round(rgb[0]), g = Math.round(rgb[1]), b = Math.round(rgb[2]);
+        function hexWithAlpha(hex, alpha) {
+            var rgb = hexToRgb(hex);
+            return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + alpha + ')';
+        }
+
+        function shadeHex(hex, amount) {
+            var rgb = hexToRgb(hex);
+            return rgbToHex(rgb[0] + amount, rgb[1] + amount, rgb[2] + amount);
+        }
+
+        function deriveChipColorsLight(baseHex) {
             return {
-                bg:           'rgba(' + r + ',' + g + ',' + b + ',0.15)',  // прозрачный тинт
-                border:       hsl(h, s * 0.85, 32),
-                ref:          hsl(h, s,        72),
-                verse:        hsl(h, s * 0.80, 64),
-                hoverBg:      'rgba(' + r + ',' + g + ',' + b + ',0.25)',  // чуть плотнее
-                hoverBorder:  hsl(h, s,        44),
-                activeBg:     'rgba(' + r + ',' + g + ',' + b + ',0.55)',  // активный — заметно плотный
-                activeBorder: hsl(h, Math.min(s * 1.1, 100), 57),
-                activeVerse:  hsl(h, 40,       90),
-                shadow:       'rgba(' + r + ',' + g + ',' + b + ',0.40)'   // тень вокруг активного
+                bg:           hexWithAlpha(baseHex, 0.1),
+                border:       shadeHex(baseHex, -28),
+                ref:          baseHex,
+                verse:        shadeHex(baseHex, -40),
+                hoverBg:      hexWithAlpha(baseHex, 0.18),
+                hoverBorder:  shadeHex(baseHex, -50),
+                activeBg:     hexWithAlpha(baseHex, 0.55),
+                activeBorder: shadeHex(baseHex, -60),
+                activeVerse:  shadeHex(baseHex, -80),
+                shadow:       hexWithAlpha(baseHex, 0.40)
             };
         }
 
@@ -217,7 +222,7 @@ angular.module('Songs', ['csrfModule'])
             root.style.setProperty('--sn-notes-text',     np.textColor);
             root.style.setProperty('--sn-notes-text-dim', np.textDim);
 
-            var bc = deriveChipColorsDark(userSettings.sermon_bible_base_color || '#1565c0');
+            var bc = deriveChipColorsLight(userSettings.sermon_bible_base_color || '#1565c0');
             root.style.setProperty('--sn-bible-bg',           bc.bg);
             root.style.setProperty('--sn-bible-border',       bc.border);
             root.style.setProperty('--sn-bible-ref',          bc.ref);
@@ -229,7 +234,7 @@ angular.module('Songs', ['csrfModule'])
             root.style.setProperty('--sn-bible-active-verse', bc.activeVerse);
             root.style.setProperty('--sn-bible-shadow',       bc.shadow);
 
-            var mc = deriveChipColorsDark(userSettings.sermon_msg_base_color || '#6a1b9a');
+            var mc = deriveChipColorsLight(userSettings.sermon_msg_base_color || '#6a1b9a');
             root.style.setProperty('--sn-msg-bg',           mc.bg);
             root.style.setProperty('--sn-msg-border',       mc.border);
             root.style.setProperty('--sn-msg-color',        mc.ref);
