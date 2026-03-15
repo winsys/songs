@@ -298,12 +298,18 @@ app.controller('Leader', function ($scope, $http)
         function(data) {
             // Handle incoming messages (only after authentication)
             if (data.type === 'update_needed') {
+                console.log('Leader: update_needed received, fullScreen=' + $scope.fullScreen);
                 $scope.$apply(function() {
                     $scope.reloadFavorites(function() {
-                        // Restore state after favorites are reloaded
-                        setTimeout(function() {
-                            restoreCurrentState();
-                        }, 200);
+                        // Only restore state if not in fullscreen mode
+                        // (to avoid closing fullscreen when we just opened it)
+                        if (!$scope.fullScreen) {
+                            setTimeout(function() {
+                                restoreCurrentState();
+                            }, 200);
+                        } else {
+                            console.log('Leader: skipping restoreCurrentState - already in fullscreen');
+                        }
                     });
                 });
             }
