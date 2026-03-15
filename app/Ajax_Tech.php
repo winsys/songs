@@ -8,7 +8,7 @@ trait Ajax_Tech
 {
     private static function get_current_state()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $row = Info::get('db')->get("SELECT image, text, song_name, chapter_indices, video_src FROM current WHERE groupId = {$userId}");
 
         if (!$row) {
@@ -21,7 +21,7 @@ trait Ajax_Tech
     private static function set_tech_image()
     {
         $dbh        = Info::get('dbh');
-        $userId     = (int)$_SESSION['userId'];
+        $userId     = (int)$_SESSION['curGroupId'];
         $image_name = mysqli_real_escape_string($dbh, self::$args['image_name'] ?? '');
         $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
 
@@ -37,7 +37,7 @@ trait Ajax_Tech
     private static function set_text()
     {
         $dbh        = Info::get('dbh');
-        $userId     = (int)$_SESSION['userId'];
+        $userId     = (int)$_SESSION['curGroupId'];
         $text       = mysqli_real_escape_string($dbh, self::$args['text']       ?? '');
         $image_name = mysqli_real_escape_string($dbh, self::$args['image_name'] ?? '');
         $song_name  = mysqli_real_escape_string($dbh, self::$args['song_name']  ?? '');
@@ -167,7 +167,7 @@ trait Ajax_Tech
     // -----------------------------------------------------------
     private static function set_bible_text()
     {
-        $userId    = (int)$_SESSION['userId'];
+        $userId    = (int)$_SESSION['curGroupId'];
         $text      = mysqli_escape_string(Info::get('dbh'), self::$args['text']);
         $song_name = mysqli_escape_string(Info::get('dbh'), self::$args['song_name']);
         $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
@@ -235,7 +235,7 @@ trait Ajax_Tech
     // Показать абзац послания на экране текста
     private static function set_message_text()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $dbh = Info::get('dbh');
         $text = mysqli_real_escape_string($dbh, self::$args['text']);
         $song_name = mysqli_real_escape_string($dbh, self::$args['song_name']);
@@ -261,7 +261,7 @@ trait Ajax_Tech
     private static function add_media_to_favorites()
     {
         $dbh       = Info::get('dbh');
-        $userId    = (int)$_SESSION['userId'];
+        $userId    = (int)$_SESSION['curGroupId'];
         $name      = mysqli_real_escape_string($dbh, self::$args['name']       ?? '');
         $src       = mysqli_real_escape_string($dbh, self::$args['src']        ?? '');
         $mediaType = mysqli_real_escape_string($dbh, self::$args['media_type'] ?? 'image');
@@ -291,7 +291,7 @@ trait Ajax_Tech
      */
     private static function delete_media_favorite()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $id     = (int)self::$args['id'];
 
         // Get media info before deleting
@@ -322,7 +322,7 @@ trait Ajax_Tech
      */
     private static function upload_media_image()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
 
         if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
             return json_encode(['status' => 'error', 'message' => 'Upload error']);
@@ -376,7 +376,7 @@ trait Ajax_Tech
      */
     private static function upload_media_video()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
 
         if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
             return json_encode(['status' => 'error', 'message' => 'Upload error']);
@@ -435,7 +435,7 @@ trait Ajax_Tech
     private static function set_video()
     {
         $dbh        = Info::get('dbh');
-        $userId     = (int)$_SESSION['userId'];
+        $userId     = (int)$_SESSION['curGroupId'];
         $videoSrc   = mysqli_real_escape_string($dbh, self::$args['video_src']   ?? '');
         $videoState = mysqli_real_escape_string($dbh, self::$args['video_state'] ?? 'playing');
         $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
@@ -456,7 +456,7 @@ trait Ajax_Tech
     private static function video_control()
     {
         $dbh        = Info::get('dbh');
-        $userId     = (int)$_SESSION['userId'];
+        $userId     = (int)$_SESSION['curGroupId'];
         $videoState = mysqli_real_escape_string($dbh, self::$args['video_state'] ?? 'stopped');
         $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
 

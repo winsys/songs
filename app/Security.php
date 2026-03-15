@@ -166,7 +166,7 @@ class Security
         if ($passwordOk) {
             $_SESSION['loggedIn'] = true;
             $_SESSION['userName'] = $user['NAME'];
-            $_SESSION['userId'] = isset($user['GROUP_ID']) && $user['GROUP_ID'] > 0
+            $_SESSION['curGroupId'] = isset($user['GROUP_ID']) && $user['GROUP_ID'] > 0
                 ? (int)$user['GROUP_ID']
                 : (int)$user['ID'];
             $_SESSION['userRole'] = isset($user['ROLE']) ? $user['ROLE'] : 'musician';
@@ -267,7 +267,7 @@ class Security
     public static function generateWebSocketToken(): string
     {
         $config = Info::get('config');
-        $userId = isset($_SESSION['userId']) ? (int)$_SESSION['userId'] : 0;
+        $userId = isset($_SESSION['curGroupId']) ? (int)$_SESSION['curGroupId'] : 0;
         return hash_hmac('sha256', $userId, $config['encryption_key']);
     }
 
@@ -277,7 +277,7 @@ class Security
      */
     public static function getUserId(): int
     {
-        return isset($_SESSION['userId']) ? (int)$_SESSION['userId'] : 0;
+        return isset($_SESSION['curGroupId']) ? (int)$_SESSION['curGroupId'] : 0;
     }
 
     // ============================================================

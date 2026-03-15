@@ -56,7 +56,7 @@ trait Ajax_Common
     private static function add_to_favorites()
     {
         $dbh    = Info::get('dbh');
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $songId = mysqli_real_escape_string($dbh, self::$args['id']);
 
         // Общий max sort_order по обоим спискам
@@ -79,14 +79,14 @@ trait Ajax_Common
 
     private static function add_to_piano_favorites()
     {
-        Info::get('db')->exec("insert into piano_favorites (groupId, SONGID) values ({$_SESSION['userId']},".mysqli_escape_string(Info::get('dbh'), self::$args['id']).")");
+        Info::get('db')->exec("insert into piano_favorites (groupId, SONGID) values ({$_SESSION['curGroupId']},".mysqli_escape_string(Info::get('dbh'), self::$args['id']).")");
         self::updateSocket();
         return '';
     }
 
     private static function get_favorites()
     {
-        $userId = $_SESSION['userId'];
+        $userId = $_SESSION['curGroupId'];
         $sql = "SELECT f.ID as FID, l.*,
                        concat(l.num, ' - ', l.name) as dispName,
                        concat('/images/', l.LISTID, '/', l.num, '.jpg') as imageName,
@@ -106,7 +106,7 @@ trait Ajax_Common
 
     private static function get_favorites_with_text()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
 
         $settings = Info::get('db')->get(
             "SELECT favorites_order FROM user_settings WHERE group_id = {$userId}"
@@ -172,7 +172,7 @@ trait Ajax_Common
         $sql = "SELECT f.ID as FID, l.*, concat(l.num, ' - ',l.name) as dispName,
                         concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName, f.SONGID FROM piano_favorites f
                 left join song_list l ON l.ID=f.SONGID
-                where f.groupId={$_SESSION['userId']}
+                where f.groupId={$_SESSION['curGroupId']}
                 ORDER BY FID";
         $list = Info::get('db')->select($sql);
         return json_encode($list);
@@ -180,7 +180,7 @@ trait Ajax_Common
 
     private static function clear_favorites()
     {
-        $sql = "DELETE FROM favorites WHERE groupId={$_SESSION['userId']}";
+        $sql = "DELETE FROM favorites WHERE groupId={$_SESSION['curGroupId']}";
         Info::get('db')->exec($sql);
         self::updateSocket();
         return '';
@@ -188,7 +188,7 @@ trait Ajax_Common
 
     private static function clear_piano_favorites()
     {
-        $sql = "DELETE FROM piano_favorites WHERE groupId={$_SESSION['userId']}";
+        $sql = "DELETE FROM piano_favorites WHERE groupId={$_SESSION['curGroupId']}";
         Info::get('db')->exec($sql);
         self::updateSocket();
         return '';
@@ -212,7 +212,7 @@ trait Ajax_Common
 
     private static function set_image()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $listId = mysqli_escape_string(Info::get('dbh'), self::$args['list_id']);
         $imageNum = mysqli_escape_string(Info::get('dbh'), self::$args['image_num']);
 
@@ -227,7 +227,7 @@ trait Ajax_Common
 
     private static function get_image()
     {
-        $userId = $_SESSION['userId'];
+        $userId = $_SESSION['curGroupId'];
         $img = Info::get('db')->select(
             "SELECT image, text, song_name, video_src, video_state
          FROM current WHERE groupId = " . (int)$userId
@@ -253,7 +253,7 @@ trait Ajax_Common
 
     private static function clear_image()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
 
         Info::get('db')->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
@@ -395,7 +395,7 @@ trait Ajax_Common
         if ($instance) {
             // [SECURITY] Include userId (groupId) so WebSocket broadcasts to the correct group
             // If $targetGroupId is specified, notify that group; otherwise notify current user's group
-            $groupId = $targetGroupId !== null ? (int)$targetGroupId : (isset($_SESSION['userId']) ? (int)$_SESSION['userId'] : null);
+            $groupId = $targetGroupId !== null ? (int)$targetGroupId : (isset($_SESSION['curGroupId']) ? (int)$_SESSION['curGroupId'] : null);
             fwrite($instance, json_encode(['type' => 'update_needed', 'groupId' => $groupId]) . "\n");
             fclose($instance);
         }
@@ -409,7 +409,7 @@ trait Ajax_Common
 
     private static function get_user_settings()
     {
-        $userId = $_SESSION['userId'];
+        $userId = $_SESSION['curGroupId'];
         $settings = Info::get('db')->get("SELECT * FROM user_settings WHERE group_id = {$userId}");
 
         if (!$settings) {

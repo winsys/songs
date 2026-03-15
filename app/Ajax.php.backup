@@ -11,7 +11,7 @@ class Ajax
     public static function execute($cmd)
     {
         $command = $cmd['command'];
-        if( !isset($_SESSION['userId']) ){
+        if( !isset($_SESSION['curGroupId']) ){
             return json_encode(array('status'=>false, 'message'=>'User not logged in!'));
         }
 
@@ -83,7 +83,7 @@ class Ajax
     private static function add_to_favorites()
     {
         $dbh    = Info::get('dbh');
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $songId = mysqli_real_escape_string($dbh, self::$args['id']);
 
         // Общий max sort_order по обоим спискам
@@ -106,7 +106,7 @@ class Ajax
 
     private static function add_to_piano_favorites()
     {
-        Info::get('db')->exec("insert into piano_favorites (groupId, SONGID) values ({$_SESSION['userId']},".mysqli_escape_string(Info::get('dbh'), self::$args['id']).")");
+        Info::get('db')->exec("insert into piano_favorites (groupId, SONGID) values ({$_SESSION['curGroupId']},".mysqli_escape_string(Info::get('dbh'), self::$args['id']).")");
         self::updateSocket();
         return '';
     }
@@ -114,7 +114,7 @@ class Ajax
 
     private static function get_favorites()
     {
-        $userId = $_SESSION['userId'];
+        $userId = $_SESSION['curGroupId'];
         $sql = "SELECT f.ID as FID, l.*,
                        concat(l.num, ' - ', l.name) as dispName,
                        concat('/images/', l.LISTID, '/', l.num, '.jpg') as imageName,
@@ -135,7 +135,7 @@ class Ajax
 
     private static function get_favorites_with_text()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
 
         $settings = Info::get('db')->get(
             "SELECT favorites_order FROM user_settings WHERE user_id = {$userId}"
@@ -201,7 +201,7 @@ class Ajax
         $sql = "SELECT f.ID as FID, l.*, concat(l.num, ' - ',l.name) as dispName, 
                         concat('/images/',l.LISTID,'/',l.num,'.jpg') as imageName, f.SONGID FROM piano_favorites f 
                 left join song_list l ON l.ID=f.SONGID
-                where f.groupId={$_SESSION['userId']}                                                                  
+                where f.groupId={$_SESSION['curGroupId']}
                 ORDER BY FID";
         $list = Info::get('db')->select($sql);
         return json_encode($list);
@@ -209,7 +209,7 @@ class Ajax
 
     private static function clear_favorites()
     {
-        $sql = "DELETE FROM favorites WHERE groupId={$_SESSION['userId']}";
+        $sql = "DELETE FROM favorites WHERE groupId={$_SESSION['curGroupId']}";
         Info::get('db')->exec($sql);
         self::updateSocket();
         return '';
@@ -217,7 +217,7 @@ class Ajax
 
     private static function clear_piano_favorites()
     {
-        $sql = "DELETE FROM piano_favorites WHERE groupId={$_SESSION['userId']}";
+        $sql = "DELETE FROM piano_favorites WHERE groupId={$_SESSION['curGroupId']}";
         Info::get('db')->exec($sql);
         self::updateSocket();
         return '';
@@ -243,7 +243,7 @@ class Ajax
 
     private static function set_image()
     {
-        Info::get('db')->exec("insert into current (groupId, image) values ({$_SESSION['userId']}, '/images/".
+        Info::get('db')->exec("insert into current (groupId, image) values ({$_SESSION['curGroupId']}, '/images/".
             mysqli_escape_string(Info::get('dbh'), self::$args['list_id'])."/".
             mysqli_escape_string(Info::get('dbh'), self::$args['image_num']).".jpg')");
         self::updateSocket();
@@ -252,7 +252,7 @@ class Ajax
 
     private static function get_image()
     {
-        $userId = $_SESSION['userId'];
+        $userId = $_SESSION['curGroupId'];
         $img = Info::get('db')->select(
             "SELECT image, text, song_name, video_src, video_state
          FROM current WHERE groupId = " . (int)$userId
@@ -279,7 +279,7 @@ class Ajax
     private static function set_tech_image()
     {
         $dbh        = Info::get('dbh');
-        $userId     = (int)$_SESSION['userId'];
+        $userId     = (int)$_SESSION['curGroupId'];
         $image_name = mysqli_real_escape_string($dbh, self::$args['image_name'] ?? '');
 
         Info::get('db')->exec("DELETE FROM current WHERE groupId = {$userId}");
@@ -294,7 +294,7 @@ class Ajax
     private static function set_text()
     {
         $dbh        = Info::get('dbh');
-        $userId     = (int)$_SESSION['userId'];
+        $userId     = (int)$_SESSION['curGroupId'];
         $text       = mysqli_real_escape_string($dbh, self::$args['text']       ?? '');
         $image_name = mysqli_real_escape_string($dbh, self::$args['image_name'] ?? ''); // [FIX #2]
         $song_name  = mysqli_real_escape_string($dbh, self::$args['song_name']  ?? ''); // [FIX #2]
@@ -311,7 +311,7 @@ class Ajax
 
     private static function clear_image()
     {
-        Info::get('db')->exec("delete from current where groupId=".$_SESSION['userId']);
+        Info::get('db')->exec("delete from current where groupId=".$_SESSION['curGroupId']);
         self::updateSocket();
         return '';
     }
@@ -521,7 +521,7 @@ class Ajax
     // -----------------------------------------------------------
     private static function set_bible_text()
     {
-        $userId    = (int)$_SESSION['userId'];
+        $userId    = (int)$_SESSION['curGroupId'];
         $text      = mysqli_escape_string(Info::get('dbh'), self::$args['text']);
         $song_name = mysqli_escape_string(Info::get('dbh'), self::$args['song_name']);
 
@@ -547,7 +547,7 @@ class Ajax
 
     private static function get_sermon_list()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $list = Info::get('db')->select(
             "SELECT ID, TITLE, SERMON_DATE, UPDATED_AT
              FROM sermons
@@ -559,7 +559,7 @@ class Ajax
 
     private static function get_sermon()
     {
-        $userId   = (int)$_SESSION['userId'];
+        $userId   = (int)$_SESSION['curGroupId'];
         $sermonId = (int)self::$args['id'];
         $list = Info::get('db')->select(
             "SELECT ID, TITLE, SERMON_DATE, CONTENT
@@ -572,7 +572,7 @@ class Ajax
 
     private static function save_sermon()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $dbh    = Info::get('dbh');
 
         $sermonId = isset(self::$args['id']) ? (int)self::$args['id'] : 0;
@@ -616,7 +616,7 @@ class Ajax
 
     private static function delete_sermon()
     {
-        $userId   = (int)$_SESSION['userId'];
+        $userId   = (int)$_SESSION['curGroupId'];
         $sermonId = (int)self::$args['id'];
         Info::get('db')->exec(
             "DELETE FROM sermons WHERE ID = {$sermonId} AND USER_ID = {$userId}"
@@ -626,7 +626,7 @@ class Ajax
 
     private static function upload_sermon_image()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
 
         if (!isset($_FILES['image'])) {
             return json_encode(['status' => 'error', 'message' => 'No file in $_FILES["image"]']);
@@ -731,7 +731,7 @@ class Ajax
     // Показать абзац послания на экране текста
     private static function set_message_text()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $dbh = Info::get('dbh');
         $text = mysqli_real_escape_string($dbh, self::$args['text']);
         $song_name = mysqli_real_escape_string($dbh, self::$args['song_name']);
@@ -785,7 +785,7 @@ class Ajax
         $row = Info::get('db')->get("SELECT MAX(LIST_ID) AS max_id FROM list_names");
         $nextId = ($row && $row['max_id']) ? (int)$row['max_id'] + 1 : 1;
 
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         Info::get('db')->exec(
             "INSERT INTO list_names (LIST_ID, LIST_NAME, ADDEDBY) VALUES ({$nextId}, '{$name}', {$userId})"
         );
@@ -1021,7 +1021,7 @@ class Ajax
 
         $dbh = Info::get('dbh');
         $db = Info::get('db');
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $log = [];
         $inserted = 0;
         $updated = 0;
@@ -1204,7 +1204,7 @@ class Ajax
 
         $dbh  = Info::get('dbh');
         $db   = Info::get('db');
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
 
         $textField = $lang === 'ru' ? 'TEXT' : ($lang === 'lt' ? 'TEXT_LT' : 'TEXT_EN');
 
@@ -1482,7 +1482,7 @@ class Ajax
 
     private static function get_user_settings()
     {
-        $userId = $_SESSION['userId'];
+        $userId = $_SESSION['curGroupId'];
         $settings = Info::get('db')->get("SELECT * FROM user_settings WHERE user_id = {$userId}");
 
         if (!$settings) {
@@ -1518,7 +1518,7 @@ class Ajax
 
     private static function save_user_settings()
     {
-        $userId = $_SESSION['userId'];
+        $userId = $_SESSION['curGroupId'];
         $settings = self::$args['settings'];
 
         $displayName             = mysqli_escape_string(Info::get('dbh'), $settings['display_name']);
@@ -1584,7 +1584,7 @@ class Ajax
 
     private static function save_sermon_notes_settings()
     {
-        $userId   = (int)$_SESSION['userId'];
+        $userId   = (int)$_SESSION['curGroupId'];
         $fontSize = isset(self::$args['sermon_notes_font_size']) ? intval(self::$args['sermon_notes_font_size']) : 13;
         $scale    = isset(self::$args['sermon_scale_chips'])     ? intval(self::$args['sermon_scale_chips'])     : 0;
 
@@ -1606,7 +1606,7 @@ class Ajax
 
     private static function get_group_users()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $users  = Info::get('db')->select(
             "SELECT ID, NAME, LOGIN, PASS, ROLE
              FROM users
@@ -1625,7 +1625,7 @@ class Ajax
 
     private static function update_group_user()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $dbh    = Info::get('dbh');
         $id     = (int)self::$args['id'];
         $name   = mysqli_real_escape_string($dbh, self::$args['name']  ?? '');
@@ -1653,7 +1653,7 @@ class Ajax
 
     private static function create_group_user()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $dbh    = Info::get('dbh');
         $role   = mysqli_real_escape_string($dbh, self::$args['role'] ?? '');
 
@@ -1738,7 +1738,7 @@ class Ajax
             mkdir($uploadDir, 0755, true);
         }
 
-        $userId   = (int)$_SESSION['userId'];
+        $userId   = (int)$_SESSION['curGroupId'];
         $filename = 'placeholder_' . $userId . '.' . $ext;
         $target   = $uploadDir . $filename;
 
@@ -1755,7 +1755,7 @@ class Ajax
      */
     private static function upload_sermon_video()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
 
         if (!isset($_FILES['video']) || $_FILES['video']['error'] !== UPLOAD_ERR_OK) {
             $code = isset($_FILES['video']) ? $_FILES['video']['error'] : -1;
@@ -1805,7 +1805,7 @@ class Ajax
     private static function set_video()
     {
         $dbh        = Info::get('dbh');
-        $userId     = (int)$_SESSION['userId'];
+        $userId     = (int)$_SESSION['curGroupId'];
         $videoSrc   = mysqli_real_escape_string($dbh, self::$args['video_src']   ?? '');
         $videoState = mysqli_real_escape_string($dbh, self::$args['video_state'] ?? 'playing');
 
@@ -1825,7 +1825,7 @@ class Ajax
     private static function video_control()
     {
         $dbh        = Info::get('dbh');
-        $userId     = (int)$_SESSION['userId'];
+        $userId     = (int)$_SESSION['curGroupId'];
         $videoState = mysqli_real_escape_string($dbh, self::$args['video_state'] ?? 'stopped');
 
         $row = Info::get('db')->get("SELECT groupId FROM current WHERE groupId = {$userId}");
@@ -1846,7 +1846,7 @@ class Ajax
     private static function add_media_to_favorites()
     {
         $dbh       = Info::get('dbh');
-        $userId    = (int)$_SESSION['userId'];
+        $userId    = (int)$_SESSION['curGroupId'];
         $name      = mysqli_real_escape_string($dbh, self::$args['name']       ?? '');
         $src       = mysqli_real_escape_string($dbh, self::$args['src']        ?? '');
         $mediaType = mysqli_real_escape_string($dbh, self::$args['media_type'] ?? 'image');
@@ -1876,7 +1876,7 @@ class Ajax
      */
     private static function delete_media_favorite()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $id     = (int)self::$args['id'];
 
         Info::get('db')->exec(
@@ -1892,7 +1892,7 @@ class Ajax
      */
     private static function upload_media_image()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
 
         if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
             return json_encode(['status' => 'error', 'message' => 'Upload error']);
@@ -1946,7 +1946,7 @@ class Ajax
      */
     private static function upload_media_video()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
 
         if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
             return json_encode(['status' => 'error', 'message' => 'Upload error']);

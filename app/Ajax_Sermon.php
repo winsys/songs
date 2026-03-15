@@ -8,7 +8,7 @@ trait Ajax_Sermon
 {
     private static function get_sermon_list()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $list = Info::get('db')->select(
             "SELECT ID, TITLE, SERMON_DATE, UPDATED_AT
              FROM sermons
@@ -20,7 +20,7 @@ trait Ajax_Sermon
 
     private static function get_sermon()
     {
-        $userId   = (int)$_SESSION['userId'];
+        $userId   = (int)$_SESSION['curGroupId'];
         $sermonId = (int)self::$args['id'];
         $list = Info::get('db')->select(
             "SELECT ID, TITLE, SERMON_DATE, CONTENT
@@ -33,7 +33,7 @@ trait Ajax_Sermon
 
     private static function save_sermon()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $dbh    = Info::get('dbh');
 
         $sermonId = isset(self::$args['id']) ? (int)self::$args['id'] : 0;
@@ -77,7 +77,7 @@ trait Ajax_Sermon
 
     private static function delete_sermon()
     {
-        $userId   = (int)$_SESSION['userId'];
+        $userId   = (int)$_SESSION['curGroupId'];
         $sermonId = (int)self::$args['id'];
         Info::get('db')->exec(
             "DELETE FROM sermons WHERE ID = {$sermonId} AND USER_ID = {$userId}"
@@ -87,7 +87,7 @@ trait Ajax_Sermon
 
     private static function upload_sermon_image()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
 
         if (!isset($_FILES['image'])) {
             return json_encode(['status' => 'error', 'message' => 'No file in $_FILES["image"]']);
@@ -135,7 +135,7 @@ trait Ajax_Sermon
      */
     private static function upload_sermon_video()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
 
         if (!isset($_FILES['video']) || $_FILES['video']['error'] !== UPLOAD_ERR_OK) {
             $code = isset($_FILES['video']) ? $_FILES['video']['error'] : -1;
@@ -180,7 +180,7 @@ trait Ajax_Sermon
 
     private static function save_sermon_notes_settings()
     {
-        $userId   = (int)$_SESSION['userId'];
+        $userId   = (int)$_SESSION['curGroupId'];
         $fontSize = isset(self::$args['sermon_notes_font_size']) ? intval(self::$args['sermon_notes_font_size']) : 13;
         $scale    = isset(self::$args['sermon_scale_chips'])     ? intval(self::$args['sermon_scale_chips'])     : 0;
 
@@ -202,7 +202,7 @@ trait Ajax_Sermon
      */
     private static function delete_sermon_media()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $path   = isset(self::$args['path']) ? self::$args['path'] : '';
 
         if (empty($path)) {
@@ -244,7 +244,7 @@ trait Ajax_Sermon
      */
     private static function get_display_targets()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
 
         // Own group (userId in session is actually the GROUP_ID)
         $ownGroup = Info::get('db')->get(
@@ -288,7 +288,7 @@ trait Ajax_Sermon
      */
     private static function get_available_groups()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
 
         // Get all groups except own
         $allGroups = Info::get('db')->select(
@@ -330,7 +330,7 @@ trait Ajax_Sermon
      */
     private static function request_display_access()
     {
-        $userId        = (int)$_SESSION['userId'];
+        $userId        = (int)$_SESSION['curGroupId'];
         $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : 0;
 
         if ($targetGroupId <= 0 || $targetGroupId === $userId) {
@@ -393,7 +393,7 @@ trait Ajax_Sermon
      */
     private static function get_pending_access_requests()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
 
         $requests = Info::get('db')->select(
             "SELECT dar.id, dar.requester_group_id, dar.requested_at,
@@ -424,7 +424,7 @@ trait Ajax_Sermon
      */
     private static function respond_to_access_request()
     {
-        $userId    = (int)$_SESSION['userId'];
+        $userId    = (int)$_SESSION['curGroupId'];
         $requestId = isset(self::$args['request_id']) ? (int)self::$args['request_id'] : 0;
         $action    = isset(self::$args['action']) ? self::$args['action'] : '';
 

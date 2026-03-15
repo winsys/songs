@@ -248,7 +248,7 @@ class App
 
         // Log in the user - IMPORTANT: set loggedIn flag!
         $_SESSION['loggedIn'] = true;
-        $_SESSION['userId'] = isset($user['GROUP_ID']) && $user['GROUP_ID'] > 0
+        $_SESSION['curGroupId'] = isset($user['GROUP_ID']) && $user['GROUP_ID'] > 0
             ? (int)$user['GROUP_ID']
             : (int)$user['ID'];
         $_SESSION['userName'] = $user['NAME'];
@@ -352,7 +352,7 @@ class App
 
         // Log in the user - IMPORTANT: set loggedIn flag!
         $_SESSION['loggedIn'] = true;
-        $_SESSION['userId'] = isset($user['GROUP_ID']) && $user['GROUP_ID'] > 0
+        $_SESSION['curGroupId'] = isset($user['GROUP_ID']) && $user['GROUP_ID'] > 0
             ? (int)$user['GROUP_ID']
             : (int)$user['ID'];
         $_SESSION['userName'] = $user['NAME'];
@@ -460,7 +460,7 @@ class App
 
     private function render($view, $param = null, $layout = null)
     {
-        $userId = (int)($_SESSION['userId'] ?? 0);
+        $userId = (int)($_SESSION['curGroupId'] ?? 0);
         $viewFile = '../templates/' . $view . '.html';
         if (is_readable($viewFile)) {
             ob_start();

@@ -104,7 +104,7 @@ class Ajax
     public static function execute($cmd)
     {
         $command = $cmd['command'];
-        if( !isset($_SESSION['userId']) ){
+        if( !isset($_SESSION['curGroupId']) ){
             return json_encode(array('status'=>false, 'message'=>'User not logged in!'));
         }
 
