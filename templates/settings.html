@@ -313,7 +313,7 @@
 
 <script type="text/javascript">
     // Передаём ID текущего пользователя в JavaScript
-    window.currentUserId = <?php echo isset($_SESSION['curGroupId']) ? (int)$_SESSION['curGroupId'] : 0; ?>;
+    window.currentUserId = <?php echo isset($_SESSION['curUserId']) ? (int)$_SESSION['curUserId'] : 0; ?>;
 </script>
 
 <div ng-controller="Settings">
@@ -614,4 +614,4 @@
     </div>
 </div>
 
-<script src="/js/settings.js?v=10004" type="text/javascript"></script>
+<script src="/js/settings.js?v=10005" type="text/javascript"></script>
