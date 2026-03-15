@@ -98,7 +98,10 @@ app.controller('Leader', function ($scope, $http)
         console.log('Leader: openFullscreen called, elemId=' + elemId + ', fullScreen=' + $scope.fullScreen);
 
         if(!$scope.fullScreen){
-            console.log('Leader: opening fullscreen, calling set_image');
+            console.log('Leader: opening fullscreen, setting flag BEFORE set_image');
+            // Set fullScreen flag BEFORE sending set_image to prevent race condition with WebSocket
+            $scope.fullScreen = true;
+
             $http({ method: "POST",
                     url: "/ajax",
                     data: { command: 'set_image',
@@ -114,9 +117,6 @@ app.controller('Leader', function ($scope, $http)
                     if (wrapElement && wrapElement.requestFullscreen) {
                         wrapElement.requestFullscreen().then(function() {
                             console.log('Leader: fullscreen opened successfully');
-                            $scope.$apply(function() {
-                                $scope.fullScreen = true;
-                            });
                         }).catch(function(err) {
                             console.log('Leader: fullscreen request failed:', err);
                             $scope.$apply(function() {
@@ -125,7 +125,12 @@ app.controller('Leader', function ($scope, $http)
                         });
                     } else {
                         console.log('Leader: wrapElement or requestFullscreen not available');
+                        $scope.fullScreen = false;
                     }
+                },
+                function error(){
+                    console.log('Leader: set_image failed, resetting fullScreen flag');
+                    $scope.fullScreen = false;
                 });
         }else{
             console.log('Leader: closing fullscreen, calling clear_image');
