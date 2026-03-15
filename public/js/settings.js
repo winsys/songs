@@ -175,20 +175,26 @@ app.controller('Settings', function ($scope, $http)
         $http({ method: 'POST', url: '/ajax', data: { command: 'get_group_users' } }).then(
             function success(r) {
                 var users = r.data || [];
-                console.log('Current user ID:', $scope.getCurrentUserId());
-                console.log('Loaded users:', users);
-                console.log('Permissions:', $scope.permissions);
 
                 // Сбросить слоты
                 $scope.userSlots = ALL_ROLES.map(function(slot) {
                     var found = null;
                     for (var i = 0; i < users.length; i++) {
-                        if (users[i].ROLE === slot.role) { found = users[i]; break; }
+                        if (users[i].ROLE === slot.role) {
+                            found = users[i];
+                            found.googleAccounts = [];
+                            break;
+                        }
                     }
                     return { role: slot.role, roleLabel: slot.roleLabel, user: found };
                 });
 
-                console.log('User slots:', $scope.userSlots);
+                // Load Google accounts for each user
+                $scope.userSlots.forEach(function(slot) {
+                    if (slot.user) {
+                        $scope.loadGoogleAccounts(slot.user);
+                    }
+                });
             },
             function error(e) { console.log('loadGroupUsers error:', e); }
         );
@@ -250,8 +256,26 @@ app.controller('Settings', function ($scope, $http)
     };
 
     // ============================================================
-    // GOOGLE ACCOUNT LINKING
+    // GOOGLE ACCOUNT LINKING (Multiple accounts support)
     // ============================================================
+
+    $scope.loadGoogleAccounts = function(user) {
+        $http({ method: 'POST', url: '/ajax', data: {
+            command: 'get_google_account_status',
+            user_id: user.ID
+        }}).then(
+            function success(r) {
+                if (r.data && r.data.status === 'ok') {
+                    user.googleAccounts = r.data.accounts || [];
+                } else {
+                    user.googleAccounts = [];
+                }
+            },
+            function error(e) {
+                user.googleAccounts = [];
+            }
+        );
+    };
 
     $scope.linkGoogleAccount = function(user) {
         $http({ method: 'POST', url: '/ajax', data: {
@@ -270,16 +294,16 @@ app.controller('Settings', function ($scope, $http)
         );
     };
 
-    $scope.unlinkGoogleAccount = function(user) {
-        if (!confirm('Отвязать Google аккаунт от этого пользователя?')) return;
+    $scope.unlinkGoogleAccount = function(user, accountId) {
+        if (!confirm('Отвязать этот Google аккаунт?')) return;
 
         $http({ method: 'POST', url: '/ajax', data: {
             command: 'unlink_google_account',
-            user_id: user.ID
+            account_id: accountId
         }}).then(
             function success(r) {
                 if (r.data && r.data.status === 'ok') {
-                    user.GOOGLE_ID = null;
+                    $scope.loadGoogleAccounts(user);
                     alert('✅ Google аккаунт отвязан!');
                 } else {
                     alert('❌ Ошибка: ' + (r.data.message || 'Unknown error'));
@@ -287,6 +311,12 @@ app.controller('Settings', function ($scope, $http)
             },
             function error(e) { alert('❌ Ошибка при отвязке Google аккаунта!'); }
         );
+    };
+
+    $scope.formatDate = function(dateString) {
+        if (!dateString) return '';
+        var d = new Date(dateString);
+        return d.toLocaleDateString('ru-RU');
     };
 
     $scope.loadPermissions();

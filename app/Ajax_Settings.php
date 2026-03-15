@@ -86,15 +86,17 @@ trait Ajax_Settings
         $currentUserId = (int)$_SESSION['curUserId'];
 
         $users  = Info::get('db')->select(
-            "SELECT ID, NAME, LOGIN, PASS, ROLE, GOOGLE_ID
-             FROM users
-             WHERE GROUP_ID = {$groupId}
-                OR ID = {$currentUserId}
-             ORDER BY FIELD(ROLE, 'admin', 'leader', 'musician', 'preacher', 'tech')"
+            "SELECT u.ID, u.NAME, u.LOGIN, u.PASS, u.ROLE,
+                    (SELECT COUNT(*) FROM user_google_accounts WHERE user_id = u.ID) as google_accounts_count
+             FROM users u
+             WHERE u.GROUP_ID = {$groupId}
+                OR u.ID = {$currentUserId}
+             ORDER BY FIELD(u.ROLE, 'admin', 'leader', 'musician', 'preacher', 'tech')"
         );
 
         foreach ($users as &$u) {
             $u['PASS'] = Security::decryptPassword($u['PASS']);
+            $u['HAS_GOOGLE'] = (int)$u['google_accounts_count'] > 0;
         }
         unset($u);
 
@@ -356,19 +358,33 @@ trait Ajax_Settings
         }
 
         $googleId = mysqli_real_escape_string(Info::get('dbh'), $userInfo['id']);
+        $googleEmail = mysqli_real_escape_string(Info::get('dbh'), $userInfo['email'] ?? '');
+        $googleName = mysqli_real_escape_string(Info::get('dbh'), $userInfo['name'] ?? '');
 
-        // Check if this Google account is already linked to another user
+        // Check if this Google account is already linked
         $existing = Info::get('db')->get(
-            "SELECT ID FROM users WHERE GOOGLE_ID = '{$googleId}' AND ID != {$targetUserId}"
+            "SELECT id, user_id FROM user_google_accounts WHERE google_id = '{$googleId}'"
         );
         if ($existing) {
-            return json_encode(['status' => 'error', 'message' => 'This Google account is already linked to another user']);
+            if ((int)$existing['user_id'] === $targetUserId) {
+                // Already linked to this user - update info and last_used
+                Info::get('db')->exec(
+                    "UPDATE user_google_accounts
+                     SET google_email = '{$googleEmail}',
+                         google_name = '{$googleName}',
+                         last_used = NOW()
+                     WHERE google_id = '{$googleId}'"
+                );
+            } else {
+                return json_encode(['status' => 'error', 'message' => 'This Google account is already linked to another user']);
+            }
+        } else {
+            // Link new Google account to user
+            Info::get('db')->exec(
+                "INSERT INTO user_google_accounts (user_id, google_id, google_email, google_name, linked_at, last_used)
+                 VALUES ({$targetUserId}, '{$googleId}', '{$googleEmail}', '{$googleName}', NOW(), NOW())"
+            );
         }
-
-        // Link Google account to user
-        Info::get('db')->exec(
-            "UPDATE users SET GOOGLE_ID = '{$googleId}' WHERE ID = {$targetUserId}"
-        );
 
         // Clean up session
         unset($_SESSION['google_link_user_id']);
@@ -382,31 +398,41 @@ trait Ajax_Settings
     }
 
     /**
-     * Unlink Google account from user
+     * Unlink specific Google account from user
      */
     private static function unlink_google_account()
     {
         $groupId = (int)$_SESSION['curGroupId'];
         $currentUserId = (int)$_SESSION['curUserId'];
-        $targetUserId = isset(self::$args['user_id']) ? (int)self::$args['user_id'] : $currentUserId;
+        $accountId = isset(self::$args['account_id']) ? (int)self::$args['account_id'] : 0;
 
-        // Verify permission
-        $check = Info::get('db')->get(
-            "SELECT ID FROM users WHERE ID = {$targetUserId} AND (ID = {$currentUserId} OR GROUP_ID = {$groupId})"
+        if (!$accountId) {
+            return json_encode(['status' => 'error', 'message' => 'Account ID required']);
+        }
+
+        // Verify this Google account belongs to current user or group member
+        $googleAccount = Info::get('db')->get(
+            "SELECT uga.id, uga.user_id
+             FROM user_google_accounts uga
+             JOIN users u ON uga.user_id = u.ID
+             WHERE uga.id = {$accountId}
+               AND (u.ID = {$currentUserId} OR u.GROUP_ID = {$groupId})"
         );
-        if (!$check) {
+
+        if (!$googleAccount) {
             return json_encode(['status' => 'error', 'message' => 'Access denied']);
         }
 
+        // Delete the Google account link
         Info::get('db')->exec(
-            "UPDATE users SET GOOGLE_ID = NULL WHERE ID = {$targetUserId}"
+            "DELETE FROM user_google_accounts WHERE id = {$accountId}"
         );
 
         return json_encode(['status' => 'ok']);
     }
 
     /**
-     * Get Google account status for users
+     * Get all linked Google accounts for a user
      */
     private static function get_google_account_status()
     {
@@ -414,8 +440,9 @@ trait Ajax_Settings
         $currentUserId = (int)$_SESSION['curUserId'];
         $targetUserId = isset(self::$args['user_id']) ? (int)self::$args['user_id'] : $currentUserId;
 
+        // Verify permission
         $user = Info::get('db')->get(
-            "SELECT ID, GOOGLE_ID FROM users
+            "SELECT ID FROM users
              WHERE ID = {$targetUserId} AND (ID = {$currentUserId} OR GROUP_ID = {$groupId})"
         );
 
@@ -423,10 +450,19 @@ trait Ajax_Settings
             return json_encode(['status' => 'error', 'message' => 'User not found']);
         }
 
+        // Get all Google accounts linked to this user
+        $googleAccounts = Info::get('db')->select(
+            "SELECT id, google_id, google_email, google_name, linked_at, last_used
+             FROM user_google_accounts
+             WHERE user_id = {$targetUserId}
+             ORDER BY linked_at DESC"
+        );
+
         return json_encode([
             'status' => 'ok',
-            'linked' => !empty($user['GOOGLE_ID']),
-            'google_id' => $user['GOOGLE_ID'] ?? null
+            'linked' => count($googleAccounts) > 0,
+            'accounts' => $googleAccounts
         ]);
     }
 }
+
