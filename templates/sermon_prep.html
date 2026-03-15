@@ -166,6 +166,14 @@
         background: #fff;
     }
 
+    #sermon-editor blockquote {
+        border-left: 4px solid #ccc;
+        margin-left: 0;
+        padding-left: 15px;
+        color: #666;
+        font-style: italic;
+    }
+
     /* ── Translation buttons ─────────────────────────────────────── */
     .tr-btn {
         font-size: 11px;
@@ -1185,6 +1193,30 @@
                             ng-mousedown="$event.preventDefault(); execFmt('underline')"><u>U</u></button>
                     <button class="toolbar-btn" title="Курсив (Ctrl+I)"
                             ng-mousedown="$event.preventDefault(); execFmt('italic')"><i>I</i></button>
+                    <button class="toolbar-btn" title="Зачеркнутый"
+                            ng-mousedown="$event.preventDefault(); execFmt('strikeThrough')"><strike>S</strike></button>
+                    <div class="toolbar-sep"></div>
+                    <button class="toolbar-btn" title="Маркированный список"
+                            ng-mousedown="$event.preventDefault(); execFmt('insertUnorderedList')">• Список</button>
+                    <button class="toolbar-btn" title="Нумерованный список"
+                            ng-mousedown="$event.preventDefault(); execFmt('insertOrderedList')">1. Список</button>
+
+                    <!-- Заголовки и Цитата -->
+                    <div class="toolbar-sep"></div>
+                    <select class="toolbar-select"
+                            style="padding: 2px; font-size: 12px; border: 1px solid #ddd; border-radius: 4px;"
+                            ng-change="execFmt('formatBlock', headingModel); headingModel=''"
+                            ng-model="headingModel">
+                        <option value="" disabled selected>Заголовок</option>
+                        <option value="H1">Заголовок 1</option>
+                        <option value="H2">Заголовок 2</option>
+                        <option value="H3">Заголовок 3</option>
+                        <option value="H4">Заголовок 4</option>
+                        <option value="H5">Заголовок 5</option>
+                        <option value="H6">Заголовок 6</option>
+                        <option value="BLOCKQUOTE">Цитата</option>
+                        <option value="P">Обычный текст</option>
+                    </select>
 
                     <div class="toolbar-sep"></div>
 
