@@ -268,6 +268,7 @@ class App
 
         // Log in the user - IMPORTANT: set loggedIn flag!
         $_SESSION['loggedIn'] = true;
+        $_SESSION['curUserId'] = (int)$user['ID'];
         $_SESSION['curGroupId'] = isset($user['GROUP_ID']) && $user['GROUP_ID'] > 0
             ? (int)$user['GROUP_ID']
             : (int)$user['ID'];
@@ -392,6 +393,7 @@ class App
 
         // Log in the user - IMPORTANT: set loggedIn flag!
         $_SESSION['loggedIn'] = true;
+        $_SESSION['curUserId'] = (int)$user['ID'];
         $_SESSION['curGroupId'] = isset($user['GROUP_ID']) && $user['GROUP_ID'] > 0
             ? (int)$user['GROUP_ID']
             : (int)$user['ID'];
