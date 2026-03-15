@@ -490,13 +490,12 @@ trait Ajax_Tech
     private static function get_standard_wallpapers()
     {
         $userId = (int)$_SESSION['curUserId'];
-        $groupId = (int)$_SESSION['curGroupId'];
 
-        // Проверка прав администратора (роль 1)
+        // Проверка прав администратора (роль 'admin')
         $userRow = Info::get('db')->get(
-            "SELECT role FROM users WHERE ID = {$userId} AND groupId = {$groupId}"
+            "SELECT ROLE FROM users WHERE ID = {$userId}"
         );
-        $isAdmin = ($userRow && (int)$userRow['role'] === 1);
+        $isAdmin = ($userRow && strtolower($userRow['ROLE']) === 'admin');
 
         $wallpapers = Info::get('db')->select(
             "SELECT id, name, src FROM standard_wallpapers ORDER BY id DESC"
@@ -545,14 +544,13 @@ trait Ajax_Tech
     private static function delete_wallpaper()
     {
         $userId = (int)$_SESSION['curUserId'];
-        $groupId = (int)$_SESSION['curGroupId'];
         $id = (int)self::$args['id'];
 
-        // Проверка прав администратора (роль 1)
+        // Проверка прав администратора (роль 'admin')
         $userRow = Info::get('db')->get(
-            "SELECT role FROM users WHERE ID = {$userId} AND groupId = {$groupId}"
+            "SELECT ROLE FROM users WHERE ID = {$userId}"
         );
-        if (!$userRow || (int)$userRow['role'] !== 1) {
+        if (!$userRow || strtolower($userRow['ROLE']) !== 'admin') {
             return json_encode(['status' => 'error', 'message' => 'Access denied']);
         }
 
