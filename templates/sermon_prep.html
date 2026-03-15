@@ -1301,6 +1301,9 @@
                         {{ saveStatus === 'saving' ? 'Сохранение...' : (saveStatus === 'saved' ? '✓ Сохранено' : '') }}
                     </span>
                     </div>
+                    <button class="btn-export" ng-click="exportToMarkdown()" style="background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">
+                        ⬇️ Экспорт .md
+                    </button>
                     <button class="btn-list-toggle" ng-click="showSermonList = !showSermonList" title="Список проповедей">
                         📋 Список
                     </button>
@@ -1394,3 +1397,4 @@
 </div><!-- /ng-controller -->
 
 <script src="/js/sermon_prep.js?v=2" type="text/javascript"></script>
+<script src="https://unpkg.com"></script>
