@@ -166,6 +166,7 @@ class Security
         if ($passwordOk) {
             $_SESSION['loggedIn'] = true;
             $_SESSION['userName'] = $user['NAME'];
+            $_SESSION['curUserId'] = (int)$user['ID'];
             $_SESSION['curGroupId'] = isset($user['GROUP_ID']) && $user['GROUP_ID'] > 0
                 ? (int)$user['GROUP_ID']
                 : (int)$user['ID'];
@@ -272,7 +273,16 @@ class Security
     }
 
     /**
-     * Get current user ID for WebSocket connection.
+     * Get current user's real ID (not group ID).
+     * @return int
+     */
+    public static function getCurrentUserId(): int
+    {
+        return isset($_SESSION['curUserId']) ? (int)$_SESSION['curUserId'] : 0;
+    }
+
+    /**
+     * Get current user's group ID for WebSocket connection.
      * @return int
      */
     public static function getUserId(): int

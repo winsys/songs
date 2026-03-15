@@ -82,12 +82,14 @@ trait Ajax_Settings
 
     private static function get_group_users()
     {
-        $userId = (int)$_SESSION['curGroupId'];
+        $groupId = (int)$_SESSION['curGroupId'];
+        $currentUserId = (int)$_SESSION['curUserId'];
+
         $users  = Info::get('db')->select(
             "SELECT ID, NAME, LOGIN, PASS, ROLE, GOOGLE_ID
              FROM users
-             WHERE GROUP_ID = {$userId}
-                OR ID = {$userId}
+             WHERE GROUP_ID = {$groupId}
+                OR ID = {$currentUserId}
              ORDER BY FIELD(ROLE, 'admin', 'leader', 'musician', 'preacher', 'tech')"
         );
 
@@ -101,7 +103,8 @@ trait Ajax_Settings
 
     private static function update_group_user()
     {
-        $userId = (int)$_SESSION['curGroupId'];
+        $groupId = (int)$_SESSION['curGroupId'];
+        $currentUserId = (int)$_SESSION['curUserId'];
         $dbh    = Info::get('dbh');
         $id     = (int)self::$args['id'];
         $name   = mysqli_real_escape_string($dbh, self::$args['name']  ?? '');
@@ -112,12 +115,12 @@ trait Ajax_Settings
         if (Security::canManageUsers()) {
             // Админ может редактировать всех в своей группе
             $check = Info::get('db')->get(
-                "SELECT ID FROM users WHERE ID = {$id} AND (ID = {$userId} OR GROUP_ID = {$userId})"
+                "SELECT ID FROM users WHERE ID = {$id} AND (ID = {$currentUserId} OR GROUP_ID = {$groupId})"
             );
         } else {
             // Остальные могут редактировать только себя
             $check = Info::get('db')->get(
-                "SELECT ID FROM users WHERE ID = {$id} AND ID = {$userId}"
+                "SELECT ID FROM users WHERE ID = {$id} AND ID = {$currentUserId}"
             );
         }
 
@@ -135,7 +138,7 @@ trait Ajax_Settings
         );
 
         // [SECURITY #4] Regenerate session ID after password change for current user
-        if ($id === $userId) {
+        if ($id === $currentUserId) {
             session_regenerate_id(true);
         }
 
@@ -144,7 +147,8 @@ trait Ajax_Settings
 
     private static function create_group_user()
     {
-        $userId = (int)$_SESSION['curGroupId'];
+        $groupId = (int)$_SESSION['curGroupId'];
+        $currentUserId = (int)$_SESSION['curUserId'];
         $dbh    = Info::get('dbh');
         $role   = mysqli_real_escape_string($dbh, self::$args['role'] ?? '');
 
@@ -155,13 +159,13 @@ trait Ajax_Settings
 
         $existing = Info::get('db')->get(
             "SELECT ID FROM users
-             WHERE ROLE = '{$role}' AND (ID = {$userId} OR GROUP_ID = {$userId})"
+             WHERE ROLE = '{$role}' AND (ID = {$currentUserId} OR GROUP_ID = {$groupId})"
         );
         if ($existing) {
             return json_encode(['status' => 'error', 'message' => 'User already exists']);
         }
 
-        $adminUser = Info::get('db')->get("SELECT NAME FROM users WHERE ID = {$userId}");
+        $adminUser = Info::get('db')->get("SELECT NAME FROM users WHERE ID = {$currentUserId}");
         $groupName = $adminUser ? $adminUser['NAME'] : 'Group';
 
         $roleLabels = [
@@ -169,6 +173,7 @@ trait Ajax_Settings
             'leader'   => 'Ведущий',
             'musician' => 'Музыкант',
             'preacher' => 'Проповедник',
+            'tech'     => 'Техник',
         ];
         $defaultName  = $groupName . ' - ' . $roleLabels[$role];
         $defaultLogin = strtolower(preg_replace('/\s+/', '_', $groupName)) . '_' . $role;
@@ -189,7 +194,7 @@ trait Ajax_Settings
 
         Info::get('db')->exec(
             "INSERT INTO users (NAME, LOGIN, PASS, ROLE, GROUP_ID)
-             VALUES ('{$escapedName}', '{$escapedLogin}', '{$escapedPass}', '{$role}', {$userId})"
+             VALUES ('{$escapedName}', '{$escapedLogin}', '{$escapedPass}', '{$role}', {$groupId})"
         );
 
         $newId = Info::get('dbh')->insert_id;
@@ -249,12 +254,13 @@ trait Ajax_Settings
      */
     private static function get_google_oauth_url()
     {
-        $userId = (int)$_SESSION['curGroupId'];
-        $targetUserId = isset(self::$args['user_id']) ? (int)self::$args['user_id'] : $userId;
+        $groupId = (int)$_SESSION['curGroupId'];
+        $currentUserId = (int)$_SESSION['curUserId'];
+        $targetUserId = isset(self::$args['user_id']) ? (int)self::$args['user_id'] : $currentUserId;
 
         // Verify permission: can only link own account or group members
         $check = Info::get('db')->get(
-            "SELECT ID FROM users WHERE ID = {$targetUserId} AND (ID = {$userId} OR GROUP_ID = {$userId})"
+            "SELECT ID FROM users WHERE ID = {$targetUserId} AND (ID = {$currentUserId} OR GROUP_ID = {$groupId})"
         );
         if (!$check) {
             return json_encode(['status' => 'error', 'message' => 'Access denied']);
@@ -380,12 +386,13 @@ trait Ajax_Settings
      */
     private static function unlink_google_account()
     {
-        $userId = (int)$_SESSION['curGroupId'];
-        $targetUserId = isset(self::$args['user_id']) ? (int)self::$args['user_id'] : $userId;
+        $groupId = (int)$_SESSION['curGroupId'];
+        $currentUserId = (int)$_SESSION['curUserId'];
+        $targetUserId = isset(self::$args['user_id']) ? (int)self::$args['user_id'] : $currentUserId;
 
         // Verify permission
         $check = Info::get('db')->get(
-            "SELECT ID FROM users WHERE ID = {$targetUserId} AND (ID = {$userId} OR GROUP_ID = {$userId})"
+            "SELECT ID FROM users WHERE ID = {$targetUserId} AND (ID = {$currentUserId} OR GROUP_ID = {$groupId})"
         );
         if (!$check) {
             return json_encode(['status' => 'error', 'message' => 'Access denied']);
@@ -403,12 +410,13 @@ trait Ajax_Settings
      */
     private static function get_google_account_status()
     {
-        $userId = (int)$_SESSION['curGroupId'];
-        $targetUserId = isset(self::$args['user_id']) ? (int)self::$args['user_id'] : $userId;
+        $groupId = (int)$_SESSION['curGroupId'];
+        $currentUserId = (int)$_SESSION['curUserId'];
+        $targetUserId = isset(self::$args['user_id']) ? (int)self::$args['user_id'] : $currentUserId;
 
         $user = Info::get('db')->get(
             "SELECT ID, GOOGLE_ID FROM users
-             WHERE ID = {$targetUserId} AND (ID = {$userId} OR GROUP_ID = {$userId})"
+             WHERE ID = {$targetUserId} AND (ID = {$currentUserId} OR GROUP_ID = {$groupId})"
         );
 
         if (!$user) {
