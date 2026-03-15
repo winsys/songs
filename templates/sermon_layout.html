@@ -80,6 +80,16 @@
             flex-wrap: wrap;
         }
 
+        /* Обёртка: название + дата в одной колонке */
+        #notes-title-wrap {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+        }
+
         #notes-title {
             font-size: 13pt;
             font-weight: bold;
@@ -87,9 +97,17 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            flex: 1;
-            min-width: 150px;
         }
+
+        #notes-date {
+            font-size: 9pt;
+            color: var(--sn-notes-text-dim);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        #sermon-select-wrap { flex-shrink: 0; }
 
         .btn-back {
             display: inline-flex;
@@ -112,9 +130,6 @@
             color: #2c3e50;
             transform: translateX(-1px);
         }
-
-        #notes-date { font-size: 10pt; color: var(--sn-notes-text-dim); }
-        #sermon-select-wrap { flex-shrink: 0; }
 
         #display-target-wrap {
             display: flex;
@@ -567,7 +582,80 @@
             opacity: 1;
         }
 
+        /* ===== АДАПТИВ: компактный хедер при узком окне ===== */
+        @media (max-width: 680px) {
 
+            /* Скрываем дату, лейбл «Дисплей», кнопки шрифта, кнопку «+» */
+            #notes-date          { display: none; }
+            #display-target-label { display: none; }
+            #font-size-controls  { display: none; }
+            .request-access-btn  { display: none; }
+
+            /* --- Список проповедей → иконка книги --- */
+            #sermon-select-wrap {
+                position: relative;
+                width: 36px;
+                height: 36px;
+                flex-shrink: 0;
+            }
+            #sermon-select-wrap::before {
+                content: '📖';
+                position: absolute;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                pointer-events: none;
+                z-index: 1;
+                border-radius: 6px;
+                background: var(--sn-select-bg, rgba(255,255,255,0.08));
+                border: 1px solid var(--sn-notes-border);
+            }
+            #sermon-select {
+                position: absolute;
+                inset: 0;
+                opacity: 0;
+                width: 100%;
+                height: 100%;
+                cursor: pointer;
+                max-width: unset;
+                z-index: 2;
+            }
+
+            /* --- Список дисплеев → иконка монитора --- */
+            #display-target-wrap {
+                position: relative;
+                width: 36px;
+                height: 36px;
+                gap: 0;
+                flex-shrink: 0;
+            }
+            #display-target-wrap::before {
+                content: '🖥';
+                position: absolute;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 20px;
+                pointer-events: none;
+                z-index: 1;
+                border-radius: 6px;
+                background: var(--sn-select-bg, rgba(255,255,255,0.08));
+                border: 1px solid var(--sn-notes-border);
+            }
+            #display-target-select {
+                position: absolute;
+                inset: 0;
+                opacity: 0;
+                width: 100%;
+                height: 100%;
+                cursor: pointer;
+                max-width: unset;
+                z-index: 2;
+            }
+        }
     </style>
 </head>
 <body ng-controller="Sermon">
@@ -580,8 +668,10 @@
             <button class="btn-back" onclick="window.location.href='/index'">
                 ← Главная
             </button>
-            <div id="notes-title">{{ currentSermon ? currentSermon.TITLE || '(без названия)' : 'Выберите проповедь' }}</div>
-            <div id="notes-date">({{ currentSermon ? currentSermon.SERMON_DATE : '' }})</div>
+            <div id="notes-title-wrap">
+                <div id="notes-title">{{ currentSermon ? currentSermon.TITLE || '(без названия)' : 'Выберите проповедь' }}</div>
+                <div id="notes-date">{{ currentSermon ? currentSermon.SERMON_DATE : '' }}</div>
+            </div>
             <div id="sermon-select-wrap">
                 <select id="sermon-select" ng-model="selectedSermonId" ng-change="loadSermon(selectedSermonId)">
                     <option value="">— выбрать —</option>
