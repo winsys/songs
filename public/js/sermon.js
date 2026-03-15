@@ -55,68 +55,68 @@ angular.module('Songs', ['csrfModule'])
 
         $scope.groupCitations = function() {
             setTimeout(function() {
-                var container = document.getElementById('notes-body');
+                const container = document.getElementById('notes-body');
                 if (!container) return;
 
-                // Удаляем старые заголовки, если они были (на случай перезагрузки)
+                // Чистим старые заголовки
                 container.querySelectorAll('.sermon-group-header').forEach(h => h.remove());
 
-                var items = container.querySelectorAll('.bible-cite, .message-cite');
-                var lastKey = null;
+                const items = container.querySelectorAll('.bible-cite, .message-cite');
+                let lastGroupKey = null;
 
                 items.forEach(function(el) {
-                    var currentKey = "";
-                    var titleText = "";
+                    let currentKey = "";
+                    let titleText = "";
 
-                    // Логика определения ключа и текста
+                    // 1. Определяем ключ и текст заголовка
                     if (el.classList.contains('bible-cite')) {
-                        var book = el.getAttribute('data-book-name') || "";
-                        var chapter = el.getAttribute('data-chapter') || "";
-                        currentKey = "bible-" + book + "-" + chapter;
-                        titleText = book + (chapter ? ", глава " + chapter : "");
+                        const book = el.getAttribute('data-book-name') || "";
+                        const chapter = el.getAttribute('data-chapter') || "";
+                        currentKey = `bible-${book}-${chapter}`;
+                        titleText = `${book}${chapter ? ", глава " + chapter : ""}`;
                     } else if (el.classList.contains('message-cite')) {
                         titleText = el.getAttribute('data-msg-title') || "";
-                        currentKey = "msg-" + titleText;
+                        currentKey = `msg-${titleText}`;
                     }
 
-                    // ПРОВЕРКА НА РАЗРЫВ:
-                    // Считаем группу новой, если:
-                    // 1. Изменился ключ (другая глава/проповедь)
-                    // 2. Между текущим и предыдущим элементами есть текст (кроме пустых пробелов)
-                    var hasTextGap = false;
-                    var prevNode = el.previousSibling;
+                    // 2. Проверяем, есть ли "грязный" разрыв перед этой цитатой
+                    let isBrokenByContent = false;
+                    let node = el.previousSibling;
 
-                    // Проверяем все узлы между текущей и предыдущей цитатой
-                    while (prevNode) {
-                        // Если встретили другую цитату - стоп, проверяем ключ
-                        if (prevNode.nodeType === 1 && (prevNode.classList.contains('bible-cite') || prevNode.classList.contains('message-cite'))) {
+                    while (node) {
+                        // Если уперлись в другую цитату - разрыва контентом нет
+                        if (node.nodeType === 1 && (node.classList.contains('bible-cite') || node.classList.contains('message-cite'))) {
                             break;
                         }
-                        // Если встретили текст, который не просто пробел - это разрыв
-                        if (prevNode.nodeType === 3 && prevNode.textContent.trim().length > 0) {
-                            hasTextGap = true;
+
+                        // Если это текст (nodeType 3) - проверяем, не пустой ли он
+                        if (node.nodeType === 3) {
+                            if (node.textContent.trim().length > 0) {
+                                isBrokenByContent = true; // Есть обычный текст без тегов
+                                break;
+                            }
+                        }
+                        // Если это любой другой тег (картинка, видео, span и т.д.) - это разрыв
+                        else if (node.nodeType === 1) {
+                            isBrokenByContent = true;
                             break;
                         }
-                        // Если встретили картинку или видео - это разрыв
-                        if (prevNode.nodeType === 1 && (prevNode.classList.contains('sermon-img-wrap') || prevNode.classList.contains('sermon-video-wrap'))) {
-                            hasTextGap = true;
-                            break;
-                        }
-                        prevNode = prevNode.previousSibling;
+                        node = node.previousSibling;
                     }
 
-                    if (currentKey !== lastKey || hasTextGap) {
+                    // 3. Условие вставки заголовка:
+                    // Либо ключ сменился, либо между цитатами одного ключа затесался текст/тег
+                    if (currentKey !== lastGroupKey || isBrokenByContent) {
                         if (titleText) {
-                            var header = document.createElement('div');
+                            const header = document.createElement('div');
                             header.className = 'sermon-group-header';
-                            // Добавляем класс в зависимости от типа для разного цвета рамок, если нужно
                             header.classList.add(el.classList.contains('bible-cite') ? 'header-bible' : 'header-msg');
                             header.textContent = titleText;
                             el.parentNode.insertBefore(header, el);
                         }
                     }
 
-                    lastKey = currentKey;
+                    lastGroupKey = currentKey;
                 });
             }, 150);
         };
