@@ -53,6 +53,56 @@ angular.module('Songs', ['csrfModule'])
             loadDisplayTargets();
         });
 
+        $scope.groupCitations = function() {
+            // Ждем, пока AngularJS отрендерит HTML
+            setTimeout(function() {
+                var container = document.getElementById('notes-body');
+                if (!container) return;
+
+                // Находим все цитаты
+                var items = container.querySelectorAll('.bible-cite, .message-cite');
+                var lastGroupKey = null;
+
+                items.forEach(function(el) {
+                    var currentKey = "";
+                    var titleText = "";
+
+                    // Формируем ключ уникальности и текст заголовка
+                    if (el.classList.contains('bible-cite')) {
+                        var book = el.getAttribute('data-book-name') || "";
+                        var chapter = el.getAttribute('data-chapter') || "";
+                        currentKey = "bible-" + book + "-" + chapter;
+                        titleText = book + (chapter ? ", глава " + chapter : "");
+                    } else if (el.classList.contains('message-cite')) {
+                        var book = el.getAttribute('data-book-name') || "";
+                        currentKey = "msg-" + book;
+                        titleText = book;
+                    }
+
+                    // Проверяем, идет ли эта цитата сразу за предыдущей той же группы
+                    // (проверяем только те, что имеют одинаковый ключ)
+                    if (currentKey !== lastGroupKey) {
+                        // Проверяем, нет ли значимого текста перед этой цитатой
+                        // Если это первая цитата в блоке или перед ней только пробелы/пустота
+                        var prev = el.previousSibling;
+                        var isIsolated = true;
+
+                        // Простая проверка: если предыдущий узел - текст, проверяем его на пустоту
+                        if (prev && prev.nodeType === 3 && prev.textContent.trim().length > 0) {
+                            isIsolated = false;
+                        }
+
+                        // Вставляем заголовок, если это начало новой группы
+                        var header = document.createElement('div');
+                        header.className = 'sermon-group-header';
+                        header.textContent = titleText;
+                        el.parentNode.insertBefore(header, el);
+                    }
+
+                    lastGroupKey = currentKey;
+                });
+            }, 100);
+        };
 
         // ==========================================================
         // KEYBOARD SWITCHING CITATIONS
@@ -389,6 +439,8 @@ angular.module('Songs', ['csrfModule'])
                 function (r) {
                     $scope.currentSermon = r.data;
                     $scope.notesHtml = $sce.trustAsHtml(r.data.CONTENT || '');
+                    $scope.groupCitations();
+
                     $timeout(attachNoteHandlers, 100);
                     clearDisplayScope();
                     activeEl = null;
