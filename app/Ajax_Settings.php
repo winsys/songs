@@ -13,7 +13,7 @@ trait Ajax_Settings
 
     private static function save_user_settings()
     {
-        $userId = $_SESSION['userId'];
+        $userId = $_SESSION['curGroupId'];
         $settings = self::$args['settings'];
 
         $displayName             = mysqli_escape_string(Info::get('dbh'), $settings['display_name']);
@@ -82,7 +82,7 @@ trait Ajax_Settings
 
     private static function get_group_users()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $users  = Info::get('db')->select(
             "SELECT ID, NAME, LOGIN, PASS, ROLE, GOOGLE_ID
              FROM users
@@ -101,7 +101,7 @@ trait Ajax_Settings
 
     private static function update_group_user()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $dbh    = Info::get('dbh');
         $id     = (int)self::$args['id'];
         $name   = mysqli_real_escape_string($dbh, self::$args['name']  ?? '');
@@ -144,7 +144,7 @@ trait Ajax_Settings
 
     private static function create_group_user()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $dbh    = Info::get('dbh');
         $role   = mysqli_real_escape_string($dbh, self::$args['role'] ?? '');
 
@@ -229,7 +229,7 @@ trait Ajax_Settings
             mkdir($uploadDir, 0755, true);
         }
 
-        $userId   = (int)$_SESSION['userId'];
+        $userId   = (int)$_SESSION['curGroupId'];
         $filename = 'placeholder_' . $userId . '.' . $ext;
         $target   = $uploadDir . $filename;
 
@@ -249,7 +249,7 @@ trait Ajax_Settings
      */
     private static function get_google_oauth_url()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $targetUserId = isset(self::$args['user_id']) ? (int)self::$args['user_id'] : $userId;
 
         // Verify permission: can only link own account or group members
@@ -380,7 +380,7 @@ trait Ajax_Settings
      */
     private static function unlink_google_account()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $targetUserId = isset(self::$args['user_id']) ? (int)self::$args['user_id'] : $userId;
 
         // Verify permission
@@ -403,7 +403,7 @@ trait Ajax_Settings
      */
     private static function get_google_account_status()
     {
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $targetUserId = isset(self::$args['user_id']) ? (int)self::$args['user_id'] : $userId;
 
         $user = Info::get('db')->get(

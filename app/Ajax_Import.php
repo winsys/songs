@@ -27,7 +27,7 @@ trait Ajax_Import
         $row = Info::get('db')->get("SELECT MAX(LIST_ID) AS max_id FROM list_names");
         $nextId = ($row && $row['max_id']) ? (int)$row['max_id'] + 1 : 1;
 
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         Info::get('db')->exec(
             "INSERT INTO list_names (LIST_ID, LIST_NAME, ADDEDBY) VALUES ({$nextId}, '{$name}', {$userId})"
         );
@@ -263,7 +263,7 @@ trait Ajax_Import
 
         $dbh = Info::get('dbh');
         $db = Info::get('db');
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
         $log = [];
         $inserted = 0;
         $updated = 0;
@@ -444,7 +444,7 @@ trait Ajax_Import
 
         $dbh  = Info::get('dbh');
         $db   = Info::get('db');
-        $userId = (int)$_SESSION['userId'];
+        $userId = (int)$_SESSION['curGroupId'];
 
         $textField = $lang === 'ru' ? 'TEXT' : ($lang === 'lt' ? 'TEXT_LT' : 'TEXT_EN');
 
