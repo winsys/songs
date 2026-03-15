@@ -808,6 +808,22 @@
         flex-shrink: 0;
     }
 
+    /* Кнопка "В заставки" */
+    .mfc-wallpaper-btn {
+        flex-shrink: 0;
+        color: #1a6db5;
+        font-size: 12px;
+        background: #ebf3fb;
+        border: 1.5px solid #b8d9f5;
+        border-radius: 6px;
+        padding: 3px 7px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background .12s;
+        margin-right: 4px;
+    }
+    .mfc-wallpaper-btn:hover { background: #daeeff; }
+
     /* Кнопка удаления медиа */
     .mfc-del {
         flex-shrink: 0;
@@ -834,6 +850,72 @@
         flex-direction: column;
         gap: 9px;
     }
+
+    /* ── Панель стандартных заставок ─────────────────────────────── */
+    .wallpapers-panel {
+        background: #fff8ee;
+        border: 1.5px solid #f0dbb5;
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin: 8px 0 10px;
+    }
+    .wallpaper-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 8px 10px;
+        border: 1.5px solid #e8dcc8;
+        border-radius: 8px;
+        background: #fff;
+        cursor: pointer;
+        margin-bottom: 6px;
+        transition: background .15s, border-color .15s;
+    }
+    .wallpaper-item:hover {
+        background: #fffbf5;
+        border-color: #f0a832;
+    }
+    .wp-thumb {
+        width: 52px;
+        height: 42px;
+        object-fit: cover;
+        border-radius: 6px;
+        border: 1px solid #dee2e6;
+        flex-shrink: 0;
+    }
+    .wp-info {
+        flex: 1;
+        min-width: 0;
+    }
+    .wp-name {
+        font-size: 13px;
+        font-weight: 600;
+        color: #2c3e50;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .wp-src {
+        font-size: 10px;
+        color: #95a5a6;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 200px;
+    }
+    .wp-del {
+        flex-shrink: 0;
+        color: #c0392b;
+        font-size: 12px;
+        background: #fdecea;
+        border: 1.5px solid #fad7d4;
+        border-radius: 6px;
+        padding: 3px 7px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background .12s;
+    }
+    .wp-del:hover { background: #fad7d4; }
     .map-title {
         font-size: 11px;
         font-weight: 700;
@@ -1068,6 +1150,11 @@
                         ng-class="showMediaAddPanel ? 'mode-btn-active' : ''">
                     🖼️ Фотографии / Медиа
                 </button>
+                <button class="btn-action-blue"
+                        ng-click="toggleWallpapersPanel()"
+                        ng-class="showWallpapersPanel ? 'mode-btn-active' : ''">
+                    🎨 Стандартные заставки
+                </button>
             </div>
         </div>
 
@@ -1111,6 +1198,31 @@
                 <input type="text"
                        ng-model="mediaUrlName"
                        placeholder="Название (необязательно)">
+            </div>
+        </div>
+
+        <!-- Панель стандартных заставок -->
+        <div class="wallpapers-panel" ng-show="showWallpapersPanel">
+            <div class="map-title">🎨 Стандартные заставки</div>
+
+            <!-- Список заставок -->
+            <div ng-if="standardWallpapers.length === 0"
+                 style="text-align:center; padding:16px; color:#b0b8c1; font-size:12px;">
+                Список пуст
+            </div>
+
+            <div class="wallpaper-item"
+                 ng-repeat="wp in standardWallpapers"
+                 ng-click="addWallpaperToFavorites(wp)">
+                <img class="wp-thumb" ng-src="{{ wp.src }}" onerror="this.style.visibility='hidden'">
+                <div class="wp-info">
+                    <div class="wp-name">{{ wp.name }}</div>
+                    <div class="wp-src">{{ wp.src }}</div>
+                </div>
+                <button class="wp-del"
+                        ng-if="isAdmin"
+                        ng-click="$event.stopPropagation(); deleteWallpaper(wp.id, wp.name)"
+                        title="Удалить из стандартных заставок">✕</button>
             </div>
         </div>
 
@@ -1239,6 +1351,12 @@
                                 <div class="mfc-name">{{ listItem.NAME || listItem.dispName }}</div>
                                 <div class="mfc-src">{{ listItem.src }}</div>
                             </div>
+
+                            <!-- Кнопка "В заставки" для изображений -->
+                            <button ng-if="listItem.itemType === 'image'"
+                                    class="mfc-wallpaper-btn"
+                                    ng-click="$event.stopPropagation(); addToWallpapers(listItem)"
+                                    title="Добавить в стандартные заставки">📌</button>
 
                             <!-- Кнопка удалить -->
                             <button class="mfc-del"
@@ -1712,5 +1830,5 @@
     </div><!-- /tech-wrapper -->
 </div><!-- /ng-controller -->
 
-<script src="/js/tech.js?v=10" type="text/javascript"></script>
+<script src="/js/tech.js?v=11" type="text/javascript"></script>
 
