@@ -311,27 +311,59 @@
         display: block;
     }
 
-    /* Reset all thumb styles when image goes fullscreen */
-    .song-thumb:-webkit-full-screen {
+    /* Reset all styles when wrapper goes fullscreen */
+    .song-thumb-wrap:-webkit-full-screen {
         width: 100vw !important;
         height: 100vh !important;
-        object-fit: contain !important;
+        border: none !important;
         border-radius: 0 !important;
         background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-    .song-thumb:-moz-full-screen {
+    .song-thumb-wrap:-moz-full-screen {
         width: 100vw !important;
         height: 100vh !important;
-        object-fit: contain !important;
+        border: none !important;
         border-radius: 0 !important;
         background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
-    .song-thumb:fullscreen {
+    .song-thumb-wrap:fullscreen {
+        width: 100vw !important;
+        height: 100vh !important;
+        border: none !important;
+        border-radius: 0 !important;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    /* Scale image when wrapper is in fullscreen */
+    .song-thumb-wrap:-webkit-full-screen .song-thumb {
         width: 100vw !important;
         height: 100vh !important;
         object-fit: contain !important;
-        border-radius: 0 !important;
-        background: #000;
+        max-width: 100vw;
+        max-height: 100vh;
+    }
+    .song-thumb-wrap:-moz-full-screen .song-thumb {
+        width: 100vw !important;
+        height: 100vh !important;
+        object-fit: contain !important;
+        max-width: 100vw;
+        max-height: 100vh;
+    }
+    .song-thumb-wrap:fullscreen .song-thumb {
+        width: 100vw !important;
+        height: 100vh !important;
+        object-fit: contain !important;
+        max-width: 100vw;
+        max-height: 100vh;
     }
 
     /* Delete button */
