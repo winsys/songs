@@ -296,12 +296,15 @@ angular.module('Songs', ['csrfModule'])
                     var msgTitle = el.getAttribute('data-msg-title') || '';
                     $timeout(function () {
                         showText(paraText, msgTitle);
-                        $http({ method: "POST", url: "/ajax", data: {
-                            command: 'set_message_text',
-                            text: paraText,
-                            song_name: msgTitle,
-                            target_group_id: $scope.selectedDisplayTarget
-                        }});
+                        // Only send to display if a monitor is selected
+                        if ($scope.selectedDisplayTarget !== null) {
+                            $http({ method: "POST", url: "/ajax", data: {
+                                command: 'set_message_text',
+                                text: paraText,
+                                song_name: msgTitle,
+                                target_group_id: $scope.selectedDisplayTarget
+                            }});
+                        }
                     });
                 };
             });
@@ -382,12 +385,15 @@ angular.module('Songs', ['csrfModule'])
 
                         var text = verseNum + '. ' + verseText;
                         showText(text, refLabel);
-                        $http({ method: "POST", url: "/ajax", data: {
-                            command: 'set_message_text',
-                            text: text,
-                            song_name: refLabel,
-                            target_group_id: $scope.selectedDisplayTarget
-                        }});
+                        // Only send to display if a monitor is selected
+                        if ($scope.selectedDisplayTarget !== null) {
+                            $http({ method: "POST", url: "/ajax", data: {
+                                command: 'set_message_text',
+                                text: text,
+                                song_name: refLabel,
+                                target_group_id: $scope.selectedDisplayTarget
+                            }});
+                        }
                     }
                 });
         }
@@ -417,11 +423,14 @@ angular.module('Songs', ['csrfModule'])
         }
 
         function sendImageToDisplay(path) {
-            $http({ method: "POST", url: "/ajax", data: {
-                command: path ? 'set_tech_image' : 'clear_image',
-                image_name: path,
-                target_group_id: $scope.selectedDisplayTarget
-            }});
+            // Only send to display if a monitor is selected
+            if ($scope.selectedDisplayTarget !== null) {
+                $http({ method: "POST", url: "/ajax", data: {
+                    command: path ? 'set_tech_image' : 'clear_image',
+                    image_name: path,
+                    target_group_id: $scope.selectedDisplayTarget
+                }});
+            }
         }
 
         // ---------- helpers ----------
@@ -479,27 +488,36 @@ angular.module('Songs', ['csrfModule'])
         }
 
         function sendVideoToDisplay(src) {
-            $http({ method: 'POST', url: '/ajax', data: {
-                    command:     'set_video',
-                    video_src:   src || '',
-                    video_state: 'playing',
-                    target_group_id: $scope.selectedDisplayTarget
-                }});
+            // Only send to display if a monitor is selected
+            if ($scope.selectedDisplayTarget !== null) {
+                $http({ method: 'POST', url: '/ajax', data: {
+                        command:     'set_video',
+                        video_src:   src || '',
+                        video_state: 'playing',
+                        target_group_id: $scope.selectedDisplayTarget
+                    }});
+            }
         }
 
         function sendVideoClear() {
-            $http({ method: 'POST', url: '/ajax', data: {
-                command: 'clear_image',
-                target_group_id: $scope.selectedDisplayTarget
-            }});
+            // Only send to display if a monitor is selected
+            if ($scope.selectedDisplayTarget !== null) {
+                $http({ method: 'POST', url: '/ajax', data: {
+                    command: 'clear_image',
+                    target_group_id: $scope.selectedDisplayTarget
+                }});
+            }
         }
 
         function _sendVideoControl(state) {
-            $http({ method: 'POST', url: '/ajax', data: {
-                command: 'video_control',
-                video_state: state,
-                target_group_id: $scope.selectedDisplayTarget
-            }});
+            // Only send to display if a monitor is selected
+            if ($scope.selectedDisplayTarget !== null) {
+                $http({ method: 'POST', url: '/ajax', data: {
+                    command: 'video_control',
+                    video_state: state,
+                    target_group_id: $scope.selectedDisplayTarget
+                }});
+            }
         }
 
         // ---------- progress bar for local files ----------
@@ -667,10 +685,14 @@ angular.module('Songs', ['csrfModule'])
             $http.post('/ajax', { command: 'get_display_targets' }).then(
                 function (r) {
                     if (r.data && r.data.status === 'ok') {
-                        $scope.displayTargets = r.data.targets || [];
-                        // Set default to own group (first item)
-                        if ($scope.displayTargets.length > 0 && !$scope.selectedDisplayTarget) {
-                            $scope.selectedDisplayTarget = $scope.displayTargets[0].group_id;
+                        // Add "не транслировать" as first option
+                        $scope.displayTargets = [
+                            { group_id: null, display_name: '— не транслировать —' }
+                        ].concat(r.data.targets || []);
+
+                        // Set default to "не транслировать" (null)
+                        if (!$scope.selectedDisplayTarget) {
+                            $scope.selectedDisplayTarget = null;
                         }
                     }
                 }
