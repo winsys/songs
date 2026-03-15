@@ -96,7 +96,10 @@ app.controller('Leader', function ($scope, $http)
     };
 
     $scope.openFullscreen = function(elemId, img_num, list_id, song_id) {
+        console.log('Leader: openFullscreen called, elemId=' + elemId + ', fullScreen=' + $scope.fullScreen);
+
         if(!$scope.fullScreen){
+            console.log('Leader: opening fullscreen, calling set_image');
             $http({ method: "POST",
                     url: "/ajax",
                     data: { command: 'set_image',
@@ -105,23 +108,29 @@ app.controller('Leader', function ($scope, $http)
                             song_id: song_id }
             }).then(
                 function success(){
+                    console.log('Leader: set_image success, requesting fullscreen');
                     var imgElement = document.getElementById('img'+elemId);
                     if (imgElement && imgElement.requestFullscreen) {
                         imgElement.requestFullscreen().then(function() {
+                            console.log('Leader: fullscreen opened successfully');
                             $scope.$apply(function() {
                                 $scope.fullScreen = true;
                             });
                         }).catch(function(err) {
-                            console.log('Fullscreen request failed:', err);
+                            console.log('Leader: fullscreen request failed:', err);
                             $scope.$apply(function() {
                                 $scope.fullScreen = false;
                             });
                         });
+                    } else {
+                        console.log('Leader: imgElement or requestFullscreen not available');
                     }
                 });
         }else{
+            console.log('Leader: closing fullscreen, calling clear_image');
             $http({ method: "POST", url: "/ajax", data: {command: 'clear_image' } }).then(
                 function success(){
+                    console.log('Leader: clear_image success, exiting fullscreen');
                     if (document.fullscreenElement) {
                         document.exitFullscreen();
                     }
@@ -303,6 +312,17 @@ app.controller('Leader', function ($scope, $http)
             console.error('WebSocket error:', error);
         }
     );
+
+    // Listen for fullscreen changes (e.g., when user presses ESC)
+    document.addEventListener('fullscreenchange', function() {
+        console.log('Leader: fullscreenchange event, fullscreenElement:', document.fullscreenElement);
+        $scope.$apply(function() {
+            if (!document.fullscreenElement) {
+                console.log('Leader: fullscreen exited, setting fullScreen=false');
+                $scope.fullScreen = false;
+            }
+        });
+    });
 
     $scope.loadSongLists();
     loadLanguages();
