@@ -325,13 +325,9 @@ app.controller('Tech', function ($scope, $http, $timeout)
 
 
     $scope.reloadFavorites = function (callback) {
-        console.log('=== reloadFavorites called ===');
-        console.log('Before reload - activeMediaItem:', $scope.activeMediaItem);
-
         $http({ method: "POST", url: "/ajax", data: { command: 'get_favorites_with_text' }}).then(
             function success(respond) {
                 $scope.favorites = respond.data;
-                var mediaRestored = false;
 
                 // Восстанавливаем состояние showingSong после перезагрузки
                 angular.forEach($scope.favorites, function (item) {
@@ -342,13 +338,9 @@ app.controller('Tech', function ($scope, $http, $timeout)
                     // Восстанавливаем activeMediaItem для изображений и видео
                     if ((item.itemType === 'image' || item.itemType === 'video') &&
                         $scope.activeMediaItem && item.FID === $scope.activeMediaItem.FID) {
-                        console.log('Restoring activeMediaItem:', item.FID);
                         $scope.activeMediaItem = item;
-                        mediaRestored = true;
                     }
                 });
-
-                console.log('After reload - activeMediaItem:', $scope.activeMediaItem, 'restored:', mediaRestored);
 
                 // Call callback after favorites are loaded (for state restoration)
                 if (callback) callback();
@@ -776,13 +768,8 @@ app.controller('Tech', function ($scope, $http, $timeout)
     // ─────────────────────────────────────────────────────────
 
     $scope.activateMediaItem = function (item) {
-        console.log('=== activateMediaItem ===');
-        console.log('item.FID:', item.FID, 'item.itemType:', item.itemType);
-        console.log('activeMediaItem:', $scope.activeMediaItem);
-
         // Повторный клик = деактивация
         if ($scope.activeMediaItem && $scope.activeMediaItem.FID === item.FID) {
-            console.log('DEACTIVATING - clearing image');
             // Очистить активный элемент
             $scope.activeMediaItem  = null;
             $scope.techVideoPlaying = false;
@@ -791,8 +778,6 @@ app.controller('Tech', function ($scope, $http, $timeout)
             $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' }});
             return;
         }
-
-        console.log('ACTIVATING - setting image');
 
         // Снять выделение с песни
         $scope.showingSong      = null;
@@ -808,9 +793,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
             $http({ method: "POST", url: "/ajax", data: {
                     command:    'set_tech_image',
                     image_name: item.src
-                }}).then(function() {
-                console.log('Image set successfully, activeMediaItem:', $scope.activeMediaItem);
-            });
+                }});
         } else {
             // Видео → set_video
             $scope.techVideoPlaying = true;
@@ -1804,6 +1787,17 @@ app.controller('Tech', function ($scope, $http, $timeout)
                     // Switch to messages mode if needed
                     if ($scope.pageMode !== 'messages') {
                         $scope.pageMode = 'messages';
+                    }
+                }
+
+                // Restore image if state.image is a media item (not a song image)
+                if (state.image && !state.image.match(/\/images\/\d+\/\d+\.jpg/)) {
+                    // This is a media image, not a song image
+                    for (var i = 0; i < $scope.favorites.length; i++) {
+                        if ($scope.favorites[i].itemType === 'image' && $scope.favorites[i].src === state.image) {
+                            $scope.activeMediaItem = $scope.favorites[i];
+                            break;
+                        }
                     }
                 }
 
