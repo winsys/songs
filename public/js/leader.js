@@ -7,6 +7,7 @@ app.controller('Leader', function ($scope, $http)
     $scope.availableSongLists = [];
     $scope.visibleSongLists = [];
     $scope.langList = [];
+    $scope.currentSongId = null;
 
     function loadLanguages() {
         $http({ method: 'POST', url: '/ajax', data: { command: 'get_languages' } }).then(
@@ -242,12 +243,8 @@ app.controller('Leader', function ($scope, $http)
                 var state = response.data;
                 console.log('Leader: current state:', state);
 
-                // Close fullscreen if currently open
-                if ($scope.fullScreen && document.fullscreenElement) {
-                    console.log('Leader: closing existing fullscreen');
-                    document.exitFullscreen();
-                    $scope.fullScreen = false;
-                }
+                // Reset current song highlight
+                $scope.currentSongId = null;
 
                 // Restore song if image path matches song image pattern
                 if (state.image && state.image.match(/\/images\/\d+\/\d+\.jpg/)) {
@@ -257,29 +254,20 @@ app.controller('Leader', function ($scope, $http)
                         var songNum = matches[2];
                         console.log('Leader: looking for song listId=' + listId + ' songNum=' + songNum);
 
-                        // Find the song in favorites and open fullscreen
+                        // Find the song in favorites and highlight it
                         for (var i = 0; i < $scope.favorites.length; i++) {
                             if ($scope.favorites[i].LISTID == listId && $scope.favorites[i].NUM == songNum) {
                                 var itemId = $scope.favorites[i].ID;
-                                console.log('Leader: found song, itemId=' + itemId);
-                                // Open fullscreen after a short delay to ensure DOM is ready
+                                console.log('Leader: found song, itemId=' + itemId + ' - highlighting');
+                                $scope.currentSongId = itemId;
+
+                                // Scroll to the highlighted song
                                 setTimeout(function() {
-                                    var imgElement = document.getElementById('img' + itemId);
-                                    console.log('Leader: img element:', imgElement);
-                                    if (imgElement && imgElement.requestFullscreen) {
-                                        console.log('Leader: requesting fullscreen');
-                                        imgElement.requestFullscreen().then(function() {
-                                            console.log('Leader: fullscreen success');
-                                            $scope.$apply(function() {
-                                                $scope.fullScreen = true;
-                                            });
-                                        }).catch(function(err) {
-                                            console.log('Leader: fullscreen error:', err);
-                                        });
-                                    } else {
-                                        console.log('Leader: img element or requestFullscreen not available');
+                                    var elements = document.querySelectorAll('.prod-list-item.active-song');
+                                    if (elements.length > 0) {
+                                        elements[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
                                     }
-                                }, 300);
+                                }, 100);
                                 break;
                             }
                         }
