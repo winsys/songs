@@ -226,8 +226,11 @@ app.controller('Leader', function ($scope, $http)
             function(response) {
                 var state = response.data;
 
-                // Clear previous highlighting
-                $scope.currentSongId = null;
+                // Close fullscreen if currently open
+                if ($scope.fullScreen && document.fullscreenElement) {
+                    document.exitFullscreen();
+                    $scope.fullScreen = false;
+                }
 
                 // Restore song if image path matches song image pattern
                 if (state.image && state.image.match(/\/images\/\d+\/\d+\.jpg/)) {
@@ -236,10 +239,20 @@ app.controller('Leader', function ($scope, $http)
                         var listId = parseInt(matches[1]);
                         var songNum = matches[2];
 
-                        // Find and highlight the song in favorites
+                        // Find the song in favorites and open fullscreen
                         for (var i = 0; i < $scope.favorites.length; i++) {
                             if ($scope.favorites[i].LISTID == listId && $scope.favorites[i].NUM == songNum) {
-                                $scope.currentSongId = $scope.favorites[i].ID;
+                                var item = $scope.favorites[i];
+                                // Open fullscreen after a short delay to ensure DOM is ready
+                                setTimeout(function() {
+                                    var imgElement = document.getElementById('img' + item.ID);
+                                    if (imgElement && imgElement.requestFullscreen) {
+                                        imgElement.requestFullscreen();
+                                        $scope.$apply(function() {
+                                            $scope.fullScreen = true;
+                                        });
+                                    }
+                                }, 100);
                                 break;
                             }
                         }

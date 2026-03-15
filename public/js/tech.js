@@ -396,13 +396,16 @@ app.controller('Tech', function ($scope, $http, $timeout)
                 });
 
                 var combinedText = languageParts.join('\r\n- - - - - - - -\r\n');
+                // Save verse indices to chapter_indices field
+                var chapterIndices = verseIndices.join(',');
 
                 $http({ method: "POST",
                     url: "/ajax",
                     data: { command: 'set_text',
                         image_name: $scope.showingSong.imageName,
                         text: combinedText,
-                        song_name: $scope.showingSong.NAME }
+                        song_name: $scope.showingSong.NAME,
+                        chapter_indices: chapterIndices }
                 }).then(function success(){
                     $scope.showingChapter = combinedText;
                 });
@@ -422,12 +425,16 @@ app.controller('Tech', function ($scope, $http, $timeout)
             } else {
                 $scope.selectedChapters = [chapterText];
                 var cleanText = chapterText.replace(/\n\(\d+\)$/, '');
+                // Extract chapter index for chapter_indices field
+                var match = chapterText.match(/\n\((\d+)\)$/);
+                var chapterIndex = match ? match[1] : '';
                 $http({ method: "POST",
                     url: "/ajax",
                     data: { command: 'set_text',
                         image_name: $scope.showingSong.imageName,
                         text: cleanText,
-                        song_name: $scope.showingSong.NAME }
+                        song_name: $scope.showingSong.NAME,
+                        chapter_indices: chapterIndex }
                 }).then(function success(){
                     $scope.showingChapter = chapterText;
                 });
@@ -1603,9 +1610,21 @@ app.controller('Tech', function ($scope, $http, $timeout)
                                 $scope.showingSong = $scope.favorites[i];
                                 // Split text to prepare chapters
                                 splitText($scope.favorites[i]);
-                                // Also restore chapters if song_name has chapter info
-                                if (state.song_name) {
-                                    $scope.restoreChaptersFromSongName(state.song_name, $scope.favorites[i]);
+                                // Restore chapters if chapter_indices field has data
+                                if (state.chapter_indices && state.chapter_indices.match(/^\d+(,\d+)*$/)) {
+                                    // chapter_indices contains verse indices like "0,2,4"
+                                    $scope.restoreChaptersFromSongName(state.chapter_indices, $scope.favorites[i]);
+                                    // Set showingChapter to match the actual text (either single or combined)
+                                    if ($scope.selectedChapters.length > 0) {
+                                        if ($scope.selectedChapters.length === 1) {
+                                            $scope.showingChapter = $scope.selectedChapters[0];
+                                        } else {
+                                            var combinedText = $scope.selectedChapters.map(function(ch) {
+                                                return ch.replace(/\n\(\d+\)$/, '');
+                                            }).join('\r\n');
+                                            $scope.showingChapter = combinedText;
+                                        }
+                                    }
                                 }
                                 break;
                             }
