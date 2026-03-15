@@ -151,13 +151,13 @@ app.controller('Settings', function ($scope, $http)
 
     $scope.getCurrentUserId = function() {
         // Получить ID текущего пользователя из сессии (будет передан через PHP)
-        return window.currentUserId || 0;
+        return parseInt(window.currentUserId) || 0;
     };
 
     $scope.canEditUser = function(user) {
         if (!user) return false;
         // Админ может редактировать всех, остальные только себя
-        return $scope.permissions.canManageUsers || user.ID === $scope.getCurrentUserId();
+        return $scope.permissions.canManageUsers || parseInt(user.ID) === $scope.getCurrentUserId();
     };
 
     $scope.getRoleBadgeStyle = function(role) {
@@ -175,6 +175,10 @@ app.controller('Settings', function ($scope, $http)
         $http({ method: 'POST', url: '/ajax', data: { command: 'get_group_users' } }).then(
             function success(r) {
                 var users = r.data || [];
+                console.log('Current user ID:', $scope.getCurrentUserId());
+                console.log('Loaded users:', users);
+                console.log('Permissions:', $scope.permissions);
+
                 // Сбросить слоты
                 $scope.userSlots = ALL_ROLES.map(function(slot) {
                     var found = null;
@@ -183,6 +187,8 @@ app.controller('Settings', function ($scope, $http)
                     }
                     return { role: slot.role, roleLabel: slot.roleLabel, user: found };
                 });
+
+                console.log('User slots:', $scope.userSlots);
             },
             function error(e) { console.log('loadGroupUsers error:', e); }
         );
