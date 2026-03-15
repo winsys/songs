@@ -9,10 +9,10 @@ trait Ajax_Tech
     private static function get_current_state()
     {
         $userId = (int)$_SESSION['userId'];
-        $row = Info::get('db')->get("SELECT image, text, song_name, video_src FROM current WHERE groupId = {$userId}");
+        $row = Info::get('db')->get("SELECT image, text, song_name, chapter_indices, video_src FROM current WHERE groupId = {$userId}");
 
         if (!$row) {
-            return json_encode(['image' => '', 'text' => '', 'song_name' => '', 'video_src' => '']);
+            return json_encode(['image' => '', 'text' => '', 'song_name' => '', 'chapter_indices' => '', 'video_src' => '']);
         }
 
         return json_encode($row);
@@ -27,8 +27,8 @@ trait Ajax_Tech
 
         Info::get('db')->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
         Info::get('db')->exec(
-            "INSERT INTO current (groupId, image, text, song_name, video_src, video_state)
-         VALUES ({$targetGroupId}, '{$image_name}', '', '', '', 'stopped')"
+            "INSERT INTO current (groupId, image, text, song_name, chapter_indices, video_src, video_state)
+         VALUES ({$targetGroupId}, '{$image_name}', '', '', '', '', 'stopped')"
         );
         self::updateSocket($targetGroupId);
         return '';
@@ -41,10 +41,11 @@ trait Ajax_Tech
         $text       = mysqli_real_escape_string($dbh, self::$args['text']       ?? '');
         $image_name = mysqli_real_escape_string($dbh, self::$args['image_name'] ?? '');
         $song_name  = mysqli_real_escape_string($dbh, self::$args['song_name']  ?? '');
+        $chapter_indices = mysqli_real_escape_string($dbh, self::$args['chapter_indices'] ?? '');
 
         Info::get('db')->exec(
             "UPDATE current
-             SET text='{$text}', song_name='{$song_name}'
+             SET text='{$text}', song_name='{$song_name}', chapter_indices='{$chapter_indices}'
              WHERE groupId={$userId} AND image='{$image_name}'"
         );
         self::updateSocket();
@@ -244,8 +245,8 @@ trait Ajax_Tech
 
         if ($text !== '') {
             Info::get('db')->exec(
-                "INSERT INTO current (groupId, image, text, song_name)
-                 VALUES ({$targetGroupId}, '__bible__', '{$text}', '{$song_name}')"
+                "INSERT INTO current (groupId, image, text, song_name, chapter_indices, video_src, video_state)
+                 VALUES ({$targetGroupId}, '__bible__', '{$text}', '{$song_name}', '', '', 'stopped')"
             );
         }
 
