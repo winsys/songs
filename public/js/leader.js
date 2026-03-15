@@ -277,6 +277,9 @@ app.controller('Leader', function ($scope, $http)
             if (!document.fullscreenElement) {
                 console.log('Leader: fullscreen exited, setting fullScreen=false');
                 $scope.fullScreen = false;
+                // Force reload favorites list when exiting fullscreen
+                console.log('Leader: reloading favorites after fullscreen exit');
+                $scope.reloadFavorites();
             } else {
                 console.log('Leader: fullscreen entered, fullScreen is already:', $scope.fullScreen);
             }
