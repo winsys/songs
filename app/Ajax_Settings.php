@@ -87,7 +87,7 @@ trait Ajax_Settings
             "SELECT ID, NAME, LOGIN, PASS, ROLE, GOOGLE_ID
              FROM users
              WHERE GROUP_ID = {$userId}
-                OR (ID = {$userId} AND (GROUP_ID = 0 OR GROUP_ID IS NULL))
+                OR ID = {$userId}
              ORDER BY FIELD(ROLE, 'admin', 'leader', 'musician', 'preacher', 'tech')"
         );
 
