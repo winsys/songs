@@ -7,7 +7,6 @@ app.controller('Leader', function ($scope, $http)
     $scope.availableSongLists = [];
     $scope.visibleSongLists = [];
     $scope.langList = [];
-    $scope.currentSongId = null;
 
     function loadLanguages() {
         $http({ method: 'POST', url: '/ajax', data: { command: 'get_languages' } }).then(
@@ -243,52 +242,6 @@ app.controller('Leader', function ($scope, $http)
         $scope.reloadSongList();
     }
 
-    // ==========================================================
-    // RESTORE CURRENT STATE
-    // ==========================================================
-
-    function restoreCurrentState() {
-        console.log('Leader: restoreCurrentState called, favorites count:', $scope.favorites.length);
-        $http({ method: "POST", url: "/ajax", data: { command: 'get_current_state' } }).then(
-            function(response) {
-                var state = response.data;
-                console.log('Leader: current state:', state);
-
-                // Reset current song highlight
-                $scope.currentSongId = null;
-
-                // Restore song if image path matches song image pattern
-                if (state.image && state.image.match(/\/images\/\d+\/\d+\.jpg/)) {
-                    var matches = state.image.match(/\/images\/(\d+)\/(\d+)\.jpg/);
-                    if (matches) {
-                        var listId = parseInt(matches[1]);
-                        var songNum = matches[2];
-                        console.log('Leader: looking for song listId=' + listId + ' songNum=' + songNum);
-
-                        // Find the song in favorites and highlight it
-                        for (var i = 0; i < $scope.favorites.length; i++) {
-                            if ($scope.favorites[i].LISTID == listId && $scope.favorites[i].NUM == songNum) {
-                                var itemId = $scope.favorites[i].ID;
-                                console.log('Leader: found song, itemId=' + itemId + ' - highlighting');
-                                $scope.currentSongId = itemId;
-
-                                // Scroll to the highlighted song
-                                setTimeout(function() {
-                                    var elements = document.querySelectorAll('.prod-list-item.active-song');
-                                    if (elements.length > 0) {
-                                        elements[0].scrollIntoView({ behavior: 'smooth', block: 'center' });
-                                    }
-                                }, 100);
-                                break;
-                            }
-                        }
-                    }
-                } else {
-                    console.log('Leader: no active song image');
-                }
-            }
-        );
-    }
 
     // ==========================================================
     // WEBSOCKET
@@ -300,19 +253,9 @@ app.controller('Leader', function ($scope, $http)
         function(data) {
             // Handle incoming messages (only after authentication)
             if (data.type === 'update_needed') {
-                console.log('Leader: update_needed received, fullScreen=' + $scope.fullScreen);
+                console.log('Leader: update_needed received - reloading favorites');
                 $scope.$apply(function() {
-                    $scope.reloadFavorites(function() {
-                        // Only restore state if not in fullscreen mode
-                        // (to avoid closing fullscreen when we just opened it)
-                        if (!$scope.fullScreen) {
-                            setTimeout(function() {
-                                restoreCurrentState();
-                            }, 200);
-                        } else {
-                            console.log('Leader: skipping restoreCurrentState - already in fullscreen');
-                        }
-                    });
+                    $scope.reloadFavorites();
                 });
             }
         },
@@ -324,10 +267,13 @@ app.controller('Leader', function ($scope, $http)
     // Listen for fullscreen changes (e.g., when user presses ESC)
     document.addEventListener('fullscreenchange', function() {
         console.log('Leader: fullscreenchange event, fullscreenElement:', document.fullscreenElement);
+        console.log('Leader: stack trace:', new Error().stack);
         $scope.$apply(function() {
             if (!document.fullscreenElement) {
                 console.log('Leader: fullscreen exited, setting fullScreen=false');
                 $scope.fullScreen = false;
+            } else {
+                console.log('Leader: fullscreen entered, fullScreen is already:', $scope.fullScreen);
             }
         });
     });
@@ -335,12 +281,6 @@ app.controller('Leader', function ($scope, $http)
     $scope.loadSongLists();
     loadLanguages();
     $scope.reloadSongList();
-
-    // Load favorites and restore state after they're loaded
-    $scope.reloadFavorites(function() {
-        setTimeout(function() {
-            restoreCurrentState();
-        }, 500);
-    });
+    $scope.reloadFavorites();
 });
 
