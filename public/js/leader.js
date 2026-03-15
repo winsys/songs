@@ -95,10 +95,7 @@ app.controller('Leader', function ($scope, $http)
     };
 
     $scope.openFullscreen = function(elemId, img_num, list_id, song_id) {
-        console.log('Leader: openFullscreen called, elemId=' + elemId + ', fullScreen=' + $scope.fullScreen);
-
         if(!$scope.fullScreen){
-            console.log('Leader: opening fullscreen, setting flag BEFORE set_image');
             // Set fullScreen flag BEFORE sending set_image to prevent race condition with WebSocket
             $scope.fullScreen = true;
 
@@ -110,33 +107,23 @@ app.controller('Leader', function ($scope, $http)
                             song_id: song_id }
             }).then(
                 function success(){
-                    console.log('Leader: set_image success, requesting fullscreen');
-                    // Open fullscreen for the wrapper div instead of img
                     var wrapElement = document.getElementById('wrap'+elemId);
-                    console.log('Leader: wrapElement:', wrapElement);
                     if (wrapElement && wrapElement.requestFullscreen) {
-                        wrapElement.requestFullscreen().then(function() {
-                            console.log('Leader: fullscreen opened successfully');
-                        }).catch(function(err) {
-                            console.log('Leader: fullscreen request failed:', err);
+                        wrapElement.requestFullscreen().catch(function(err) {
                             $scope.$apply(function() {
                                 $scope.fullScreen = false;
                             });
                         });
                     } else {
-                        console.log('Leader: wrapElement or requestFullscreen not available');
                         $scope.fullScreen = false;
                     }
                 },
                 function error(){
-                    console.log('Leader: set_image failed, resetting fullScreen flag');
                     $scope.fullScreen = false;
                 });
         }else{
-            console.log('Leader: closing fullscreen, calling clear_image');
             $http({ method: "POST", url: "/ajax", data: {command: 'clear_image' } }).then(
                 function success(){
-                    console.log('Leader: clear_image success, exiting fullscreen');
                     if (document.fullscreenElement) {
                         document.exitFullscreen();
                     }
@@ -258,14 +245,11 @@ app.controller('Leader', function ($scope, $http)
         function(data) {
             // Handle incoming messages (only after authentication)
             if (data.type === 'update_needed') {
-                console.log('Leader: update_needed received, fullScreen=' + $scope.fullScreen);
                 // Don't reload favorites while in fullscreen - it removes the DOM element
                 if (!$scope.fullScreen) {
                     $scope.$apply(function() {
                         $scope.reloadFavorites();
                     });
-                } else {
-                    console.log('Leader: skipping reloadFavorites - in fullscreen mode');
                 }
             }
         },
