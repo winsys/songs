@@ -103,13 +103,26 @@ app.controller('Leader', function ($scope, $http)
                             song_id: song_id }
             }).then(
                 function success(){
-                    document.getElementById('img'+elemId).requestFullscreen();
-                    $scope.fullScreen = true;
+                    var imgElement = document.getElementById('img'+elemId);
+                    if (imgElement && imgElement.requestFullscreen) {
+                        imgElement.requestFullscreen().then(function() {
+                            $scope.$apply(function() {
+                                $scope.fullScreen = true;
+                            });
+                        }).catch(function(err) {
+                            console.log('Fullscreen request failed:', err);
+                            $scope.$apply(function() {
+                                $scope.fullScreen = false;
+                            });
+                        });
+                    }
                 });
         }else{
             $http({ method: "POST", url: "/ajax", data: {command: 'clear_image' } }).then(
                 function success(){
-                    document.exitFullscreen();
+                    if (document.fullscreenElement) {
+                        document.exitFullscreen();
+                    }
                     $scope.fullScreen = false;
                 });
         }
@@ -242,17 +255,20 @@ app.controller('Leader', function ($scope, $http)
                         // Find the song in favorites and open fullscreen
                         for (var i = 0; i < $scope.favorites.length; i++) {
                             if ($scope.favorites[i].LISTID == listId && $scope.favorites[i].NUM == songNum) {
-                                var item = $scope.favorites[i];
+                                var itemId = $scope.favorites[i].ID;
                                 // Open fullscreen after a short delay to ensure DOM is ready
                                 setTimeout(function() {
-                                    var imgElement = document.getElementById('img' + item.ID);
+                                    var imgElement = document.getElementById('img' + itemId);
                                     if (imgElement && imgElement.requestFullscreen) {
-                                        imgElement.requestFullscreen();
-                                        $scope.$apply(function() {
-                                            $scope.fullScreen = true;
+                                        imgElement.requestFullscreen().then(function() {
+                                            $scope.$apply(function() {
+                                                $scope.fullScreen = true;
+                                            });
+                                        }).catch(function(err) {
+                                            console.log('Fullscreen error:', err);
                                         });
                                     }
-                                }, 100);
+                                }, 300);
                                 break;
                             }
                         }
