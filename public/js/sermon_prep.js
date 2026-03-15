@@ -458,6 +458,61 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         document.execCommand('foreColor', false, color);
     };
 
+
+    // ──────────────────────────────────────────────────────────
+    // TEXT CONVERT TO MD (unchanged)
+    // ──────────────────────────────────────────────────────────
+
+    $scope.exportToMarkdown = function() {
+        var htmlContent = document.getElementById('sermon-editor').innerHTML;
+
+        // Инициализация сервиса
+        var turndownService = new TurndownService({
+            headingStyle: 'atx',
+            bulletListMarker: '-'
+        });
+
+        // УНИВЕРСАЛЬНОЕ ПРАВИЛО для всех спец-блоков
+        turndownService.addRule('keep-special-wrappers', {
+            filter: function (node) {
+                // Перечисляем все классы ваших специальных вставок
+                const specialClasses = [
+                    'bible-cite',
+                    'message-cite',
+                    'sermon-video-wrap',
+                    'sermon-img-wrap'
+                ];
+                // Проверяем, есть ли у элемента хотя бы один из этих классов
+                return specialClasses.some(className => node.classList.contains(className));
+            },
+            replacement: function (content, node) {
+                // Создаем клон узла, чтобы не ломать оригинал в редакторе
+                var clone = node.cloneNode(true);
+
+                // Удаляем кнопки "Удалить" (крестики) внутри клона перед сохранением
+                var removeButtons = clone.querySelectorAll('.cite-remove, .svw-del, .sermon-img-remove');
+                removeButtons.forEach(btn => btn.remove());
+
+                // Возвращаем чистый HTML без крестиков
+                return clone.outerHTML;
+            }
+        });
+
+        var markdown = turndownService.turndown(htmlContent);
+
+        // Логика скачивания файла
+        var blob = new Blob([markdown], { type: 'text/markdown' });
+        var url = window.URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.download = ($scope.sermon.TITLE || 'sermon') + '.md';
+        a.href = url;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+    };
+
+
     // ──────────────────────────────────────────────────────────
     // IMAGE UPLOAD + INSERT (unchanged)
     // ──────────────────────────────────────────────────────────
