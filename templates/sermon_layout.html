@@ -91,6 +91,28 @@
             min-width: 150px;
         }
 
+        .btn-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            color: #5a6272;
+            background: #f4f5f7;
+            border: none;
+            cursor: pointer;
+            transition: all 0.15s;
+            flex-shrink: 0;
+            text-decoration: none;
+        }
+        .btn-back:hover {
+            background: #e8eaed;
+            color: #2c3e50;
+            transform: translateX(-1px);
+        }
+
         #notes-date { font-size: 10pt; color: var(--sn-notes-text-dim); flex-shrink: 0; }
         #sermon-select-wrap { flex-shrink: 0; }
 
@@ -524,6 +546,9 @@
     <!-- LEFT: Notes panel -->
     <div id="notes-panel">
         <div id="notes-header">
+            <button class="btn-back" onclick="window.location.href='/index'">
+                ← Главная
+            </button>
             <div id="notes-title">{{ currentSermon ? currentSermon.TITLE || '(без названия)' : 'Выберите проповедь' }}</div>
             <div id="notes-date">{{ currentSermon ? currentSermon.SERMON_DATE : '' }}</div>
             <div id="sermon-select-wrap">
