@@ -311,6 +311,11 @@
     .btn-save-all:hover { background: #155a99; box-shadow: 0 4px 16px rgba(26,109,181,0.3); transform: translateY(-1px); }
 </style>
 
+<script type="text/javascript">
+    // Передаём ID текущего пользователя в JavaScript
+    window.currentUserId = <?php echo isset($_SESSION['userId']) ? (int)$_SESSION['userId'] : 0; ?>;
+</script>
+
 <div ng-controller="Settings">
     <div class="settings-wrapper">
 
@@ -333,7 +338,7 @@
         </div>
 
         <!-- 2. Порядок избранных -->
-        <div class="settings-card">
+        <div class="settings-card" ng-show="permissions.canEditFavoritesOrder">
             <span class="settings-card-title">2. Порядок избранных песен</span>
             <div class="settings-field">
                 <select class="settings-input" ng-model="settings.favorites_order">
@@ -344,7 +349,7 @@
         </div>
 
         <!-- 3. Доступные списки -->
-        <div class="settings-card">
+        <div class="settings-card" ng-show="permissions.canEditSongLists">
             <span class="settings-card-title">3. Доступные списки песен</span>
             <div class="checkbox-list">
                 <label class="checkbox-item"
@@ -379,7 +384,7 @@
         </div>
 
         <!-- 5–7. Основной дисплей -->
-        <div class="settings-card">
+        <div class="settings-card" ng-show="permissions.canEditAllSettings">
             <span class="settings-card-title">Основной дисплей (Text Display)</span>
 
             <div class="settings-field">
@@ -418,7 +423,7 @@
         </div>
 
         <!-- 8–11. Стриминговый дисплей -->
-        <div class="settings-card">
+        <div class="settings-card" ng-show="permissions.canEditAllSettings">
             <span class="settings-card-title">Стриминговый дисплей (Streaming Display)</span>
 
             <div class="settings-field">
@@ -465,7 +470,7 @@
         </div>
 
         <!-- 12–16. Режим Проповедь -->
-        <div class="settings-card">
+        <div class="settings-card" ng-show="permissions.canEditSermonSettings">
             <span class="settings-card-title">Режим Проповедь (Sermon Display)</span>
             <p class="settings-card-subtitle">Правая сторона экрана использует параметры раздела «Основной дисплей».</p>
 
@@ -546,10 +551,11 @@
         <div class="settings-card">
             <span class="settings-card-title">👥 Пользователи группы</span>
 
-            <div ng-repeat="slot in userSlots" class="user-slot-card">
+            <div ng-repeat="slot in userSlots" class="user-slot-card"
+                 ng-class="{'user-slot-readonly': !permissions.canManageUsers && slot.user.ID != getCurrentUserId()}">
 
                 <!-- Пользователь не создан -->
-                <div ng-if="!slot.user" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <div ng-if="!slot.user && permissions.canManageUsers" style="display:flex; align-items:center; justify-content:space-between; gap:10px;">
                 <span style="font-size:13px; color:#7f8c8d;">
                     <strong>{{ slot.roleLabel }}</strong> — пользователь не создан
                 </span>
@@ -559,7 +565,7 @@
                 </div>
 
                 <!-- Пользователь существует -->
-                <div ng-if="slot.user">
+                <div ng-if="slot.user && canEditUser(slot.user)">
                     <span class="role-badge" ng-style="getRoleBadgeStyle(slot.role)">{{ slot.roleLabel }}</span>
                     <div class="user-slot-fields">
                         <div class="user-slot-inputs">
@@ -578,7 +584,7 @@
                         </div>
                         <div class="user-slot-actions">
                             <button class="btn-save-user" ng-click="updateGroupUser(slot.user)">💾 Сохранить</button>
-                            <button class="btn-share-user" ng-click="shareUser(slot.user, slot.roleLabel)" title="Скопировать данные">📋 Поделиться</button>
+                            <button class="btn-share-user" ng-show="permissions.canManageUsers" ng-click="shareUser(slot.user, slot.roleLabel)" title="Скопировать данные">📋 Поделиться</button>
                             <button class="btn-share-user"
                                     ng-if="!slot.user.GOOGLE_ID"
                                     ng-click="linkGoogleAccount(slot.user)"
