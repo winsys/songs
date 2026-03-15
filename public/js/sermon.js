@@ -58,17 +58,17 @@ angular.module('Songs', ['csrfModule'])
                 const container = document.getElementById('notes-body');
                 if (!container) return;
 
-                // Чистим старые заголовки
+                // Удаляем старые заголовки
                 container.querySelectorAll('.sermon-group-header').forEach(h => h.remove());
 
-                const items = container.querySelectorAll('.bible-cite, .message-cite');
+                // Ищем именно span (как в вашем примере)
+                const items = container.querySelectorAll('span.bible-cite, span.message-cite');
                 let lastGroupKey = null;
 
                 items.forEach(function(el) {
                     let currentKey = "";
                     let titleText = "";
 
-                    // 1. Определяем ключ и текст заголовка
                     if (el.classList.contains('bible-cite')) {
                         const book = el.getAttribute('data-book-name') || "";
                         const chapter = el.getAttribute('data-chapter') || "";
@@ -79,33 +79,32 @@ angular.module('Songs', ['csrfModule'])
                         currentKey = `msg-${titleText}`;
                     }
 
-                    // 2. Проверяем, есть ли "грязный" разрыв перед этой цитатой
+                    // ПРОВЕРКА НА РАЗРЫВ
                     let isBrokenByContent = false;
                     let node = el.previousSibling;
 
                     while (node) {
-                        // Если уперлись в другую цитату - разрыва контентом нет
+                        // Если уперлись в предыдущую цитату - разрыва нет
                         if (node.nodeType === 1 && (node.classList.contains('bible-cite') || node.classList.contains('message-cite'))) {
                             break;
                         }
 
-                        // Если это текст (nodeType 3) - проверяем, не пустой ли он
                         if (node.nodeType === 3) {
-                            if (node.textContent.trim().length > 0) {
-                                isBrokenByContent = true; // Есть обычный текст без тегов
+                            // Очищаем текст от пробелов И невидимых символов (\u200B и прочих)
+                            const cleanText = node.textContent.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
+                            if (cleanText.length > 0) {
+                                isBrokenByContent = true;
                                 break;
                             }
-                        }
-                        // Если это любой другой тег (картинка, видео, span и т.д.) - это разрыв
-                        else if (node.nodeType === 1) {
+                        } else if (node.nodeType === 1) {
+                            // Любой другой тег (br, img, div) разрывает группу
                             isBrokenByContent = true;
                             break;
                         }
                         node = node.previousSibling;
                     }
 
-                    // 3. Условие вставки заголовка:
-                    // Либо ключ сменился, либо между цитатами одного ключа затесался текст/тег
+                    // Вставляем заголовок, если сменился ключ или был текст/тег между ними
                     if (currentKey !== lastGroupKey || isBrokenByContent) {
                         if (titleText) {
                             const header = document.createElement('div');
