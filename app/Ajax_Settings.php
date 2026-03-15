@@ -6,6 +6,11 @@
  */
 trait Ajax_Settings
 {
+    private static function get_settings_permissions()
+    {
+        return json_encode(Security::getSettingsPermissions());
+    }
+
     private static function save_user_settings()
     {
         $userId = $_SESSION['userId'];
@@ -103,10 +108,19 @@ trait Ajax_Settings
         $login  = mysqli_real_escape_string($dbh, self::$args['login'] ?? '');
         $pass   = self::$args['pass'] ?? '';
 
-        // Убедимся, что редактируем только своего пользователя
-        $check = Info::get('db')->get(
-            "SELECT ID FROM users WHERE ID = {$id} AND (ID = {$userId} OR GROUP_ID = {$userId})"
-        );
+        // Проверка прав: можно редактировать только себя, или всех если админ
+        if (Security::canManageUsers()) {
+            // Админ может редактировать всех в своей группе
+            $check = Info::get('db')->get(
+                "SELECT ID FROM users WHERE ID = {$id} AND (ID = {$userId} OR GROUP_ID = {$userId})"
+            );
+        } else {
+            // Остальные могут редактировать только себя
+            $check = Info::get('db')->get(
+                "SELECT ID FROM users WHERE ID = {$id} AND ID = {$userId}"
+            );
+        }
+
         if (!$check) {
             return json_encode(['status' => 'error', 'message' => 'Access denied']);
         }
@@ -134,7 +148,7 @@ trait Ajax_Settings
         $dbh    = Info::get('dbh');
         $role   = mysqli_real_escape_string($dbh, self::$args['role'] ?? '');
 
-        $allowed = ['admin', 'leader', 'musician', 'preacher'];
+        $allowed = ['admin', 'leader', 'musician', 'preacher', 'tech'];
         if (!in_array($role, $allowed)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid role']);
         }

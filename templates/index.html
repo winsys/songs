@@ -148,7 +148,7 @@
         </button>
         <?php endif; ?>
 
-        <?php if ($role === 'admin' || $role === 'leader'): ?>
+        <?php if ($role === 'admin' || $role === 'leader' || $role === 'tech'): ?>
         <button class="btn-home btn-blue" onclick="window.location.href='/tech'">
             <span class="btn-icon">🖥️</span> Технический режим
         </button>
@@ -164,7 +164,7 @@
         </button>
         <?php endif; ?>
 
-        <?php if ($role === 'admin'): ?>
+        <?php if ($role === 'admin' || $role === 'tech'): ?>
         <div class="home-section-label">Экраны</div>
         <button class="btn-home btn-gray" onclick="window.location.href='/text'">
             <span class="btn-icon">📝</span> Слова песни
@@ -172,11 +172,15 @@
         <button class="btn-home btn-gray" onclick="window.location.href='/text_stream'">
             <span class="btn-icon">📡</span> Слова для трансляции
         </button>
+        <?php endif; ?>
 
-        <div class="home-section-label">Администрирование</div>
+        <!-- Настройки доступны всем пользователям -->
+        <div class="home-section-label"><?php echo ($role === 'admin' ? 'Администрирование' : 'Настройки'); ?></div>
         <button class="btn-home btn-purple" onclick="window.location.href='/settings'">
             <span class="btn-icon">⚙️</span> Настройки
         </button>
+
+        <?php if ($role === 'admin'): ?>
         <button class="btn-home btn-red" onclick="window.location.href='/import'">
             <span class="btn-icon">📥</span> Импорт данных
         </button>

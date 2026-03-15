@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS `users` (
                                        `NAME` varchar(64) NOT NULL,
                                        `LOGIN` varchar(64) NOT NULL,
                                        `PASS` varchar(128) NOT NULL,
-                                       `ROLE` enum('admin','leader','musician','preacher') NOT NULL DEFAULT 'musician',
+                                       `ROLE` enum('admin','leader','musician','preacher','tech') NOT NULL DEFAULT 'musician',
                                        `GROUP_ID` int(11) NOT NULL DEFAULT '0',
                                        `LAST_LOGIN` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                        PRIMARY KEY (`ID`)

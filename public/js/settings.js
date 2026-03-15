@@ -1,5 +1,14 @@
 app.controller('Settings', function ($scope, $http)
 {
+    // Permissions - загружаются с сервера
+    $scope.permissions = {
+        canManageUsers: false,
+        canEditFavoritesOrder: false,
+        canEditSongLists: false,
+        canEditSermonSettings: false,
+        canEditAllSettings: false
+    };
+
     $scope.settings = {
         display_name: '',
         favorites_order: 'latest_bottom',
@@ -22,6 +31,17 @@ app.controller('Settings', function ($scope, $http)
     $scope.placeholderImages = [
         { path: '/field_small.jpg', name: 'field_small.jpg (по умолчанию)' }
     ];
+
+    // Загрузка разрешений с сервера
+    $scope.loadPermissions = function() {
+        $http({ method: "POST", url: "/ajax", data: {command: 'get_settings_permissions' } }).then(
+            function success(r){
+                if (r.data) {
+                    angular.extend($scope.permissions, r.data);
+                }
+            },
+            function error(e){ console.log('Failed to load permissions: ', e); });
+    };
 
     $scope.loadAvailableLists = function() {
         $http({ method: "POST", url: "/ajax", data: {command: 'get_all_song_lists' } }).then(
@@ -121,19 +141,32 @@ app.controller('Settings', function ($scope, $http)
         { role: 'admin',    roleLabel: 'Администратор' },
         { role: 'leader',   roleLabel: 'Ведущий' },
         { role: 'musician', roleLabel: 'Музыкант' },
-        { role: 'preacher', roleLabel: 'Проповедник' }
+        { role: 'preacher', roleLabel: 'Проповедник' },
+        { role: 'tech',     roleLabel: 'Техник' }
     ];
 
     $scope.userSlots = ALL_ROLES.map(function(r) {
         return { role: r.role, roleLabel: r.roleLabel, user: null };
     });
 
+    $scope.getCurrentUserId = function() {
+        // Получить ID текущего пользователя из сессии (будет передан через PHP)
+        return window.currentUserId || 0;
+    };
+
+    $scope.canEditUser = function(user) {
+        if (!user) return false;
+        // Админ может редактировать всех, остальные только себя
+        return $scope.permissions.canManageUsers || user.ID === $scope.getCurrentUserId();
+    };
+
     $scope.getRoleBadgeStyle = function(role) {
         var colors = {
             admin:    { color: '#fff', background: '#c62828', border: '1px solid #b71c1c' },
             leader:   { color: '#fff', background: '#1565c0', border: '1px solid #0d47a1' },
             musician: { color: '#fff', background: '#2e7d32', border: '1px solid #1b5e20' },
-            preacher: { color: '#fff', background: '#6a1b9a', border: '1px solid #4a148c' }
+            preacher: { color: '#fff', background: '#6a1b9a', border: '1px solid #4a148c' },
+            tech:     { color: '#fff', background: '#f57c00', border: '1px solid #e65100' }
         };
         return colors[role] || { color: '#333', background: '#e0e0e0' };
     };
@@ -250,6 +283,8 @@ app.controller('Settings', function ($scope, $http)
         );
     };
 
+    $scope.loadPermissions();
     $scope.loadGroupUsers();
     $scope.loadSettings();
+    $scope.loadAvailableLists();
 });

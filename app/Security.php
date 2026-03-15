@@ -226,11 +226,17 @@ class Security
         return self::getRole() === 'preacher';
     }
 
+    public static function isTech(): bool
+    {
+        return self::getRole() === 'tech';
+    }
+
     private static $roleRoutes = array(
         'admin' => null,
-        'leader' => array('index', 'ajax', 'leader', 'tech'),
-        'musician' => array('index', 'ajax', 'musician'),
-        'preacher' => array('index', 'ajax', 'sermon_prep', 'sermon'),
+        'leader' => array('index', 'ajax', 'leader', 'settings'),
+        'musician' => array('index', 'ajax', 'musician', 'settings'),
+        'preacher' => array('index', 'ajax', 'sermon_prep', 'sermon', 'settings'),
+        'tech' => array('index', 'ajax', 'tech', 'text', 'text_stream', 'settings'),
     );
 
     public static function canAccess(string $route): bool
@@ -272,6 +278,75 @@ class Security
     public static function getUserId(): int
     {
         return isset($_SESSION['userId']) ? (int)$_SESSION['userId'] : 0;
+    }
+
+    // ============================================================
+    //  [PERMISSIONS] Settings Access Control
+    // ============================================================
+
+    /**
+     * Check if user can edit group users (manage other users).
+     * Only admin can edit all users.
+     * @return bool
+     */
+    public static function canManageUsers(): bool
+    {
+        return self::isAdmin();
+    }
+
+    /**
+     * Check if user can edit favorites order settings.
+     * Leader and Admin can edit.
+     * @return bool
+     */
+    public static function canEditFavoritesOrder(): bool
+    {
+        return self::isAdmin() || self::isLeader();
+    }
+
+    /**
+     * Check if user can edit available song lists settings.
+     * Leader and Admin can edit.
+     * @return bool
+     */
+    public static function canEditSongLists(): bool
+    {
+        return self::isAdmin() || self::isLeader();
+    }
+
+    /**
+     * Check if user can edit sermon display settings.
+     * Preacher and Admin can edit.
+     * @return bool
+     */
+    public static function canEditSermonSettings(): bool
+    {
+        return self::isAdmin() || self::isPreacher();
+    }
+
+    /**
+     * Check if user can edit all display settings.
+     * Tech and Admin can edit.
+     * @return bool
+     */
+    public static function canEditAllSettings(): bool
+    {
+        return self::isAdmin() || self::isTech();
+    }
+
+    /**
+     * Get permissions array for current user.
+     * @return array
+     */
+    public static function getSettingsPermissions(): array
+    {
+        return [
+            'canManageUsers' => self::canManageUsers(),
+            'canEditFavoritesOrder' => self::canEditFavoritesOrder(),
+            'canEditSongLists' => self::canEditSongLists(),
+            'canEditSermonSettings' => self::canEditSermonSettings(),
+            'canEditAllSettings' => self::canEditAllSettings(),
+        ];
     }
 
 }
