@@ -88,7 +88,7 @@ trait Ajax_Settings
              FROM users
              WHERE GROUP_ID = {$userId}
                 OR (ID = {$userId} AND (GROUP_ID = 0 OR GROUP_ID IS NULL))
-             ORDER BY FIELD(ROLE, 'admin', 'leader', 'musician', 'preacher')"
+             ORDER BY FIELD(ROLE, 'admin', 'leader', 'musician', 'preacher', 'tech')"
         );
 
         foreach ($users as &$u) {
