@@ -217,9 +217,74 @@ app.controller('Leader', function ($scope, $http)
         $scope.reloadSongList();
     }
 
+    // ==========================================================
+    // RESTORE CURRENT STATE
+    // ==========================================================
+
+    function restoreCurrentState() {
+        $http({ method: "POST", url: "/ajax", data: { command: 'get_current_state' } }).then(
+            function(response) {
+                var state = response.data;
+
+                // Clear previous highlighting
+                $scope.currentSongId = null;
+
+                // Restore song if image path matches song image pattern
+                if (state.image && state.image.match(/\/images\/\d+\/\d+\.jpg/)) {
+                    var matches = state.image.match(/\/images\/(\d+)\/(\d+)\.jpg/);
+                    if (matches) {
+                        var listId = parseInt(matches[1]);
+                        var songNum = matches[2];
+
+                        // Find and highlight the song in favorites
+                        for (var i = 0; i < $scope.favorites.length; i++) {
+                            if ($scope.favorites[i].LISTID == listId && $scope.favorites[i].NUM == songNum) {
+                                $scope.currentSongId = $scope.favorites[i].ID;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        );
+    }
+
+    // ==========================================================
+    // WEBSOCKET
+    // ==========================================================
+
+    // [SECURITY] Use authenticated WebSocket connection
+    const socket = window.createAuthenticatedWebSocket(
+        null, // Use default /ws endpoint
+        function(data) {
+            // Handle incoming messages (only after authentication)
+            if (data.type === 'update_needed') {
+                $scope.$apply(function() {
+                    $scope.reloadFavorites();
+                    // Restore state after favorites are reloaded
+                    setTimeout(function() {
+                        $scope.$apply(function() {
+                            restoreCurrentState();
+                        });
+                    }, 300);
+                });
+            }
+        },
+        function(error) {
+            console.error('WebSocket error:', error);
+        }
+    );
+
     $scope.loadSongLists();
     loadLanguages();
     $scope.reloadSongList();
     $scope.reloadFavorites();
+
+    // Restore state after initial load
+    setTimeout(function() {
+        $scope.$apply(function() {
+            restoreCurrentState();
+        });
+    }, 1000);
 });
 
