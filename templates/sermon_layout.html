@@ -113,7 +113,7 @@
             transform: translateX(-1px);
         }
 
-        #notes-date { font-size: 10pt; color: var(--sn-notes-text-dim); flex-shrink: 0; }
+        #notes-date { font-size: 10pt; color: var(--sn-notes-text-dim); }
         #sermon-select-wrap { flex-shrink: 0; }
 
         #display-target-wrap {
@@ -581,7 +581,7 @@
                 ← Главная
             </button>
             <div id="notes-title">{{ currentSermon ? currentSermon.TITLE || '(без названия)' : 'Выберите проповедь' }}</div>
-            <div id="notes-date">{{ currentSermon ? currentSermon.SERMON_DATE : '' }}</div>
+            <div id="notes-date">({{ currentSermon ? currentSermon.SERMON_DATE : '' }})</div>
             <div id="sermon-select-wrap">
                 <select id="sermon-select" ng-model="selectedSermonId" ng-change="loadSermon(selectedSermonId)">
                     <option value="">— выбрать —</option>
