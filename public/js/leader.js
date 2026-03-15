@@ -82,11 +82,12 @@ app.controller('Leader', function ($scope, $http)
         }
     };
 
-    $scope.reloadFavorites = function()
+    $scope.reloadFavorites = function(callback)
     {
         $http({ method: "POST", url: "/ajax", data: {command: 'get_favorites' } }).then(
             function success(respond){
                 $scope.favorites = respond.data;
+                if (callback) callback();
             },
             function error(erespond){
                 console.log('Ajax call error: ',erespond)
@@ -235,12 +236,15 @@ app.controller('Leader', function ($scope, $http)
     // ==========================================================
 
     function restoreCurrentState() {
+        console.log('Leader: restoreCurrentState called, favorites count:', $scope.favorites.length);
         $http({ method: "POST", url: "/ajax", data: { command: 'get_current_state' } }).then(
             function(response) {
                 var state = response.data;
+                console.log('Leader: current state:', state);
 
                 // Close fullscreen if currently open
                 if ($scope.fullScreen && document.fullscreenElement) {
+                    console.log('Leader: closing existing fullscreen');
                     document.exitFullscreen();
                     $scope.fullScreen = false;
                 }
@@ -251,28 +255,37 @@ app.controller('Leader', function ($scope, $http)
                     if (matches) {
                         var listId = parseInt(matches[1]);
                         var songNum = matches[2];
+                        console.log('Leader: looking for song listId=' + listId + ' songNum=' + songNum);
 
                         // Find the song in favorites and open fullscreen
                         for (var i = 0; i < $scope.favorites.length; i++) {
                             if ($scope.favorites[i].LISTID == listId && $scope.favorites[i].NUM == songNum) {
                                 var itemId = $scope.favorites[i].ID;
+                                console.log('Leader: found song, itemId=' + itemId);
                                 // Open fullscreen after a short delay to ensure DOM is ready
                                 setTimeout(function() {
                                     var imgElement = document.getElementById('img' + itemId);
+                                    console.log('Leader: img element:', imgElement);
                                     if (imgElement && imgElement.requestFullscreen) {
+                                        console.log('Leader: requesting fullscreen');
                                         imgElement.requestFullscreen().then(function() {
+                                            console.log('Leader: fullscreen success');
                                             $scope.$apply(function() {
                                                 $scope.fullScreen = true;
                                             });
                                         }).catch(function(err) {
-                                            console.log('Fullscreen error:', err);
+                                            console.log('Leader: fullscreen error:', err);
                                         });
+                                    } else {
+                                        console.log('Leader: img element or requestFullscreen not available');
                                     }
                                 }, 300);
                                 break;
                             }
                         }
                     }
+                } else {
+                    console.log('Leader: no active song image');
                 }
             }
         );
@@ -289,13 +302,12 @@ app.controller('Leader', function ($scope, $http)
             // Handle incoming messages (only after authentication)
             if (data.type === 'update_needed') {
                 $scope.$apply(function() {
-                    $scope.reloadFavorites();
-                    // Restore state after favorites are reloaded
-                    setTimeout(function() {
-                        $scope.$apply(function() {
+                    $scope.reloadFavorites(function() {
+                        // Restore state after favorites are reloaded
+                        setTimeout(function() {
                             restoreCurrentState();
-                        });
-                    }, 300);
+                        }, 200);
+                    });
                 });
             }
         },
@@ -307,13 +319,12 @@ app.controller('Leader', function ($scope, $http)
     $scope.loadSongLists();
     loadLanguages();
     $scope.reloadSongList();
-    $scope.reloadFavorites();
 
-    // Restore state after initial load
-    setTimeout(function() {
-        $scope.$apply(function() {
+    // Load favorites and restore state after they're loaded
+    $scope.reloadFavorites(function() {
+        setTimeout(function() {
             restoreCurrentState();
-        });
-    }, 1000);
+        }, 500);
+    });
 });
 
