@@ -1,4 +1,5 @@
 /app/config.php
 /public/images
 /vendor/
+/node_modules/
 .idea/
