@@ -364,7 +364,7 @@
         </div>
 
         <!-- 4. Фоновое изображение -->
-        <div class="settings-card">
+        <div class="settings-card" ng-show="permissions.canEditAllSettings">
             <span class="settings-card-title">4. Фоновое изображение (placeholder)</span>
             <div ng-if="settings.placeholder_image" style="margin-bottom:12px;">
                 <img ng-src="{{settings.placeholder_image}}" class="placeholder-preview">
@@ -614,4 +614,4 @@
     </div>
 </div>
 
-<script src="/js/settings.js?v=10005" type="text/javascript"></script>
+<script src="/js/settings.js?v=10006" type="text/javascript"></script>
