@@ -532,7 +532,6 @@ app.controller('Tech', function ($scope, $http, $timeout)
                 if (r.data && r.data.status === 'success') {
                     $scope.standardWallpapers = r.data.wallpapers || [];
                     $scope.isAdmin = r.data.is_admin || false;
-                    console.log('Wallpapers loaded:', $scope.standardWallpapers.length, 'items, isAdmin:', $scope.isAdmin);
                 }
             }
         );
