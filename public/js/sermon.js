@@ -54,54 +54,71 @@ angular.module('Songs', ['csrfModule'])
         });
 
         $scope.groupCitations = function() {
-            // Ждем, пока AngularJS отрендерит HTML
             setTimeout(function() {
                 var container = document.getElementById('notes-body');
                 if (!container) return;
 
-                // Находим все цитаты
+                // Удаляем старые заголовки, если они были (на случай перезагрузки)
+                container.querySelectorAll('.sermon-group-header').forEach(h => h.remove());
+
                 var items = container.querySelectorAll('.bible-cite, .message-cite');
-                var lastGroupKey = null;
+                var lastKey = null;
 
                 items.forEach(function(el) {
                     var currentKey = "";
                     var titleText = "";
 
-                    // Формируем ключ уникальности и текст заголовка
+                    // Логика определения ключа и текста
                     if (el.classList.contains('bible-cite')) {
                         var book = el.getAttribute('data-book-name') || "";
                         var chapter = el.getAttribute('data-chapter') || "";
                         currentKey = "bible-" + book + "-" + chapter;
                         titleText = book + (chapter ? ", глава " + chapter : "");
                     } else if (el.classList.contains('message-cite')) {
-                        var book = el.getAttribute('data-book-name') || "";
-                        currentKey = "msg-" + book;
-                        titleText = book;
+                        titleText = el.getAttribute('data-msg-title') || "";
+                        currentKey = "msg-" + titleText;
                     }
 
-                    // Проверяем, идет ли эта цитата сразу за предыдущей той же группы
-                    // (проверяем только те, что имеют одинаковый ключ)
-                    if (currentKey !== lastGroupKey) {
-                        // Проверяем, нет ли значимого текста перед этой цитатой
-                        // Если это первая цитата в блоке или перед ней только пробелы/пустота
-                        var prev = el.previousSibling;
-                        var isIsolated = true;
+                    // ПРОВЕРКА НА РАЗРЫВ:
+                    // Считаем группу новой, если:
+                    // 1. Изменился ключ (другая глава/проповедь)
+                    // 2. Между текущим и предыдущим элементами есть текст (кроме пустых пробелов)
+                    var hasTextGap = false;
+                    var prevNode = el.previousSibling;
 
-                        // Простая проверка: если предыдущий узел - текст, проверяем его на пустоту
-                        if (prev && prev.nodeType === 3 && prev.textContent.trim().length > 0) {
-                            isIsolated = false;
+                    // Проверяем все узлы между текущей и предыдущей цитатой
+                    while (prevNode) {
+                        // Если встретили другую цитату - стоп, проверяем ключ
+                        if (prevNode.nodeType === 1 && (prevNode.classList.contains('bible-cite') || prevNode.classList.contains('message-cite'))) {
+                            break;
                         }
-
-                        // Вставляем заголовок, если это начало новой группы
-                        var header = document.createElement('div');
-                        header.className = 'sermon-group-header';
-                        header.textContent = titleText;
-                        el.parentNode.insertBefore(header, el);
+                        // Если встретили текст, который не просто пробел - это разрыв
+                        if (prevNode.nodeType === 3 && prevNode.textContent.trim().length > 0) {
+                            hasTextGap = true;
+                            break;
+                        }
+                        // Если встретили картинку или видео - это разрыв
+                        if (prevNode.nodeType === 1 && (prevNode.classList.contains('sermon-img-wrap') || prevNode.classList.contains('sermon-video-wrap'))) {
+                            hasTextGap = true;
+                            break;
+                        }
+                        prevNode = prevNode.previousSibling;
                     }
 
-                    lastGroupKey = currentKey;
+                    if (currentKey !== lastKey || hasTextGap) {
+                        if (titleText) {
+                            var header = document.createElement('div');
+                            header.className = 'sermon-group-header';
+                            // Добавляем класс в зависимости от типа для разного цвета рамок, если нужно
+                            header.classList.add(el.classList.contains('bible-cite') ? 'header-bible' : 'header-msg');
+                            header.textContent = titleText;
+                            el.parentNode.insertBefore(header, el);
+                        }
+                    }
+
+                    lastKey = currentKey;
                 });
-            }, 100);
+            }, 150);
         };
 
         // ==========================================================

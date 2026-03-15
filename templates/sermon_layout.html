@@ -538,17 +538,33 @@
         }
 
         .sermon-group-header {
-            display: inline-block;
-            margin: 10px 0 5px 0;
-            padding: 2px 8px;
-            border: 1px solid #ccc; /* Цвет вашей рамки */
-            border-radius: 4px;
+            display: block; /* Заголовок на новой строке */
+            margin: 15px 3px 5px 3px;
+            padding: 3px 10px;
+            border-radius: 8px;
             font-weight: bold;
-            font-size: 0.9em;
-            background-color: #f9f9f9;
-            color: #555;
-            user-select: none; /* Нередактируемый */
-            pointer-events: none; /* Не кликабельный */
+            font-size: 0.85em;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            user-select: none;
+            pointer-events: none;
+            width: fit-content;
+        }
+
+        /* Стиль для заголовка Библии */
+        .sermon-group-header.header-bible {
+            background: var(--sn-bible-bg);
+            border: 1px solid var(--sn-bible-border);
+            color: var(--sn-bible-ref);
+            opacity: 0.8;
+        }
+
+        /* Стиль для заголовка Посланий */
+        .sermon-group-header.header-msg {
+            background: var(--sn-msg-bg);
+            border: 1px solid var(--sn-msg-border);
+            color: var(--sn-msg-color);
+            opacity: 0.8;
         }
 
 
