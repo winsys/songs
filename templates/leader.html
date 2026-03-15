@@ -241,6 +241,12 @@
         background: #fafbfc;
     }
 
+    .prod-list-item.active-song {
+        border-color: #3498db;
+        background: #ebf5fb;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.15);
+    }
+
     .item-text {
         font-size: 15px;
         font-weight: 500;
@@ -527,6 +533,7 @@
         <!-- Favorites list -->
         <div class="favorites-list">
             <div class="prod-list-item"
+                 ng-class="{'active-song': listItem.ID === currentSongId}"
                  ng-repeat="listItem in favorites">
 
                 <!-- Delete button -->

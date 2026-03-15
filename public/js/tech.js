@@ -1374,6 +1374,10 @@ app.controller('Tech', function ($scope, $http, $timeout)
             if (data.type === 'update_needed') {
                 $scope.$apply(function() {
                     $scope.reloadFavorites();
+                    // Restore state after favorites are reloaded
+                    $timeout(function() {
+                        restoreCurrentState();
+                    }, 300);
                 });
             }
         },
@@ -1577,6 +1581,15 @@ app.controller('Tech', function ($scope, $http, $timeout)
             function(response) {
                 var state = response.data;
 
+                // Clear previous state
+                $scope.showingSong = null;
+                $scope.showingChapter = null;
+                $scope.selectedChapters = [];
+                $scope.preparedChapters = [];
+                $scope.showingBibleVerse = null;
+                $scope.showingMessagePara = null;
+                $scope.activeMediaItem = null;
+
                 // Restore song if image path matches song image pattern
                 if (state.image && state.image.match(/\/images\/\d+\/\d+\.jpg/)) {
                     var matches = state.image.match(/\/images\/(\d+)\/(\d+)\.jpg/);
@@ -1588,6 +1601,8 @@ app.controller('Tech', function ($scope, $http, $timeout)
                         for (var i = 0; i < $scope.favorites.length; i++) {
                             if ($scope.favorites[i].LISTID == listId && $scope.favorites[i].NUM == songNum) {
                                 $scope.showingSong = $scope.favorites[i];
+                                // Split text to prepare chapters
+                                splitText($scope.favorites[i]);
                                 // Also restore chapters if song_name has chapter info
                                 if (state.song_name) {
                                     $scope.restoreChaptersFromSongName(state.song_name, $scope.favorites[i]);
@@ -1602,16 +1617,34 @@ app.controller('Tech', function ($scope, $http, $timeout)
                 if (state.text && state.song_name && state.song_name.match(/\d+:\d+/)) {
                     // Mark as showing Bible verse
                     $scope.showingBibleVerse = { text: state.text, reference: state.song_name };
+                    // Switch to Bible mode if needed
+                    if ($scope.pageMode !== 'bible') {
+                        $scope.pageMode = 'bible';
+                    }
                 }
 
                 // Restore message paragraph if song_name doesn't match other patterns
-                if (state.text && state.song_name && !state.song_name.match(/\d+:\d+/)) {
+                if (state.text && state.song_name && !state.song_name.match(/\d+:\d+/) && !state.image) {
                     $scope.showingMessagePara = { text: state.text, title: state.song_name };
+                    // Switch to messages mode if needed
+                    if ($scope.pageMode !== 'messages') {
+                        $scope.pageMode = 'messages';
+                    }
                 }
 
                 // Restore video if video_src is set
                 if (state.video_src) {
-                    $scope.activeMediaItem = { src: state.video_src, itemType: 'video' };
+                    // Find media item in favorites
+                    for (var i = 0; i < $scope.favorites.length; i++) {
+                        if ($scope.favorites[i].itemType === 'video' && $scope.favorites[i].src === state.video_src) {
+                            $scope.activeMediaItem = $scope.favorites[i];
+                            break;
+                        }
+                    }
+                    // If not found in favorites, create temporary item
+                    if (!$scope.activeMediaItem) {
+                        $scope.activeMediaItem = { src: state.video_src, itemType: 'video' };
+                    }
                 }
             }
         );
