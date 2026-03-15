@@ -253,10 +253,15 @@ app.controller('Leader', function ($scope, $http)
         function(data) {
             // Handle incoming messages (only after authentication)
             if (data.type === 'update_needed') {
-                console.log('Leader: update_needed received - reloading favorites');
-                $scope.$apply(function() {
-                    $scope.reloadFavorites();
-                });
+                console.log('Leader: update_needed received, fullScreen=' + $scope.fullScreen);
+                // Don't reload favorites while in fullscreen - it removes the DOM element
+                if (!$scope.fullScreen) {
+                    $scope.$apply(function() {
+                        $scope.reloadFavorites();
+                    });
+                } else {
+                    console.log('Leader: skipping reloadFavorites - in fullscreen mode');
+                }
             }
         },
         function(error) {
