@@ -45,6 +45,11 @@ app.controller('Tech', function ($scope, $http, $timeout)
     $scope.uploadingImage     = false;   // флаг загрузки изображения
     $scope.uploadingVideo     = false;   // флаг загрузки видео
 
+    // ── Standard Wallpapers state ─────────────────────────────
+    $scope.showWallpapersPanel = false;  // панель стандартных заставок
+    $scope.standardWallpapers  = [];     // список стандартных заставок
+    $scope.isAdmin             = false;  // является ли пользователь администратором
+
     // ── Active media item (video controls) ────────────────────
     $scope.activeMediaItem    = null;    // { FID, itemType, name, src }
     $scope.techVideoPlaying   = false;
@@ -501,7 +506,104 @@ app.controller('Tech', function ($scope, $http, $timeout)
             $scope.mediaUrlInput = '';
             $scope.mediaUrlName  = '';
             $scope.mediaUrlType  = 'video';
+            $scope.showWallpapersPanel = false; // Закрыть панель заставок
         }
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Открыть/закрыть панель стандартных заставок
+    // ─────────────────────────────────────────────────────────
+
+    $scope.toggleWallpapersPanel = function () {
+        $scope.showWallpapersPanel = !$scope.showWallpapersPanel;
+        if ($scope.showWallpapersPanel) {
+            $scope.showMediaAddPanel = false; // Закрыть панель добавления медиа
+            $scope.loadStandardWallpapers();
+        }
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Загрузить список стандартных заставок
+    // ─────────────────────────────────────────────────────────
+
+    $scope.loadStandardWallpapers = function () {
+        $http({ method: "POST", url: "/ajax", data: { command: 'get_standard_wallpapers' }}).then(
+            function (r) {
+                if (r.data && r.data.status === 'success') {
+                    $scope.standardWallpapers = r.data.wallpapers || [];
+                    $scope.isAdmin = r.data.is_admin || false;
+                }
+            }
+        );
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Добавить изображение в стандартные заставки
+    // ─────────────────────────────────────────────────────────
+
+    $scope.addToWallpapers = function (item) {
+        var confirmMsg = 'Добавить "' + (item.NAME || item.dispName) + '" в стандартные заставки?';
+        if (!confirm(confirmMsg)) return;
+
+        $http({ method: "POST", url: "/ajax", data: {
+                command: 'add_to_wallpapers',
+                name: item.NAME || item.dispName,
+                src: item.src
+            }}).then(
+            function (r) {
+                if (r.data && r.data.status === 'success') {
+                    alert('Изображение добавлено в стандартные заставки');
+                } else {
+                    alert('Ошибка: ' + (r.data && r.data.message ? r.data.message : 'unknown'));
+                }
+            },
+            function (e) {
+                alert('HTTP error: ' + e.status);
+            }
+        );
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Добавить заставку из списка в избранное
+    // ─────────────────────────────────────────────────────────
+
+    $scope.addWallpaperToFavorites = function (wallpaper) {
+        $http({ method: "POST", url: "/ajax", data: {
+                command: 'add_media_to_favorites',
+                name: wallpaper.name,
+                src: wallpaper.src,
+                media_type: 'image'
+            }}).then(
+            function () {
+                $scope.showWallpapersPanel = false;
+                $scope.reloadFavorites();
+            }
+        );
+    };
+
+    // ─────────────────────────────────────────────────────────
+    // Удалить заставку из списка стандартных (только админ)
+    // ─────────────────────────────────────────────────────────
+
+    $scope.deleteWallpaper = function (id, name) {
+        var confirmMsg = 'Удалить заставку "' + name + '" из списка?';
+        if (!confirm(confirmMsg)) return;
+
+        $http({ method: "POST", url: "/ajax", data: {
+                command: 'delete_wallpaper',
+                id: id
+            }}).then(
+            function (r) {
+                if (r.data && r.data.status === 'success') {
+                    $scope.loadStandardWallpapers();
+                } else {
+                    alert('Ошибка: ' + (r.data && r.data.message ? r.data.message : 'unknown'));
+                }
+            },
+            function (e) {
+                alert('HTTP error: ' + e.status);
+            }
+        );
     };
 
     // ─────────────────────────────────────────────────────────
@@ -566,10 +668,23 @@ app.controller('Tech', function ($scope, $http, $timeout)
 
     $scope.onMediaImageSelected = function (input) {
         if (!input.files || !input.files[0]) return;
+
+        // Запросить название для изображения
+        var mediaName = prompt('Введите краткое название для изображения:');
+        if (mediaName === null) {
+            input.value = '';
+            return; // Пользователь отменил
+        }
+        mediaName = mediaName.trim();
+        if (!mediaName) {
+            mediaName = input.files[0].name; // Используем имя файла по умолчанию
+        }
+
         $scope.uploadingImage = true;
         var formData = new FormData();
         formData.append('file',    input.files[0]);
         formData.append('command', 'upload_media_image');
+        formData.append('name',    mediaName);
         $http.post('/ajax', formData, {
             transformRequest: angular.identity,
             headers: { 'Content-Type': undefined }
@@ -602,10 +717,23 @@ app.controller('Tech', function ($scope, $http, $timeout)
 
     $scope.onMediaVideoSelected = function (input) {
         if (!input.files || !input.files[0]) return;
+
+        // Запросить название для видео
+        var mediaName = prompt('Введите краткое название для видео:');
+        if (mediaName === null) {
+            input.value = '';
+            return; // Пользователь отменил
+        }
+        mediaName = mediaName.trim();
+        if (!mediaName) {
+            mediaName = input.files[0].name; // Используем имя файла по умолчанию
+        }
+
         $scope.uploadingVideo = true;
         var formData = new FormData();
         formData.append('file',    input.files[0]);
         formData.append('command', 'upload_media_video');
+        formData.append('name',    mediaName);
         $http.post('/ajax', formData, {
             transformRequest: angular.identity,
             headers: { 'Content-Type': undefined }

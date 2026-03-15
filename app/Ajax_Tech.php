@@ -305,10 +305,21 @@ trait Ajax_Tech
         );
 
         // Delete the physical file if it's an uploaded file (starts with /tech_media/)
+        // BUT only if it's NOT used in standard wallpapers
         if ($media && isset($media['src']) && strpos($media['src'], '/tech_media/') === 0) {
-            $filePath = __DIR__ . '/../public' . $media['src'];
-            if (file_exists($filePath)) {
-                unlink($filePath);
+            // Проверяем, используется ли это изображение в стандартных заставках
+            $dbh = Info::get('dbh');
+            $srcSafe = mysqli_real_escape_string($dbh, $media['src']);
+            $inWallpapers = Info::get('db')->get(
+                "SELECT id FROM standard_wallpapers WHERE src = '{$srcSafe}'"
+            );
+
+            // Удаляем файл только если он не в заставках
+            if (!$inWallpapers) {
+                $filePath = __DIR__ . '/../public' . $media['src'];
+                if (file_exists($filePath)) {
+                    unlink($filePath);
+                }
             }
         }
 
@@ -318,7 +329,7 @@ trait Ajax_Tech
 
     /**
      * Загрузить медиа-изображение и добавить в плейлист.
-     * Input: multipart file 'file'
+     * Input: multipart file 'file', optional 'name'
      */
     private static function upload_media_image()
     {
@@ -352,7 +363,8 @@ trait Ajax_Tech
         }
 
         $path = '/tech_media/' . $userId . '/' . $filename;
-        $name = $_FILES['file']['name'];
+        // Использовать переданное название или имя файла по умолчанию
+        $name = isset($_POST['name']) && !empty($_POST['name']) ? $_POST['name'] : $_FILES['file']['name'];
 
         $dbh      = Info::get('dbh');
         $nameSafe = mysqli_real_escape_string($dbh, $name);
@@ -372,7 +384,7 @@ trait Ajax_Tech
 
     /**
      * Загрузить видеофайл и добавить в плейлист.
-     * Input: multipart file 'file'
+     * Input: multipart file 'file', optional 'name'
      */
     private static function upload_media_video()
     {
@@ -410,7 +422,8 @@ trait Ajax_Tech
         }
 
         $path = '/tech_media/' . $userId . '/' . $filename;
-        $name = $_FILES['file']['name'];
+        // Использовать переданное название или имя файла по умолчанию
+        $name = isset($_POST['name']) && !empty($_POST['name']) ? $_POST['name'] : $_FILES['file']['name'];
 
         $dbh      = Info::get('dbh');
         $nameSafe = mysqli_real_escape_string($dbh, $name);
@@ -468,5 +481,83 @@ trait Ajax_Tech
         }
         self::updateSocket($targetGroupId);
         return json_encode(['status' => 'ok']);
+    }
+
+    /**
+     * Получить список стандартных заставок.
+     * Возвращает: {status, wallpapers: [{id, name, src}], is_admin}
+     */
+    private static function get_standard_wallpapers()
+    {
+        $userId = (int)$_SESSION['curUserId'];
+        $groupId = (int)$_SESSION['curGroupId'];
+
+        // Проверка прав администратора (роль 1)
+        $userRow = Info::get('db')->get(
+            "SELECT role FROM users WHERE ID = {$userId} AND groupId = {$groupId}"
+        );
+        $isAdmin = ($userRow && (int)$userRow['role'] === 1);
+
+        $wallpapers = Info::get('db')->select(
+            "SELECT id, name, src FROM standard_wallpapers ORDER BY id DESC"
+        );
+
+        return json_encode([
+            'status' => 'success',
+            'wallpapers' => $wallpapers,
+            'is_admin' => $isAdmin
+        ]);
+    }
+
+    /**
+     * Добавить изображение в стандартные заставки.
+     * Params: name, src
+     */
+    private static function add_to_wallpapers()
+    {
+        $dbh  = Info::get('dbh');
+        $name = mysqli_real_escape_string($dbh, self::$args['name'] ?? '');
+        $src  = mysqli_real_escape_string($dbh, self::$args['src']  ?? '');
+
+        if (empty($name) || empty($src)) {
+            return json_encode(['status' => 'error', 'message' => 'Name and src required']);
+        }
+
+        // Проверка на дубликаты
+        $exists = Info::get('db')->get(
+            "SELECT id FROM standard_wallpapers WHERE src = '{$src}'"
+        );
+        if ($exists) {
+            return json_encode(['status' => 'error', 'message' => 'This wallpaper already exists']);
+        }
+
+        Info::get('db')->exec(
+            "INSERT INTO standard_wallpapers (name, src) VALUES ('{$name}', '{$src}')"
+        );
+
+        return json_encode(['status' => 'success', 'id' => Info::get('dbh')->insert_id]);
+    }
+
+    /**
+     * Удалить заставку из списка стандартных (только администратор).
+     * Params: id
+     */
+    private static function delete_wallpaper()
+    {
+        $userId = (int)$_SESSION['curUserId'];
+        $groupId = (int)$_SESSION['curGroupId'];
+        $id = (int)self::$args['id'];
+
+        // Проверка прав администратора (роль 1)
+        $userRow = Info::get('db')->get(
+            "SELECT role FROM users WHERE ID = {$userId} AND groupId = {$groupId}"
+        );
+        if (!$userRow || (int)$userRow['role'] !== 1) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+
+        Info::get('db')->exec("DELETE FROM standard_wallpapers WHERE id = {$id}");
+
+        return json_encode(['status' => 'success']);
     }
 }
