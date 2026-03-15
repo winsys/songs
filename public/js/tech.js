@@ -714,6 +714,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
         );
     };
 
+
     // ─────────────────────────────────────────────────────────
     // Загрузить видео → добавить в плейлист
     // ─────────────────────────────────────────────────────────
@@ -724,7 +725,6 @@ app.controller('Tech', function ($scope, $http, $timeout)
 
     $scope.onMediaVideoSelected = function (input) {
         if (!input.files || !input.files[0]) return;
-
         // Запросить название для видео
         var mediaName = prompt('Введите краткое название для видео:');
         if (mediaName === null) {
@@ -735,7 +735,6 @@ app.controller('Tech', function ($scope, $http, $timeout)
         if (!mediaName) {
             mediaName = input.files[0].name; // Используем имя файла по умолчанию
         }
-
         $scope.uploadingVideo = true;
         var formData = new FormData();
         formData.append('file',    input.files[0]);
