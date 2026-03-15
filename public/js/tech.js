@@ -334,6 +334,11 @@ app.controller('Tech', function ($scope, $http, $timeout)
                         $scope.showingSong && item.FID === $scope.showingSong.FID) {
                         $scope.showingSong = item;
                     }
+                    // Восстанавливаем activeMediaItem для изображений и видео
+                    if ((item.itemType === 'image' || item.itemType === 'video') &&
+                        $scope.activeMediaItem && item.FID === $scope.activeMediaItem.FID) {
+                        $scope.activeMediaItem = item;
+                    }
                 });
                 // Call callback after favorites are loaded (for state restoration)
                 if (callback) callback();
@@ -761,12 +766,8 @@ app.controller('Tech', function ($scope, $http, $timeout)
     // ─────────────────────────────────────────────────────────
 
     $scope.activateMediaItem = function (item) {
-        console.log('activateMediaItem called:', item.itemType, item.FID);
-        console.log('Current activeMediaItem:', $scope.activeMediaItem);
-
         // Повторный клик = деактивация
         if ($scope.activeMediaItem && $scope.activeMediaItem.FID === item.FID) {
-            console.log('Deactivating media item');
             // Очистить активный элемент
             $scope.activeMediaItem  = null;
             $scope.techVideoPlaying = false;
@@ -775,8 +776,6 @@ app.controller('Tech', function ($scope, $http, $timeout)
             $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' }});
             return;
         }
-
-        console.log('Activating new media item');
 
         // Снять выделение с песни
         $scope.showingSong      = null;
