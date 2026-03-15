@@ -158,18 +158,44 @@ angular.module('Songs', ['csrfModule'])
             );
         }
 
+        function getContrastColor(bgHex) {
+            // Calculate luminance of background color
+            var rgb = hexToRgb(bgHex);
+            var r = rgb[0] / 255;
+            var g = rgb[1] / 255;
+            var b = rgb[2] / 255;
+
+            // Convert to linear RGB
+            r = r <= 0.03928 ? r / 12.92 : Math.pow((r + 0.055) / 1.055, 2.4);
+            g = g <= 0.03928 ? g / 12.92 : Math.pow((g + 0.055) / 1.055, 2.4);
+            b = b <= 0.03928 ? b / 12.92 : Math.pow((b + 0.055) / 1.055, 2.4);
+
+            // Calculate relative luminance
+            var luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b;
+
+            // Return white for dark backgrounds, black for light backgrounds
+            return luminance > 0.5 ? '#000000' : '#ffffff';
+        }
+
         function applyDisplaySettings() {
             if (!userSettings) return;
+            var bgColor = userSettings.main_bg_color || '#000000';
+            var autoTextColor = getContrastColor(bgColor);
+
             var panel = document.getElementById('display-panel');
             if (panel) {
-                panel.style.backgroundColor = userSettings.main_bg_color  || '#000000';
-                panel.style.color           = userSettings.main_font_color || '#ffffff';
-                panel.style.fontFamily      = userSettings.main_font       || 'Arial';
+                panel.style.backgroundColor = bgColor;
+                panel.style.color           = autoTextColor;
+                panel.style.fontFamily      = userSettings.main_font || 'Arial';
             }
             var textEl = document.getElementById('display-text');
             if (textEl) {
-                textEl.style.fontFamily = userSettings.main_font       || 'Arial';
-                textEl.style.color      = userSettings.main_font_color || '#ffffff';
+                textEl.style.fontFamily = userSettings.main_font || 'Arial';
+                textEl.style.color      = autoTextColor;
+            }
+            var titleEl = document.getElementById('display-title');
+            if (titleEl) {
+                titleEl.style.color = autoTextColor;
             }
             // Restore notes font size and chip scaling from settings
             $scope.notesFontSize = parseInt(userSettings.sermon_notes_font_size) || 13;
