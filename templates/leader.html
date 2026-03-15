@@ -556,6 +556,7 @@
 
                 <!-- Song image thumbnail -->
                 <div class="song-thumb-wrap"
+                     ng-attr-id="{{ 'wrap' + listItem.ID }}"
                      ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"
                      title="Открыть ноты">
                     <img class="song-thumb"

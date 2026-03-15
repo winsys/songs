@@ -109,9 +109,11 @@ app.controller('Leader', function ($scope, $http)
             }).then(
                 function success(){
                     console.log('Leader: set_image success, requesting fullscreen');
-                    var imgElement = document.getElementById('img'+elemId);
-                    if (imgElement && imgElement.requestFullscreen) {
-                        imgElement.requestFullscreen().then(function() {
+                    // Open fullscreen for the wrapper div instead of img
+                    var wrapElement = document.getElementById('wrap'+elemId);
+                    console.log('Leader: wrapElement:', wrapElement);
+                    if (wrapElement && wrapElement.requestFullscreen) {
+                        wrapElement.requestFullscreen().then(function() {
                             console.log('Leader: fullscreen opened successfully');
                             $scope.$apply(function() {
                                 $scope.fullScreen = true;
@@ -123,7 +125,7 @@ app.controller('Leader', function ($scope, $http)
                             });
                         });
                     } else {
-                        console.log('Leader: imgElement or requestFullscreen not available');
+                        console.log('Leader: wrapElement or requestFullscreen not available');
                     }
                 });
         }else{
