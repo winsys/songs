@@ -763,8 +763,11 @@ app.controller('Tech', function ($scope, $http, $timeout)
     $scope.activateMediaItem = function (item) {
         // Повторный клик = деактивация
         if ($scope.activeMediaItem && $scope.activeMediaItem.FID === item.FID) {
+            // Очистить активный элемент
             $scope.activeMediaItem  = null;
             $scope.techVideoPlaying = false;
+
+            // Очистить изображение на дисплее
             $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' }});
             return;
         }
