@@ -55,6 +55,87 @@ angular.module('Songs', ['csrfModule'])
 
 
         // ==========================================================
+        // KEYBOARD SWITCHING CITATIONS
+        // ==========================================================
+
+        $scope.navigateSermonContent = function(direction) {
+            // 1. Находим все интерактивные элементы в DOM
+            var items = document.querySelectorAll('#notes-body .bible-cite, #notes-body .sermon-img-wrap, #notes-body .sermon-video-wrap, #notes-body .message-cite');
+            if (!items.length) return;
+
+            // 2. Ищем индекс текущего активного элемента по вашим классам
+            var currentIndex = -1;
+            for (var i = 0; i < items.length; i++) {
+                var cl = items[i].classList;
+                if (cl.contains('active-cite') || cl.contains('active-img') || cl.contains('active-video')) {
+                    currentIndex = i;
+                    break;
+                }
+            }
+
+            // 3. Определяем индекс следующего элемента
+            var nextIndex;
+            if (direction === 'next') {
+                nextIndex = currentIndex + 1;
+                if (nextIndex >= items.length) return; // Дошли до конца
+            } else {
+                nextIndex = currentIndex - 1;
+                // Если ничего не выбрано, при нажатии "назад" выберем первый элемент
+                if (currentIndex === -1) nextIndex = 0;
+                if (nextIndex < 0) return; // Дошли до начала
+            }
+
+            // 4. Активируем элемент
+            var target = items[nextIndex];
+
+            // Имитируем клик (это запустит вашу существующую логику отображения)
+            target.click();
+
+            // Плавно скроллим левую панель к этому элементу
+            target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        };
+
+
+        document.addEventListener('keydown', function(e) {
+            // Проверяем, не пишет ли пользователь в этот момент в каком-нибудь input
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
+
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                $scope.$apply(function() { $scope.navigateSermonContent('next'); });
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                $scope.$apply(function() { $scope.navigateSermonContent('prev'); });
+            }
+        });
+
+        var displayPanel = document.getElementById('display-panel');
+        var touchStartY = 0;
+
+        displayPanel.addEventListener('touchstart', function(e) {
+            touchStartY = e.changedTouches[0].screenY;
+        }, { passive: true });
+
+        displayPanel.addEventListener('touchend', function(e) {
+            var touchEndY = e.changedTouches[0].screenY;
+            var deltaY = touchStartY - touchEndY; // Положительное число = свайп вверх
+
+            var threshold = 50; // Чувствительность в пикселях
+
+            if (Math.abs(deltaY) > threshold) {
+                $scope.$apply(function() {
+                    if (deltaY > 0) {
+                        // Палец ушел вверх -> показываем следующий контент
+                        $scope.navigateSermonContent('next');
+                    } else {
+                        // Палец ушел вниз -> показываем предыдущий контент
+                        $scope.navigateSermonContent('prev');
+                    }
+                });
+            }
+        }, { passive: true });
+
+        // ==========================================================
         // TOUCH ZOOM
         // ==========================================================
 
