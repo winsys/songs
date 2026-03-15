@@ -53,6 +53,53 @@ angular.module('Songs', ['csrfModule'])
             loadDisplayTargets();
         });
 
+
+        // ==========================================================
+        // TOUCH ZOOM
+        // ==========================================================
+
+        var notesPanel = document.getElementById('notes-panel');
+        var lastDistance = 0;
+        var minPinchDistance = 40; // Чувствительность: через сколько пикселей срабатывает зум
+
+        notesPanel.addEventListener('touchmove', function(e) {
+            // Проверяем, что на экране именно 2 пальца
+            if (e.touches.length === 2) {
+                e.preventDefault(); // Предотвращаем стандартный зум браузера
+
+                // Считаем расстояние между пальцами (гипотенуза)
+                var dist = Math.hypot(
+                    e.touches[0].pageX - e.touches[1].pageX,
+                    e.touches[0].pageY - e.touches[1].pageY
+                );
+
+                if (lastDistance > 0) {
+                    var diff = dist - lastDistance;
+
+                    // Если пальцы раздвигаются
+                    if (diff > minPinchDistance) {
+                        $scope.$apply(function() {
+                            $scope.changeNotesFontSize(1);
+                        });
+                        lastDistance = dist;
+                    }
+                    // Если пальцы сжимаются
+                    else if (diff < -minPinchDistance) {
+                        $scope.$apply(function() {
+                            $scope.changeNotesFontSize(-1);
+                        });
+                        lastDistance = dist;
+                    }
+                } else {
+                    lastDistance = dist;
+                }
+            }
+        }, { passive: false });
+
+        notesPanel.addEventListener('touchend', function() {
+            lastDistance = 0; // Сбрасываем при отпускании пальцев
+        });
+
         // ==========================================================
         // COLOUR UTILITIES
         // ==========================================================
