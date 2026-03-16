@@ -770,12 +770,11 @@ function _cemModalCSS() { return `
 /* ── Hint на чипах ─────────────────────────────────────── */
 .bible-cite .cite-edit-hint,
 .message-cite .cite-edit-hint {
-    display: block; font-size: 9px; color: #aaa;
+    display: none; font-size: 9px; color: #aaa;
     font-style: italic; margin-top: 1px; pointer-events: none;
-    opacity: 0; transition: opacity .15s;
 }
-.bible-cite:hover .cite-edit-hint,
-.message-cite:hover .cite-edit-hint { opacity: 1; }
+.bible-cite:hover .cite-edit-hint { display: block; }
+.message-cite:hover .cite-edit-hint { display: inline; }
 
 /* verse-comment на дисплее (sermon_layout) */
 .verse-comment { border-radius: 3px; padding: 0 2px; }
