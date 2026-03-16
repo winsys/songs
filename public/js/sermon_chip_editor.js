@@ -503,15 +503,21 @@ function _cemDeleteComment(cid) {
 }
 
 function _cemToInlineHtml(html) {
-    return html
-        .replace(/<br\s*\/?>/gi, ' ')   // <br> → пробел
-        .replace(/<\/div>/gi, ' ')       // </div> → пробел
-        .replace(/<div[^>]*>/gi, '')     // <div ...> → ничего
-        .replace(/<\/p>/gi, ' ')         // </p> → пробел
-        .replace(/<p[^>]*>/gi, '')       // <p ...> → ничего
-        .replace(/[\n\r]+/g, ' ')        // ← литеральные переносы → пробел
-        .replace(/\s{2,}/g, ' ')         // схлопнуть двойные пробелы
-        .trim();
+    var tmp = document.createElement('div');
+    tmp.innerHTML = html;
+    // Заменяем все блочные элементы (div, p) на их содержимое + пробел
+    tmp.querySelectorAll('div, p').forEach(function(el) {
+        var space = document.createTextNode(' ');
+        el.parentNode.insertBefore(space, el);
+        while (el.firstChild) el.parentNode.insertBefore(el.firstChild, el);
+        el.parentNode.removeChild(el);
+    });
+    // Заменяем <br> на пробел
+    tmp.querySelectorAll('br').forEach(function(el) {
+        el.parentNode.replaceChild(document.createTextNode(' '), el);
+    });
+    // Возвращаем чистый HTML без лишних пробелов
+    return tmp.innerHTML.replace(/\s{2,}/g, ' ').trim();
 }
 
 function _cemClose(save) {
