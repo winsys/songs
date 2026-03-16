@@ -30,7 +30,8 @@ trait Ajax_Settings
         $sermonNotesBgColor      = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_notes_bg_color'])   ? $settings['sermon_notes_bg_color']   : '#2b2b2b');
         $sermonBibleBaseColor    = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_bible_base_color']) ? $settings['sermon_bible_base_color'] : '#1565c0');
         $sermonMsgBaseColor      = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_msg_base_color'])   ? $settings['sermon_msg_base_color']   : '#6a1b9a');
-        $sermonNotesFontSize     = isset($settings['sermon_notes_font_size']) ? intval($settings['sermon_notes_font_size']) : 13;
+        $sermonNotesFontSize = isset($settings['sermon_notes_font_size']) ? intval($settings['sermon_notes_font_size']) : 100;
+        $sermonNotesFontSize = max(50, min(300, $sermonNotesFontSize));
         $sermonScaleChips        = isset($settings['sermon_scale_chips'])     ? intval($settings['sermon_scale_chips'])     : 0;
 
         $existing = Info::get('db')->get("SELECT group_id FROM user_settings WHERE group_id = {$userId}");

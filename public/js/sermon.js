@@ -39,8 +39,10 @@ angular.module('Songs', ['csrfModule'])
 
         var scaleChips   = false;
         var fontSavePending = null;
-        var NOTES_FONT_MIN = 8;
-        var NOTES_FONT_MAX = 40;
+        var NOTES_FONT_MIN = 50;   // % минимум
+        var NOTES_FONT_MAX = 300;  // % максимум
+        var NOTES_FONT_STEP = 10;  // шаг
+        var NOTES_FONT_BASE = 13;  // базовый размер в pt (из редактора)
         $scope.notesFontSize = 13;   // pt, matches CSS default
 
         // ==========================================================
@@ -397,7 +399,8 @@ angular.module('Songs', ['csrfModule'])
                 titleEl.style.color = autoTextColor;
             }
             // Restore notes font size and chip scaling from settings
-            $scope.notesFontSize = parseInt(userSettings.sermon_notes_font_size) || 13;
+            var raw = parseInt(userSettings.sermon_notes_font_size) || 100;
+            $scope.notesFontSize = raw < 50 ? 100 : raw;
             scaleChips = !!parseInt(userSettings.sermon_scale_chips || 0);
             applyNotesFontSize();
         }
@@ -862,13 +865,12 @@ angular.module('Songs', ['csrfModule'])
         }
 
         function applyNotesFontSize() {
-            var size = $scope.notesFontSize;
-            var root = document.documentElement;
-            root.style.setProperty('--sn-notes-font', size + 'pt');
+            var scale = $scope.notesFontSize; // теперь это проценты (100 = норма)
+            var root  = document.documentElement;
+            root.style.setProperty('--sn-notes-font', (NOTES_FONT_BASE * scale / 100).toFixed(1) + 'pt');
             if (scaleChips) {
-                var ratio = size / 13;
-                root.style.setProperty('--sn-chip-font',       (10  * ratio).toFixed(1) + 'pt');
-                root.style.setProperty('--sn-chip-verse-font', (9.5 * ratio).toFixed(1) + 'pt');
+                root.style.setProperty('--sn-chip-font',       (10  * scale / 100).toFixed(1) + 'pt');
+                root.style.setProperty('--sn-chip-verse-font', (9.5 * scale / 100).toFixed(1) + 'pt');
             } else {
                 root.style.setProperty('--sn-chip-font',       '10pt');
                 root.style.setProperty('--sn-chip-verse-font', '9.5pt');
@@ -880,7 +882,7 @@ angular.module('Songs', ['csrfModule'])
         // ==========================================================
 
         $scope.changeNotesFontSize = function (delta) {
-            var next = $scope.notesFontSize + delta;
+            var next = $scope.notesFontSize + (delta * NOTES_FONT_STEP);
             if (next < NOTES_FONT_MIN || next > NOTES_FONT_MAX) return;
             $scope.notesFontSize = next;
             applyNotesFontSize();
