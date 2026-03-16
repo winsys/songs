@@ -38,7 +38,6 @@ angular.module('Songs', ['csrfModule'])
         var activeEl     = null;
 
         var scaleChips   = false;
-        var fontSavePending = null;
         var NOTES_FONT_MIN = 50;   // % минимум
         var NOTES_FONT_MAX = 300;  // % максимум
         var NOTES_FONT_STEP = 10;  // шаг
@@ -923,15 +922,12 @@ angular.module('Songs', ['csrfModule'])
             if (next < NOTES_FONT_MIN || next > NOTES_FONT_MAX) return;
             $scope.notesFontSize = next;
             applyNotesFontSize();
-            // Debounced save
-            if (fontSavePending) $timeout.cancel(fontSavePending);
-            fontSavePending = $timeout(function () {
-                $http({ method: "POST", url: "/ajax", data: {
-                        command: 'save_sermon_notes_settings',
-                        sermon_notes_font_size: $scope.notesFontSize,
-                        sermon_scale_chips: scaleChips ? 1 : 0
-                    }});
-            }, 800);
+            // Сохраняем немедленно — значение простое, debounce не нужен
+            $http({ method: "POST", url: "/ajax", data: {
+                    command: 'save_sermon_notes_settings',
+                    sermon_notes_font_size: $scope.notesFontSize,
+                    sermon_scale_chips: scaleChips ? 1 : 0
+                }});
         };
 
         // ==========================================================

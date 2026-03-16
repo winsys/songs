@@ -437,7 +437,8 @@ trait Ajax_Common
         if (empty($settings['sermon_notes_bg_color']))   $settings['sermon_notes_bg_color']   = '#2b2b2b';
         if (empty($settings['sermon_bible_base_color'])) $settings['sermon_bible_base_color']  = '#1565c0';
         if (empty($settings['sermon_msg_base_color']))   $settings['sermon_msg_base_color']    = '#6a1b9a';
-        if (empty($settings['sermon_notes_font_size']))  $settings['sermon_notes_font_size'] = 13;
+        if (empty($settings['sermon_notes_font_size']) || $settings['sermon_notes_font_size'] < 50)
+            $settings['sermon_notes_font_size'] = 100;
         if (empty($settings['sermon_scale_chips']))      $settings['sermon_scale_chips']     = 0;
 
         return json_encode($settings);
