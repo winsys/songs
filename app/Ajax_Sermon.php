@@ -181,7 +181,8 @@ trait Ajax_Sermon
     private static function save_sermon_notes_settings()
     {
         $userId   = (int)$_SESSION['curGroupId'];
-        $fontSize = isset(self::$args['sermon_notes_font_size']) ? intval(self::$args['sermon_notes_font_size']) : 13;
+        $fontSize = isset(self::$args['sermon_notes_font_size']) ? intval(self::$args['sermon_notes_font_size']) : 100;
+        $fontSize = max(50, min(300, $fontSize));
         $scale    = isset(self::$args['sermon_scale_chips'])     ? intval(self::$args['sermon_scale_chips'])     : 0;
 
         $existing = Info::get('db')->get("SELECT group_id FROM user_settings WHERE group_id = {$userId}");

@@ -527,11 +527,11 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">15. Размер шрифта заметок ({{settings.sermon_notes_font_size}}pt)</label>
-                <input type="range" min="8" max="40"
+                <label class="settings-label">15. Масштаб текста заметок ({{settings.sermon_notes_font_size || 100}}%)</label>
+                <input type="range" min="50" max="300" step="10"
                        ng-model="settings.sermon_notes_font_size"
                        class="settings-input" style="cursor:pointer;">
-                <span class="settings-hint">Начальный размер текста в левой панели режима Проповедь.</span>
+                <span class="settings-hint">Масштаб текста в левой панели режима Проповедь. 100% — стандартный размер.</span>
             </div>
 
             <div class="settings-field">
