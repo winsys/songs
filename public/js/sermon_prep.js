@@ -1000,7 +1000,6 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                         '<span class="cite-ref">📖 ' + langRefLabel + langSuffix + '</span>' +
                         (verseText ?
                             '<span class="cite-verse-text">' + verseText + '</span>' : '') +
-                        '<span class="cite-edit-hint">двойной клик — редактировать</span>' +
                         '</span>' +
                         '<span class="cite-remove" title="Удалить">×</span>';
 
@@ -1074,7 +1073,6 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         span.setAttribute('data-para-html',       '');
         span.setAttribute('data-verse-comments',  '[]');
         span.innerHTML = '✍️ ' + para.text +
-            '<span class="cite-edit-hint">двойной клик — редактировать</span>' +
             ' <span class="cite-remove" title="Удалить">×</span>';
         span.querySelector('.cite-remove').onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
         span.ondblclick = function (e) { e.stopPropagation(); openChipEditor(span); };
