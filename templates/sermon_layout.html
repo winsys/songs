@@ -514,68 +514,103 @@
             object-fit: contain;
         }
 
-        /* ===== Модальное окно запроса доступа ===== */
+        /* ===== Access Request Modal ===== */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(0,0,0,0.6);
-            z-index: 500;
+            background: rgba(0,0,0,0.72);
+            z-index: 1000;
             display: flex;
             align-items: center;
             justify-content: center;
+            backdrop-filter: blur(3px);
         }
-        .modal-box {
-            background: #2a2a2a;
-            border: 1px solid var(--sn-notes-border);
-            border-radius: 12px;
-            padding: 24px;
-            min-width: 320px;
-            max-width: 440px;
+
+        .modal-content {
+            background: #252525;
+            border: 1px solid #505050;
+            border-radius: 14px;
+            padding: 24px 24px 20px;
+            max-width: 400px;
             width: 90%;
+            color: var(--sn-notes-text);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
             display: flex;
             flex-direction: column;
             gap: 14px;
-            color: var(--sn-notes-text);
         }
+
         .modal-title {
-            font-size: 14pt;
-            font-weight: bold;
+            font-size: 15pt;
+            font-weight: 700;
+            color: #e8e8e8;
+            line-height: 1.2;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #3a3a3a;
         }
-        .modal-field input, .modal-field select {
+
+        .modal-text {
+            font-size: 10.5pt;
+            color: #aaa;
+            line-height: 1.55;
+        }
+
+        .modal-select {
             width: 100%;
-            background: var(--sn-notes-header);
-            color: var(--sn-notes-text);
-            border: 1px solid var(--sn-notes-border);
-            border-radius: 6px;
-            padding: 7px 10px;
-            font-size: 11pt;
-            margin-top: 4px;
+            background: #1e1e1e;
+            color: #e0e0e0;
+            border: 1px solid #555;
+            border-radius: 8px;
+            padding: 9px 10px;
+            font-size: 10.5pt;
+            cursor: pointer;
+            outline: none;
+            transition: border-color 0.15s;
         }
-        .modal-actions {
+        .modal-select:focus { border-color: #1e88e5; }
+
+        .modal-buttons {
             display: flex;
             gap: 10px;
             justify-content: flex-end;
+            padding-top: 4px;
         }
+
         .modal-btn {
-            padding: 8px 16px;
-            border-radius: 5px;
-            font-size: 11pt;
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-size: 10.5pt;
+            font-weight: 600;
             cursor: pointer;
-            border: 1px solid;
-            transition: background 0.15s;
+            border: 1px solid transparent;
+            transition: background 0.15s, border-color 0.15s;
+            min-width: 90px;
         }
-        .modal-btn-primary {
-            background: rgba(21, 101, 192, 0.25);
-            border-color: #1565c0;
-            color: #c8dff5;
-        }
-        .modal-btn-primary:hover { background: rgba(21, 101, 192, 0.35); }
+
         .modal-btn-secondary {
             background: rgba(255,255,255,0.07);
-            border-color: var(--sn-notes-border);
-            color: var(--sn-notes-text);
+            border-color: #555;
+            color: #bbb;
         }
-        .modal-btn-secondary:hover { background: rgba(255,255,255,0.12); }
+        .modal-btn-secondary:hover {
+            background: rgba(255,255,255,0.13);
+            color: #e0e0e0;
+        }
+
+        .modal-btn-primary {
+            background: rgba(30, 136, 229, 0.25);
+            border-color: #1e88e5;
+            color: #90caff;
+        }
+        .modal-btn-primary:hover {
+            background: rgba(30, 136, 229, 0.40);
+            color: #c8e6ff;
+        }
+        .modal-btn-primary[disabled] {
+            opacity: 0.4;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
 
         /* ===== Группировочные заголовки ===== */
         .sermon-group-header {
