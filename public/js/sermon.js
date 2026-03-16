@@ -886,9 +886,9 @@ angular.module('Songs', ['csrfModule'])
         }
 
         function applyNotesFontSize() {
-            var scale = $scope.notesFontSize;
+            var scale = $scope.notesFontSize; // проценты
             var root  = document.documentElement;
-            var notesSize = (13 * scale / 100).toFixed(1) + 'pt';
+            var notesSize = (13 * scale / 100).toFixed(1) + 'px';  // было 'pt'
 
             root.style.setProperty('--sn-notes-font', notesSize);
 
@@ -897,7 +897,6 @@ angular.module('Songs', ['csrfModule'])
                 notesBody.style.fontSize = notesSize;
 
                 // Масштабируем inline font-size у текстовых элементов
-                // (браузер может добавить их при bold/italic/color через execCommand)
                 notesBody.querySelectorAll('[data-base-font-px]').forEach(function(el) {
                     var base = parseFloat(el.dataset.baseFontPx);
                     if (!isNaN(base)) {
@@ -907,11 +906,11 @@ angular.module('Songs', ['csrfModule'])
             }
 
             if (scaleChips) {
-                root.style.setProperty('--sn-chip-font',       (10  * scale / 100).toFixed(1) + 'pt');
-                root.style.setProperty('--sn-chip-verse-font', (9.5 * scale / 100).toFixed(1) + 'pt');
+                root.style.setProperty('--sn-chip-font',       (10  * scale / 100).toFixed(1) + 'px');  // было 'pt'
+                root.style.setProperty('--sn-chip-verse-font', (9.5 * scale / 100).toFixed(1) + 'px');  // было 'pt'
             } else {
-                root.style.setProperty('--sn-chip-font',       '10pt');
-                root.style.setProperty('--sn-chip-verse-font', '9.5pt');
+                root.style.setProperty('--sn-chip-font',       '10px');   // было '10pt'
+                root.style.setProperty('--sn-chip-verse-font', '9.5px');  // было '9.5pt'
             }
         }
 
