@@ -1,3 +1,14 @@
+/**
+ * sermon_prep.js  — v2 (video support)
+ * AngularJS controller for the Sermon Preparation mode.
+ *
+ * ИЗМЕНЕНИЯ vs v1:
+ *  + $sce добавлен к инжекции
+ *  + video state variables
+ *  + insertVideoNode()
+ *  + $scope.toggleVideoPanel(), insertVideoUrl(), triggerVideoUpload(), onVideoFileSelected()
+ *  + attachEditorHandlers() дополнен .sermon-video-wrap
+ */
 app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
 
     // ── Sermon data ─────────────────────────────────────────
@@ -230,7 +241,6 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
 
             // Setup drag and drop for chips
             setupEditorDropZone();
-            initChipEditor()
         }, 0);
     });
 
@@ -754,7 +764,6 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             var removeBtn = span.querySelector('.cite-remove');
             if (removeBtn) removeBtn.onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
             makeDraggable(span);
-            span.ondblclick = function (e) { e.stopPropagation(); openChipEditor(span); };
         });
 
         // Message citations — re-attach remove buttons
@@ -762,7 +771,6 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             var removeBtn = span.querySelector('.cite-remove');
             if (removeBtn) removeBtn.onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
             makeDraggable(span);
-            span.ondblclick = function (e) { e.stopPropagation(); openChipEditor(span); };
         });
 
         // Images — re-attach remove + click
@@ -983,7 +991,6 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                         '<span class="cite-body">' +
                         '<span class="cite-ref">📖 ' + langRefLabel + langSuffix + '</span>' +
                         (verseText ? '<span class="cite-verse-text">' + verseText + '</span>' : '') +
-                        '<span class="cite-edit-hint">двойной клик — редактировать</span>' +
                         '</span>' +
                         '<span class="cite-remove" title="Удалить">×</span>';
 
@@ -1053,11 +1060,8 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         span.contentEditable = 'false';
         span.setAttribute('data-msg-title',   msgTitle);
         span.setAttribute('data-para-text',   para.text);
-        span.innerHTML = '✍️ ' + para.text +
-            '<span class="cite-edit-hint">двойной клик — редактировать</span>' +
-            ' <span class="cite-remove" title="Удалить">×</span>';
+        span.innerHTML = '✍️ ' + para.text + ' <span class="cite-remove" title="Удалить">×</span>';
         span.querySelector('.cite-remove').onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
-        span.ondblclick = function (e) { e.stopPropagation(); openChipEditor(span); };
         makeDraggable(span);
         insertNodeAtCursor(span);
         $scope.prepSelectedParaIdx = null;
@@ -1155,418 +1159,5 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             });
         }
     });
-
-
-    // ──────────────────────────────────────────────────────────────────────
-    // CHIP EDITOR — переменные состояния
-    // ──────────────────────────────────────────────────────────────────────
-    var cemCurrentSpan  = null;   // чип, открытый в редакторе
-    var cemComments     = [];     // [{id, cnum, highlightText, text, color}]
-    var cemCommentIdSeq = 0;
-    var cemSavedSel     = null;   // сохранённый Selection для добавления комментария
-    var cemTextColorOpen     = false;
-    var cemHighlightColorOpen = false;
-
-    var CEM_TEXT_COLORS = [
-        '#000000','#ffffff','#e53935','#d81b60','#8e24aa',
-        '#1e88e5','#00897b','#43a047','#f4511e','#fb8c00',
-        '#fdd835','#6d4c41','#546e7a','#1565c0','#2e7d32'
-    ];
-    var CEM_HIGHLIGHT_COLORS = [
-        'transparent',
-        'rgba(255,235,59,0.55)',  // жёлтый
-        'rgba(76,175,80,0.40)',   // зелёный
-        'rgba(33,150,243,0.35)',  // синий
-        'rgba(244,67,54,0.35)',   // красный
-        'rgba(156,39,176,0.35)',  // фиолетовый
-        'rgba(255,152,0,0.45)',   // оранжевый
-    ];
-
-    // ──────────────────────────────────────────────────────────────────────
-    // Глобальные функции (вызываются из onclick в HTML)
-    // ──────────────────────────────────────────────────────────────────────
-    window.cemToggleColorDropdown = function (type) {
-        var dd = document.getElementById(type === 'text' ? 'cem-textcolor-dropdown' : 'cem-highlight-dropdown');
-        if (!dd) return;
-        var other = document.getElementById(type === 'text' ? 'cem-highlight-dropdown' : 'cem-textcolor-dropdown');
-        if (other) other.style.display = 'none';
-        dd.style.display = dd.style.display === 'none' ? 'flex' : 'none';
-    };
-
-    // ──────────────────────────────────────────────────────────────────────
-    // Инициализация модального окна (вызывается один раз при загрузке)
-    // ──────────────────────────────────────────────────────────────────────
-    function initChipEditor() {
-        var overlay    = document.getElementById('chip-editor-overlay');
-        var editArea   = document.getElementById('cem-edit-area');
-        var saveBtn    = document.getElementById('cem-save-btn');
-        var cancelBtn  = document.getElementById('cem-cancel-btn');
-        var closeBtn   = document.getElementById('cem-close-btn');
-        var boldBtn    = document.getElementById('cem-bold');
-        var italicBtn  = document.getElementById('cem-italic');
-        var underlineBtn = document.getElementById('cem-underline');
-        var clearFmtBtn  = document.getElementById('cem-clear-format');
-        var fontSizeInput = document.getElementById('cem-fontsize');
-        var addCommentBtn = document.getElementById('cem-add-comment-btn');
-        var commentInputWrap = document.getElementById('cem-comment-input-wrap');
-        var commentTextInput = document.getElementById('cem-comment-text-input');
-        var commentOkBtn   = document.getElementById('cem-comment-ok');
-        var commentCancelBtn = document.getElementById('cem-comment-cancel');
-
-        if (!overlay || !editArea) return;
-
-        // ── Close overlay on backdrop click ──
-        overlay.addEventListener('click', function (e) {
-            if (e.target === overlay) closeCEM(false);
-        });
-        closeBtn.addEventListener('click',  function () { closeCEM(false); });
-        cancelBtn.addEventListener('click', function () { closeCEM(false); });
-        saveBtn.addEventListener('click',   function () { closeCEM(true); });
-
-        // ── Keyboard shortcuts ──
-        editArea.addEventListener('keydown', function (e) {
-            var ctrl = e.ctrlKey || e.metaKey;
-
-            // Allow: Ctrl+B, Ctrl+I, Ctrl+U (formatting)
-            if (ctrl && (e.keyCode === 66 || e.keyCode === 73 || e.keyCode === 85)) return;
-            // Allow: Ctrl+Z / Ctrl+Y (undo/redo)
-            if (ctrl && (e.keyCode === 90 || e.keyCode === 89)) return;
-            // Allow: Ctrl+A (select all), Ctrl+C (copy), Ctrl+X (copy, will block delete part)
-            if (ctrl && (e.keyCode === 65 || e.keyCode === 67)) return;
-            // Allow: arrow keys, Home, End, PageUp, PageDown, Shift combos
-            if (e.keyCode >= 33 && e.keyCode <= 40) return;
-            // Allow: Shift (modifier)
-            if (e.keyCode === 16 || e.keyCode === 17 || e.keyCode === 18 || e.keyCode === 91) return;
-            // Allow: Escape → cancel
-            if (e.keyCode === 27) { closeCEM(false); return; }
-            // Allow: F1-F12 (browser shortcuts)
-            if (e.keyCode >= 112 && e.keyCode <= 123) return;
-
-            // BLOCK everything else (printable chars, Delete, Backspace, Enter, paste)
-            e.preventDefault();
-        });
-
-        // Block paste entirely
-        editArea.addEventListener('paste', function (e) { e.preventDefault(); });
-        // Block drop (could insert text)
-        editArea.addEventListener('drop',  function (e) { e.preventDefault(); });
-        // Block Ctrl+X (cut would delete)
-        editArea.addEventListener('keydown', function (e) {
-            if ((e.ctrlKey || e.metaKey) && e.keyCode === 88) e.preventDefault();
-        });
-
-        // ── Toolbar buttons ──
-        boldBtn.addEventListener('click', function () {
-            editArea.focus();
-            document.execCommand('bold', false, null);
-            updateToolbarState();
-        });
-        italicBtn.addEventListener('click', function () {
-            editArea.focus();
-            document.execCommand('italic', false, null);
-            updateToolbarState();
-        });
-        underlineBtn.addEventListener('click', function () {
-            editArea.focus();
-            document.execCommand('underline', false, null);
-            updateToolbarState();
-        });
-        clearFmtBtn.addEventListener('click', function () {
-            editArea.focus();
-            document.execCommand('removeFormat', false, null);
-            updateToolbarState();
-        });
-
-        // ── Font size ──
-        fontSizeInput.addEventListener('change', function () {
-            var sz = parseInt(fontSizeInput.value);
-            if (isNaN(sz) || sz < 8) sz = 8;
-            if (sz > 72) sz = 72;
-            fontSizeInput.value = sz;
-            editArea.focus();
-            // Wrap selection in span with font-size if there's a selection
-            var sel = window.getSelection();
-            if (sel && sel.rangeCount > 0 && !sel.isCollapsed) {
-                document.execCommand('fontSize', false, '7'); // use size 7 as marker
-                // Replace all <font size=7> with <span style="font-size:Xpx">
-                editArea.querySelectorAll('font[size="7"]').forEach(function (f) {
-                    var span = document.createElement('span');
-                    span.style.fontSize = sz + 'px';
-                    while (f.firstChild) span.appendChild(f.firstChild);
-                    f.parentNode.replaceChild(span, f);
-                });
-            }
-        });
-
-        // ── Build color dropdowns ──
-        function buildColorDropdown(ddId, colors, applyFn, swatchId) {
-            var dd = document.getElementById(ddId);
-            var sw = document.getElementById(swatchId);
-            if (!dd) return;
-            dd.innerHTML = '';
-            colors.forEach(function (c) {
-                var dot = document.createElement('div');
-                dot.className = 'cem-color-dot';
-                dot.style.background = c === 'transparent' ? 'linear-gradient(135deg, #fff 45%, #e53935 45%)' : c;
-                dot.title = c;
-                dot.addEventListener('click', function (e) {
-                    e.stopPropagation();
-                    applyFn(c);
-                    if (sw) sw.style.background = (c === 'transparent') ? '#fff' : c;
-                    dd.style.display = 'none';
-                });
-                dd.appendChild(dot);
-            });
-        }
-        buildColorDropdown('cem-textcolor-dropdown', CEM_TEXT_COLORS, function (c) {
-            editArea.focus();
-            document.execCommand('foreColor', false, c);
-        }, 'cem-textcolor-swatch');
-        buildColorDropdown('cem-highlight-dropdown', CEM_HIGHLIGHT_COLORS, function (c) {
-            editArea.focus();
-            applyHighlight(c);
-        }, 'cem-highlight-swatch');
-
-        // Close color dropdowns when clicking outside
-        document.addEventListener('click', function (e) {
-            if (!e.target.closest('#cem-textcolor-wrap'))  document.getElementById('cem-textcolor-dropdown').style.display = 'none';
-            if (!e.target.closest('#cem-highlight-wrap')) document.getElementById('cem-highlight-dropdown').style.display = 'none';
-        });
-
-        // ── Track selection for toolbar state ──
-        editArea.addEventListener('keyup', updateToolbarState);
-        editArea.addEventListener('mouseup', updateToolbarState);
-
-        // ── Add Comment ──
-        addCommentBtn.addEventListener('click', function () {
-            var sel = window.getSelection();
-            if (!sel || sel.isCollapsed || !editArea.contains(sel.anchorNode)) {
-                alert('Сначала выделите фразу в тексте стиха.');
-                return;
-            }
-            cemSavedSel = { range: sel.getRangeAt(0).cloneRange(), text: sel.toString().trim() };
-            commentTextInput.value = '';
-            commentInputWrap.classList.add('open');
-            commentTextInput.focus();
-        });
-        commentCancelBtn.addEventListener('click', function () {
-            commentInputWrap.classList.remove('open');
-            cemSavedSel = null;
-        });
-        commentOkBtn.addEventListener('click', cemConfirmAddComment);
-        commentTextInput.addEventListener('keydown', function (e) {
-            if (e.keyCode === 13) { cemConfirmAddComment(); }
-            if (e.keyCode === 27) { commentInputWrap.classList.remove('open'); cemSavedSel = null; }
-        });
-    }
-
-    function applyHighlight(color) {
-        var sel = window.getSelection();
-        if (!sel || sel.isCollapsed) return;
-        var range = sel.getRangeAt(0);
-        if (color === 'transparent') {
-            // Remove highlight spans
-            document.execCommand('removeFormat', false, null);
-        } else {
-            var span = document.createElement('span');
-            span.style.backgroundColor = color;
-            span.style.borderRadius = '2px';
-            try {
-                range.surroundContents(span);
-            } catch (ex) {
-                // If range spans multiple elements, use execCommand
-                document.execCommand('backColor', false, color);
-            }
-        }
-    }
-
-    function updateToolbarState() {
-        var boldBtn    = document.getElementById('cem-bold');
-        var italicBtn  = document.getElementById('cem-italic');
-        var underBtn   = document.getElementById('cem-underline');
-        if (boldBtn)   boldBtn.classList.toggle('cem-active',    document.queryCommandState('bold'));
-        if (italicBtn) italicBtn.classList.toggle('cem-active',  document.queryCommandState('italic'));
-        if (underBtn)  underBtn.classList.toggle('cem-active',   document.queryCommandState('underline'));
-    }
-
-    function cemConfirmAddComment() {
-        var commentInputWrap = document.getElementById('cem-comment-input-wrap');
-        var commentTextInput = document.getElementById('cem-comment-text-input');
-        var editArea = document.getElementById('cem-edit-area');
-
-        var text = commentTextInput.value.trim();
-        if (!text || !cemSavedSel) return;
-
-        cemCommentIdSeq++;
-        var cid   = 'c' + cemCommentIdSeq;
-        var cnum  = cemComments.length + 1;
-        var hlText = cemSavedSel.text.substring(0, 60);
-        var hlColor = CEM_HIGHLIGHT_COLORS[1]; // yellow default
-
-        // Restore selection and wrap in comment span
-        var sel = window.getSelection();
-        sel.removeAllRanges();
-        sel.addRange(cemSavedSel.range);
-
-        var commentSpan = document.createElement('span');
-        commentSpan.className = 'verse-comment';
-        commentSpan.setAttribute('data-cid', cid);
-        commentSpan.setAttribute('data-cnum', cnum);
-        commentSpan.style.backgroundColor = hlColor;
-        commentSpan.style.borderRadius = '3px';
-        commentSpan.style.padding = '0 2px';
-
-        try {
-            cemSavedSel.range.surroundContents(commentSpan);
-        } catch (ex) {
-            // partial selection across nodes — just mark with background
-            document.execCommand('backColor', false, hlColor);
-        }
-
-        cemComments.push({ id: cid, cnum: cnum, highlightText: hlText, text: text, color: hlColor });
-        renderCEMCommentsList();
-
-        commentInputWrap.classList.remove('open');
-        cemSavedSel = null;
-        commentTextInput.value = '';
-        editArea.focus();
-    }
-
-    function renderCEMCommentsList() {
-        var list = document.getElementById('cem-comments-list');
-        var noMsg = document.getElementById('cem-no-comments-msg');
-        if (!list) return;
-
-        // Clear existing items (keep no-comments msg)
-        list.querySelectorAll('.cem-comment-item').forEach(function (el) { el.remove(); });
-
-        if (cemComments.length === 0) {
-            if (noMsg) noMsg.style.display = '';
-            return;
-        }
-        if (noMsg) noMsg.style.display = 'none';
-
-        cemComments.forEach(function (c) {
-            var item = document.createElement('div');
-            item.className = 'cem-comment-item';
-            item.innerHTML =
-                '<div class="cem-comment-num">' + c.cnum + '</div>' +
-                '<div class="cem-comment-body">' +
-                '<div class="cem-comment-highlight">«' + escapeHtml(c.highlightText) + '»</div>' +
-                '<div class="cem-comment-text">' + escapeHtml(c.text) + '</div>' +
-                '</div>' +
-                '<button class="cem-comment-del" data-cid="' + c.id + '" title="Удалить комментарий">×</button>';
-            item.querySelector('.cem-comment-del').addEventListener('click', function () {
-                cemDeleteComment(c.id);
-            });
-            list.appendChild(item);
-        });
-    }
-
-    function cemDeleteComment(cid) {
-        var editArea = document.getElementById('cem-edit-area');
-        // Remove the span wrapping from the edit area
-        var spanEl = editArea.querySelector('[data-cid="' + cid + '"]');
-        if (spanEl) {
-            var parent = spanEl.parentNode;
-            while (spanEl.firstChild) parent.insertBefore(spanEl.firstChild, spanEl);
-            parent.removeChild(spanEl);
-        }
-        cemComments = cemComments.filter(function (c) { return c.id !== cid; });
-        // Re-number
-        cemComments.forEach(function (c, i) { c.cnum = i + 1; });
-        // Update cnum attrs in edit area
-        editArea.querySelectorAll('.verse-comment').forEach(function (el) {
-            var foundIdx = cemComments.findIndex(function(c) { return c.id === el.getAttribute('data-cid'); });
-            if (foundIdx >= 0) el.setAttribute('data-cnum', cemComments[foundIdx].cnum);
-        });
-        renderCEMCommentsList();
-    }
-
-    // ──────────────────────────────────────────────────────────────────────
-    // openChipEditor — открыть редактор для данного чипа
-    // ──────────────────────────────────────────────────────────────────────
-    function openChipEditor(span) {
-        var overlay   = document.getElementById('chip-editor-overlay');
-        var editArea  = document.getElementById('cem-edit-area');
-        var titleEl   = document.getElementById('cem-title');
-        var commentInputWrap = document.getElementById('cem-comment-input-wrap');
-        var fontSizeInput    = document.getElementById('cem-fontsize');
-        if (!overlay || !editArea) return;
-
-        cemCurrentSpan = span;
-
-        // Load title
-        var refEl = span.querySelector('.cite-ref');
-        var ref   = refEl ? refEl.textContent.trim() : 'Редактировать';
-        if (titleEl) titleEl.textContent = 'Редактировать: ' + ref;
-
-        // Load verse text (formatted HTML if available, else plain text)
-        var verseEl = span.querySelector('.cite-verse-text');
-        var verseHtml = span.getAttribute('data-verse-html') ||
-            (verseEl ? verseEl.innerHTML : '') ||
-            (span.getAttribute('data-verse-text') || '');
-        editArea.innerHTML = verseHtml;
-
-        // Load existing comments
-        var commentsJson = span.getAttribute('data-verse-comments') || '[]';
-        try { cemComments = JSON.parse(commentsJson); } catch(e) { cemComments = []; }
-        cemCommentIdSeq = cemComments.reduce(function (mx, c) {
-            var n = parseInt(c.id.replace('c','')) || 0;
-            return n > mx ? n : mx;
-        }, 0);
-        renderCEMCommentsList();
-
-        // Reset comment input
-        if (commentInputWrap) commentInputWrap.classList.remove('open');
-        if (fontSizeInput)    fontSizeInput.value = 15;
-
-        // Open overlay
-        overlay.classList.add('open');
-        setTimeout(function () { editArea.focus(); }, 50);
-    }
-
-    // ──────────────────────────────────────────────────────────────────────
-    // closeCEM — закрыть редактор (save=true → сохранить изменения)
-    // ──────────────────────────────────────────────────────────────────────
-    function closeCEM(save) {
-        var overlay  = document.getElementById('chip-editor-overlay');
-        var editArea = document.getElementById('cem-edit-area');
-        if (!overlay) return;
-
-        if (save && cemCurrentSpan) {
-            var formattedHtml = editArea.innerHTML;
-            var commentsJson  = JSON.stringify(cemComments);
-
-            // Update data attributes
-            cemCurrentSpan.setAttribute('data-verse-html',     formattedHtml);
-            cemCurrentSpan.setAttribute('data-verse-comments', commentsJson);
-
-            // Update the visual .cite-verse-text span inside the chip
-            var verseEl = cemCurrentSpan.querySelector('.cite-verse-text');
-            if (verseEl) {
-                verseEl.innerHTML = formattedHtml;
-                // Add comment markers to cite-verse-text for preview
-                cemComments.forEach(function (c) {
-                    var commentSpan = verseEl.querySelector('[data-cid="' + c.id + '"]');
-                    if (commentSpan) commentSpan.setAttribute('data-cnum', c.cnum);
-                });
-            }
-
-            scheduleAutoSave();
-        }
-
-        overlay.classList.remove('open');
-        cemCurrentSpan = null;
-        cemComments    = [];
-    }
-
-    function escapeHtml(str) {
-        return String(str)
-            .replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;');
-    }
 
 });
