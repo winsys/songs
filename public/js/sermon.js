@@ -460,12 +460,33 @@ angular.module('Songs', ['csrfModule'])
                     $scope.notesHtml = $sce.trustAsHtml(r.data.CONTENT || '');
                     $scope.groupCitations();
 
-                    $timeout(attachNoteHandlers, 100);
+                    $timeout(function() {
+                        attachNoteHandlers();
+                        _storeBaseFontSizes();
+                        applyNotesFontSize();
+                    }, 100);
                     clearDisplayScope();
                     activeEl = null;
                 }
             );
         };
+
+        // Сохраняем оригинальный inline font-size при загрузке
+        function _storeBaseFontSizes() {
+            var body = document.getElementById('notes-body');
+            if (!body) return;
+            body.querySelectorAll('*').forEach(function(el) {
+                // Пропускаем чипы и их содержимое
+                if (el.closest('.bible-cite') || el.closest('.message-cite') ||
+                    el.closest('.sermon-video-wrap') || el.closest('.sermon-img-wrap') ||
+                    el.closest('.sermon-group-header')) return;
+                var fs = el.style.fontSize;
+                if (fs && !el.dataset.baseFontPx) {
+                    var px = parseFloat(fs);
+                    if (!isNaN(px)) el.dataset.baseFontPx = String(px);
+                }
+            });
+        }
 
         // ==========================================================
         // CLICK HANDLERS
@@ -865,16 +886,25 @@ angular.module('Songs', ['csrfModule'])
         }
 
         function applyNotesFontSize() {
-            var scale = $scope.notesFontSize; // проценты
+            var scale = $scope.notesFontSize;
             var root  = document.documentElement;
             var notesSize = (13 * scale / 100).toFixed(1) + 'pt';
 
-            // CSS-переменная (для совместимости)
             root.style.setProperty('--sn-notes-font', notesSize);
 
-            // Напрямую на элемент — надёжно работает независимо от содержимого
             var notesBody = document.getElementById('notes-body');
-            if (notesBody) notesBody.style.fontSize = notesSize;
+            if (notesBody) {
+                notesBody.style.fontSize = notesSize;
+
+                // Масштабируем inline font-size у текстовых элементов
+                // (браузер может добавить их при bold/italic/color через execCommand)
+                notesBody.querySelectorAll('[data-base-font-px]').forEach(function(el) {
+                    var base = parseFloat(el.dataset.baseFontPx);
+                    if (!isNaN(base)) {
+                        el.style.fontSize = (base * scale / 100).toFixed(1) + 'px';
+                    }
+                });
+            }
 
             if (scaleChips) {
                 root.style.setProperty('--sn-chip-font',       (10  * scale / 100).toFixed(1) + 'pt');
