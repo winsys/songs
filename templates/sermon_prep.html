@@ -964,6 +964,361 @@
         line-height: 32px;
         z-index: 10;
     }
+
+</style>
+
+<style id="CHIP_EDITOR_CSS">
+
+    /* ── Chip editor overlay ──────────────────────────────────────── */
+    #chip-editor-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.65);
+        z-index: 2000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+    }
+    #chip-editor-overlay.open { display: flex; }
+
+    #chip-editor-modal {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.25);
+        width: min(740px, 96vw);
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* Header */
+    .cem-header {
+        background: #f8f9fa;
+        border-bottom: 1.5px solid #dee2e6;
+        padding: 12px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-shrink: 0;
+    }
+    .cem-title {
+        font-size: 14px;
+        font-weight: 700;
+        color: #2c3e50;
+    }
+    .cem-close {
+        width: 28px; height: 28px;
+        border: none; background: none;
+        font-size: 20px; line-height: 1;
+        cursor: pointer; color: #888;
+        border-radius: 6px;
+        display: flex; align-items: center; justify-content: center;
+        transition: background 0.12s;
+    }
+    .cem-close:hover { background: #f0f0f0; color: #333; }
+
+    /* Toolbar */
+    .cem-toolbar {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        padding: 8px 14px;
+        background: #f8f9fa;
+        border-bottom: 1.5px solid #dee2e6;
+        flex-shrink: 0;
+        align-items: center;
+    }
+    .cem-btn {
+        padding: 4px 10px;
+        border: 1.5px solid #dee2e6;
+        background: #fff;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        line-height: 1.4;
+        transition: all 0.12s;
+        color: #2c3e50;
+        height: 30px;
+        display: flex; align-items: center;
+    }
+    .cem-btn:hover { background: #f0f4f8; border-color: #c8d0db; }
+    .cem-btn.cem-active { background: #1a6db5; color: #fff; border-color: #1a6db5; }
+    .cem-sep { width: 1px; height: 22px; background: #dee2e6; margin: 0 2px; }
+
+    /* Color picker in toolbar */
+    .cem-color-wrap {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .cem-color-swatch {
+        width: 24px; height: 24px;
+        border-radius: 4px;
+        border: 2px solid #dee2e6;
+        cursor: pointer;
+        display: inline-block;
+        flex-shrink: 0;
+        transition: border-color 0.12s;
+    }
+    .cem-color-swatch:hover { border-color: #1a6db5; }
+    .cem-color-dropdown {
+        position: absolute;
+        top: 32px; left: 0;
+        background: #fff;
+        border: 1.5px solid #dee2e6;
+        border-radius: 8px;
+        padding: 8px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+        width: 152px;
+        z-index: 3000;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.14);
+    }
+    .cem-color-dot {
+        width: 22px; height: 22px;
+        border-radius: 4px;
+        cursor: pointer;
+        border: 2px solid transparent;
+        transition: border-color 0.1s, transform 0.1s;
+    }
+    .cem-color-dot:hover { border-color: #333; transform: scale(1.12); }
+
+    /* Font size input */
+    .cem-fontsize-input {
+        width: 42px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 6px;
+        padding: 2px 6px;
+        font-size: 13px;
+        text-align: center;
+        height: 30px;
+        outline: none;
+    }
+    .cem-fontsize-input:focus { border-color: #1a6db5; }
+
+    /* Editing area */
+    #cem-edit-area {
+        flex: 1;
+        min-height: 80px;
+        max-height: 220px;
+        overflow-y: auto;
+        padding: 14px 18px;
+        font-size: 15px;
+        line-height: 1.7;
+        outline: none;
+        white-space: pre-wrap;
+        word-break: break-word;
+        color: #1a2533;
+        border-bottom: 1.5px solid #dee2e6;
+        /* Prevent cursor:text when hovering over chip area — user must select and format */
+        cursor: default;
+    }
+    #cem-edit-area:focus { cursor: text; }
+
+    /* Comment annotated span inside editing area */
+    #cem-edit-area .verse-comment {
+        border-radius: 3px;
+        padding: 0 2px;
+        position: relative;
+        cursor: default;
+    }
+    #cem-edit-area .verse-comment[data-cid]::after {
+        content: attr(data-cnum);
+        font-size: 9px;
+        font-weight: 700;
+        vertical-align: super;
+        color: #fff;
+        background: #e67e22;
+        border-radius: 3px;
+        padding: 0 3px;
+        margin-left: 1px;
+        pointer-events: none;
+    }
+
+    /* Comments section */
+    .cem-comments-section {
+        flex-shrink: 0;
+        padding: 10px 16px;
+        border-bottom: 1.5px solid #dee2e6;
+        background: #fafbfc;
+        max-height: 180px;
+        overflow-y: auto;
+    }
+    .cem-comments-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+        font-size: 12px;
+        font-weight: 700;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 0.6px;
+    }
+    .cem-add-comment-btn {
+        padding: 3px 10px;
+        border: 1.5px solid #1a6db5;
+        background: #e8f1fb;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 12px;
+        color: #1a6db5;
+        font-weight: 600;
+        transition: background 0.12s;
+    }
+    .cem-add-comment-btn:hover { background: #d0e4f7; }
+    .cem-add-comment-btn:disabled { opacity: 0.4; cursor: default; }
+
+    .cem-comment-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 8px;
+        padding: 6px 10px;
+        background: #fff;
+        border: 1.5px solid #e8eaed;
+        border-radius: 8px;
+        margin-bottom: 6px;
+        font-size: 13px;
+    }
+    .cem-comment-num {
+        width: 18px; height: 18px;
+        background: #e67e22;
+        color: #fff;
+        border-radius: 50%;
+        font-size: 10px;
+        font-weight: 700;
+        display: flex; align-items: center; justify-content: center;
+        flex-shrink: 0;
+        margin-top: 1px;
+    }
+    .cem-comment-body { flex: 1; min-width: 0; }
+    .cem-comment-highlight {
+        font-weight: 600;
+        color: #555;
+        font-size: 12px;
+        margin-bottom: 1px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .cem-comment-text { color: #2c3e50; line-height: 1.4; }
+    .cem-comment-del {
+        flex-shrink: 0;
+        background: none;
+        border: none;
+        color: #bbb;
+        font-size: 16px;
+        cursor: pointer;
+        padding: 0 2px;
+        transition: color 0.12s;
+        line-height: 1;
+    }
+    .cem-comment-del:hover { color: #e53935; }
+
+    .cem-no-comments {
+        font-size: 13px;
+        color: #b0b8c1;
+        font-style: italic;
+        padding: 4px 2px;
+    }
+
+    /* Comment input popup */
+    #cem-comment-input-wrap {
+        display: none;
+        padding: 10px 16px;
+        background: #fff8e6;
+        border-bottom: 1.5px solid #f0c040;
+        flex-shrink: 0;
+    }
+    #cem-comment-input-wrap.open { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .cem-comment-label { font-size: 12px; font-weight: 600; color: #7a5a00; flex-shrink: 0; }
+    #cem-comment-text-input {
+        flex: 1;
+        min-width: 160px;
+        border: 1.5px solid #f0c040;
+        border-radius: 6px;
+        padding: 5px 10px;
+        font-size: 13px;
+        outline: none;
+        background: #fff;
+    }
+    #cem-comment-text-input:focus { border-color: #e6a800; }
+    .cem-comment-ok {
+        padding: 5px 14px;
+        border: none;
+        background: #e6a800;
+        color: #fff;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: background 0.12s;
+    }
+    .cem-comment-ok:hover { background: #c8900a; }
+    .cem-comment-cancel-btn {
+        padding: 5px 12px;
+        border: 1.5px solid #ddd;
+        background: #fff;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 13px;
+        transition: background 0.12s;
+    }
+    .cem-comment-cancel-btn:hover { background: #f0f0f0; }
+
+    /* Footer */
+    .cem-footer {
+        padding: 10px 18px;
+        background: #f8f9fa;
+        border-top: 1.5px solid #dee2e6;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-shrink: 0;
+    }
+    .cem-cancel {
+        padding: 7px 20px;
+        border: 1.5px solid #dee2e6;
+        background: #fff;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 500;
+        color: #666;
+        transition: background 0.12s;
+    }
+    .cem-cancel:hover { background: #f0f0f0; }
+    .cem-save {
+        padding: 7px 22px;
+        border: none;
+        background: #1a6db5;
+        color: #fff;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: 600;
+        transition: background 0.12s;
+        box-shadow: 0 2px 6px rgba(26,109,181,0.22);
+    }
+    .cem-save:hover { background: #155a96; }
+
+    /* Hint about double-click shown on chip hover */
+    .bible-cite .cite-edit-hint,
+    .message-cite .cite-edit-hint {
+        display: none;
+        font-size: 9px;
+        color: #999;
+        font-style: italic;
+        margin-top: 1px;
+    }
+    .bible-cite:hover .cite-edit-hint,
+    .message-cite:hover .cite-edit-hint {
+        display: block;
+    }
+
 </style>
 
 <div ng-controller="SermonPrep">
@@ -1395,6 +1750,91 @@
 
     </div><!-- /prep-page-wrapper -->
 </div><!-- /ng-controller -->
+
+<!-- Chip Editor Modal -->
+<div id="chip-editor-overlay">
+    <div id="chip-editor-modal">
+
+        <!-- Header -->
+        <div class="cem-header">
+            <span class="cem-title" id="cem-title">Редактировать стих</span>
+            <button class="cem-close" id="cem-close-btn" title="Закрыть">×</button>
+        </div>
+
+        <!-- Formatting Toolbar -->
+        <div class="cem-toolbar">
+            <button class="cem-btn" id="cem-bold" title="Жирный (Ctrl+B)"><b>Ж</b></button>
+            <button class="cem-btn" id="cem-italic" title="Курсив (Ctrl+I)"><i>К</i></button>
+            <button class="cem-btn" id="cem-underline" title="Подчёркнутый (Ctrl+U)"><u>П</u></button>
+            <div class="cem-sep"></div>
+
+            <!-- Text color -->
+            <div class="cem-color-wrap" id="cem-textcolor-wrap">
+                <span class="cem-color-swatch" id="cem-textcolor-swatch"
+                      title="Цвет текста"
+                      style="background:#000;"
+                      onclick="cemToggleColorDropdown('text')">A</span>
+                <div class="cem-color-dropdown" id="cem-textcolor-dropdown" style="display:none;"></div>
+            </div>
+
+            <!-- Highlight color -->
+            <div class="cem-color-wrap" id="cem-highlight-wrap">
+                <span class="cem-color-swatch" id="cem-highlight-swatch"
+                      title="Цвет выделения"
+                      style="background:#ffff00;"
+                      onclick="cemToggleColorDropdown('highlight')">
+                    <span style="font-size:11px; line-height:22px; padding:0 2px; display:block;">🖊</span>
+                </span>
+                <div class="cem-color-dropdown" id="cem-highlight-dropdown" style="display:none;"></div>
+            </div>
+
+            <div class="cem-sep"></div>
+
+            <!-- Font size -->
+            <span style="font-size:12px; color:#888; flex-shrink:0;">Размер:</span>
+            <input class="cem-fontsize-input" id="cem-fontsize" type="number" min="8" max="72"
+                   value="15" title="Размер шрифта (px)" />
+
+            <div class="cem-sep"></div>
+
+            <!-- Reset -->
+            <button class="cem-btn" id="cem-clear-format" title="Сбросить форматирование выделения">✕ сброс</button>
+        </div>
+
+        <!-- Comment input row (hidden until "Add comment" is clicked) -->
+        <div id="cem-comment-input-wrap">
+            <span class="cem-comment-label">Комментарий:</span>
+            <input id="cem-comment-text-input" type="text"
+                   placeholder="Введите комментарий к выделению…"
+                   maxlength="300" />
+            <button class="cem-comment-ok" id="cem-comment-ok">Добавить</button>
+            <button class="cem-comment-cancel-btn" id="cem-comment-cancel">Отмена</button>
+        </div>
+
+        <!-- Editing area (text only — no add/delete) -->
+        <div id="cem-edit-area" contenteditable="true" spellcheck="false"></div>
+
+        <!-- Comments list -->
+        <div class="cem-comments-section">
+            <div class="cem-comments-header">
+                <span>💬 Комментарии к фразам</span>
+                <button class="cem-add-comment-btn" id="cem-add-comment-btn">
+                    + К выделению
+                </button>
+            </div>
+            <div id="cem-comments-list">
+                <div class="cem-no-comments" id="cem-no-comments-msg">Нет комментариев</div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="cem-footer">
+            <button class="cem-cancel" id="cem-cancel-btn">Отмена</button>
+            <button class="cem-save" id="cem-save-btn">💾 Сохранить</button>
+        </div>
+
+    </div>
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.2.1/turndown.min.js" integrity="sha512-8Po+00YF9yNfZmNwpwzsqKsM1lbkTACbs/TueHeY4x9l6mjWiIu5ONZ8LJ1kbL1FTOqIV25Uyaq1d1+T9cNSmA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/js/sermon_prep.js?v=2" type="text/javascript"></script>
