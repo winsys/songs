@@ -666,7 +666,7 @@
             <div id="header-dropdown">
                 <div class="hd-row">
                     <span class="hd-label">Проповедь</span>
-                    <select id="sermon-select" ng-model="selectedSermonId" ng-change="loadSermon(selectedSermonId); closeHeaderMenu()">
+                    <select id="sermon-select" ng-model="selectedSermonId" ng-change="loadSermon(selectedSermonId); closeHeaderMenu();">
                         <option value="">— выбрать —</option>
                         <option ng-repeat="s in sermonList" value="{{ s.ID }}">
                             {{ s.TITLE || '(без названия)' }} {{ s.SERMON_DATE ? '(' + s.SERMON_DATE + ')' : '' }}
@@ -795,6 +795,7 @@
         document.getElementById('header-dropdown').classList.toggle('open');
     }
     function closeHeaderMenu() {
+        e.stopPropagation();
         document.getElementById('header-dropdown').classList.remove('open');
     }
     document.addEventListener('click', function(e) {
