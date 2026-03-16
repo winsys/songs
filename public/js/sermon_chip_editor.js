@@ -547,7 +547,6 @@ function _cemClose(save) {
             if (hint) {
                 var newHint = document.createElement('span');
                 newHint.className = 'cite-edit-hint';
-                newHint.textContent = 'двойной клик — редактировать';
                 _cemCurrentSpan.appendChild(newHint);
             }
             if (removeBtn) _cemCurrentSpan.appendChild(removeBtn);
