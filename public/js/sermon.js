@@ -865,12 +865,16 @@ angular.module('Songs', ['csrfModule'])
         }
 
         function applyNotesFontSize() {
-            var scale = $scope.notesFontSize; // проценты, 100 = норма
+            var scale = $scope.notesFontSize; // проценты
             var root  = document.documentElement;
-
-            // 13pt — базовый размер заметок (жёстко вписан, не зависит от внешней переменной)
             var notesSize = (13 * scale / 100).toFixed(1) + 'pt';
+
+            // CSS-переменная (для совместимости)
             root.style.setProperty('--sn-notes-font', notesSize);
+
+            // Напрямую на элемент — надёжно работает независимо от содержимого
+            var notesBody = document.getElementById('notes-body');
+            if (notesBody) notesBody.style.fontSize = notesSize;
 
             if (scaleChips) {
                 root.style.setProperty('--sn-chip-font',       (10  * scale / 100).toFixed(1) + 'pt');
