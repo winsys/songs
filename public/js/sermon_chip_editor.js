@@ -502,6 +502,17 @@ function _cemDeleteComment(cid) {
     _cemRenderComments();
 }
 
+function _cemToInlineHtml(html) {
+    return html
+        .replace(/<br\s*\/?>/gi, ' ')   // <br> → пробел
+        .replace(/<\/div>/gi, ' ')       // </div> → пробел
+        .replace(/<div[^>]*>/gi, '')     // <div ...> → ничего
+        .replace(/<\/p>/gi, ' ')         // </p> → пробел
+        .replace(/<p[^>]*>/gi, '')       // <p ...> → ничего
+        .replace(/\s{2,}/g, ' ')         // схлопнуть двойные пробелы
+        .trim();
+}
+
 function _cemClose(save) {
     var overlay  = document.getElementById('chip-editor-overlay');
     var editArea = document.getElementById('cem-edit-area');
@@ -525,7 +536,7 @@ function _cemClose(save) {
             // Сохраняем кнопку удаления и подсказку
             var removeBtn = _cemCurrentSpan.querySelector('.cite-remove');
             var hint      = _cemCurrentSpan.querySelector('.cite-edit-hint');
-            _cemCurrentSpan.innerHTML = '✍️ ' + html;
+            _cemCurrentSpan.innerHTML = '✍️ ' + _cemToInlineHtml(html);
             if (hint) {
                 var newHint = document.createElement('span');
                 newHint.className = 'cite-edit-hint';
