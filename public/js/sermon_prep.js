@@ -753,6 +753,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             var removeBtn = span.querySelector('.cite-remove');
             if (removeBtn) removeBtn.onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
             makeDraggable(span);
+            span.ondblclick = function (e) { e.stopPropagation(); openChipEditor(span); };
         });
 
         // Message citations — re-attach remove buttons
@@ -760,6 +761,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             var removeBtn = span.querySelector('.cite-remove');
             if (removeBtn) removeBtn.onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
             makeDraggable(span);
+            span.ondblclick = function (e) { e.stopPropagation(); openChipEditor(span); };
         });
 
         // Images — re-attach remove + click
@@ -980,7 +982,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                         '<span class="cite-body">' +
                         '<span class="cite-ref">📖 ' + langRefLabel + langSuffix + '</span>' +
                         (verseText ? '<span class="cite-verse-text">' + verseText + '</span>' : '') +
-                        '</span>' +
+                        '</span><span class="cite-edit-hint">двойной клик — редактировать</span>' +
                         '<span class="cite-remove" title="Удалить">×</span>';
 
                     span.querySelector('.cite-remove').onclick = function (e) {
@@ -1049,7 +1051,8 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         span.contentEditable = 'false';
         span.setAttribute('data-msg-title',   msgTitle);
         span.setAttribute('data-para-text',   para.text);
-        span.innerHTML = '✍️ ' + para.text + ' <span class="cite-remove" title="Удалить">×</span>';
+        span.innerHTML = '✍️ ' + para.text + '</span><span class="cite-edit-hint">двойной клик — редактировать</span>' +' <span class="cite-remove" title="Удалить">×</span>';
+
         span.querySelector('.cite-remove').onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
         makeDraggable(span);
         insertNodeAtCursor(span);
