@@ -241,6 +241,10 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
 
             // Setup drag and drop for chips
             setupEditorDropZone();
+            // Инициализация редактора чипов
+            initChipEditor();
+            // Экспортируем scheduleAutoSave для sermon_chip_editor.js
+            window._sermonScheduleAutoSave = scheduleAutoSave;
         }, 0);
     });
 
@@ -764,6 +768,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             var removeBtn = span.querySelector('.cite-remove');
             if (removeBtn) removeBtn.onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
             makeDraggable(span);
+            span.ondblclick = function (e) { e.stopPropagation(); openChipEditor(span); };
         });
 
         // Message citations — re-attach remove buttons
@@ -771,6 +776,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             var removeBtn = span.querySelector('.cite-remove');
             if (removeBtn) removeBtn.onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
             makeDraggable(span);
+            span.ondblclick = function (e) { e.stopPropagation(); openChipEditor(span); };
         });
 
         // Images — re-attach remove + click
@@ -987,16 +993,21 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     span.setAttribute('data-lang',        l.code);
                     span.setAttribute('data-verse-text',  verseText);
 
+                    span.setAttribute('data-verse-html',      '');
+                    span.setAttribute('data-verse-comments',  '[]');
                     span.innerHTML =
                         '<span class="cite-body">' +
                         '<span class="cite-ref">📖 ' + langRefLabel + langSuffix + '</span>' +
-                        (verseText ? '<span class="cite-verse-text">' + verseText + '</span>' : '') +
+                        (verseText ?
+                            '<span class="cite-verse-text">' + verseText + '</span>' : '') +
+                        '<span class="cite-edit-hint">двойной клик — редактировать</span>' +
                         '</span>' +
                         '<span class="cite-remove" title="Удалить">×</span>';
 
                     span.querySelector('.cite-remove').onclick = function (e) {
                         e.stopPropagation(); span.remove(); scheduleAutoSave();
                     };
+                    span.ondblclick = function (e) { e.stopPropagation(); openChipEditor(span); };
                     makeDraggable(span);
                     insertNodeAtCursor(span);
                 });
@@ -1058,10 +1069,15 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         var span = document.createElement('span');
         span.className       = 'message-cite';
         span.contentEditable = 'false';
-        span.setAttribute('data-msg-title',   msgTitle);
-        span.setAttribute('data-para-text',   para.text);
-        span.innerHTML = '✍️ ' + para.text + ' <span class="cite-remove" title="Удалить">×</span>';
+        span.setAttribute('data-msg-title',       msgTitle);
+        span.setAttribute('data-para-text',       para.text);
+        span.setAttribute('data-para-html',       '');
+        span.setAttribute('data-verse-comments',  '[]');
+        span.innerHTML = '✍️ ' + para.text +
+            '<span class="cite-edit-hint">двойной клик — редактировать</span>' +
+            ' <span class="cite-remove" title="Удалить">×</span>';
         span.querySelector('.cite-remove').onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
+        span.ondblclick = function (e) { e.stopPropagation(); openChipEditor(span); };
         makeDraggable(span);
         insertNodeAtCursor(span);
         $scope.prepSelectedParaIdx = null;
