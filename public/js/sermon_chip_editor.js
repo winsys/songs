@@ -539,11 +539,15 @@ function _cemClose(save) {
         if (verseEl) {
             verseEl.innerHTML = html;
         } else if (isMsg) {
-            // У message-cite нет .cite-verse-text — обновляем весь текст узла
-            // Сохраняем кнопку удаления и подсказку
             var removeBtn = _cemCurrentSpan.querySelector('.cite-remove');
             var hint      = _cemCurrentSpan.querySelector('.cite-edit-hint');
-            _cemCurrentSpan.innerHTML = '✍️ ' + _cemToInlineHtml(html);
+
+            _cemCurrentSpan.innerHTML = '';
+            var textWrapper = document.createElement('span');
+            textWrapper.style.cssText = 'display:inline; word-break:break-word; white-space:normal;';
+            textWrapper.innerHTML = '✍️ ' + _cemToInlineHtml(html);
+            _cemCurrentSpan.appendChild(textWrapper);
+
             if (hint) {
                 var newHint = document.createElement('span');
                 newHint.className = 'cite-edit-hint';
