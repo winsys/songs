@@ -767,15 +767,6 @@ function _cemModalCSS() { return `
 }
 .cem-save-btn:hover { background: #155a96; }
 
-/* ── Hint на чипах ─────────────────────────────────────── */
-.bible-cite .cite-edit-hint,
-.message-cite .cite-edit-hint {
-    display: none; font-size: 9px; color: #aaa;
-    font-style: italic; margin-top: 1px; pointer-events: none;
-}
-.bible-cite:hover .cite-edit-hint { display: block; }
-.message-cite:hover .cite-edit-hint { display: inline; }
-
 /* verse-comment на дисплее (sermon_layout) */
 .verse-comment { border-radius: 3px; padding: 0 2px; }
 `; }
