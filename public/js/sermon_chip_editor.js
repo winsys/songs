@@ -509,6 +509,7 @@ function _cemToInlineHtml(html) {
         .replace(/<div[^>]*>/gi, '')     // <div ...> → ничего
         .replace(/<\/p>/gi, ' ')         // </p> → пробел
         .replace(/<p[^>]*>/gi, '')       // <p ...> → ничего
+        .replace(/[\n\r]+/g, ' ')        // ← литеральные переносы → пробел
         .replace(/\s{2,}/g, ' ')         // схлопнуть двойные пробелы
         .trim();
 }
