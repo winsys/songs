@@ -43,7 +43,7 @@ angular.module('Songs', ['csrfModule'])
         var NOTES_FONT_MAX = 300;  // % максимум
         var NOTES_FONT_STEP = 10;  // шаг
         var NOTES_FONT_BASE = 13;  // базовый размер в pt (из редактора)
-        $scope.notesFontSize = 13;   // pt, matches CSS default
+        $scope.notesFontSize = 100; // % по умолчанию
 
         // ==========================================================
         // INIT
@@ -865,9 +865,13 @@ angular.module('Songs', ['csrfModule'])
         }
 
         function applyNotesFontSize() {
-            var scale = $scope.notesFontSize; // теперь это проценты (100 = норма)
+            var scale = $scope.notesFontSize; // проценты, 100 = норма
             var root  = document.documentElement;
-            root.style.setProperty('--sn-notes-font', (NOTES_FONT_BASE * scale / 100).toFixed(1) + 'pt');
+
+            // 13pt — базовый размер заметок (жёстко вписан, не зависит от внешней переменной)
+            var notesSize = (13 * scale / 100).toFixed(1) + 'pt';
+            root.style.setProperty('--sn-notes-font', notesSize);
+
             if (scaleChips) {
                 root.style.setProperty('--sn-chip-font',       (10  * scale / 100).toFixed(1) + 'pt');
                 root.style.setProperty('--sn-chip-verse-font', (9.5 * scale / 100).toFixed(1) + 'pt');
@@ -882,7 +886,7 @@ angular.module('Songs', ['csrfModule'])
         // ==========================================================
 
         $scope.changeNotesFontSize = function (delta) {
-            var next = $scope.notesFontSize + (delta * NOTES_FONT_STEP);
+            var next = $scope.notesFontSize + (delta * 10);
             if (next < NOTES_FONT_MIN || next > NOTES_FONT_MAX) return;
             $scope.notesFontSize = next;
             applyNotesFontSize();
