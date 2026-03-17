@@ -1,6 +1,6 @@
 app.controller('Settings', function ($scope, $http)
 {
-    // Permissions - загружаются с сервера
+    // Permissions - loadinng from server
     $scope.permissions = {
         canManageUsers: false,
         canEditFavoritesOrder: false,
