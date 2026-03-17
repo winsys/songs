@@ -1,52 +1,18 @@
-app.controller('Leader', function ($scope, $http)
+app.controller('Leader', function ($scope, $http, SongsService)
 {
     $scope.listId = 1;
     $scope.songList = [];
     $scope.favorites = [];
     $scope.fullScreen = false;
-    $scope.availableSongLists = [];
     $scope.visibleSongLists = [];
     $scope.langList = [];
 
-    function loadLanguages() {
-        $http({ method: 'POST', url: '/ajax', data: { command: 'get_languages' } }).then(
-            function (r) {
-                $scope.langList = r.data || [];
-            },
-            function () {
-                console.error('leader.js: не удалось загрузить список языков');
-            }
-        );
-    }
-
-    // Load available song lists and user settings
-    $scope.loadSongLists = function() {
-        $http({ method: "POST", url: "/ajax", data: {command: 'get_all_song_lists' } }).then(
-            function success(respond){
-                $scope.availableSongLists = respond.data;
-
-                // Load user settings to filter lists
-                $http({ method: "POST", url: "/ajax", data: {command: 'get_user_settings' } }).then(
-                    function success(settingsRespond){
-                        if (settingsRespond.data && settingsRespond.data.available_lists) {
-                            var selectedListIds = settingsRespond.data.available_lists.split(',');
-                            $scope.visibleSongLists = $scope.availableSongLists.filter(function(list) {
-                                return selectedListIds.indexOf(String(list.LIST_ID)) !== -1;
-                            });
-                        } else {
-                            // Show all lists if no settings
-                            $scope.visibleSongLists = $scope.availableSongLists;
-                        }
-                    },
-                    function error(erespond){
-                        // Show all lists on error
-                        $scope.visibleSongLists = $scope.availableSongLists;
-                    }
-                );
-            },
-            function error(erespond){
-                console.log('Ajax call error: ', erespond)
-            });
+    $scope.loadSongLists = function () {
+        SongsService.getVisibleSongLists().then(function (lists) {
+            $scope.visibleSongLists = lists;
+        }, function () {
+            console.error('leader.js: не удалось загрузить списки песен');
+        });
     };
 
     $scope.reloadSongList = function(){
@@ -54,17 +20,19 @@ app.controller('Leader', function ($scope, $http)
             function success(respond){
                 $scope.songList = respond.data;
                 angular.forEach($scope.songList, function(song) {
-                       var langs = [];
-                       if (song.hasTextRu === '1') langs.push('RU');
-                       if (song.hasTextLt === '1') langs.push('LT');
-                       if (song.hasTextEn === '1') langs.push('EN');
-                       var bookPart = song.bookName ? song.bookName : '';
-                       var langPart = langs.length ? langs.join(' · ') : '—';
-                       song.langInfo = bookPart + (bookPart && langPart ? '  ·  ' : '') + langPart;
+                    var langs = [];
+                    angular.forEach($scope.langList, function(lang) {
+                        if (song['hasText_' + lang.code] === '1') {
+                            langs.push(lang.code.toUpperCase());
+                        }
+                    });
+                    var bookPart = song.bookName ? song.bookName : '';
+                    var langPart = langs.length ? langs.join(' · ') : '—';
+                    song.langInfo = bookPart + (bookPart && langPart ? '  ·  ' : '') + langPart;
                 });
             },
             function error(erespond){
-                console.log('Ajax call error: ', erespond)
+                console.error('leader.js Ajax error:', erespond)
             });
     };
 
@@ -77,7 +45,7 @@ app.controller('Leader', function ($scope, $http)
                     $scope.$broadcast('angucomplete-alt:clearInput');
                 },
                 function error(erespond){
-                    console.log('Ajax call error: ',erespond)
+                    console.error('leader.js Ajax error:', erespond)
                 });
         }
     };
@@ -90,7 +58,7 @@ app.controller('Leader', function ($scope, $http)
                 if (callback) callback();
             },
             function error(erespond){
-                console.log('Ajax call error: ',erespond)
+                console.error('leader.js Ajax error:', erespond)
             });
     };
 
@@ -180,7 +148,7 @@ app.controller('Leader', function ($scope, $http)
                 $scope.reloadFavorites();
             },
             function error(erespond){
-                console.log('Ajax call error: ',erespond)
+                console.error('leader.js Ajax error:', erespond)
             });
 
     };
@@ -260,23 +228,16 @@ app.controller('Leader', function ($scope, $http)
 
     // Listen for fullscreen changes (e.g., when user presses ESC)
     document.addEventListener('fullscreenchange', function() {
-        console.log('Leader: fullscreenchange event, fullscreenElement:', document.fullscreenElement);
-        console.log('Leader: stack trace:', new Error().stack);
         $scope.$apply(function() {
             if (!document.fullscreenElement) {
-                console.log('Leader: fullscreen exited, setting fullScreen=false');
                 $scope.fullScreen = false;
-                // Force reload favorites list when exiting fullscreen
-                console.log('Leader: reloading favorites after fullscreen exit');
                 $scope.reloadFavorites();
-            } else {
-                console.log('Leader: fullscreen entered, fullScreen is already:', $scope.fullScreen);
             }
         });
     });
 
     $scope.loadSongLists();
-    loadLanguages();
+    SongsService.getLanguages().then(function (langs) { $scope.langList = langs; });
     $scope.reloadSongList();
     $scope.reloadFavorites();
 });

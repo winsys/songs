@@ -127,6 +127,29 @@ class Security
     }
 
     /**
+     * Записать данные пользователя в сессию и обновить last_login.
+     * Единая точка входа — используется при любом способе авторизации
+     * (пароль, Google OAuth, Google One Tap).
+     */
+    public static function startUserSession(array $user): void
+    {
+        $_SESSION['loggedIn']   = true;
+        $_SESSION['curUserId']  = (int)$user['ID'];
+        $_SESSION['curGroupId'] = (isset($user['GROUP_ID']) && $user['GROUP_ID'] > 0)
+            ? (int)$user['GROUP_ID']
+            : (int)$user['ID'];
+        $_SESSION['userName']   = $user['NAME'];
+        $_SESSION['userRole']   = $user['ROLE'] ?? 'musician';
+        $_SESSION['loginError'] = '';
+
+        Info::get('db')->exec(
+            'UPDATE users SET LAST_LOGIN = NOW() WHERE ID = ' . (int)$user['ID']
+        );
+
+        session_regenerate_id(true);
+    }
+
+    /**
      * [SECURITY #1] Логин: сначала пробует зашифрованный пароль,
      * при первом совпадении с plaintext — автоматически мигрирует в enc:.
      */
@@ -164,21 +187,7 @@ class Security
         }
 
         if ($passwordOk) {
-            $_SESSION['loggedIn'] = true;
-            $_SESSION['userName'] = $user['NAME'];
-            $_SESSION['curUserId'] = (int)$user['ID'];
-            $_SESSION['curGroupId'] = isset($user['GROUP_ID']) && $user['GROUP_ID'] > 0
-                ? (int)$user['GROUP_ID']
-                : (int)$user['ID'];
-            $_SESSION['userRole'] = isset($user['ROLE']) ? $user['ROLE'] : 'musician';
-            $_SESSION['loginError'] = '';
-
-            // Update last login timestamp
-            $userId = (int)$user['ID'];
-            $db->exec("UPDATE users SET LAST_LOGIN = NOW() WHERE ID = {$userId}");
-
-            // Обновить session ID для защиты от Session Fixation
-            session_regenerate_id(true);
+            self::startUserSession($user);
             return true;
         }
 
