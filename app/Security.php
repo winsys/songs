@@ -294,7 +294,7 @@ class Security
      * Get current user's group ID for WebSocket connection.
      * @return int
      */
-    public static function getUserId(): int
+    public static function getGroupId(): int
     {
         return isset($_SESSION['curGroupId']) ? (int)$_SESSION['curGroupId'] : 0;
     }

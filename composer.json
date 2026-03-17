@@ -3,7 +3,10 @@
     "description": "Worship songs selection site",
     "type": "project",
     "require": {
-        "workerman/workerman": "^4.1"
+      "workerman/workerman": "^4.1",
+      "ext-mysqli": "*",
+      "ext-openssl": "*",
+      "ext-json": "*"
     },
     "license": "GPL",
     "autoload": {
