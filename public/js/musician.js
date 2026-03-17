@@ -70,7 +70,6 @@ app.controller('Musician', function ($scope, $http)
                 console.error('WebSocket error:', error);
             }
         );
-
         socket.addEventListener('close', function(event) {
             console.log('WebSocket closed, reconnecting in 2s...');
             setTimeout(initSocket, 2000);
