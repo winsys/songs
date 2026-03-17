@@ -9,7 +9,7 @@
     <meta name="csrf-token" content="<?php echo htmlspecialchars(Security::getCsrfToken(), ENT_QUOTES); ?>">
     <script type="text/javascript">
         // [SECURITY] WebSocket authentication credentials
-        window.WS_USER_ID = <?php echo Security::getUserId(); ?>;
+        window.WS_USER_ID = <?php echo Security::getCurrentUserId(); ?>;
         window.WS_GROUP_ID = <?php echo Security::getGroupId(); ?>;
         window.WS_AUTH_TOKEN = "<?php echo Security::generateWebSocketToken(); ?>";
     </script>
