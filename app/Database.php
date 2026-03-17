@@ -87,9 +87,4 @@ class Database
         return $this->f_handle->real_escape_string($src);
     }
 
-    private function log($msg)
-    {
-        file_put_contents('./db_getvalue.log', $msg.PHP_EOL, FILE_APPEND);
-    }
-
 }

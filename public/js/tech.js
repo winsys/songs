@@ -1,4 +1,4 @@
-app.controller('Tech', function ($scope, $http, $timeout)
+app.controller('Tech', function ($scope, $http, $timeout, SongsService)
 {
     // ── Songs mode state ──────────────────────────────────────
     $scope.listId = 1;
@@ -9,7 +9,6 @@ app.controller('Tech', function ($scope, $http, $timeout)
     $scope.showingSong = null;
     $scope.showingChapter = null;
     $scope.selectedChapters = [];
-    $scope.availableSongLists = [];
     $scope.visibleSongLists = [];
 
     // ── Bible mode state ──────────────────────────────────────
@@ -209,9 +208,8 @@ app.controller('Tech', function ($scope, $http, $timeout)
     }
 
     function loadLanguages() {
-        $http({ method: 'POST', url: '/ajax', data: { command: 'get_languages' } }).then(
-            function (r) {
-                var list = r.data || [];
+        SongsService.getLanguages().then(
+            function (list) {
                 $scope.langList = list;
 
                 // Найти язык по умолчанию
@@ -248,29 +246,12 @@ app.controller('Tech', function ($scope, $http, $timeout)
     // SONGS MODE — load helpers
     // ==========================================================
 
-    $scope.loadSongLists = function() {
-        $http({ method: "POST", url: "/ajax", data: {command: 'get_all_song_lists' } }).then(
-            function success(respond){
-                $scope.availableSongLists = respond.data;
-                $http({ method: "POST", url: "/ajax", data: {command: 'get_user_settings' } }).then(
-                    function success(settingsRespond){
-                        if (settingsRespond.data && settingsRespond.data.available_lists) {
-                            var selectedListIds = settingsRespond.data.available_lists.split(',');
-                            $scope.visibleSongLists = $scope.availableSongLists.filter(function(list) {
-                                return selectedListIds.indexOf(String(list.LIST_ID)) !== -1;
-                            });
-                        } else {
-                            $scope.visibleSongLists = $scope.availableSongLists;
-                        }
-                    },
-                    function error(){
-                        $scope.visibleSongLists = $scope.availableSongLists;
-                    }
-                );
-            },
-            function error(erespond){
-                console.log('Ajax call error: ', erespond);
-            });
+    $scope.loadSongLists = function () {
+        SongsService.getVisibleSongLists().then(function (lists) {
+            $scope.visibleSongLists = lists;
+        }, function () {
+            console.error('tech.js: не удалось загрузить списки песен');
+        });
     };
 
     /**
@@ -1845,7 +1826,7 @@ app.controller('Tech', function ($scope, $http, $timeout)
     // ==========================================================
 
     $scope.loadSongLists();
-    loadLanguages();
+    loadLanguages();   // инициализирует langList + $scope.languages (переключатели)
     $scope.reloadSongList();
     loadPendingAccessRequests();  // Load any existing pending requests on page load
 
