@@ -1763,19 +1763,54 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
 
                 // Restore message paragraph if song_name doesn't match other patterns
                 if (state.text && state.song_name && !state.song_name.match(/\d+:\d+/) && !state.image) {
-                    // Find the matching paragraph in messageParagraphs list
-                    var foundPara = null;
-                    for (var i = 0; i < $scope.messageParagraphs.length; i++) {
-                        if ($scope.messageParagraphs[i] === state.text) {
-                            foundPara = $scope.messageParagraphs[i];
-                            break;
-                        }
-                    }
-                    // Set showingMessagePara to the actual paragraph string (not an object)
-                    $scope.showingMessagePara = foundPara || state.text;
                     // Switch to messages mode if needed
                     if ($scope.pageMode !== 'messages') {
                         $scope.pageMode = 'messages';
+                    }
+
+                    // If message is already loaded and paragraphs exist, restore selection
+                    if ($scope.selectedMessage && $scope.selectedMessage.TITLE === state.song_name && $scope.messageParagraphs.length > 0) {
+                        // Find the matching paragraph in messageParagraphs list
+                        var foundPara = null;
+                        for (var i = 0; i < $scope.messageParagraphs.length; i++) {
+                            if ($scope.messageParagraphs[i] === state.text) {
+                                foundPara = $scope.messageParagraphs[i];
+                                break;
+                            }
+                        }
+                        $scope.showingMessagePara = foundPara || state.text;
+                    } else {
+                        // Message not loaded - need to search and load it first
+                        // Search for message by title
+                        $http({ method: "POST", url: "/ajax", data: {
+                                command: 'search_messages',
+                                title_query: state.song_name,
+                                text_query: ''
+                            }}).then(function(r) {
+                            if (r.data && r.data.length > 0) {
+                                // Find exact title match
+                                var matchedMsg = null;
+                                for (var j = 0; j < r.data.length; j++) {
+                                    if (r.data[j].TITLE === state.song_name) {
+                                        matchedMsg = r.data[j];
+                                        break;
+                                    }
+                                }
+                                if (matchedMsg) {
+                                    // Load the message and restore paragraph selection
+                                    $scope.selectMessage(matchedMsg);
+                                    // Wait for message to load, then restore paragraph
+                                    $timeout(function() {
+                                        for (var k = 0; k < $scope.messageParagraphs.length; k++) {
+                                            if ($scope.messageParagraphs[k] === state.text) {
+                                                $scope.showingMessagePara = $scope.messageParagraphs[k];
+                                                break;
+                                            }
+                                        }
+                                    }, 200);
+                                }
+                            }
+                        });
                     }
                 }
 
