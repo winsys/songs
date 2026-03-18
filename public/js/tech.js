@@ -1717,15 +1717,6 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
                 var isRestoringMedia = !isRestoringBible && !isRestoringMessage && !isRestoringSong &&
                     (state.image || state.video_src);
 
-                console.log('restoreCurrentState:', {
-                    isRestoringMessage: isRestoringMessage,
-                    currentShowingPara: $scope.showingMessagePara,
-                    stateText: state.text,
-                    stateSongName: state.song_name,
-                    stateImage: state.image,
-                    messageParagraphsLength: $scope.messageParagraphs.length
-                });
-
                 // Clear previous state (but preserve message paragraph if we're restoring it)
                 if (!isRestoringSong) {
                     $scope.showingSong = null;
@@ -1737,7 +1728,6 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
                     $scope.showingBibleVerse = null;
                 }
                 if (!isRestoringMessage) {
-                    console.log('Clearing showingMessagePara because isRestoringMessage = false');
                     $scope.showingMessagePara = null;
                 }
                 if (!isRestoringMedia) {
