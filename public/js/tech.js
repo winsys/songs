@@ -1707,14 +1707,30 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
             function(response) {
                 var state = response.data;
 
-                // Clear previous state
-                $scope.showingSong = null;
-                $scope.showingChapter = null;
-                $scope.selectedChapters = [];
-                $scope.preparedChapters = [];
-                $scope.showingBibleVerse = null;
-                $scope.showingMessagePara = null;
-                $scope.activeMediaItem = null;
+                // Determine what type of state we're restoring to avoid clearing it prematurely
+                var isRestoringMessage = state.text && state.song_name &&
+                    !state.song_name.match(/\d+:\d+/) && !state.image;
+                var isRestoringBible = state.text && state.song_name &&
+                    state.song_name.match(/\d+:\d+/);
+                var isRestoringSong = state.image && state.image.match(/\/images\/\d+\/\d+\.jpg/);
+                var isRestoringMedia = state.image && !state.image.match(/\/images\/\d+\/\d+\.jpg/) || state.video_src;
+
+                // Clear previous state (but preserve message paragraph if we're restoring it)
+                if (!isRestoringSong) {
+                    $scope.showingSong = null;
+                    $scope.showingChapter = null;
+                    $scope.selectedChapters = [];
+                    $scope.preparedChapters = [];
+                }
+                if (!isRestoringBible) {
+                    $scope.showingBibleVerse = null;
+                }
+                if (!isRestoringMessage) {
+                    $scope.showingMessagePara = null;
+                }
+                if (!isRestoringMedia) {
+                    $scope.activeMediaItem = null;
+                }
 
                 // Restore song if image path matches song image pattern
                 if (state.image && state.image.match(/\/images\/\d+\/\d+\.jpg/)) {
