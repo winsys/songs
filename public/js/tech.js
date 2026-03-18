@@ -1763,7 +1763,16 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
 
                 // Restore message paragraph if song_name doesn't match other patterns
                 if (state.text && state.song_name && !state.song_name.match(/\d+:\d+/) && !state.image) {
-                    $scope.showingMessagePara = { text: state.text, title: state.song_name };
+                    // Find the matching paragraph in messageParagraphs list
+                    var foundPara = null;
+                    for (var i = 0; i < $scope.messageParagraphs.length; i++) {
+                        if ($scope.messageParagraphs[i] === state.text) {
+                            foundPara = $scope.messageParagraphs[i];
+                            break;
+                        }
+                    }
+                    // Set showingMessagePara to the actual paragraph string (not an object)
+                    $scope.showingMessagePara = foundPara || state.text;
                     // Switch to messages mode if needed
                     if ($scope.pageMode !== 'messages') {
                         $scope.pageMode = 'messages';
