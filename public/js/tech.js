@@ -1708,18 +1708,21 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
                 var state = response.data;
 
                 // Determine what type of state we're restoring to avoid clearing it prematurely
-                var isRestoringMessage = state.text && state.song_name &&
-                    !state.song_name.match(/\d+:\d+/) && !state.image;
+                // Priority: Bible > Message > Song > Media
                 var isRestoringBible = state.text && state.song_name &&
                     state.song_name.match(/\d+:\d+/);
-                var isRestoringSong = state.image && state.image.match(/\/images\/\d+\/\d+\.jpg/);
-                var isRestoringMedia = state.image && !state.image.match(/\/images\/\d+\/\d+\.jpg/) || state.video_src;
+                var isRestoringMessage = !isRestoringBible && state.text && state.song_name;
+                var isRestoringSong = !isRestoringBible && !isRestoringMessage &&
+                    state.image && state.image.match(/\/images\/\d+\/\d+\.jpg/);
+                var isRestoringMedia = !isRestoringBible && !isRestoringMessage && !isRestoringSong &&
+                    (state.image || state.video_src);
 
                 console.log('restoreCurrentState:', {
                     isRestoringMessage: isRestoringMessage,
                     currentShowingPara: $scope.showingMessagePara,
                     stateText: state.text,
                     stateSongName: state.song_name,
+                    stateImage: state.image,
                     messageParagraphsLength: $scope.messageParagraphs.length
                 });
 
