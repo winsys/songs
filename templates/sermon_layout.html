@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?php echo htmlspecialchars(Security::getCsrfToken(), ENT_QUOTES); ?>">
     <title>Проповедь</title>
+    <script type="text/javascript">
+        // [SECURITY] WebSocket authentication credentials
+        window.WS_USER_ID = <?php echo Security::getCurrentUserId(); ?>;
+        window.WS_GROUP_ID = <?php echo Security::getGroupId(); ?>;
+        window.WS_AUTH_TOKEN = "<?php echo Security::generateWebSocketToken(); ?>";
+    </script>
     <script src="/js/angular.min.js" type="text/javascript"></script>
     <script src="/js/csrf_interceptor.min.js"></script>
     <style>
@@ -788,6 +794,7 @@
     </div>
 </div>
 
+<script src="/js/websocket_auth.min.js"></script>
 <script src="/js/sermon.min.js?v=4" type="text/javascript"></script>
 <script>
     function toggleHeaderMenu(e) {
