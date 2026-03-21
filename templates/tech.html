@@ -1501,7 +1501,7 @@
                              ng-class="{'chapter-selected': showingMessagePara === para}"
                              ng-click="onMsgParaClick(msgParaIdx, para)">
                             <span ng-show="msgTimecodes.length > msgParaIdx"
-                                  style="color:#1a6db5;font-size:10px;font-family:monospace;margin-right:5px;opacity:0.6;">{{formatMsgTimecode(msgTimecodes[msgParaIdx])}}</span>{{ para }}
+                                  style="color:#1a6db5;font-size:10px;font-family:monospace;margin-right:5px;opacity:0.6;display:inline-block;min-width:3.8em;text-align:right;">{{formatMsgTimecode(msgTimecodes[msgParaIdx])}}</span>{{ para }}
                         </div>
                         <div ng-show="messageParagraphs.length === 0 && selectedMessage"
                              style="padding: 12px; color: #b0b8c1; font-size: 12px;">
