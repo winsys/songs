@@ -433,6 +433,10 @@ trait Ajax_Import
         if ($paraSep === 'emptyline') {
             // Разделитель — пустая строка; несколько пустых строк подряд = один разделитель
             $blocks = preg_split('/\n{2,}/', trim($body));
+            // Внутри каждого абзаца убрать все переносы строк (заменить на пробел)
+            $blocks = array_map(function ($b) {
+                return preg_replace('/\s*\n\s*/', ' ', $b);
+            }, $blocks);
         } else {
             // Каждая непустая строка — отдельный абзац
             $blocks = explode("\n", $body);
