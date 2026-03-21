@@ -566,6 +566,9 @@
                     <label>
                         <input type="radio" ng-model="txtMode" value="translate" /> Добавить перевод к существующему
                     </label>
+                    <label>
+                        <input type="radio" ng-model="txtMode" value="edit" /> Редактировать
+                    </label>
                 </div>
 
                 <label class="import-label">Код послания (YY-MMDD[x])</label>
@@ -591,7 +594,7 @@
                     </div>
                 </div>
 
-                <div ng-show="txtMode === 'new'">
+                <div ng-show="txtMode === 'new' || txtMode === 'edit'">
                     <label class="import-label">Название</label>
                     <input type="text" class="import-input" ng-model="txtTitle"
                            placeholder="Название послания" />
@@ -599,6 +602,12 @@
                     <label class="import-label">Место перевода</label>
                     <input type="text" class="import-input" ng-model="txtCity"
                            placeholder="Город / источник перевода" />
+                </div>
+
+                <!-- Индикатор загрузки данных в режиме редактирования -->
+                <div ng-show="txtEditLoading"
+                     style="color:#1a6db5; font-size:12px; margin-bottom:12px;">
+                    ⏳ Загрузка данных послания…
                 </div>
 
                 <label class="import-label">Разделитель абзацев</label>
@@ -629,7 +638,7 @@
 
                 <button class="btn-import-success"
                         ng-click="importMessagesText()"
-                        ng-disabled="!txtCode || (txtMode==='new' && !txtTitle) || !txtBody || txtImporting">
+                        ng-disabled="!txtCode || ((txtMode==='new' || txtMode==='edit') && !txtTitle) || !txtBody || txtImporting">
                     <span ng-if="!txtImporting">💾 Сохранить послание</span>
                     <span ng-if="txtImporting">⏳ Сохраняется…</span>
                 </button>
@@ -754,4 +763,4 @@
     </div>
 </div>
 
-<script src="/js/import.js?v=9" type="text/javascript"></script>
+<script src="/js/import.js?v=10" type="text/javascript"></script>
