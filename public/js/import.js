@@ -503,8 +503,8 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
             var text  = (d[field] || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
             $scope.txtTitle     = d.TITLE    || '';
             $scope.txtCity      = d.CITY     || '';
-            $scope.txtBody      = text;
-            $scope.txtParaSep   = 'newline';
+            $scope.txtBody      = text.replace(/\n/g, '\n\n');  // абзацы через пустую строку
+            $scope.txtParaSep   = 'emptyline';
             $scope.txtAudioSrc  = d.AUDIO_SRC || '';
             $scope.txtTimecodes = (d.TIMECODES || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
         }, function () {
