@@ -1242,7 +1242,12 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
     };
 
     // Нажатие на абзац: показать/скрыть текст на экране + перейти к таймкоду если аудио уже играет
+    // Повторное нажатие на активный воспроизводимый абзац = Стоп
     $scope.onMsgParaClick = function(idx, para) {
+        if ($scope.msgAudioPlaying && $scope.showingMessagePara === para) {
+            $scope.stopMsgAudio();
+            return;
+        }
         if (msgAudio && $scope.msgAudioPlaying && $scope.msgTimecodes.length > idx) {
             msgAudio.currentTime = $scope.msgTimecodes[idx];
         }
