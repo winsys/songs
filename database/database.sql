@@ -131,6 +131,8 @@ CREATE TABLE IF NOT EXISTS `messages` (
                                           `TEXT_EN` longtext COLLATE utf8mb4_unicode_ci,
                                           `CREATED_AT` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                           `TEXT_DE` longtext COLLATE utf8mb4_unicode_ci,
+                                          `AUDIO_SRC` varchar(2000) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
+                                          `TIMECODES` longtext COLLATE utf8mb4_unicode_ci,
                                           PRIMARY KEY (`ID`),
                                           KEY `idx_messages_code` (`CODE`)
 ) ENGINE=InnoDB AUTO_INCREMENT=665 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

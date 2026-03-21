@@ -612,6 +612,21 @@
                           placeholder="Вставьте текст из буфера обмена (Ctrl+V)…"></textarea>
                 <div class="char-counter">Символов: {{txtBody.length}}</div>
 
+                <label class="import-label">Ссылка на аудиофайл (URL или путь на сервере)</label>
+                <input type="text" class="import-input" ng-model="txtAudioSrc"
+                       placeholder="https://example.com/audio.mp3 или /media/sermons/62-0318.mp3" />
+
+                <label class="import-label">Таймкоды абзацев (по одному на строку, формат М:СС или Ч:ММ:СС)</label>
+                <textarea class="import-input" ng-model="txtTimecodes" rows="6"
+                          placeholder="0:00&#10;1:23&#10;4:56&#10;..."></textarea>
+                <div class="char-counter" ng-show="txtTimecodes">
+                    Таймкодов: {{countTimecodes()}}
+                    <span ng-show="txtBody && countTimecodes() !== countParagraphs()"
+                          style="color:#e67e22; margin-left:8px;">
+                        ⚠ Абзацев: {{countParagraphs()}} — несовпадение!
+                    </span>
+                </div>
+
                 <button class="btn-import-success"
                         ng-click="importMessagesText()"
                         ng-disabled="!txtCode || (txtMode==='new' && !txtTitle) || !txtBody || txtImporting">
@@ -739,4 +754,4 @@
     </div>
 </div>
 
-<script src="/js/import.js?v=8" type="text/javascript"></script>
+<script src="/js/import.js?v=9" type="text/javascript"></script>

@@ -226,7 +226,7 @@ trait Ajax_Tech
     {
         $id = (int)self::$args['id'];
         $list = Info::get('db')->select(
-            "SELECT ID, CODE, TITLE, CITY, TEXT
+            "SELECT ID, CODE, TITLE, CITY, TEXT, TEXT_LT, TEXT_EN, TEXT_DE, AUDIO_SRC, TIMECODES
              FROM messages WHERE ID = {$id} LIMIT 1"
         );
         return json_encode(count($list) > 0 ? $list[0] : null);
