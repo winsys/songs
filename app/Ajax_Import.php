@@ -477,12 +477,23 @@ trait Ajax_Import
 
         $existing = $db->get("SELECT ID FROM messages WHERE CODE='{$codeEsc}' LIMIT 1");
 
-        if ($mode === 'translate' && !$existing) {
+        if (in_array($mode, ['translate', 'edit']) && !$existing) {
             return json_encode(['status' => 'error', 'message' => "Послание [{$codeEsc}] не найдено. Сначала создайте его (режим «Новое послание»)"]);
         }
 
         if ($existing) {
-            if ($lang === 'ru') {
+            if ($mode === 'edit') {
+                // Режим редактирования: обновляем все поля целиком
+                $db->exec(
+                    "UPDATE messages SET
+                        TITLE='{$titleEsc}',
+                        CITY='{$cityEsc}',
+                        {$textField}='{$textEsc}',
+                        AUDIO_SRC='{$audioSrcEsc}',
+                        TIMECODES=" . ($timecodesEsc !== '' ? "'{$timecodesEsc}'" : 'NULL')
+                    . " WHERE ID={$existing['ID']}"
+                );
+            } elseif ($lang === 'ru') {
                 $db->exec(
                     "UPDATE messages SET
                         TEXT='{$textEsc}',
@@ -525,6 +536,27 @@ trait Ajax_Import
             'message' => "Добавлено: [{$code}] {$title}" . ($city ? " ({$city})" : ''),
             'warning' => $tcWarning,
         ]);
+    }
+
+    // --------------------------------------------------------
+    // Загрузить полные данные послания для режима редактирования
+    // Параметры: code
+    // --------------------------------------------------------
+    private static function load_message_for_edit()
+    {
+        if (!Security::isAdmin()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+        $dbh  = Info::get('dbh');
+        $code = mysqli_real_escape_string($dbh, trim(self::$args['code'] ?? ''));
+        if ($code === '') {
+            return json_encode(null);
+        }
+        $row = Info::get('db')->get(
+            "SELECT ID, CODE, TITLE, CITY, TEXT, TEXT_LT, TEXT_EN, TEXT_DE, AUDIO_SRC, TIMECODES
+             FROM messages WHERE CODE='{$code}' LIMIT 1"
+        );
+        return json_encode($row ?: null);
     }
 
     // --------------------------------------------------------

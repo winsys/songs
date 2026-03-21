@@ -26,6 +26,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     $scope.txtAudioSrc  = '';
     $scope.txtTimecodes = '';
     $scope.txtImporting = false;
+    $scope.txtEditLoading = false;
 
     $scope.countTimecodes = function() {
         if (!$scope.txtTimecodes) return 0;
@@ -461,12 +462,12 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     };
 
 // ─────────────────────────────────────────────────────────
-    // Автодополнение кода послания (режим translate)
+    // Автодополнение кода послания (режимы translate и edit)
     // ─────────────────────────────────────────────────────────
     var codeSearchTimer = null;
 
     $scope.onTxtCodeInput = function () {
-        if ($scope.txtMode !== 'translate' || $scope.txtCode.length < 2) {
+        if (($scope.txtMode !== 'translate' && $scope.txtMode !== 'edit') || $scope.txtCode.length < 2) {
             $scope.txtCodeSuggestions = [];
             return;
         }
@@ -486,9 +487,38 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
         }, 300);
     };
 
+    // Загрузить полные данные послания для режима редактирования
+    $scope.loadMessageForEdit = function (code) {
+        $scope.txtEditLoading = true;
+        $http({
+            method: 'POST',
+            url: '/ajax',
+            data: { command: 'load_message_for_edit', code: code }
+        }).then(function (r) {
+            $scope.txtEditLoading = false;
+            var d = r.data;
+            if (!d) { msgLog('error', '❌ Послание не найдено: ' + code); return; }
+            var langToField = { ru: 'TEXT', lt: 'TEXT_LT', en: 'TEXT_EN', de: 'TEXT_DE' };
+            var field = langToField[$scope.msgLang] || 'TEXT';
+            var text  = (d[field] || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+            $scope.txtTitle     = d.TITLE    || '';
+            $scope.txtCity      = d.CITY     || '';
+            $scope.txtBody      = text;
+            $scope.txtParaSep   = 'newline';
+            $scope.txtAudioSrc  = d.AUDIO_SRC || '';
+            $scope.txtTimecodes = (d.TIMECODES || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+        }, function () {
+            $scope.txtEditLoading = false;
+            msgLog('error', '❌ Ошибка загрузки данных');
+        });
+    };
+
     $scope.selectCodeSuggestion = function (msg) {
         $scope.txtCode = msg.CODE;
         $scope.txtCodeSuggestions = [];
+        if ($scope.txtMode === 'edit') {
+            $scope.loadMessageForEdit(msg.CODE);
+        }
     };
 
     $scope.clearCodeSuggestions = function () {
@@ -496,5 +526,16 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
             $scope.txtCodeSuggestions = [];
         }, 200);
     };
+
+    // При смене режима сбрасываем поля (кроме кода)
+    $scope.$watch('txtMode', function (newVal, oldVal) {
+        if (newVal === oldVal) return;
+        $scope.txtTitle     = '';
+        $scope.txtCity      = '';
+        $scope.txtBody      = '';
+        $scope.txtAudioSrc  = '';
+        $scope.txtTimecodes = '';
+        $scope.txtCodeSuggestions = [];
+    });
 
 });
