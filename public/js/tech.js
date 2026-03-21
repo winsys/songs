@@ -36,6 +36,35 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
     $scope.showingMessagePara   = null;
     var messageSearchTimer      = null;
 
+    // ── Messages audio ────────────────────────────────────────
+    $scope.msgAudioPlaying = false;
+    $scope.msgAudioLoaded  = false;
+    $scope.msgTimecodes    = [];       // array of seconds (floats)
+    var msgAudio           = null;     // HTMLAudioElement (lazy init)
+
+    function parseMsgTimecodes(raw) {
+        if (!raw) return [];
+        return raw.split(/\r?\n/).map(function(tc) {
+            tc = tc.trim();
+            if (!tc) return null;
+            var parts = tc.split(':').map(Number);
+            var s;
+            if (parts.length === 3) s = parts[0] * 3600 + parts[1] * 60 + parts[2];
+            else if (parts.length === 2) s = parts[0] * 60 + parts[1];
+            else s = parts[0];
+            return isNaN(s) ? null : s;
+        }).filter(function(v) { return v !== null; });
+    }
+
+    $scope.formatMsgTimecode = function(secs) {
+        if (secs === undefined || secs === null) return '';
+        var h = Math.floor(secs / 3600);
+        var m = Math.floor((secs % 3600) / 60);
+        var s = Math.floor(secs % 60);
+        if (h > 0) return h + ':' + (m < 10 ? '0' : '') + m + ':' + (s < 10 ? '0' : '') + s;
+        return m + ':' + (s < 10 ? '0' : '') + s;
+    };
+
     // ── Tech Media state ──────────────────────────────────────
     $scope.showMediaAddPanel  = false;   // панель добавления медиа
     $scope.mediaUrlInput      = '';      // поле ввода URL
@@ -1106,6 +1135,11 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
         $scope.selectedMessage    = msg;   // предварительно (для подсветки списка)
         $scope.messageParagraphs  = [];
         $scope.showingMessagePara = null;
+        // Сброс аудио
+        $scope.msgTimecodes    = [];
+        $scope.msgAudioPlaying = false;
+        $scope.msgAudioLoaded  = false;
+        if (msgAudio) { msgAudio.pause(); msgAudio.src = ''; }
 
         $http({ method: "POST", url: "/ajax", data: {
                 command: 'get_message',
@@ -1143,6 +1177,47 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
                     return l.trim().length > 0;
                 });
             }
+
+            // Разбираем таймкоды и инициализируем аудио
+            $scope.msgTimecodes = parseMsgTimecodes(r.data.TIMECODES);
+            if (r.data.AUDIO_SRC) {
+                // Ленивая инициализация элемента <audio>
+                if (!msgAudio) {
+                    msgAudio = document.getElementById('msgAudioEl');
+                    if (msgAudio) {
+                        msgAudio.addEventListener('ended', function() {
+                            $scope.$apply(function() { $scope.msgAudioPlaying = false; });
+                        });
+                        msgAudio.addEventListener('timeupdate', function() {
+                            if (!$scope.msgAudioPlaying) return;
+                            var curIdx  = $scope.messageParagraphs.indexOf($scope.showingMessagePara);
+                            var nextIdx = curIdx + 1;
+                            if (nextIdx < $scope.messageParagraphs.length &&
+                                nextIdx < $scope.msgTimecodes.length &&
+                                msgAudio.currentTime >= $scope.msgTimecodes[nextIdx]) {
+                                $scope.$apply(function() {
+                                    var nextPara = $scope.messageParagraphs[nextIdx];
+                                    $scope.showingMessagePara = nextPara;
+                                    var title = $scope.selectedMessage ? $scope.selectedMessage.TITLE : '';
+                                    $http({ method: 'POST', url: '/ajax', data: {
+                                        command: 'set_message_text', text: nextPara, song_name: title
+                                    }});
+                                    $timeout(function() {
+                                        var panel = document.getElementById('messages-para-panel');
+                                        if (!panel) return;
+                                        var items = panel.querySelectorAll('.bible-verse-item');
+                                        if (items[nextIdx]) items[nextIdx].scrollIntoView({ block: 'nearest' });
+                                    }, 50);
+                                });
+                            }
+                        });
+                    }
+                }
+                if (msgAudio) {
+                    msgAudio.src = r.data.AUDIO_SRC;
+                    $scope.msgAudioLoaded = true;
+                }
+            }
         });
     };
 
@@ -1164,6 +1239,41 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
                     song_name: title
                 }});
         }
+    };
+
+    // Нажатие на абзац: показать текст + при наличии аудио — перейти к нужному таймкоду
+    $scope.onMsgParaClick = function(idx, para) {
+        if (msgAudio && $scope.msgAudioLoaded && $scope.msgTimecodes.length > idx) {
+            msgAudio.currentTime = $scope.msgTimecodes[idx];
+            if (!$scope.msgAudioPlaying) {
+                msgAudio.play();
+                $scope.msgAudioPlaying = true;
+            }
+        }
+        $scope.toggleMessageParagraph(para);
+    };
+
+    $scope.toggleMsgAudio = function() {
+        if (!msgAudio || !$scope.msgAudioLoaded) return;
+        if ($scope.msgAudioPlaying) {
+            msgAudio.pause();
+            $scope.msgAudioPlaying = false;
+        } else {
+            // Начать с таймкода текущего абзаца (или с начала)
+            var idx = $scope.messageParagraphs.indexOf($scope.showingMessagePara);
+            if (idx >= 0 && $scope.msgTimecodes[idx] !== undefined) {
+                msgAudio.currentTime = $scope.msgTimecodes[idx];
+            }
+            msgAudio.play();
+            $scope.msgAudioPlaying = true;
+        }
+    };
+
+    $scope.stopMsgAudio = function() {
+        if (!msgAudio) return;
+        msgAudio.pause();
+        msgAudio.currentTime = 0;
+        $scope.msgAudioPlaying = false;
     };
 
     function sendBibleText(text, refLabel) {

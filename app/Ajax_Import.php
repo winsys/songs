@@ -397,12 +397,19 @@ trait Ajax_Import
             return json_encode(['status' => 'error', 'message' => 'Access denied']);
         }
 
-        $lang    = trim(self::$args['lang']     ?? 'ru');
-        $code    = trim(self::$args['code']     ?? '');
-        $title   = trim(self::$args['title']    ?? '');
-        $city    = trim(self::$args['city']     ?? '');
-        $paraSep = trim(self::$args['para_sep'] ?? 'emptyline');
-        $body    = self::$args['body']          ?? '';
+        $lang     = trim(self::$args['lang']      ?? 'ru');
+        $code     = trim(self::$args['code']      ?? '');
+        $title    = trim(self::$args['title']     ?? '');
+        $city     = trim(self::$args['city']      ?? '');
+        $paraSep  = trim(self::$args['para_sep']  ?? 'emptyline');
+        $body     = self::$args['body']           ?? '';
+        $audioSrc = trim(self::$args['audio_src'] ?? '');
+        // Нормализовать таймкоды: привести к \r\n, убрать пустые строки
+        $timecodesRaw = self::$args['timecodes'] ?? '';
+        $timecodesRaw = str_replace("\r\n", "\n", $timecodesRaw);
+        $timecodesRaw = str_replace("\r", "\n",   $timecodesRaw);
+        $tcLines = array_filter(array_map('trim', explode("\n", $timecodesRaw)), function($l) { return $l !== ''; });
+        $timecodes = implode("\r\n", $tcLines);
 
         if (!in_array($lang, ['ru', 'lt', 'en'])) {
             return json_encode(['status' => 'error', 'message' => 'Неверный язык']);
@@ -452,10 +459,12 @@ trait Ajax_Import
 
         $textField = $lang === 'ru' ? 'TEXT' : ($lang === 'lt' ? 'TEXT_LT' : 'TEXT_EN');
 
-        $codeEsc  = mysqli_real_escape_string($dbh, $code);
-        $titleEsc = mysqli_real_escape_string($dbh, $title);
-        $cityEsc  = mysqli_real_escape_string($dbh, $city);
-        $textEsc  = mysqli_real_escape_string($dbh, $text);
+        $codeEsc       = mysqli_real_escape_string($dbh, $code);
+        $titleEsc      = mysqli_real_escape_string($dbh, $title);
+        $cityEsc       = mysqli_real_escape_string($dbh, $city);
+        $textEsc       = mysqli_real_escape_string($dbh, $text);
+        $audioSrcEsc   = mysqli_real_escape_string($dbh, $audioSrc);
+        $timecodesEsc  = mysqli_real_escape_string($dbh, $timecodes);
 
         $existing = $db->get("SELECT ID FROM messages WHERE CODE='{$codeEsc}' LIMIT 1");
 
@@ -469,12 +478,17 @@ trait Ajax_Import
                     "UPDATE messages SET
                         TEXT='{$textEsc}',
                         TITLE=IF(TITLE='', '{$titleEsc}', TITLE),
-                        CITY=IF(CITY='', '{$cityEsc}', CITY)
-                     WHERE ID={$existing['ID']}"
+                        CITY=IF(CITY='', '{$cityEsc}', CITY)"
+                    . ($audioSrcEsc  !== '' ? ", AUDIO_SRC='{$audioSrcEsc}'"  : '')
+                    . ($timecodesEsc !== '' ? ", TIMECODES='{$timecodesEsc}'" : '')
+                    . " WHERE ID={$existing['ID']}"
                 );
             } else {
                 $db->exec(
-                    "UPDATE messages SET {$textField}='{$textEsc}' WHERE ID={$existing['ID']}"
+                    "UPDATE messages SET {$textField}='{$textEsc}'"
+                    . ($audioSrcEsc  !== '' ? ", AUDIO_SRC='{$audioSrcEsc}'"  : '')
+                    . ($timecodesEsc !== '' ? ", TIMECODES='{$timecodesEsc}'" : '')
+                    . " WHERE ID={$existing['ID']}"
                 );
             }
             return json_encode([
@@ -490,8 +504,9 @@ trait Ajax_Import
         $textEn = $lang === 'en' ? "'{$textEsc}'" : "''";
 
         $db->exec(
-            "INSERT INTO messages (USER_ID, CODE, TITLE, CITY, TEXT, TEXT_LT, TEXT_EN)
-             VALUES ({$userId}, '{$codeEsc}', '{$titleEsc}', '{$cityEsc}', {$textRu}, {$textLt}, {$textEn})"
+            "INSERT INTO messages (USER_ID, CODE, TITLE, CITY, TEXT, TEXT_LT, TEXT_EN, AUDIO_SRC, TIMECODES)
+             VALUES ({$userId}, '{$codeEsc}', '{$titleEsc}', '{$cityEsc}', {$textRu}, {$textLt}, {$textEn},
+                     '{$audioSrcEsc}', " . ($timecodesEsc !== '' ? "'{$timecodesEsc}'" : "NULL") . ")"
         );
 
         return json_encode([

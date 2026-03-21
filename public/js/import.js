@@ -23,7 +23,22 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     $scope.txtCity      = '';
     $scope.txtBody      = '';
     $scope.txtParaSep   = 'emptyline';
+    $scope.txtAudioSrc  = '';
+    $scope.txtTimecodes = '';
     $scope.txtImporting = false;
+
+    $scope.countTimecodes = function() {
+        if (!$scope.txtTimecodes) return 0;
+        return $scope.txtTimecodes.split('\n').filter(function(l) { return l.trim() !== ''; }).length;
+    };
+
+    $scope.countParagraphs = function() {
+        if (!$scope.txtBody) return 0;
+        if ($scope.txtParaSep === 'emptyline') {
+            return $scope.txtBody.split(/\n{2,}/).filter(function(b) { return b.trim() !== ''; }).length;
+        }
+        return $scope.txtBody.split('\n').filter(function(l) { return l.trim() !== ''; }).length;
+    };
 
     // ── Сборники ─────────────────────────────────────────────
     $scope.songLists      = [];
@@ -413,9 +428,11 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                 code:     $scope.txtCode.trim(),
                 title:    $scope.txtTitle.trim(),
                 city:     $scope.txtCity.trim(),
-                para_sep: $scope.txtParaSep,
-                body:     $scope.txtBody,
-                mode:     $scope.txtMode
+                para_sep:  $scope.txtParaSep,
+                body:      $scope.txtBody,
+                mode:      $scope.txtMode,
+                audio_src: $scope.txtAudioSrc.trim(),
+                timecodes: $scope.txtTimecodes
             }
         }).then(
             function (r) {
@@ -424,10 +441,12 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                 if (d.status === 'success') {
                     msgLog('ok', '✅ ' + d.message);
                     if (d.action === 'inserted') {
-                        $scope.txtCode  = '';
-                        $scope.txtTitle = '';
-                        $scope.txtCity  = '';
-                        $scope.txtBody  = '';
+                        $scope.txtCode      = '';
+                        $scope.txtTitle     = '';
+                        $scope.txtCity      = '';
+                        $scope.txtBody      = '';
+                        $scope.txtAudioSrc  = '';
+                        $scope.txtTimecodes = '';
                     }
                 } else {
                     msgLog('error', '❌ ' + (d.message || 'Ошибка сервера'));
