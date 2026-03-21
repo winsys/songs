@@ -1241,14 +1241,10 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
         }
     };
 
-    // Нажатие на абзац: показать текст + при наличии аудио — перейти к нужному таймкоду
+    // Нажатие на абзац: показать/скрыть текст на экране + перейти к таймкоду если аудио уже играет
     $scope.onMsgParaClick = function(idx, para) {
-        if (msgAudio && $scope.msgAudioLoaded && $scope.msgTimecodes.length > idx) {
+        if (msgAudio && $scope.msgAudioPlaying && $scope.msgTimecodes.length > idx) {
             msgAudio.currentTime = $scope.msgTimecodes[idx];
-            if (!$scope.msgAudioPlaying) {
-                msgAudio.play();
-                $scope.msgAudioPlaying = true;
-            }
         }
         $scope.toggleMessageParagraph(para);
     };
@@ -1274,6 +1270,11 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
         msgAudio.pause();
         msgAudio.currentTime = 0;
         $scope.msgAudioPlaying = false;
+        // Снять активный абзац с экрана
+        if ($scope.showingMessagePara !== null) {
+            $scope.showingMessagePara = null;
+            $http({ method: 'POST', url: '/ajax', data: { command: 'set_message_text', text: '', song_name: '' }});
+        }
     };
 
     function sendBibleText(text, refLabel) {
