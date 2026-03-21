@@ -1467,13 +1467,20 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
         jQuery("#add-song-popup .modal").modal(flag ? 'show' : 'hide');
     };
 
+    function songTextForDisplay(text) {
+        return (text || '').replace(/\r\n|\r/g, '\n').replace(/\n/g, '\n\n');
+    }
+    function songTextForSave(text) {
+        return (text || '').replace(/\r/g, '').replace(/\n+/g, '\r\n');
+    }
+
     $scope.editFavorite = function(listItem) {
         $scope.editConfig = {
             title: 'Редактирование песни',
             songId: listItem.ID,
-            songText:   listItem.TEXT   || '',
-            songTextLt: listItem.TEXT_LT || '',
-            songTextEn: listItem.TEXT_EN || '',
+            songText:   songTextForDisplay(listItem.TEXT),
+            songTextLt: songTextForDisplay(listItem.TEXT_LT),
+            songTextEn: songTextForDisplay(listItem.TEXT_EN),
             songName: listItem.NAME,
             songNum: listItem.NUM,
             dispName: listItem.dispName,
@@ -1544,9 +1551,9 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
     };
 
     $scope.saveSongEdits = function() {
-        var textWithCRLF   = $scope.editConfig.songText.replace(/\r?\n/g, '\r\n');
-        var textLtWithCRLF = $scope.editConfig.songTextLt   || ''.replace(/\r?\n/g, '\r\n');
-        var textEnWithCRLF = $scope.editConfig.songTextEn   || ''.replace(/\r?\n/g, '\r\n');
+        var textWithCRLF   = songTextForSave($scope.editConfig.songText);
+        var textLtWithCRLF = songTextForSave($scope.editConfig.songTextLt);
+        var textEnWithCRLF = songTextForSave($scope.editConfig.songTextEn);
         if ($scope.editConfig.isNewSong) {
             // Check if song number is provided and unique
             if ($scope.songNumError) {
