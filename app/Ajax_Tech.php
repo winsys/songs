@@ -254,6 +254,23 @@ trait Ajax_Tech
         return '';
     }
 
+    // Сохранить откалиброванные таймкоды послания
+    private static function save_message_timecodes()
+    {
+        if (!Security::isAdmin()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+        $id = (int)(self::$args['id'] ?? 0);
+        if (!$id) {
+            return json_encode(['status' => 'error', 'message' => 'Не указан ID послания']);
+        }
+        $timecodes    = self::$args['timecodes'] ?? '';
+        $dbh          = Info::get('dbh');
+        $timecodesEsc = mysqli_real_escape_string($dbh, $timecodes);
+        Info::get('db')->exec("UPDATE messages SET TIMECODES='{$timecodesEsc}' WHERE ID={$id}");
+        return json_encode(['status' => 'success']);
+    }
+
     /**
      * Добавить медиафайл в плейлист техника.
      * Params: name, src, media_type ('image'|'video')
