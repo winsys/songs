@@ -37,10 +37,11 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
     var messageSearchTimer      = null;
 
     // ── Messages audio ────────────────────────────────────────
-    $scope.msgAudioPlaying = false;
-    $scope.msgAudioLoaded  = false;
-    $scope.msgTimecodes    = [];       // array of seconds (floats)
-    var msgAudio           = null;     // HTMLAudioElement (lazy init)
+    $scope.msgAudioPlaying  = false;
+    $scope.msgAudioLoaded   = false;
+    $scope.msgCalibrating   = false;   // calibration mode
+    $scope.msgTimecodes     = [];      // array of seconds (floats)
+    var msgAudio            = null;    // HTMLAudioElement (lazy init)
 
     function parseMsgTimecodes(raw) {
         if (!raw) return [];
@@ -1139,6 +1140,7 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
         $scope.msgTimecodes    = [];
         $scope.msgAudioPlaying = false;
         $scope.msgAudioLoaded  = false;
+        $scope.msgCalibrating  = false;
         if (msgAudio) { msgAudio.pause(); msgAudio.src = ''; }
 
         $http({ method: "POST", url: "/ajax", data: {
@@ -1189,7 +1191,7 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
                             $scope.$apply(function() { $scope.msgAudioPlaying = false; });
                         });
                         msgAudio.addEventListener('timeupdate', function() {
-                            if (!$scope.msgAudioPlaying) return;
+                            if (!$scope.msgAudioPlaying || $scope.msgCalibrating) return;
                             var curIdx  = $scope.messageParagraphs.indexOf($scope.showingMessagePara);
                             var nextIdx = curIdx + 1;
                             if (nextIdx < $scope.messageParagraphs.length &&
@@ -1244,11 +1246,14 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
     // Нажатие на абзац: показать/скрыть текст на экране + перейти к таймкоду если аудио уже играет
     // Повторное нажатие на активный воспроизводимый абзац = Стоп
     $scope.onMsgParaClick = function(idx, para) {
-        if ($scope.msgAudioPlaying && $scope.showingMessagePara === para) {
+        if ($scope.msgAudioPlaying && $scope.showingMessagePara === para && !$scope.msgCalibrating) {
             $scope.stopMsgAudio();
             return;
         }
-        if (msgAudio && $scope.msgAudioPlaying && $scope.msgTimecodes.length > idx) {
+        // Режим калибровки: фиксируем текущий таймкод для абзаца
+        if ($scope.msgCalibrating && msgAudio && $scope.msgAudioLoaded) {
+            $scope.msgTimecodes[idx] = Math.round(msgAudio.currentTime * 10) / 10;
+        } else if (msgAudio && $scope.msgAudioPlaying && $scope.msgTimecodes.length > idx) {
             msgAudio.currentTime = $scope.msgTimecodes[idx];
         }
         $scope.toggleMessageParagraph(para);
@@ -1279,6 +1284,22 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
         if ($scope.showingMessagePara !== null) {
             $scope.showingMessagePara = null;
             $http({ method: 'POST', url: '/ajax', data: { command: 'set_message_text', text: '', song_name: '' }});
+        }
+        // В режиме калибровки сохраняем изменённые таймкоды в БД
+        if ($scope.msgCalibrating && $scope.selectedMessage && $scope.msgTimecodes.length > 0) {
+            var tcStr = $scope.msgTimecodes.map(function(s) {
+                return $scope.formatMsgTimecode(s);
+            }).join('\r\n');
+            $http({ method: 'POST', url: '/ajax', data: {
+                command:   'save_message_timecodes',
+                id:        $scope.selectedMessage.ID,
+                timecodes: tcStr
+            }}).then(function(r) {
+                if (r.data && r.data.status === 'success') {
+                    // Обновляем хранимое значение в объекте послания
+                    $scope.selectedMessage.TIMECODES = tcStr;
+                }
+            });
         }
     };
 

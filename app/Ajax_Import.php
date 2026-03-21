@@ -454,6 +454,14 @@ trait Ajax_Import
         $paragraphs = array_filter(array_map('trim', $blocks), function ($b) { return $b !== ''; });
         $text = implode("\r\n", $paragraphs);
 
+        // Проверить совпадение числа абзацев и таймкодов
+        $tcCount   = count($tcLines);
+        $paraCount = count($paragraphs);
+        $tcWarning = '';
+        if ($tcCount > 0 && $tcCount !== $paraCount) {
+            $tcWarning = "⚠ Несовпадение: таймкодов {$tcCount}, абзацев {$paraCount}. Таймкоды сохранены как есть.";
+        }
+
         $dbh  = Info::get('dbh');
         $db   = Info::get('db');
         $userId = (int)$_SESSION['curGroupId'];
@@ -493,9 +501,10 @@ trait Ajax_Import
                 );
             }
             return json_encode([
-                'status'  => 'success',
-                'action'  => 'updated',
-                'message' => "Обновлено: [{$code}] {$title}" . ($city ? " ({$city})" : ''),
+                'status'   => 'success',
+                'action'   => 'updated',
+                'message'  => "Обновлено: [{$code}] {$title}" . ($city ? " ({$city})" : ''),
+                'warning'  => $tcWarning,
             ]);
         }
 
@@ -514,6 +523,7 @@ trait Ajax_Import
             'status'  => 'success',
             'action'  => 'inserted',
             'message' => "Добавлено: [{$code}] {$title}" . ($city ? " ({$city})" : ''),
+            'warning' => $tcWarning,
         ]);
     }
 

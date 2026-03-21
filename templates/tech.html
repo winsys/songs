@@ -1493,6 +1493,14 @@
                                         style="padding:3px 8px;border-radius:6px;font-size:12px;border:1.5px solid #ccc;background:#f4f5f7;color:#666;cursor:pointer;line-height:1.4;">
                                     ⏹
                                 </button>
+                                <!-- Calibration mode toggle -->
+                                <button ng-show="msgAudioLoaded"
+                                        ng-click="msgCalibrating = !msgCalibrating"
+                                        title="Режим калибровки: клик по абзацу фиксирует таймкод; Стоп сохраняет в БД"
+                                        ng-style="msgCalibrating ? {'border-color':'#e67e22','background':'#fef3e2','color':'#c0580a'} : {'border-color':'#ccc','background':'#f4f5f7','color':'#666'}"
+                                        style="padding:3px 8px;border-radius:6px;font-size:12px;border:1.5px solid;cursor:pointer;line-height:1.4;">
+                                    ✂ Калибровка
+                                </button>
                             </span>
                         </div>
                         <audio id="msgAudioEl" style="display:none;"></audio>

@@ -440,6 +440,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                 var d = r.data;
                 if (d.status === 'success') {
                     msgLog('ok', '✅ ' + d.message);
+                    if (d.warning) { msgLog('warn', d.warning); }
                     if (d.action === 'inserted') {
                         $scope.txtCode      = '';
                         $scope.txtTitle     = '';
