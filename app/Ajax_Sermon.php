@@ -499,9 +499,35 @@ trait Ajax_Sermon
             return json_encode(['status' => 'error', 'message' => 'move_uploaded_file failed']);
         }
 
-        // Step 1: Convert to PDF with LibreOffice
+        // Step 1: Find LibreOffice binary
+        $libreofficeBin = null;
+        $loCandidates = [
+            '/usr/bin/libreoffice',
+            '/usr/bin/soffice',
+            '/usr/lib/libreoffice/program/soffice',
+        ];
+        foreach (glob('/opt/libreoffice*/program/soffice') ?: [] as $p) {
+            $loCandidates[] = $p;
+        }
+        foreach ($loCandidates as $bin) {
+            if (is_file($bin) && is_executable($bin)) { $libreofficeBin = $bin; break; }
+        }
+        // Fallback: try `which`
+        if (!$libreofficeBin) {
+            foreach (['libreoffice', 'soffice'] as $name) {
+                $found = trim(shell_exec('which ' . escapeshellarg($name) . ' 2>/dev/null'));
+                if ($found && is_executable($found)) { $libreofficeBin = $found; break; }
+            }
+        }
+        if (!$libreofficeBin) {
+            self::_rmdir($tmpDir);
+            return json_encode(['status' => 'error',
+                'message' => 'LibreOffice не установлен. Выполните: sudo apt install libreoffice ghostscript']);
+        }
+
+        // Step 2: Convert to PDF with LibreOffice
         $pdfFile = $tmpDir . '/input.pdf';
-        $cmd = 'libreoffice --headless --convert-to pdf ' .
+        $cmd = escapeshellarg($libreofficeBin) . ' --headless --convert-to pdf ' .
                '--outdir ' . escapeshellarg($tmpDir) . ' ' .
                escapeshellarg($tmpFile) . ' 2>&1';
         exec($cmd, $out, $ret);
@@ -512,23 +538,27 @@ trait Ajax_Sermon
                 'message' => 'LibreOffice conversion failed: ' . implode(' ', $out)]);
         }
 
-        // Step 2: Convert PDF pages to PNG
+        // Step 3: Convert PDF pages to PNG
         $pngDir = $tmpDir . '/pages';
         mkdir($pngDir, 0700, true);
 
         // Try Ghostscript first, then ImageMagick
-        exec('which gs 2>/dev/null', $gsOut);
-        if (!empty($gsOut[0])) {
-            $cmd = 'gs -dNOPAUSE -dBATCH -sDEVICE=png16m -r150 ' .
+        $gsBin      = trim(shell_exec('which gs 2>/dev/null'));
+        $convertBin = trim(shell_exec('which convert 2>/dev/null'));
+        if ($gsBin && is_executable($gsBin)) {
+            $cmd = escapeshellarg($gsBin) . ' -dNOPAUSE -dBATCH -sDEVICE=png16m -r150 ' .
                    '-sOutputFile=' . escapeshellarg($pngDir . '/slide_%03d.png') . ' ' .
                    escapeshellarg($pdfFile) . ' 2>&1';
             exec($cmd, $out2, $ret2);
-        } else {
-            // ImageMagick convert
-            $cmd = 'convert -density 150 -quality 90 ' .
+        } elseif ($convertBin && is_executable($convertBin)) {
+            $cmd = escapeshellarg($convertBin) . ' -density 150 -quality 90 ' .
                    escapeshellarg($pdfFile) . ' ' .
                    escapeshellarg($pngDir . '/slide_%03d.png') . ' 2>&1';
             exec($cmd, $out2, $ret2);
+        } else {
+            self::_rmdir($tmpDir);
+            return json_encode(['status' => 'error',
+                'message' => 'Ghostscript не установлен. Выполните: sudo apt install ghostscript']);
         }
 
         $pngs = glob($pngDir . '/slide_*.png');

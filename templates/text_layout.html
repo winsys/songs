@@ -521,7 +521,8 @@
 
                         // ── КАРТИНКА ───────────────────────────────────────────
                         var imagePath = (row.image || '').trim();
-                        var isOverlayImage = (imagePath.indexOf('/sermon_images/') === 0 ||
+                        var isOverlayImage = (imagePath.indexOf('/sermon_images/')  === 0 ||
+                            imagePath.indexOf('/sermon_slides/') === 0 ||
                             imagePath.indexOf('/tech_media/')    === 0);
 
                         if (isOverlayImage) {
