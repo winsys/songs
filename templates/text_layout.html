@@ -102,7 +102,7 @@
             line-height: 1.45;
             overflow: hidden;
         }
-        /* Chip styles inside slides on main screen */
+        /* Chip layout on main screen — colors come from inlined styles (natural colors) */
         #slide-content .bible-cite,
         #slide-content .message-cite {
             display: inline-flex;
@@ -111,20 +111,21 @@
             border-radius: 8px;
             padding: 4px 12px;
             font-size: 0.85em;
-            border: 1px solid rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.12);
-            color: #fff;
+            border: 1px solid;
             margin: 2px 4px;
         }
         #slide-content .cite-remove,
         #slide-content .sermon-slide-header,
         #slide-content .sermon-slide-del,
         #slide-content .sermon-group-header { display: none !important; }
+        #slide-content .cite-ref,
+        #slide-content .cite-verse-text,
+        #slide-content .cite-label,
+        #slide-content .cite-text { opacity: 1 !important; }
         #slide-content h1,
         #slide-content h2,
-        #slide-content h3 { color: #fff; margin: 0.4em 0 0.2em; }
+        #slide-content h3 { margin: 0.4em 0 0.2em; }
         #slide-content p   { margin: 0.3em 0; }
-        #slide-content b, #slide-content strong { color: #ffe082; }
 
         #video-overlay {
             display: none;          /* управляется JS, не ng-show */
