@@ -1032,9 +1032,10 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
                 $scope.showingBibleVerse = combinedText;
             }
         } else {
+            var wasShowing = $scope.selectedBibleVerses.indexOf(verseText) > -1;
             $scope.selectedBibleVerses = [];
 
-            if ($scope.showingBibleVerse === verseText) {
+            if (wasShowing) {
                 sendBibleText('', '');
                 $scope.showingBibleVerse = null;
             } else {
