@@ -515,9 +515,12 @@ trait Ajax_Tech
         $html = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', $html);
         $html = preg_replace('/<iframe\b[^>]*>.*?<\/iframe>/is', '', $html);
         $html = preg_replace('/\bon\w+\s*=/i', 'data-blocked=', $html);
+        // Strip 4-byte UTF-8 characters (emoji etc.) — current table uses utf8 (3-byte)
+        $html = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', $html);
         $html = mysqli_real_escape_string($dbh, $html);
 
-        $title = mysqli_real_escape_string($dbh, self::$args['title'] ?? '');
+        $title = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', self::$args['title'] ?? '');
+        $title = mysqli_real_escape_string($dbh, $title);
 
         $db  = Info::get('db');
         $dbh = Info::get('dbh');
