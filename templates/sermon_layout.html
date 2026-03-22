@@ -541,6 +541,26 @@
 
         .no-sermon-msg { padding: 40px 20px; color: #666; text-align: center; font-size: 12pt; }
 
+        /* ── Слайд-оверлей в правой панели (z-index: 12) ── */
+        #display-slide-wrap {
+            position: absolute;
+            inset: 0;
+            z-index: 12;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+        #display-slide-content {
+            width: 100%;
+            height: 100%;
+            padding: 5%;
+            overflow: auto;
+            color: #fff;
+            font-size: clamp(14px, 3vw, 32px);
+            line-height: 1.5;
+        }
+
         /* ── Видео-оверлей в правой панели ── */
         #display-video-wrap {
             position: absolute;
@@ -785,6 +805,12 @@
         <!-- Image overlay (z-index: 10) covers text when visible -->
         <img id="display-image" ng-show="displayImageSrc" ng-src="{{ displayImageSrc }}" />
 
+        <!-- Slide overlay (z-index: 12) covers everything when a slide is active -->
+        <div id="display-slide-wrap" ng-show="displaySlideHtml"
+             ng-style="{'background': displaySlideBg}">
+            <div id="display-slide-content" ng-bind-html="displaySlideHtml"></div>
+        </div>
+
         <!-- Video overlay (z-index:11, выше image overlay z:10) -->
         <div id="display-video-wrap" ng-show="displayVideoSrc">
 
@@ -808,7 +834,7 @@
         </div>
 
         <!-- Empty state hint -->
-        <div id="display-empty" ng-show="!displayText && !displayImageSrc">
+        <div id="display-empty" ng-show="!displayText && !displayImageSrc && !displaySlideHtml">
             Нажмите на цитату или изображение
         </div>
 
