@@ -1,4 +1,4 @@
-app.controller('Leader', function ($scope, $http, SongsService)
+app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $http, SongsService)
 {
     $scope.listId = 1;
     $scope.songList = [];
@@ -241,5 +241,5 @@ app.controller('Leader', function ($scope, $http, SongsService)
     SongsService.getLanguages().then(function (langs) { $scope.langList = langs; });
     $scope.reloadSongList();
     $scope.reloadFavorites();
-});
+}]);
 
