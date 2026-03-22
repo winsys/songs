@@ -142,7 +142,8 @@ app.controller('Settings', function ($scope, $http)
         { role: 'leader',   roleLabel: 'Ведущий' },
         { role: 'musician', roleLabel: 'Музыкант' },
         { role: 'preacher', roleLabel: 'Проповедник' },
-        { role: 'tech',     roleLabel: 'Техник' }
+        { role: 'tech',     roleLabel: 'Техник' },
+        { role: 'screen',   roleLabel: 'Экраны' }
     ];
 
     $scope.userSlots = ALL_ROLES.map(function(r) {
@@ -166,7 +167,8 @@ app.controller('Settings', function ($scope, $http)
             leader:   { color: '#fff', background: '#1565c0', border: '1px solid #0d47a1' },
             musician: { color: '#fff', background: '#2e7d32', border: '1px solid #1b5e20' },
             preacher: { color: '#fff', background: '#6a1b9a', border: '1px solid #4a148c' },
-            tech:     { color: '#fff', background: '#f57c00', border: '1px solid #e65100' }
+            tech:     { color: '#fff', background: '#f57c00', border: '1px solid #e65100' },
+            screen:   { color: '#fff', background: '#00838f', border: '1px solid #006064' }
         };
         return colors[role] || { color: '#333', background: '#e0e0e0' };
     };
