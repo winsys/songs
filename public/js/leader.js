@@ -6,6 +6,7 @@ app.controller('Leader', function ($scope, $http, SongsService)
     $scope.fullScreen = false;
     $scope.visibleSongLists = [];
     $scope.langList = [];
+    $scope.showNotes = false;   // режим «показывать ноты» в попапе списка
 
     $scope.loadSongLists = function () {
         SongsService.getVisibleSongLists().then(function (lists) {
