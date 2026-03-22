@@ -562,7 +562,22 @@ angular.module('Songs', ['csrfModule'])
             });
 
             // ── SLIDES ───────────────────────────────────────────
+            function _applySlideVisuals(el) {
+                var bg        = el.dataset.bg || (userSettings && userSettings.slide_bg_color) || '#1a237e';
+                var textColor = getContrastColor(bg);
+                var header    = el.querySelector('.sermon-slide-header');
+                var inner     = el.querySelector('.sermon-slide-inner');
+                el.style.borderColor = hexWithAlpha(bg, 0.4);
+                el.style.background  = bg;
+                if (header) header.style.background = shadeHex(bg, -30);
+                if (inner) {
+                    inner.style.background = bg;
+                    inner.style.color      = textColor;
+                }
+            }
+
             body.querySelectorAll('.sermon-slide').forEach(function (el) {
+                _applySlideVisuals(el);
                 el.style.cursor = 'pointer';
                 // Клик по внутренней части слайда не активирует его (чтобы не мешать скроллу)
                 var inner = el.querySelector('.sermon-slide-inner');
