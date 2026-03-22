@@ -208,8 +208,10 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
     // WEBSOCKET
     // ==========================================================
 
+    $scope.wsConnected = null;
+
     // [SECURITY] Use authenticated WebSocket connection
-    const socket = window.createAuthenticatedWebSocket(
+    window.createAuthenticatedWebSocket(
         null, // Use default /ws endpoint
         function(data) {
             // Handle incoming messages (only after authentication)
@@ -224,6 +226,11 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
         },
         function(error) {
             console.error('WebSocket error:', error);
+        },
+        function(connected) {
+            $scope.$apply(function() {
+                $scope.wsConnected = connected;
+            });
         }
     );
 

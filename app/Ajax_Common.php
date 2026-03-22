@@ -387,6 +387,15 @@ trait Ajax_Common
         return json_encode(['status' => 'error', 'message' => 'Failed to move uploaded file']);
     }
 
+    /**
+     * Lightweight session keepalive — touching the session is enough.
+     * Called by the client every ~10 minutes to prevent server-side expiry.
+     */
+    private static function ping()
+    {
+        return json_encode(['status' => 'ok']);
+    }
+
     private static function updateSocket($targetGroupId = null)
     {
         $err1 = '';
