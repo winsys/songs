@@ -983,20 +983,68 @@
             </button>
         </div>
 
-        <!-- ── Title + Date + Display To ─────────────────────────── -->
+        <!-- ── Title + Date + Save + List ─────────────────────────── -->
         <div class="row" style="margin-bottom: 16px;">
-            <div class="col-xs-12 col-sm-8">
+            <div class="col-xs-12 col-sm-4">
                 <label class="prep-field-label">Название проповеди</label>
                 <input type="text"
                        class="prep-input prep-title-input"
                        ng-model="sermon.title" />
             </div>
-            <div class="col-xs-12 col-sm-4">
+            <div class="col-xs-12 col-sm-2">
                 <label class="prep-field-label">Дата проповеди</label>
                 <input type="text"
                        class="prep-input"
                        placeholder="ГГГГ-ММ-ДД"
                        ng-model="sermon.date" />
+            </div>
+            <div class="col-xs-12 col-sm-2">
+                <label class="prep-field-label">&nbsp;</label>
+                <div class="btn-group" style="width:100%; display:flex;">
+                    <button class="btn-save" style="flex:1; border-radius:8px 0 0 8px;" ng-click="saveSermon()">💾 Сохранить</button>
+                    <button class="btn-save dropdown-toggle" data-toggle="dropdown"
+                            style="border-radius:0 8px 8px 0; border-left:1px solid rgba(255,255,255,0.35); padding:8px 10px; flex-shrink:0;">
+                        <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right" style="min-width:150px;">
+                        <li><a href ng-click="$event.preventDefault(); exportToMarkdown()">⬇️ Экспорт .md</a></li>
+                    </ul>
+                </div>
+                <span class="save-status" ng-class="{'saved': saveStatus === 'saved', 'saving': saveStatus === 'saving'}"
+                      style="display:block; min-height:16px; margin-top:3px;">
+                    {{ saveStatus === 'saving' ? 'Сохранение...' : (saveStatus === 'saved' ? '✓ Сохранено' : '') }}
+                </span>
+            </div>
+            <div class="col-xs-12 col-sm-4" style="position:relative;">
+                <label class="prep-field-label">&nbsp;</label>
+                <button class="btn-list-toggle" style="width:100%;" ng-click="showSermonList = !showSermonList">
+                    📋 Список проповедей
+                </button>
+                <div class="sermons-sidebar" ng-show="showSermonList"
+                     style="position:absolute; top:100%; left:15px; right:15px; z-index:200; max-height:320px; overflow-y:auto; margin-top:2px; box-shadow:0 6px 24px rgba(0,0,0,0.16);">
+                    <div class="sermons-sidebar-title">
+                        <span>📋 Проповеди</span>
+                        <span ng-click="showSermonList=false" style="cursor:pointer; font-size:16px; color:#95a5a6; line-height:1;">×</span>
+                    </div>
+                    <div ng-show="sermonList.length === 0" style="padding:10px; color:#b0b8c1; font-size:11px;">
+                        Нет сохранённых проповедей
+                    </div>
+                    <div class="sermon-list-item"
+                         ng-repeat="s in sermonList"
+                         ng-class="{active: sermon.id == s.ID}"
+                         ng-click="loadSermon(s.ID)">
+                        <div style="flex: 1; min-width: 0;">
+                            <div>{{ s.TITLE || '(без названия)' }}</div>
+                            <div style="font-size: 10px; color: #95a5a6; margin-top: 2px;">
+                                <span ng-if="s.SERMON_DATE && s.SERMON_DATE !== '0000-00-00'">{{ s.SERMON_DATE }}</span>
+                                <span ng-if="s.UPDATED_AT" style="color: #b0b8c1;">(изм: {{ s.UPDATED_AT.substring(0, 16).replace('T', ' ') }})</span>
+                            </div>
+                        </div>
+                        <button class="btn-sermon-delete"
+                                ng-click="deleteSermonFromList(s.ID, $event)"
+                                title="Удалить">×</button>
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1238,11 +1286,12 @@
                     <button class="toolbar-btn" title="Вставить изображение"
                             ng-class="{'uploading': uploadingImage}"
                             ng-mousedown="$event.preventDefault()"
-                            ng-click="!uploadingImage && triggerImageUpload()" style="padding:5px 9px;">
+                            ng-click="!uploadingImage && triggerImageUpload()"
+                            style="padding:5px 10px; display:inline-flex; align-items:center; gap:5px;">
                         <span ng-if="uploadingImage" class="upload-spinner"></span>
-                        <svg ng-if="!uploadingImage" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:block;">
-                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/>
-                        </svg>
+                        <span ng-if="!uploadingImage" style="font-size:15px; line-height:1;">🖼️</span>
+                        <span ng-if="!uploadingImage" style="font-size:12px; font-weight:600;">Изображение</span>
+                        <span ng-if="uploadingImage" style="font-size:12px; font-weight:600;">Загрузка...</span>
                     </button>
                     <input type="file" id="sermon-image-input" accept="image/*" style="display:none;" />
 
@@ -1254,7 +1303,10 @@
                                 title="Вставить видео (файл или URL)"
                                 ng-mousedown="$event.preventDefault()"
                                 ng-click="toggleVideoPanel($event)"
-                                style="padding:5px 8px; font-size:13px;">🎬</button>
+                                style="padding:5px 10px; display:inline-flex; align-items:center; gap:5px;">
+                            <span style="font-size:15px; line-height:1;">🎥</span>
+                            <span style="font-size:12px; font-weight:600;">Видео</span>
+                        </button>
 
                         <div class="video-insert-panel" ng-show="showVideoPanel"
                              ng-mousedown="$event.stopPropagation()">
@@ -1292,48 +1344,6 @@
                      ng-model="sermon.content"
                      sp-editor></div>
 
-                <!-- Bottom actions -->
-                <div class="prep-bottom">
-                    <div style="flex:1; display:flex; align-items:center; gap:10px;">
-                        <button class="btn-save" ng-click="saveSermon()">💾 Сохранить</button>
-                        <span class="save-status"
-                              ng-class="{'saved': saveStatus === 'saved', 'saving': saveStatus === 'saving'}">
-                        {{ saveStatus === 'saving' ? 'Сохранение...' : (saveStatus === 'saved' ? '✓ Сохранено' : '') }}
-                    </span>
-                    </div>
-                    <button class="btn-export" ng-click="exportToMarkdown()" style="background: #27ae60; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 13px;">
-                        ⬇️ Экспорт .md
-                    </button>
-                    <button class="btn-list-toggle" ng-click="showSermonList = !showSermonList" title="Список проповедей">
-                        📋 Список
-                    </button>
-                </div>
-
-                <!-- Sermon list panel -->
-                <div class="sermons-sidebar" ng-show="showSermonList" style="max-height:200px; overflow-y:auto;">
-                    <div class="sermons-sidebar-title">
-                        <span>📋 Проповеди</span>
-                        <span ng-click="showSermonList=false" style="cursor:pointer; font-size:16px; color:#95a5a6; line-height:1;">×</span>
-                    </div>
-                    <div ng-show="sermonList.length === 0" style="padding:10px; color:#b0b8c1; font-size:11px;">
-                        Нет сохранённых проповедей
-                    </div>
-                    <div class="sermon-list-item"
-                         ng-repeat="s in sermonList"
-                         ng-class="{active: sermon.id == s.ID}"
-                         ng-click="loadSermon(s.ID)">
-                        <div style="flex: 1; min-width: 0;">
-                            <div>{{ s.TITLE || '(без названия)' }}</div>
-                            <div style="font-size: 10px; color: #95a5a6; margin-top: 2px;">
-                                <span ng-if="s.SERMON_DATE && s.SERMON_DATE !== '0000-00-00'">{{ s.SERMON_DATE }}</span>
-                                <span ng-if="s.UPDATED_AT" style="color: #b0b8c1;">(изм: {{ s.UPDATED_AT.substring(0, 16).replace('T', ' ') }})</span>
-                            </div>
-                        </div>
-                        <button class="btn-sermon-delete"
-                                ng-click="deleteSermonFromList(s.ID, $event)"
-                                title="Удалить">×</button>
-                    </div>
-                </div>
 
             </div><!-- /prep-editor-col -->
         </div><!-- /prep-two-col -->
