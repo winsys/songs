@@ -157,7 +157,10 @@
                             $scope.songName = "";
                             // Load settings even when no text to show placeholder
                         } else {
-                            if ($scope.srcText !== response.data[0].text) {
+                            // Slides are for main screen only — ignore on streaming
+                        if ((response.data[0].image || '').trim() === '__slide__') return;
+
+                        if ($scope.srcText !== response.data[0].text) {
                                 $scope.srcText = response.data[0].text;
                                 let preparedText = response.data[0].text.substring(0, response.data[0].text.length);
                                 preparedText = preparedText.replace("$ $", "\r\n-----\r\n");

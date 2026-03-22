@@ -98,7 +98,7 @@
             height: 100%;
             color: #ffffff;
             font-family: inherit;
-            font-size: clamp(18px, 3.2vw, 52px);
+            font-size: 52px;
             line-height: 1.45;
         }
         /* Chip styles inside slides on main screen */
@@ -299,6 +299,20 @@
                 $scope.text = '';
                 $scope.songName = '';
                 $scope.overlayImageSrc = '';
+                // Auto-fit: shrink font until content fits in overlay
+                _fitSlideContent();
+            }
+
+            function _fitSlideContent() {
+                if (!_slideContent || !_slideOverlay) return;
+                var maxFs = 52, minFs = 12;
+                _slideContent.style.fontSize = maxFs + 'px';
+                while (maxFs > minFs &&
+                       (_slideContent.scrollHeight > _slideOverlay.clientHeight ||
+                        _slideContent.scrollWidth  > _slideOverlay.clientWidth)) {
+                    maxFs -= 1;
+                    _slideContent.style.fontSize = maxFs + 'px';
+                }
             }
 
             function hideSlide() {
@@ -477,8 +491,10 @@
 
                         // ── СЛАЙД ──────────────────────────────────────────────
                         if ((row.image || '').trim() === '__slide__') {
-                            var slideBg = (row.user_settings && row.user_settings.slide_bg_color)
-                                ? row.user_settings.slide_bg_color : '#1a237e';
+                            // bg_color is stored in song_name column for slides
+                            var slideBg = (row.song_name && /^#[0-9a-fA-F]{3,6}$/.test(row.song_name))
+                                ? row.song_name
+                                : ((row.user_settings && row.user_settings.slide_bg_color) || '#1a237e');
                             showSlide(row.text || '', slideBg);
                             return;
                         }

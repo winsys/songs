@@ -546,20 +546,44 @@
             position: absolute;
             inset: 0;
             z-index: 12;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             overflow: hidden;
+            padding: 5%;
+            box-sizing: border-box;
         }
         #display-slide-content {
             width: 100%;
             height: 100%;
-            padding: 5%;
-            overflow: auto;
+            overflow: hidden;
             color: #fff;
-            font-size: clamp(14px, 3vw, 32px);
-            line-height: 1.5;
+            font-size: 32px;
+            line-height: 1.45;
         }
+        #display-slide-content b,
+        #display-slide-content strong { color: #ffe082; }
+        #display-slide-content h1,
+        #display-slide-content h2,
+        #display-slide-content h3 { color: #fff; margin: 0.3em 0 0.15em; }
+        #display-slide-content p { margin: 0.25em 0; }
+        #display-slide-content .bible-cite,
+        #display-slide-content .message-cite {
+            display: inline-flex;
+            align-items: flex-start;
+            gap: 5px;
+            border-radius: 7px;
+            padding: 3px 10px;
+            font-size: 0.8em;
+            border: 1px solid rgba(255,255,255,0.3);
+            background: rgba(255,255,255,0.12);
+            color: #fff;
+            margin: 2px 3px;
+        }
+        #display-slide-content .cite-ref,
+        #display-slide-content .cite-verse-text,
+        #display-slide-content .cite-label,
+        #display-slide-content .cite-text { color: #fff !important; opacity: 1 !important; }
+        #display-slide-content .cite-remove,
+        #display-slide-content .sermon-slide-header,
+        #display-slide-content .sermon-slide-del { display: none !important; }
 
         /* ── Видео-оверлей в правой панели ── */
         #display-video-wrap {
