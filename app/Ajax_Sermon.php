@@ -468,6 +468,110 @@ trait Ajax_Sermon
     }
 
     /**
+     * Import PowerPoint/ODP file: convert pages to PNG images and return paths.
+     * Input: multipart file 'pptx'
+     * Output: { status, paths: ['/sermon_slides/123/slide_001.png', ...] }
+     */
+    private static function import_pptx()
+    {
+        $userId = (int)$_SESSION['curGroupId'];
+
+        if (!isset($_FILES['pptx']) || $_FILES['pptx']['error'] !== UPLOAD_ERR_OK) {
+            $code = isset($_FILES['pptx']) ? $_FILES['pptx']['error'] : -1;
+            return json_encode(['status' => 'error', 'message' => 'Upload error code: ' . $code]);
+        }
+
+        $ext        = strtolower(pathinfo($_FILES['pptx']['name'], PATHINFO_EXTENSION));
+        $allowedExt = ['pptx', 'ppt', 'odp'];
+        if (!in_array($ext, $allowedExt, true)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid file type: ' . $ext]);
+        }
+
+        // Temporary working directory
+        $tmpDir = sys_get_temp_dir() . '/pptx_import_' . uniqid('', true);
+        if (!mkdir($tmpDir, 0700, true)) {
+            return json_encode(['status' => 'error', 'message' => 'Cannot create temp dir']);
+        }
+
+        $tmpFile = $tmpDir . '/input.' . $ext;
+        if (!move_uploaded_file($_FILES['pptx']['tmp_name'], $tmpFile)) {
+            self::_rmdir($tmpDir);
+            return json_encode(['status' => 'error', 'message' => 'move_uploaded_file failed']);
+        }
+
+        // Step 1: Convert to PDF with LibreOffice
+        $pdfFile = $tmpDir . '/input.pdf';
+        $cmd = 'libreoffice --headless --convert-to pdf ' .
+               '--outdir ' . escapeshellarg($tmpDir) . ' ' .
+               escapeshellarg($tmpFile) . ' 2>&1';
+        exec($cmd, $out, $ret);
+
+        if ($ret !== 0 || !file_exists($pdfFile)) {
+            self::_rmdir($tmpDir);
+            return json_encode(['status' => 'error',
+                'message' => 'LibreOffice conversion failed: ' . implode(' ', $out)]);
+        }
+
+        // Step 2: Convert PDF pages to PNG
+        $pngDir = $tmpDir . '/pages';
+        mkdir($pngDir, 0700, true);
+
+        // Try Ghostscript first, then ImageMagick
+        exec('which gs 2>/dev/null', $gsOut);
+        if (!empty($gsOut[0])) {
+            $cmd = 'gs -dNOPAUSE -dBATCH -sDEVICE=png16m -r150 ' .
+                   '-sOutputFile=' . escapeshellarg($pngDir . '/slide_%03d.png') . ' ' .
+                   escapeshellarg($pdfFile) . ' 2>&1';
+            exec($cmd, $out2, $ret2);
+        } else {
+            // ImageMagick convert
+            $cmd = 'convert -density 150 -quality 90 ' .
+                   escapeshellarg($pdfFile) . ' ' .
+                   escapeshellarg($pngDir . '/slide_%03d.png') . ' 2>&1';
+            exec($cmd, $out2, $ret2);
+        }
+
+        $pngs = glob($pngDir . '/slide_*.png');
+        if (empty($pngs)) {
+            self::_rmdir($tmpDir);
+            return json_encode(['status' => 'error',
+                'message' => 'PNG conversion failed: ' . implode(' ', $out2)]);
+        }
+        sort($pngs);
+
+        // Step 3: Move images to public dir
+        $publicDir = __DIR__ . '/../public/sermon_slides/' . $userId . '/';
+        if (!file_exists($publicDir) && !mkdir($publicDir, 0755, true)) {
+            self::_rmdir($tmpDir);
+            return json_encode(['status' => 'error', 'message' => 'Cannot create public dir']);
+        }
+
+        $prefix  = uniqid('slide_', true) . '_';
+        $webPaths = [];
+        foreach ($pngs as $i => $png) {
+            $filename = $prefix . sprintf('%03d', $i + 1) . '.png';
+            rename($png, $publicDir . $filename);
+            $webPaths[] = '/sermon_slides/' . $userId . '/' . $filename;
+        }
+
+        self::_rmdir($tmpDir);
+        return json_encode(['status' => 'success', 'paths' => $webPaths]);
+    }
+
+    /** Recursively remove a directory */
+    private static function _rmdir($dir)
+    {
+        if (!is_dir($dir)) return;
+        $files = scandir($dir);
+        foreach ($files as $f) {
+            if ($f === '.' || $f === '..') continue;
+            $path = $dir . '/' . $f;
+            is_dir($path) ? self::_rmdir($path) : unlink($path);
+        }
+        rmdir($dir);
+    }
+
+    /**
      * Helper to broadcast WebSocket message to a specific group.
      */
     private static function broadcastToGroup($groupId, $message)
