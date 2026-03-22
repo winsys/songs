@@ -1915,8 +1915,17 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
 
                 // Restore Bible verse if text and song_name indicate Bible content
                 if (state.text && state.song_name && state.song_name.match(/\d+:\d+/)) {
-                    // Mark as showing Bible verse
-                    $scope.showingBibleVerse = { text: state.text, reference: state.song_name };
+                    // Find the matching prepared verse string (same format used by toggleBibleVerse)
+                    var foundBibleVerse = null;
+                    for (var bi = 0; bi < $scope.biblePreparedVerses.length; bi++) {
+                        var pv = $scope.biblePreparedVerses[bi];
+                        if (pv.replace(/\n\(\d+\)$/, '') === state.text) {
+                            foundBibleVerse = pv;
+                            break;
+                        }
+                    }
+                    $scope.showingBibleVerse    = foundBibleVerse;
+                    $scope.selectedBibleVerses  = foundBibleVerse ? [foundBibleVerse] : [];
                     // Switch to Bible mode if needed
                     if ($scope.pageMode !== 'bible') {
                         $scope.pageMode = 'bible';
