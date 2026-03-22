@@ -545,6 +545,18 @@
                     </label>
                 </div>
             </div>
+
+            <div class="settings-field">
+                <label class="settings-label">17. Цвет фона слайдов (Slide Background)</label>
+                <div class="color-row">
+                    <div class="color-input-wrap">
+                        <input type="color" ng-model="settings.slide_bg_color">
+                        <span class="color-hex-label">{{settings.slide_bg_color}}</span>
+                    </div>
+                    <div class="color-preview" ng-style="{'background-color': settings.slide_bg_color}"></div>
+                </div>
+                <span class="settings-hint">Фон слайдов на главном экране при показе проповеди.</span>
+            </div>
         </div>
 
         <!-- Пользователи группы -->

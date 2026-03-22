@@ -501,6 +501,34 @@ trait Ajax_Tech
     }
 
     /**
+     * Показать слайд проповеди на главном экране.
+     * Params: html (HTML-содержимое слайда), title (заголовок слайда), target_group_id
+     */
+    private static function set_slide()
+    {
+        $dbh           = Info::get('dbh');
+        $userId        = (int)$_SESSION['curGroupId'];
+        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
+
+        // Базовая санитизация: убираем script/iframe и потенциально опасные атрибуты
+        $html = self::$args['html'] ?? '';
+        $html = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', $html);
+        $html = preg_replace('/<iframe\b[^>]*>.*?<\/iframe>/is', '', $html);
+        $html = preg_replace('/\bon\w+\s*=/i', 'data-blocked=', $html);
+        $html = mysqli_real_escape_string($dbh, $html);
+
+        $title = mysqli_real_escape_string($dbh, self::$args['title'] ?? '');
+
+        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
+        Info::get('db')->exec(
+            "INSERT INTO current (groupId, image, text, song_name, chapter_indices, video_src, video_state)
+             VALUES ({$targetGroupId}, '__slide__', '{$html}', '{$title}', '', '', 'stopped')"
+        );
+        self::updateSocket($targetGroupId);
+        return json_encode(['status' => 'ok']);
+    }
+
+    /**
      * Получить список стандартных заставок.
      * Возвращает: {status, wallpapers: [{id, name, src}], is_admin}
      */

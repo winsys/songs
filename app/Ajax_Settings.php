@@ -33,6 +33,7 @@ trait Ajax_Settings
         $sermonNotesFontSize = isset($settings['sermon_notes_font_size']) ? intval($settings['sermon_notes_font_size']) : 100;
         $sermonNotesFontSize = max(50, min(300, $sermonNotesFontSize));
         $sermonScaleChips        = isset($settings['sermon_scale_chips'])     ? intval($settings['sermon_scale_chips'])     : 0;
+        $slideBgColor            = mysqli_escape_string(Info::get('dbh'), isset($settings['slide_bg_color'])            ? $settings['slide_bg_color']            : '#1a237e');
 
         $existing = Info::get('db')->get("SELECT group_id FROM user_settings WHERE group_id = {$userId}");
 
@@ -54,7 +55,8 @@ trait Ajax_Settings
                     sermon_bible_base_color  = '{$sermonBibleBaseColor}',
                     sermon_msg_base_color    = '{$sermonMsgBaseColor}',
                     sermon_notes_font_size   = '{$sermonNotesFontSize}',
-                    sermon_scale_chips       = '{$sermonScaleChips}'
+                    sermon_scale_chips       = '{$sermonScaleChips}',
+                    slide_bg_color           = '{$slideBgColor}'
                 WHERE group_id = {$userId}
             ");
         } else {
@@ -63,13 +65,15 @@ trait Ajax_Settings
                     group_id, display_name, favorites_order, available_lists, placeholder_image,
                     main_bg_color, main_font, main_font_color,
                     streaming_bg_color, streaming_font, streaming_font_color, streaming_height_percent,
-                    sermon_notes_bg_color, sermon_bible_base_color, sermon_msg_base_color, sermon_notes_font_size, sermon_scale_chips
+                    sermon_notes_bg_color, sermon_bible_base_color, sermon_msg_base_color, sermon_notes_font_size, sermon_scale_chips,
+                    slide_bg_color
                 ) VALUES (
                     {$userId}, '{$displayName}', '{$favoritesOrder}', '{$availableLists}', '{$placeholderImage}',
                     '{$mainBgColor}', '{$mainFont}', '{$mainFontColor}',
                     '{$streamingBgColor}', '{$streamingFont}', '{$streamingFontColor}', {$streamingHeightPercent},
                     '{$sermonNotesBgColor}', '{$sermonBibleBaseColor}', '{$sermonMsgBaseColor}',
-                    '{$sermonNotesFontSize}', '{$sermonScaleChips}'
+                    '{$sermonNotesFontSize}', '{$sermonScaleChips}',
+                    '{$slideBgColor}'
                 )
             ");
         }

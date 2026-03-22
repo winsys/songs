@@ -244,6 +244,7 @@ CREATE TABLE IF NOT EXISTS `user_settings` (
                                                `sermon_msg_base_color` varchar(20) NOT NULL DEFAULT '#ce93d8' COMMENT 'Base (header text) colour for Epistle/Message chips',
                                                `sermon_notes_font_size` tinyint(4) NOT NULL DEFAULT '13',
                                                `sermon_scale_chips` tinyint(4) NOT NULL DEFAULT '0',
+                                               `slide_bg_color` varchar(20) NOT NULL DEFAULT '#1a237e' COMMENT 'Background colour for sermon slides on main screen',
                                                PRIMARY KEY (`group_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

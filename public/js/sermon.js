@@ -478,7 +478,7 @@ angular.module('Songs', ['csrfModule'])
                 // Пропускаем чипы и их содержимое
                 if (el.closest('.bible-cite') || el.closest('.message-cite') ||
                     el.closest('.sermon-video-wrap') || el.closest('.sermon-img-wrap') ||
-                    el.closest('.sermon-group-header')) return;
+                    el.closest('.sermon-slide') || el.closest('.sermon-group-header')) return;
                 var fs = el.style.fontSize;
                 if (fs && !el.dataset.baseFontPx) {
                     var px = parseFloat(fs);
@@ -552,6 +552,42 @@ angular.module('Songs', ['csrfModule'])
                                 command: 'set_message_text',
                                 text: paraText,
                                 song_name: msgTitle,
+                                target_group_id: $scope.selectedDisplayTarget
+                            }});
+                        }
+                    });
+                };
+            });
+
+            // ── SLIDES ───────────────────────────────────────────
+            body.querySelectorAll('.sermon-slide').forEach(function (el) {
+                el.style.cursor = 'pointer';
+                // Клик по внутренней части слайда не активирует его (чтобы не мешать скроллу)
+                var inner = el.querySelector('.sermon-slide-inner');
+                if (inner) inner.style.pointerEvents = 'none';
+
+                el.onclick = function (e) {
+                    e.preventDefault();
+                    if (activeEl === el) {
+                        el.classList.remove('active-slide');
+                        activeEl = null;
+                        $timeout(function () { clearDisplayScope(); sendImageToDisplay(''); });
+                        return;
+                    }
+                    if (activeEl) activeEl.classList.remove('active-cite', 'active-img', 'active-video', 'active-slide');
+                    activeEl = el;
+                    el.classList.add('active-slide');
+
+                    var slideInner = el.querySelector('.sermon-slide-inner');
+                    var html = slideInner ? slideInner.innerHTML : el.innerHTML;
+                    var title = (el.querySelector('.sermon-slide-label') || {}).textContent || 'Слайд';
+
+                    $timeout(function () {
+                        if ($scope.selectedDisplayTarget !== null) {
+                            $http({ method: 'POST', url: '/ajax', data: {
+                                command: 'set_slide',
+                                html: html,
+                                title: title,
                                 target_group_id: $scope.selectedDisplayTarget
                             }});
                         }
