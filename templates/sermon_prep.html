@@ -765,18 +765,18 @@
     .sermon-slide {
         display: block;
         margin: 12px 0;
-        border: 2px solid #3949ab;
         border-radius: 10px;
         overflow: hidden;
-        background: #e8eaf6;
+        border: 2px solid rgba(255,255,255,0.25);
     }
     .sermon-slide-header {
         display: flex;
         align-items: center;
-        justify-content: space-between;
-        padding: 5px 12px;
-        background: #3949ab;
+        gap: 8px;
+        padding: 5px 10px;
         user-select: none;
+        /* background set dynamically via data-bg */
+        filter: brightness(0.75);
     }
     .sermon-slide-label {
         font-size: 11px;
@@ -784,6 +784,17 @@
         color: #fff;
         letter-spacing: 0.5px;
         text-transform: uppercase;
+        flex: 1;
+    }
+    .slide-color-input {
+        width: 22px;
+        height: 18px;
+        border: none;
+        padding: 0;
+        border-radius: 3px;
+        cursor: pointer;
+        background: none;
+        flex-shrink: 0;
     }
     .sermon-slide-del {
         color: rgba(255,255,255,0.6);
@@ -791,22 +802,31 @@
         cursor: pointer;
         line-height: 1;
         padding: 0 2px;
+        flex-shrink: 0;
     }
     .sermon-slide-del:hover { color: #fff; }
     .sermon-slide-inner {
         padding: 10px 14px;
         min-height: 32px;
         outline: none;
-        color: #1a237e;
+        color: #fff;
         font-size: 13px;
         line-height: 1.5;
+        /* background set dynamically via data-bg */
     }
+    /* Chips inside slides look like on the display screen */
+    .sermon-slide-inner .bible-cite,
+    .sermon-slide-inner .message-cite {
+        background: rgba(255,255,255,0.15) !important;
+        border-color: rgba(255,255,255,0.35) !important;
+        color: #fff !important;
+    }
+    .sermon-slide-inner .cite-ref,
+    .sermon-slide-inner .cite-verse-text,
+    .sermon-slide-inner .cite-label,
+    .sermon-slide-inner .cite-text { color: #fff !important; opacity: 1 !important; }
     /* Слайд активен (выбран для показа) */
-    .sermon-slide.active-slide {
-        border-color: #ff6f00;
-        box-shadow: 0 0 0 3px rgba(255,111,0,.22);
-    }
-    .sermon-slide.active-slide .sermon-slide-header { background: #ff6f00; }
+    .sermon-slide.active-slide { border-color: #ff6f00 !important; box-shadow: 0 0 0 3px rgba(255,111,0,.22); }
 
     /* ── Video insert dropdown ───────────────────────────────────── */
     .video-insert-wrap { position: relative; display: inline-block; }

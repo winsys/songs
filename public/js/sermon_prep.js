@@ -775,7 +775,20 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     };
 
     /** Создать DOM-структуру слайда */
-    function _buildSlideNode(innerHtml) {
+    var DEFAULT_SLIDE_BG = '#1a237e';
+
+    function _applySlideColor(wrap, color) {
+        wrap.dataset.bg = color;
+        var header = wrap.querySelector('.sermon-slide-header');
+        var inner  = wrap.querySelector('.sermon-slide-inner');
+        var pick   = wrap.querySelector('.slide-color-input');
+        if (header) header.style.background = color;
+        if (inner)  inner.style.background  = color;
+        if (pick)   pick.value = color;
+    }
+
+    function _buildSlideNode(innerHtml, bg) {
+        bg = bg || DEFAULT_SLIDE_BG;
         var wrap = document.createElement('div');
         wrap.className = 'sermon-slide';
 
@@ -786,6 +799,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         var label = document.createElement('span');
         label.className = 'sermon-slide-label';
         label.textContent = '▶ Слайд';
+
+        var pick = document.createElement('input');
+        pick.type = 'color';
+        pick.className = 'slide-color-input';
+        pick.title = 'Цвет фона слайда';
+        pick.contentEditable = 'false';
+        pick.value = bg;
 
         var del = document.createElement('span');
         del.className = 'sermon-slide-del';
@@ -799,6 +819,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         };
 
         header.appendChild(label);
+        header.appendChild(pick);
         header.appendChild(del);
 
         var inner = document.createElement('div');
@@ -808,16 +829,52 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
 
         wrap.appendChild(header);
         wrap.appendChild(inner);
+        _applySlideColor(wrap, bg);
         return wrap;
     }
 
     /** Навесить обработчики после загрузки из БД */
     function _attachSlideHandlers(wrap) {
+        var bg = wrap.dataset.bg || DEFAULT_SLIDE_BG;
+        _applySlideColor(wrap, bg);
+
         var del = wrap.querySelector('.sermon-slide-del');
         if (del) {
             del.onclick = function (e) {
                 e.stopPropagation();
                 wrap.remove();
+                scheduleAutoSave();
+            };
+        }
+
+        var pick = wrap.querySelector('.slide-color-input');
+        if (pick) {
+            pick.oninput = function () {
+                _applySlideColor(wrap, pick.value);
+                scheduleAutoSave();
+            };
+        }
+
+        // If no color input yet (old saved content), add one
+        if (!pick) {
+            var header = wrap.querySelector('.sermon-slide-header');
+            if (header) {
+                pick = document.createElement('input');
+                pick.type = 'color';
+                pick.className = 'slide-color-input';
+                pick.title = 'Цвет фона слайда';
+                pick.contentEditable = 'false';
+                pick.value = bg;
+                pick.oninput = function () {
+                    _applySlideColor(wrap, pick.value);
+                    scheduleAutoSave();
+                };
+                var delEl = header.querySelector('.sermon-slide-del');
+                header.insertBefore(pick, delEl || null);
+            }
+        } else {
+            pick.oninput = function () {
+                _applySlideColor(wrap, pick.value);
                 scheduleAutoSave();
             };
         }

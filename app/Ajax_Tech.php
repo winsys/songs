@@ -519,8 +519,9 @@ trait Ajax_Tech
         $html = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', $html);
         $html = mysqli_real_escape_string($dbh, $html);
 
-        $title = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', self::$args['title'] ?? '');
-        $title = mysqli_real_escape_string($dbh, $title);
+        // bg_color stored in song_name column (repurposed for slides)
+        $bgColor = preg_replace('/[^#0-9a-fA-F]/', '', self::$args['bg_color'] ?? '#1a237e');
+        if (empty($bgColor)) $bgColor = '#1a237e';
 
         $db  = Info::get('db');
         $dbh = Info::get('dbh');
@@ -528,7 +529,7 @@ trait Ajax_Tech
         $db->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
 
         $sql = "INSERT INTO current (groupId, image, text, song_name, chapter_indices, video_src, video_state)"
-             . " VALUES ({$targetGroupId}, '__slide__', '{$html}', '{$title}', '', '', 'stopped')";
+             . " VALUES ({$targetGroupId}, '__slide__', '{$html}', '{$bgColor}', '', '', 'stopped')";
 
         $ok = $dbh->query($sql);
         if (!$ok) {

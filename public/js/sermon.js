@@ -581,8 +581,9 @@ angular.module('Songs', ['csrfModule'])
                     el.classList.add('active-slide');
 
                     var slideInner = el.querySelector('.sermon-slide-inner');
-                    var html = slideInner ? slideInner.innerHTML : el.innerHTML;
+                    var html  = slideInner ? slideInner.innerHTML : el.innerHTML;
                     var title = (el.querySelector('.sermon-slide-label') || {}).textContent || 'Слайд';
+                    var bg    = el.dataset.bg || (userSettings && userSettings.slide_bg_color) || '#1a237e';
 
                     $timeout(function () {
                         // Show locally on right panel
@@ -590,13 +591,14 @@ angular.module('Songs', ['csrfModule'])
                         $scope.displayTitle    = '';
                         $scope.displayImageSrc = '';
                         $scope.displaySlideHtml = $sce.trustAsHtml(html);
-                        $scope.displaySlideBg   = (userSettings && userSettings.slide_bg_color) || '#1a237e';
+                        $scope.displaySlideBg   = bg;
 
                         if ($scope.selectedDisplayTarget !== null) {
                             $http({ method: 'POST', url: '/ajax', data: {
                                 command: 'set_slide',
-                                html: html,
-                                title: title,
+                                html:     html,
+                                title:    title,
+                                bg_color: bg,
                                 target_group_id: $scope.selectedDisplayTarget
                             }});
                         }
@@ -1031,6 +1033,24 @@ angular.module('Songs', ['csrfModule'])
                 }
             );
         }
+
+        // Auto-fit slide content in right panel
+        $scope.$watch('displaySlideHtml', function(newVal) {
+            if (!newVal) return;
+            $timeout(function() {
+                var wrap    = document.getElementById('display-slide-wrap');
+                var content = document.getElementById('display-slide-content');
+                if (!wrap || !content) return;
+                var maxFs = 32, minFs = 10;
+                content.style.fontSize = maxFs + 'px';
+                while (maxFs > minFs &&
+                       (content.scrollHeight > wrap.clientHeight ||
+                        content.scrollWidth  > wrap.clientWidth)) {
+                    maxFs -= 1;
+                    content.style.fontSize = maxFs + 'px';
+                }
+            }, 50);
+        });
 
         $scope.$watch('showAccessRequestModal', function(newVal) {
             if (newVal) {
