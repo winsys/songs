@@ -1044,8 +1044,8 @@ angular.module('Songs', ['csrfModule'])
                 var maxFs = 32, minFs = 10;
                 content.style.fontSize = maxFs + 'px';
                 while (maxFs > minFs &&
-                       (content.scrollHeight > wrap.clientHeight ||
-                        content.scrollWidth  > wrap.clientWidth)) {
+                       (content.scrollHeight > content.clientHeight ||
+                        content.scrollWidth  > content.clientWidth)) {
                     maxFs -= 1;
                     content.style.fontSize = maxFs + 'px';
                 }
