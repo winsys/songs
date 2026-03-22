@@ -776,19 +776,51 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
 
     /** Создать DOM-структуру слайда */
     var DEFAULT_SLIDE_BG = '#1a237e';
+    var _lastSlideColor  = DEFAULT_SLIDE_BG;
+
+    // Load saved default from user settings on init
+    $http.post('/ajax', { command: 'get_user_settings' }).then(function(r) {
+        if (r.data && r.data.slide_bg_color) {
+            _lastSlideColor = r.data.slide_bg_color;
+        }
+    });
+
+    var _saveSlideBgTimer = null;
+    function _saveSlideColorDebounced(color) {
+        if (_saveSlideBgTimer) clearTimeout(_saveSlideBgTimer);
+        _saveSlideBgTimer = setTimeout(function() {
+            $http.post('/ajax', { command: 'save_slide_bg_color', color: color });
+        }, 600);
+    }
+
+    function _contrastColor(hex) {
+        hex = hex.replace('#', '');
+        if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+        var r = parseInt(hex.substring(0,2), 16) / 255;
+        var g = parseInt(hex.substring(2,4), 16) / 255;
+        var b = parseInt(hex.substring(4,6), 16) / 255;
+        r = r <= 0.03928 ? r/12.92 : Math.pow((r+0.055)/1.055, 2.4);
+        g = g <= 0.03928 ? g/12.92 : Math.pow((g+0.055)/1.055, 2.4);
+        b = b <= 0.03928 ? b/12.92 : Math.pow((b+0.055)/1.055, 2.4);
+        return (0.2126*r + 0.7152*g + 0.0722*b) > 0.179 ? '#1a1a1a' : '#ffffff';
+    }
 
     function _applySlideColor(wrap, color) {
         wrap.dataset.bg = color;
+        var textColor = _contrastColor(color);
         var header = wrap.querySelector('.sermon-slide-header');
         var inner  = wrap.querySelector('.sermon-slide-inner');
         var pick   = wrap.querySelector('.slide-color-input');
         if (header) header.style.background = color;
-        if (inner)  inner.style.background  = color;
-        if (pick)   pick.value = color;
+        if (inner) {
+            inner.style.background = color;
+            inner.style.color      = textColor;
+        }
+        if (pick) pick.value = color;
     }
 
     function _buildSlideNode(innerHtml, bg) {
-        bg = bg || DEFAULT_SLIDE_BG;
+        bg = bg || _lastSlideColor || DEFAULT_SLIDE_BG;
         var wrap = document.createElement('div');
         wrap.className = 'sermon-slide';
 
@@ -847,15 +879,17 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             };
         }
 
-        var pick = wrap.querySelector('.slide-color-input');
-        if (pick) {
-            pick.oninput = function () {
-                _applySlideColor(wrap, pick.value);
-                scheduleAutoSave();
-            };
+        function _onPickChange() {
+            var c = pick.value;
+            _lastSlideColor = c;
+            _applySlideColor(wrap, c);
+            scheduleAutoSave();
+            _saveSlideColorDebounced(c);
         }
 
-        // If no color input yet (old saved content), add one
+        var pick = wrap.querySelector('.slide-color-input');
+
+        // If no color input yet (old saved content without picker), add one
         if (!pick) {
             var header = wrap.querySelector('.sermon-slide-header');
             if (header) {
@@ -865,19 +899,12 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 pick.title = 'Цвет фона слайда';
                 pick.contentEditable = 'false';
                 pick.value = bg;
-                pick.oninput = function () {
-                    _applySlideColor(wrap, pick.value);
-                    scheduleAutoSave();
-                };
                 var delEl = header.querySelector('.sermon-slide-del');
                 header.insertBefore(pick, delEl || null);
             }
-        } else {
-            pick.oninput = function () {
-                _applySlideColor(wrap, pick.value);
-                scheduleAutoSave();
-            };
         }
+
+        if (pick) pick.oninput = _onPickChange;
     }
 
     // ──────────────────────────────────────────────────────────

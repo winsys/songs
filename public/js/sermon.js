@@ -1034,13 +1034,17 @@ angular.module('Songs', ['csrfModule'])
             );
         }
 
-        // Auto-fit slide content in right panel
+        // Auto-fit slide content in right panel + apply contrast text color
         $scope.$watch('displaySlideHtml', function(newVal) {
             if (!newVal) return;
             $timeout(function() {
                 var wrap    = document.getElementById('display-slide-wrap');
                 var content = document.getElementById('display-slide-content');
                 if (!wrap || !content) return;
+                // Text color contrast
+                var bg = $scope.displaySlideBg || '#1a237e';
+                content.style.color = getContrastColor(bg);
+                // Auto-fit
                 var maxFs = 32, minFs = 10;
                 content.style.fontSize = maxFs + 'px';
                 while (maxFs > minFs &&

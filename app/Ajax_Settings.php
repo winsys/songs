@@ -81,6 +81,23 @@ trait Ajax_Settings
         return json_encode(['status' => 'success']);
     }
 
+    /** Быстрое сохранение только цвета слайда */
+    private static function save_slide_bg_color()
+    {
+        $userId = (int)$_SESSION['curGroupId'];
+        $color  = preg_replace('/[^#0-9a-fA-F]/', '', self::$args['color'] ?? '#1a237e');
+        if (empty($color)) $color = '#1a237e';
+        $color  = mysqli_escape_string(Info::get('dbh'), $color);
+
+        $exists = Info::get('db')->get("SELECT group_id FROM user_settings WHERE group_id = {$userId}");
+        if ($exists) {
+            Info::get('db')->exec("UPDATE user_settings SET slide_bg_color = '{$color}' WHERE group_id = {$userId}");
+        } else {
+            Info::get('db')->exec("INSERT INTO user_settings (group_id, slide_bg_color) VALUES ({$userId}, '{$color}')");
+        }
+        return json_encode(['status' => 'ok']);
+    }
+
     // ============================================================
     // ПОЛЬЗОВАТЕЛИ ГРУППЫ
     // ============================================================
