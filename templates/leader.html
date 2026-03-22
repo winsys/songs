@@ -461,6 +461,104 @@
         font-weight: 500;
     }
 
+    /* ---- Notes mode: full-width modal ------------------------ */
+    #list-popup.list-popup-notes-mode .modal-dialog {
+        width:     98vw;
+        max-width: 98vw;
+        margin:    8px auto;
+    }
+    #list-popup.list-popup-notes-mode .modal-content {
+        max-height: 96vh;
+        border-radius: 10px;
+    }
+    #list-popup.list-popup-notes-mode .modal-body {
+        padding: 8px;
+    }
+
+    /* Toggle button in modal header */
+    .notes-toggle-btn {
+        display:       inline-flex;
+        align-items:   center;
+        gap:           5px;
+        border:        2px solid #cdd4dd;
+        background:    #f4f5f7;
+        color:         #5a6272;
+        border-radius: 8px;
+        padding:       5px 12px;
+        font-size:     13px;
+        font-weight:   600;
+        cursor:        pointer;
+        transition:    background 0.15s, border-color 0.15s, color 0.15s;
+        white-space:   nowrap;
+    }
+    .notes-toggle-btn.notes-toggle-active {
+        background:    #e8f4fd;
+        border-color:  #2980b9;
+        color:         #1a6fa8;
+    }
+
+    /* ---- Notes mode: song card ------------------------------- */
+    .notes-song-card {
+        position:      relative;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        border:        1px solid #dde3ea;
+        overflow:      hidden;
+        background:    #fff;
+    }
+    .notes-song-card:last-child { margin-bottom: 0; }
+
+    .notes-song-title {
+        padding:     8px 12px;
+        font-size:   15pt;
+        font-weight: 600;
+        color:       #2c3e50;
+        background:  #f8f9fa;
+        display:     flex;
+        align-items: center;
+        gap:         8px;
+        flex-wrap:   wrap;
+    }
+
+    .notes-song-img {
+        width:   100%;
+        display: block;
+    }
+
+    /* Invisible overlay button covering title + image */
+    .notes-select-overlay {
+        position:   absolute;
+        inset:      0;
+        width:      100%;
+        height:     100%;
+        background: transparent;
+        border:     none;
+        cursor:     pointer;
+        padding:    0;
+        margin:     0;
+        z-index:    2;
+    }
+    .notes-select-overlay:hover  { background: rgba(41,128,185, 0.10); }
+    .notes-select-overlay:active { background: rgba(41,128,185, 0.22); }
+
+    /* Small "Выбрать" pill visible in the corner on hover via sibling trick */
+    .notes-card-hint {
+        position:      absolute;
+        top:           8px;
+        right:         10px;
+        z-index:       3;
+        background:    rgba(41,128,185, 0.85);
+        color:         #fff;
+        font-size:     12px;
+        font-weight:   600;
+        border-radius: 6px;
+        padding:       3px 10px;
+        pointer-events:none;
+        opacity:       0;
+        transition:    opacity 0.15s;
+    }
+    .notes-song-card:hover .notes-card-hint { opacity: 1; }
+
     .btn-select {
         padding: 8px 16px;
         border-radius: 8px;
@@ -646,34 +744,69 @@
     <!-- ============================================================
          Modal: full song list
          ============================================================ -->
-    <div id="list-popup">
+    <div id="list-popup" ng-class="{'list-popup-notes-mode': showNotes}">
         <div class="modal fade list-popup" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header" style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #e8edf2; position:sticky; top:0; background:#fff; z-index:10;">
-                        <span style="font-size:14px; font-weight:600; color:#2c3e50;">Список песен</span>
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:14px; font-weight:600; color:#2c3e50;">Список песен</span>
+                            <button class="notes-toggle-btn"
+                                    ng-class="{'notes-toggle-active': showNotes}"
+                                    ng-click="showNotes = !showNotes">
+                                🎼 Ноты
+                            </button>
+                        </div>
                         <button type="button" data-dismiss="modal"
                                 style="border:none; background:#f4f5f7; color:#5a6272; border-radius:8px; padding:6px 14px; font-size:13px; cursor:pointer; font-weight:600;">
                             ✕ Закрыть
                         </button>
                     </div>
                     <div class="modal-body">
-                        <div class="row"
+
+                        <!-- ── Обычный режим ─────────────────────────────── -->
+                        <div ng-if="!showNotes"
+                             class="row"
                              style="padding-top: 10px; padding-bottom: 10px; border-bottom: #204d74 solid 1px"
                              ng-repeat="song in songList">
                             <div class="col-xs-9 col-s-9 col-md-9" style="font-size: 16pt">
                                 {{ song.dispName }}
                                 <span class="song-lang-badges" style="margin-left: 6px; vertical-align: middle;">
-                            <span class="lang-badge"
-                                  ng-repeat="lang in langList"
-                                  ng-if="song['hasText_' + lang.code] == '1'">{{lang.label}}</span>
-                        </span>
+                                    <span class="lang-badge"
+                                          ng-repeat="lang in langList"
+                                          ng-if="song['hasText_' + lang.code] == '1'">{{lang.label}}</span>
+                                </span>
                             </div>
                             <div class="col-xs-3 col-s-3 col-md-3">
                                 <button class="btn btn-lg" style="font-size: 16pt"
                                         ng-click="addSongToFavorites(song.ID)">Выбрать</button>
                             </div>
                         </div>
+
+                        <!-- ── Режим «Ноты»: карточка во всю ширину ──────── -->
+                        <div ng-if="showNotes"
+                             class="notes-song-card"
+                             ng-repeat="song in songList">
+                            <!-- Заголовок -->
+                            <div class="notes-song-title">
+                                {{ song.dispName }}
+                                <span class="song-lang-badges">
+                                    <span class="lang-badge"
+                                          ng-repeat="lang in langList"
+                                          ng-if="song['hasText_' + lang.code] == '1'">{{lang.label}}</span>
+                                </span>
+                            </div>
+                            <!-- Изображение с нотами -->
+                            <img class="notes-song-img"
+                                 ng-src="/images/{{ song.LISTID }}/{{ song.NUM }}.jpg"
+                                 onerror="this.style.display='none'">
+                            <!-- Кнопка «Выбрать» поверх всей карточки -->
+                            <button class="notes-select-overlay"
+                                    title="Выбрать"
+                                    ng-click="addSongToFavorites(song.ID)"></button>
+                            <span class="notes-card-hint">Выбрать</span>
+                        </div>
+
                     </div>
                 </div>
             </div>
