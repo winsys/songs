@@ -597,10 +597,33 @@
         appearance: textfield;
         margin: 0;
     }
+
+    /* ---- WebSocket disconnect banner -------------------------- */
+    .ws-disconnect-banner {
+        background:    #fff3cd;
+        border:        1px solid #ffc107;
+        color:         #856404;
+        padding:       7px 16px;
+        font-size:     13px;
+        font-weight:   600;
+        text-align:    center;
+        border-radius: 6px;
+        margin:        0 0 12px;
+        animation:     wsPulse 2s ease-in-out infinite;
+    }
+    @keyframes wsPulse {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.6; }
+    }
 </style>
 
 <div ng-controller="Leader">
     <div class="leader-wrapper">
+
+        <!-- ── WebSocket disconnect banner ────────────────────────── -->
+        <div class="ws-disconnect-banner" ng-if="wsConnected === false">
+            ⚠ Нет соединения с сервером. Переподключение…
+        </div>
 
         <!-- Header: Back button + Title -->
         <div class="leader-header">

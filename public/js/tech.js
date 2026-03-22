@@ -1638,8 +1638,10 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
     // ==========================================================
 
     // [SECURITY] Use authenticated WebSocket connection
+    $scope.wsConnected = null; // null = ещё не подключались, true/false после первого соединения
+
     // URL is auto-detected (wss:// for HTTPS, ws:// for HTTP)
-    const socket = window.createAuthenticatedWebSocket(
+    window.createAuthenticatedWebSocket(
         null, // Use default /ws endpoint
         function(data) {
             // Handle incoming messages (only after authentication)
@@ -1654,6 +1656,11 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
         },
         function(error) {
             console.error('WebSocket error:', error);
+        },
+        function(connected) {
+            $scope.$apply(function() {
+                $scope.wsConnected = connected;
+            });
         }
     );
 

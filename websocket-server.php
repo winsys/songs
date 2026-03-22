@@ -75,8 +75,11 @@ $ws_worker->onMessage = function($connection, $data) use ($ws_worker, &$authenti
         $connection->send(json_encode(['type' => 'auth_success', 'message' => 'Authenticated']));
         return;
     }
-    // Connection is authenticated - handle normal messages
-    // (Currently this WebSocket only receives broadcasts from server, not from clients)
+    // Connection is authenticated — handle application-level ping/keepalive
+    $msg = json_decode($data, true);
+    if (is_array($msg) && isset($msg['type']) && $msg['type'] === 'ping') {
+        $connection->send(json_encode(['type' => 'pong']));
+    }
 };
 
 $ws_worker->onClose = function($connection) use ($ws_worker, &$authenticated_connections, &$connections_by_group) {
