@@ -13,6 +13,8 @@ angular.module('Songs', ['csrfModule'])
         $scope.displayText      = '';
         $scope.displayTitle     = '';
         $scope.displayImageSrc  = '';
+        $scope.displaySlideHtml = null;
+        $scope.displaySlideBg   = '#1a237e';
 
         // Display target management
         $scope.displayTargets           = [];
@@ -571,7 +573,7 @@ angular.module('Songs', ['csrfModule'])
                     if (activeEl === el) {
                         el.classList.remove('active-slide');
                         activeEl = null;
-                        $timeout(function () { clearDisplayScope(); sendImageToDisplay(''); });
+                        $timeout(function () { clearDisplayScope(); if ($scope.selectedDisplayTarget !== null) { sendImageToDisplay(''); } });
                         return;
                     }
                     if (activeEl) activeEl.classList.remove('active-cite', 'active-img', 'active-video', 'active-slide');
@@ -583,6 +585,13 @@ angular.module('Songs', ['csrfModule'])
                     var title = (el.querySelector('.sermon-slide-label') || {}).textContent || 'Слайд';
 
                     $timeout(function () {
+                        // Show locally on right panel
+                        $scope.displayText     = '';
+                        $scope.displayTitle    = '';
+                        $scope.displayImageSrc = '';
+                        $scope.displaySlideHtml = $sce.trustAsHtml(html);
+                        $scope.displaySlideBg   = (userSettings && userSettings.slide_bg_color) || '#1a237e';
+
                         if ($scope.selectedDisplayTarget !== null) {
                             $http({ method: 'POST', url: '/ajax', data: {
                                 command: 'set_slide',
@@ -642,6 +651,7 @@ angular.module('Songs', ['csrfModule'])
             $scope.displayText     = '';
             $scope.displayTitle    = '';
             $scope.displayImageSrc = '';
+            $scope.displaySlideHtml = null;
         }
 
         $scope.clearAndGoHome = function() {
