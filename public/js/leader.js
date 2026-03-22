@@ -203,6 +203,36 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
         $scope.reloadSongList();
     }
 
+    $scope.toggleNotesMode = function() {
+        var modalBody = document.querySelector('#list-popup .modal-body');
+        var anchorIndex = 0;
+
+        if (modalBody) {
+            var currentSelector = $scope.showNotes ? '.notes-song-card' : '.row';
+            var items = modalBody.querySelectorAll(currentSelector);
+            var bodyTop = modalBody.getBoundingClientRect().top;
+
+            for (var i = 0; i < items.length; i++) {
+                if (items[i].getBoundingClientRect().bottom > bodyTop) {
+                    anchorIndex = i;
+                    break;
+                }
+            }
+        }
+
+        $scope.showNotes = !$scope.showNotes;
+
+        var targetIndex = anchorIndex;
+        setTimeout(function() {
+            var mb = document.querySelector('#list-popup .modal-body');
+            if (!mb) return;
+            var newSelector = $scope.showNotes ? '.notes-song-card' : '.row';
+            var newItems = mb.querySelectorAll(newSelector);
+            if (newItems[targetIndex]) {
+                newItems[targetIndex].scrollIntoView({ block: 'start' });
+            }
+        }, 0);
+    };
 
     // ==========================================================
     // WEBSOCKET
