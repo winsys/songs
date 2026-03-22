@@ -23,7 +23,8 @@ app.controller('Settings', function ($scope, $http)
         streaming_height_percent: 100,
         sermon_notes_bg_color:   '#2b2b2b',
         sermon_bible_base_color: '#1565c0',
-        sermon_msg_base_color:   '#6a1b9a'
+        sermon_msg_base_color:   '#6a1b9a',
+        slide_bg_color:          '#1a237e'
     };
 
     $scope.availableLists = [];
@@ -63,6 +64,7 @@ app.controller('Settings', function ($scope, $http)
                     if (!$scope.settings.sermon_notes_bg_color)   $scope.settings.sermon_notes_bg_color   = '#2b2b2b';
                     if (!$scope.settings.sermon_bible_base_color)  $scope.settings.sermon_bible_base_color  = '#1565c0';
                     if (!$scope.settings.sermon_msg_base_color)    $scope.settings.sermon_msg_base_color    = '#6a1b9a';
+                    if (!$scope.settings.slide_bg_color)           $scope.settings.slide_bg_color           = '#1a237e';
                     $scope.settings.sermon_notes_font_size = parseInt($scope.settings.sermon_notes_font_size, 10) || 100;
                     $scope.settings.sermon_scale_chips = parseInt($scope.settings.sermon_scale_chips) || 0;
                 }

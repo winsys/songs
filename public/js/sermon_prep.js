@@ -723,6 +723,107 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     };
 
     // ──────────────────────────────────────────────────────────
+    // SLIDES
+    // ──────────────────────────────────────────────────────────
+
+    /** Вставить новый пустой слайд после курсора */
+    $scope.insertSlide = function () {
+        saveRange();
+        var slide = _buildSlideNode('<p><br></p>');
+        _attachSlideHandlers(slide);
+        insertNodeAtCursor(slide);
+        // Поставить курсор внутрь слайда
+        var inner = slide.querySelector('.sermon-slide-inner');
+        if (inner) {
+            var r = document.createRange();
+            var sel = window.getSelection();
+            r.setStart(inner, 0);
+            r.collapse(true);
+            sel.removeAllRanges();
+            sel.addRange(r);
+            lastRange = r.cloneRange();
+        }
+    };
+
+    /** Преобразовать выделенный текст/чипы в слайд */
+    $scope.convertSelectionToSlide = function () {
+        var sel = window.getSelection();
+        if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
+            alert('Выделите фрагмент заметок для преобразования в слайд.');
+            return;
+        }
+        var range = sel.getRangeAt(0);
+        // Убедиться что выделение внутри редактора
+        if (!editorEl || !editorEl.contains(range.commonAncestorContainer)) {
+            alert('Выделение должно быть внутри редактора заметок.');
+            return;
+        }
+        var fragment = range.extractContents();
+        var slide = _buildSlideNode('');
+        var inner = slide.querySelector('.sermon-slide-inner');
+        inner.appendChild(fragment);
+        _attachSlideHandlers(slide);
+        range.insertNode(slide);
+        // Сдвинуть курсор за слайд
+        var after = document.createRange();
+        after.setStartAfter(slide);
+        after.collapse(true);
+        sel.removeAllRanges();
+        sel.addRange(after);
+        lastRange = after.cloneRange();
+        scheduleAutoSave();
+    };
+
+    /** Создать DOM-структуру слайда */
+    function _buildSlideNode(innerHtml) {
+        var wrap = document.createElement('div');
+        wrap.className = 'sermon-slide';
+
+        var header = document.createElement('div');
+        header.className = 'sermon-slide-header';
+        header.contentEditable = 'false';
+
+        var label = document.createElement('span');
+        label.className = 'sermon-slide-label';
+        label.textContent = '▶ Слайд';
+
+        var del = document.createElement('span');
+        del.className = 'sermon-slide-del';
+        del.innerHTML = '×';
+        del.title = 'Удалить слайд';
+        del.contentEditable = 'false';
+        del.onclick = function (e) {
+            e.stopPropagation();
+            wrap.remove();
+            scheduleAutoSave();
+        };
+
+        header.appendChild(label);
+        header.appendChild(del);
+
+        var inner = document.createElement('div');
+        inner.className = 'sermon-slide-inner';
+        inner.contentEditable = 'true';
+        inner.innerHTML = innerHtml;
+
+        wrap.appendChild(header);
+        wrap.appendChild(inner);
+        return wrap;
+    }
+
+    /** Навесить обработчики после загрузки из БД */
+    function _attachSlideHandlers(wrap) {
+        var del = wrap.querySelector('.sermon-slide-del');
+        if (del) {
+            del.onclick = function (e) {
+                e.stopPropagation();
+                wrap.remove();
+                scheduleAutoSave();
+            };
+        }
+    }
+
+    // ──────────────────────────────────────────────────────────
     // DOM UTILITY: insert node at saved cursor position
     // ──────────────────────────────────────────────────────────
 
@@ -797,6 +898,11 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 });
             };
             makeDraggable(span);
+        });
+
+        // ── SLIDES — re-attach ──
+        editorEl.querySelectorAll('.sermon-slide').forEach(function (slide) {
+            _attachSlideHandlers(slide);
         });
 
         // ── VIDEO chips — re-attach (НОВЫЙ блок) ──
