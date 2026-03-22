@@ -128,15 +128,24 @@ angular.module('Songs', ['csrfModule'])
         // ==========================================================
 
         $scope.navigateSermonContent = function(direction) {
-            // 1. Находим все интерактивные элементы в DOM
-            var items = document.querySelectorAll('#notes-body .bible-cite, #notes-body .sermon-img-wrap, #notes-body .sermon-video-wrap, #notes-body .message-cite');
+            // 1. Все интерактивные элементы верхнего уровня (цитаты внутри слайдов — пропускаем)
+            var all = document.querySelectorAll(
+                '#notes-body .bible-cite, #notes-body .sermon-img-wrap, ' +
+                '#notes-body .sermon-video-wrap, #notes-body .message-cite, ' +
+                '#notes-body .sermon-slide');
+            var items = Array.prototype.filter.call(all, function(el) {
+                // Exclude cites/images that are nested inside a .sermon-slide
+                if (!el.classList.contains('sermon-slide') && el.closest('.sermon-slide')) return false;
+                return true;
+            });
             if (!items.length) return;
 
-            // 2. Ищем индекс текущего активного элемента по вашим классам
+            // 2. Ищем индекс текущего активного элемента
             var currentIndex = -1;
             for (var i = 0; i < items.length; i++) {
                 var cl = items[i].classList;
-                if (cl.contains('active-cite') || cl.contains('active-img') || cl.contains('active-video')) {
+                if (cl.contains('active-cite') || cl.contains('active-img') ||
+                    cl.contains('active-video') || cl.contains('active-slide')) {
                     currentIndex = i;
                     break;
                 }
@@ -562,7 +571,44 @@ angular.module('Songs', ['csrfModule'])
             });
 
             // ── SLIDES ───────────────────────────────────────────
+
+            // Inline computed chip colors so the display gets the exact rendered values
+            function _inlineComputedColors(innerEl) {
+                var clone = innerEl.cloneNode(true);
+                var origChips   = innerEl.querySelectorAll('.bible-cite, .message-cite');
+                var clonedChips = clone.querySelectorAll('.bible-cite, .message-cite');
+                origChips.forEach(function(orig, idx) {
+                    var cloned = clonedChips[idx];
+                    if (!cloned) return;
+                    var cs = window.getComputedStyle(orig);
+                    cloned.style.backgroundColor = cs.backgroundColor;
+                    cloned.style.borderColor     = cs.borderColor;
+                    cloned.style.color           = cs.color;
+                    ['.cite-ref', '.cite-verse-text', '.cite-label', '.cite-text'].forEach(function(sel) {
+                        var os = orig.querySelector(sel), csl = cloned.querySelector(sel);
+                        if (os && csl) csl.style.color = window.getComputedStyle(os).color;
+                    });
+                });
+                return clone.innerHTML;
+            }
+
+            // Apply data-bg color to slide visuals in the notes panel
+            function _applySlideVisuals(el) {
+                var bg        = el.dataset.bg || (userSettings && userSettings.slide_bg_color) || '#1a237e';
+                var textColor = getContrastColor(bg);
+                var header    = el.querySelector('.sermon-slide-header');
+                var inner     = el.querySelector('.sermon-slide-inner');
+                el.style.borderColor = hexWithAlpha(bg, 0.4);
+                el.style.background  = bg;
+                if (header) header.style.background = shadeHex(bg, -30);
+                if (inner) {
+                    inner.style.background = bg;
+                    inner.style.color      = textColor;
+                }
+            }
+
             body.querySelectorAll('.sermon-slide').forEach(function (el) {
+                _applySlideVisuals(el);
                 el.style.cursor = 'pointer';
                 // Клик по внутренней части слайда не активирует его (чтобы не мешать скроллу)
                 var inner = el.querySelector('.sermon-slide-inner');
@@ -581,7 +627,7 @@ angular.module('Songs', ['csrfModule'])
                     el.classList.add('active-slide');
 
                     var slideInner = el.querySelector('.sermon-slide-inner');
-                    var html  = slideInner ? slideInner.innerHTML : el.innerHTML;
+                    var html  = slideInner ? _inlineComputedColors(slideInner) : el.innerHTML;
                     var title = (el.querySelector('.sermon-slide-label') || {}).textContent || 'Слайд';
                     var bg    = el.dataset.bg || (userSettings && userSettings.slide_bg_color) || '#1a237e';
 

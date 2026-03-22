@@ -374,22 +374,21 @@
         #notes-body .svw-del   { display: none !important; }
 
         /* ── Слайды в левой панели (sermon display mode) ── */
+        /* background, border-color, text color — set dynamically by JS via data-bg */
         #notes-body .sermon-slide {
             display: block;
             margin: 10px 0;
-            border: 2px solid #3949ab;
+            border: 2px solid rgba(255,255,255,0.25);
             border-radius: 10px;
             overflow: hidden;
-            background: #e8eaf6;
             cursor: pointer;
-            transition: border-color .15s, box-shadow .15s;
+            transition: box-shadow .15s;
         }
         #notes-body .sermon-slide-header {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 8px;
             padding: 5px 12px;
-            background: #3949ab;
             user-select: none;
         }
         #notes-body .sermon-slide-label {
@@ -399,18 +398,22 @@
             letter-spacing: 0.5px;
             text-transform: uppercase;
         }
-        #notes-body .sermon-slide-del { display: none !important; }
+        #notes-body .sermon-slide-del,
+        #notes-body .slide-color-input { display: none !important; }
         #notes-body .sermon-slide-inner {
             padding: 10px 14px;
             min-height: 28px;
-            color: #1a237e;
             font-size: 13px;
             line-height: 1.5;
             pointer-events: none;
+            /* color and background set dynamically by JS */
         }
-        #notes-body .sermon-slide:hover { border-color: #7986cb; box-shadow: 0 0 0 2px rgba(57,73,171,.3); }
-        #notes-body .sermon-slide.active-slide { border-color: #ff6f00; box-shadow: 0 0 0 3px rgba(255,111,0,.22); }
-        #notes-body .sermon-slide.active-slide .sermon-slide-header { background: #ff6f00; }
+        /* Group headers hidden inside slides */
+        #notes-body .sermon-slide-inner .sermon-group-header { display: none !important; }
+        /* Chips keep natural colors (same as notes text) */
+        #notes-body .sermon-slide:hover { box-shadow: 0 0 0 2px rgba(255,255,255,.18); }
+        #notes-body .sermon-slide.active-slide { border-color: #ff6f00 !important; box-shadow: 0 0 0 3px rgba(255,111,0,.22); }
+        #notes-body .sermon-slide.active-slide .sermon-slide-header { background: #ff6f00 !important; }
 
         /* ── Панель управления видео в левой панели ── */
         #sermon-video-controls {
@@ -565,6 +568,7 @@
         #display-slide-content h2,
         #display-slide-content h3 { color: #fff; margin: 0.3em 0 0.15em; }
         #display-slide-content p { margin: 0.25em 0; }
+        /* Chip layout on right panel — colors come from inlined styles (natural colors) */
         #display-slide-content .bible-cite,
         #display-slide-content .message-cite {
             display: inline-flex;
@@ -573,15 +577,13 @@
             border-radius: 7px;
             padding: 3px 10px;
             font-size: 0.8em;
-            border: 1px solid rgba(255,255,255,0.3);
-            background: rgba(255,255,255,0.12);
-            color: #fff;
+            border: 1px solid;
             margin: 2px 3px;
         }
         #display-slide-content .cite-ref,
         #display-slide-content .cite-verse-text,
         #display-slide-content .cite-label,
-        #display-slide-content .cite-text { color: #fff !important; opacity: 1 !important; }
+        #display-slide-content .cite-text { opacity: 1 !important; }
         #display-slide-content .cite-remove,
         #display-slide-content .sermon-slide-header,
         #display-slide-content .sermon-slide-del,
