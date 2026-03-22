@@ -79,6 +79,31 @@ trait Ajax_Sermon
     {
         $userId   = (int)$_SESSION['curGroupId'];
         $sermonId = (int)self::$args['id'];
+
+        // Delete uploaded media files referenced in the sermon content
+        $row = Info::get('db')->get(
+            "SELECT CONTENT FROM sermons WHERE ID = {$sermonId} AND USER_ID = {$userId} LIMIT 1"
+        );
+        if ($row && !empty($row['CONTENT'])) {
+            $allowedPrefixes = [
+                '/sermon_images/' . $userId . '/',
+                '/sermon_videos/' . $userId . '/',
+            ];
+            preg_match_all('/(\/sermon_(?:images|videos)\/' . $userId . '\/[^"\'<>\s]+)/', $row['CONTENT'], $matches);
+            foreach ($matches[1] as $path) {
+                $isAllowed = false;
+                foreach ($allowedPrefixes as $prefix) {
+                    if (strpos($path, $prefix) === 0) { $isAllowed = true; break; }
+                }
+                if ($isAllowed) {
+                    $filePath = __DIR__ . '/../public' . $path;
+                    if (file_exists($filePath)) {
+                        unlink($filePath);
+                    }
+                }
+            }
+        }
+
         Info::get('db')->exec(
             "DELETE FROM sermons WHERE ID = {$sermonId} AND USER_ID = {$userId}"
         );
