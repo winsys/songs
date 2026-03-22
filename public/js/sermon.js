@@ -712,18 +712,14 @@ angular.module('Songs', ['csrfModule'])
         }
 
         $scope.clearAndGoHome = function() {
+            var data = { command: 'clear_image' };
             if ($scope.selectedDisplayTarget !== null) {
-                $http({ method: 'POST', url: '/ajax', data: {
-                    command: 'clear_image',
-                    target_group_id: $scope.selectedDisplayTarget
-                }}).then(function() {
-                    window.location.href = '/index';
-                }, function() {
-                    window.location.href = '/index';
-                });
-            } else {
-                window.location.href = '/index';
+                data.target_group_id = $scope.selectedDisplayTarget;
             }
+            $http({ method: 'POST', url: '/ajax', data: data }).then(
+                function() { window.location.href = '/index'; },
+                function() { window.location.href = '/index'; }
+            );
         };
 
         // ==========================================================
