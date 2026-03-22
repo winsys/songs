@@ -683,7 +683,10 @@ angular.module('Songs', ['csrfModule'])
         }
 
         function activateElement(el) {
-            if (activeEl && activeEl !== el) activeEl.classList.remove('active-cite', 'active-img', 'active-video');
+            if (activeEl && activeEl !== el) {
+                activeEl.classList.remove('active-cite', 'active-img', 'active-video', 'active-slide');
+            }
+            $scope.displaySlideHtml = null;
             activeEl = el;
             el.classList.add(
                 (el.classList.contains('bible-cite') || el.classList.contains('message-cite'))
@@ -692,7 +695,11 @@ angular.module('Songs', ['csrfModule'])
         }
 
         function deactivateAll() {
-            if (activeEl) { activeEl.classList.remove('active-cite', 'active-img', 'active-video'); activeEl = null; }
+            if (activeEl) {
+                activeEl.classList.remove('active-cite', 'active-img', 'active-video', 'active-slide');
+                activeEl = null;
+            }
+            $scope.displaySlideHtml = null;
         }
 
         function clearDisplayScope() {
