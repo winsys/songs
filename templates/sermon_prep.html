@@ -588,6 +588,20 @@
     }
     .sermon-img-wrap:hover .sermon-img-remove { display: block; }
 
+    /* ── PPT slide block ─────────────────────────────────────────── */
+    .sermon-ppt-slide {
+        display: block;
+        position: relative;
+        margin: 8px 0;
+        border: 2px solid #dee2e6;
+        border-radius: 6px;
+        overflow: hidden;
+        background: #000;
+        cursor: default;
+    }
+    .sermon-ppt-slide:hover { border-color: #1a6db5; }
+    .sermon-ppt-slide:hover .sermon-img-remove { display: block; }
+
     /* ── Bottom panel ────────────────────────────────────────────── */
     .prep-bottom {
         margin-top: 10px;
@@ -1414,6 +1428,21 @@
                         <span style="font-size:15px; line-height:1;">⬛</span>
                         <span style="font-size:12px; font-weight:600;">В слайд</span>
                     </button>
+
+                    <!-- Импорт PowerPoint -->
+                    <button class="toolbar-btn" title="Импортировать слайды из PowerPoint"
+                            ng-mousedown="$event.preventDefault()"
+                            ng-click="triggerPptxImport()"
+                            ng-disabled="importingPptx"
+                            style="padding:5px 10px; display:inline-flex; align-items:center; gap:5px;">
+                        <span style="font-size:15px; line-height:1;">📊</span>
+                        <span style="font-size:12px; font-weight:600;" ng-if="!importingPptx">PPT</span>
+                        <span style="font-size:12px; font-weight:600;" ng-if="importingPptx">...</span>
+                    </button>
+
+                    <!-- Скрытый input для PPTX -->
+                    <input type="file" id="sermon-pptx-input" accept=".pptx,.ppt,.odp" style="display:none"
+                           onchange="angular.element(this).scope().onPptxSelected(this)" />
                 </div>
 
                 <!-- Contenteditable editor -->

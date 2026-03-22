@@ -131,6 +131,7 @@ angular.module('Songs', ['csrfModule'])
             // 1. Все интерактивные элементы верхнего уровня (цитаты внутри слайдов — пропускаем)
             var all = document.querySelectorAll(
                 '#notes-body .bible-cite, #notes-body .sermon-img-wrap, ' +
+                '#notes-body .sermon-ppt-slide, ' +
                 '#notes-body .sermon-video-wrap, #notes-body .message-cite, ' +
                 '#notes-body .sermon-slide');
             var items = Array.prototype.filter.call(all, function(el) {
@@ -489,6 +490,7 @@ angular.module('Songs', ['csrfModule'])
                 // Пропускаем чипы и их содержимое
                 if (el.closest('.bible-cite') || el.closest('.message-cite') ||
                     el.closest('.sermon-video-wrap') || el.closest('.sermon-img-wrap') ||
+                    el.closest('.sermon-ppt-slide') ||
                     el.closest('.sermon-slide') || el.closest('.sermon-group-header')) return;
                 var fs = el.style.fontSize;
                 if (fs && !el.dataset.baseFontPx) {
@@ -526,7 +528,7 @@ angular.module('Songs', ['csrfModule'])
                 };
             });
 
-            body.querySelectorAll('.sermon-img-wrap').forEach(function (el) {
+            body.querySelectorAll('.sermon-img-wrap, .sermon-ppt-slide').forEach(function (el) {
                 el.style.cursor = 'pointer';
                 el.onclick = function (e) {
                     e.preventDefault();

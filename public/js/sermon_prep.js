@@ -590,6 +590,88 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     }
 
     // ──────────────────────────────────────────────────────────
+    // PPTX IMPORT
+    // ──────────────────────────────────────────────────────────
+
+    $scope.importingPptx = false;
+
+    $scope.triggerPptxImport = function () {
+        saveRange();
+        document.getElementById('sermon-pptx-input').click();
+    };
+
+    $scope.onPptxSelected = function (input) {
+        if (!input.files || input.files.length === 0) return;
+        $scope.importingPptx = true;
+        var file     = input.files[0];
+        var formData = new FormData();
+        formData.append('pptx',    file);
+        formData.append('command', 'import_pptx');
+        formData.append('_csrf_token', window._getCsrfToken ? window._getCsrfToken() : '');
+        $http.post('/ajax', formData, {
+            transformRequest: angular.identity,
+            headers: { 'Content-Type': undefined }
+        }).then(
+            function (r) {
+                $scope.importingPptx = false;
+                if (r.data && r.data.paths && r.data.paths.length) {
+                    r.data.paths.forEach(function (path) {
+                        _appendPptSlide(path);
+                    });
+                    scheduleAutoSave();
+                } else {
+                    var msg = (r.data && r.data.message) ? r.data.message : JSON.stringify(r.data);
+                    alert('Ошибка импорта: ' + msg);
+                }
+                input.value = '';
+            },
+            function (e) {
+                $scope.importingPptx = false;
+                alert('Ошибка импорта (HTTP ' + (e.status || '?') + '): ' + (e.statusText || ''));
+                input.value = '';
+            }
+        );
+    };
+
+    /**
+     * Append a PPT slide as a block-level image chip at the end of the editor.
+     * Non-editable, display-only.
+     */
+    function _appendPptSlide(path) {
+        var editor = document.getElementById('sermon-editor');
+        if (!editor) return;
+
+        var wrap = document.createElement('div');
+        wrap.className       = 'sermon-ppt-slide';
+        wrap.contentEditable = 'false';
+        wrap.setAttribute('data-image-path', path);
+
+        var img   = document.createElement('img');
+        img.src   = path;
+        img.alt   = 'Слайд';
+        img.style.cssText = 'max-width:100%; display:block; border-radius:4px;';
+
+        var removeBtn       = document.createElement('span');
+        removeBtn.className = 'sermon-img-remove';
+        removeBtn.innerHTML = '×';
+        removeBtn.onclick   = function (e) {
+            e.stopPropagation();
+            wrap.remove();
+            scheduleAutoSave();
+        };
+
+        wrap.appendChild(img);
+        wrap.appendChild(removeBtn);
+
+        // Insert at end of editor, after last child
+        editor.appendChild(wrap);
+        // Add trailing line break so cursor can be placed after it
+        var br = document.createElement('p');
+        br.innerHTML = '<br>';
+        editor.appendChild(br);
+    }
+
+    // ──────────────────────────────────────────────────────────
     // VIDEO INSERT  ◄── НОВЫЙ БЛОК
     // ──────────────────────────────────────────────────────────
 
