@@ -241,12 +241,18 @@ class Security
         return self::getRole() === 'tech';
     }
 
+    public static function isScreen(): bool
+    {
+        return self::getRole() === 'screen';
+    }
+
     private static $roleRoutes = array(
         'admin' => null,
         'leader' => array('index', 'ajax', 'leader', 'settings'),
         'musician' => array('index', 'ajax', 'musician', 'settings'),
         'preacher' => array('index', 'ajax', 'sermon_prep', 'sermon', 'settings'),
         'tech' => array('index', 'ajax', 'tech', 'text', 'text_stream', 'settings'),
+        'screen' => array('index', 'ajax', 'text', 'text_stream', 'settings'),
     );
 
     public static function canAccess(string $route): bool

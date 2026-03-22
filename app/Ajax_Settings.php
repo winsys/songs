@@ -92,7 +92,7 @@ trait Ajax_Settings
              FROM users u
              WHERE u.GROUP_ID = {$groupId}
                 OR u.ID = {$currentUserId}
-             ORDER BY FIELD(u.ROLE, 'admin', 'leader', 'musician', 'preacher', 'tech')"
+             ORDER BY FIELD(u.ROLE, 'admin', 'leader', 'musician', 'preacher', 'tech', 'screen')"
         );
 
         foreach ($users as &$u) {
@@ -155,7 +155,7 @@ trait Ajax_Settings
         $dbh    = Info::get('dbh');
         $role   = mysqli_real_escape_string($dbh, self::$args['role'] ?? '');
 
-        $allowed = ['admin', 'leader', 'musician', 'preacher', 'tech'];
+        $allowed = ['admin', 'leader', 'musician', 'preacher', 'tech', 'screen'];
         if (!in_array($role, $allowed)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid role']);
         }
@@ -177,6 +177,7 @@ trait Ajax_Settings
             'musician' => 'Музыкант',
             'preacher' => 'Проповедник',
             'tech'     => 'Техник',
+            'screen'   => 'Экраны',
         ];
         $defaultName  = $groupName . ' - ' . $roleLabels[$role];
         $defaultLogin = strtolower(preg_replace('/\s+/', '_', $groupName)) . '_' . $role;
