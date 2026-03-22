@@ -190,10 +190,7 @@
                     }
                 );
 
-                socket.addEventListener('close', function(event) {
-                    console.log('WebSocket closed, reconnecting in 2s...');
-                    setTimeout(initSocket, 2000);
-                });
+                // Reconnect is handled internally by createAuthenticatedWebSocket
             }
 
             fetchText();
