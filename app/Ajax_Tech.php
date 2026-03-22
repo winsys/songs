@@ -519,11 +519,20 @@ trait Ajax_Tech
 
         $title = mysqli_real_escape_string($dbh, self::$args['title'] ?? '');
 
-        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
-        Info::get('db')->exec(
-            "INSERT INTO current (groupId, image, text, song_name, chapter_indices, video_src, video_state)
-             VALUES ({$targetGroupId}, '__slide__', '{$html}', '{$title}', '', '', 'stopped')"
-        );
+        $db  = Info::get('db');
+        $dbh = Info::get('dbh');
+
+        $db->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
+
+        $sql = "INSERT INTO current (groupId, image, text, song_name, chapter_indices, video_src, video_state)"
+             . " VALUES ({$targetGroupId}, '__slide__', '{$html}', '{$title}', '', '', 'stopped')";
+
+        $ok = $dbh->query($sql);
+        if (!$ok) {
+            error_log('set_slide INSERT error: ' . $dbh->error);
+            return json_encode(['status' => 'error', 'message' => $dbh->error]);
+        }
+
         self::updateSocket($targetGroupId);
         return json_encode(['status' => 'ok']);
     }
