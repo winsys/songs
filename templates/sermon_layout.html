@@ -650,7 +650,7 @@
     <!-- LEFT: Notes panel -->
     <div id="notes-panel">
         <div id="notes-header">
-            <button class="btn-back" onclick="window.location.href='/index'">← Главная</button>
+            <button class="btn-back" ng-click="clearAndGoHome()">← Главная</button>
 
             <div id="notes-title-wrap">
                 <div id="notes-title">{{ currentSermon ? currentSermon.TITLE || '(без названия)' : 'Выберите проповедь' }}</div>

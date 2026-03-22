@@ -608,6 +608,21 @@ angular.module('Songs', ['csrfModule'])
             $scope.displayImageSrc = '';
         }
 
+        $scope.clearAndGoHome = function() {
+            if ($scope.selectedDisplayTarget !== null) {
+                $http({ method: 'POST', url: '/ajax', data: {
+                    command: 'clear_image',
+                    target_group_id: $scope.selectedDisplayTarget
+                }}).then(function() {
+                    window.location.href = '/index';
+                }, function() {
+                    window.location.href = '/index';
+                });
+            } else {
+                window.location.href = '/index';
+            }
+        };
+
         // ==========================================================
         // FETCH BIBLE VERSE
         // ==========================================================
