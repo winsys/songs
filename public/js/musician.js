@@ -56,24 +56,16 @@ app.controller('Musician', function ($scope, $http)
     function initSocket() {
         // [SECURITY] Use authenticated WebSocket connection
         // URL is auto-detected (wss:// for HTTPS, ws:// for HTTP)
-        const socket = window.createAuthenticatedWebSocket(
-            null, // Use default /ws endpoint
+        window.createAuthenticatedWebSocket(
+            null,
             function(data) {
-                // Handle incoming messages (only after authentication)
                 if (data.type === 'update_needed') {
                     $scope.$apply(function() {
                         $scope.checkImage();
                     });
                 }
-            },
-            function(error) {
-                console.error('WebSocket error:', error);
             }
         );
-        socket.addEventListener('close', function(event) {
-            console.log('WebSocket closed, reconnecting in 2s...');
-            setTimeout(initSocket, 2000);
-        });
     }
 
     $scope.loadPlaceholderImage();
