@@ -1423,27 +1423,33 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     };
 
     // ──────────────────────────────────────────────────────────
-    // WEBSOCKET MESSAGE HANDLER
+    // WEBSOCKET CONNECTION
     // ──────────────────────────────────────────────────────────
 
-    // Listen for WebSocket messages (setup in common.js)
-    window.addEventListener('websocket_message', function(event) {
-        var message = event.detail;
+    $scope.wsConnected = null;
 
-        if (message.type === 'access_response') {
-            // Access request response received
+    window.createAuthenticatedWebSocket(
+        null,
+        function(data) {
+            if (data.type === 'access_response') {
+                $scope.$apply(function() {
+                    if (data.data.status === 'approved') {
+                        alert('✓ Доступ одобрен: ' + data.data.target_name);
+                        loadDisplayTargets();
+                    } else if (data.data.status === 'rejected') {
+                        alert('✗ Доступ отклонен: ' + data.data.target_name);
+                    }
+                });
+            }
+        },
+        function(error) {
+            console.error('WebSocket error:', error);
+        },
+        function(connected) {
             $scope.$apply(function() {
-                var data = message.data;
-                if (data.status === 'approved') {
-                    // Show success notification
-                    alert('✓ Доступ одобрен: ' + data.target_name);
-                    // Reload display targets to include new approved group
-                    loadDisplayTargets();
-                } else if (data.status === 'rejected') {
-                    alert('✗ Доступ отклонен: ' + data.target_name);
-                }
+                $scope.wsConnected = connected;
             });
         }
-    });
+    );
 
 });
