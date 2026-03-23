@@ -1036,9 +1036,36 @@
         line-height: 32px;
         z-index: 10;
     }
+
+    /* ---- WebSocket disconnect banner -------------------------- */
+    .ws-disconnect-banner {
+        position:      fixed;
+        top:           16px;
+        left:          50%;
+        transform:     translateX(-50%);
+        z-index:       9999;
+        background:    #fff3cd;
+        border:        1px solid #ffc107;
+        color:         #856404;
+        padding:       7px 20px;
+        font-size:     13px;
+        font-weight:   600;
+        text-align:    center;
+        border-radius: 6px;
+        box-shadow:    0 2px 8px rgba(0,0,0,0.2);
+        white-space:   nowrap;
+        animation:     wsPulse 2s ease-in-out infinite;
+    }
+    @keyframes wsPulse {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.6; }
+    }
 </style>
 
 <div ng-controller="SermonPrep">
+    <div class="ws-disconnect-banner" ng-if="wsConnected === false">
+        ⚠ Нет соединения с сервером. Переподключение…
+    </div>
     <div class="prep-page-wrapper">
 
         <!-- ── Header ─────────────────────────────────────────────── -->
