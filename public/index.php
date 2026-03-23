@@ -44,5 +44,11 @@ Info::set('dbh', $database->db_handle());
 
 Security::initCsrfToken();
 
+// Expire display access approvals older than 24 hours
+$database->exec(
+    "DELETE FROM display_access_requests
+     WHERE status = 'approved' AND responded_at < NOW() - INTERVAL 24 HOUR"
+);
+
 $app = new App();
 $app->run();
