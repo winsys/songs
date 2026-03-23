@@ -1427,6 +1427,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     // ──────────────────────────────────────────────────────────
 
     $scope.wsConnected = null;
+    var wsDisconnectTimer = null;
 
     window.createAuthenticatedWebSocket(
         null,
@@ -1446,9 +1447,15 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             console.error('WebSocket error:', error);
         },
         function(connected) {
-            $scope.$apply(function() {
-                $scope.wsConnected = connected;
-            });
+            if (connected) {
+                if (wsDisconnectTimer) { clearTimeout(wsDisconnectTimer); wsDisconnectTimer = null; }
+                $scope.$apply(function() { $scope.wsConnected = true; });
+            } else {
+                wsDisconnectTimer = setTimeout(function() {
+                    wsDisconnectTimer = null;
+                    $scope.$apply(function() { $scope.wsConnected = false; });
+                }, 5000);
+            }
         }
     );
 

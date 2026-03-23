@@ -1200,9 +1200,9 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
                                 nextIdx < $scope.messageParagraphs.length &&
                                 nextIdx < $scope.msgTimecodes.length &&
                                 ct >= $scope.msgTimecodes[nextIdx];
-                            $scope.$apply(function() {
-                                $scope.msgCurrentTime = ct;
-                                if (needAdvance) {
+                            if (needAdvance) {
+                                $scope.$apply(function() {
+                                    $scope.msgCurrentTime = ct;
                                     var nextPara = $scope.messageParagraphs[nextIdx];
                                     $scope.showingMessagePara = nextPara;
                                     var title = $scope.selectedMessage ? $scope.selectedMessage.TITLE : '';
@@ -1215,8 +1215,12 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
                                         var items = panel.querySelectorAll('.bible-verse-item');
                                         if (items[nextIdx]) items[nextIdx].scrollIntoView({ block: 'nearest' });
                                     }, 50);
-                                }
-                            });
+                                });
+                            } else {
+                                $scope.$applyAsync(function() {
+                                    $scope.msgCurrentTime = ct;
+                                });
+                            }
                         });
                     }
                 }
@@ -1656,6 +1660,7 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
 
     // [SECURITY] Use authenticated WebSocket connection
     $scope.wsConnected = null; // null = ещё не подключались, true/false после первого соединения
+    var wsDisconnectTimer = null;
 
     // URL is auto-detected (wss:// for HTTPS, ws:// for HTTP)
     window.createAuthenticatedWebSocket(
@@ -1675,9 +1680,16 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
             console.error('WebSocket error:', error);
         },
         function(connected) {
-            $scope.$apply(function() {
-                $scope.wsConnected = connected;
-            });
+            if (connected) {
+                if (wsDisconnectTimer) { clearTimeout(wsDisconnectTimer); wsDisconnectTimer = null; }
+                $scope.$apply(function() { $scope.wsConnected = true; });
+            } else {
+                // Показываем баннер только если разрыв длится дольше 5 секунд
+                wsDisconnectTimer = setTimeout(function() {
+                    wsDisconnectTimer = null;
+                    $scope.$apply(function() { $scope.wsConnected = false; });
+                }, 5000);
+            }
         }
     );
 

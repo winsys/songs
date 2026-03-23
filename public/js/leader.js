@@ -239,6 +239,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
     // ==========================================================
 
     $scope.wsConnected = null;
+    var wsDisconnectTimer = null;
 
     // [SECURITY] Use authenticated WebSocket connection
     window.createAuthenticatedWebSocket(
@@ -258,9 +259,15 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
             console.error('WebSocket error:', error);
         },
         function(connected) {
-            $scope.$apply(function() {
-                $scope.wsConnected = connected;
-            });
+            if (connected) {
+                if (wsDisconnectTimer) { clearTimeout(wsDisconnectTimer); wsDisconnectTimer = null; }
+                $scope.$apply(function() { $scope.wsConnected = true; });
+            } else {
+                wsDisconnectTimer = setTimeout(function() {
+                    wsDisconnectTimer = null;
+                    $scope.$apply(function() { $scope.wsConnected = false; });
+                }, 5000);
+            }
         }
     );
 
