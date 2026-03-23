@@ -1,4 +1,4 @@
-app.controller('Tech', function ($scope, $http, $timeout, SongsService)
+app.controller('Tech', function ($scope, $http, $timeout, $interval, SongsService)
 {
     // ── Songs mode state ──────────────────────────────────────
     $scope.listId = 1;
@@ -43,6 +43,7 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
     $scope.msgTimecodes     = [];      // array of seconds (floats)
     $scope.msgCurrentTime   = 0;      // current audio position (seconds) for display
     var msgAudio            = null;    // HTMLAudioElement (lazy init)
+    var msgTimerInterval    = null;    // $interval handle for timer display
 
     function parseMsgTimecodes(raw) {
         if (!raw) return [];
@@ -1193,16 +1194,14 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
                             $scope.$apply(function() { $scope.msgAudioPlaying = false; });
                         });
                         msgAudio.addEventListener('timeupdate', function() {
+                            if (!$scope.msgAudioPlaying || $scope.msgCalibrating) return;
                             var ct = msgAudio.currentTime;
                             var curIdx  = $scope.messageParagraphs.indexOf($scope.showingMessagePara);
                             var nextIdx = curIdx + 1;
-                            var needAdvance = !$scope.msgCalibrating && $scope.msgAudioPlaying &&
-                                nextIdx < $scope.messageParagraphs.length &&
+                            if (nextIdx < $scope.messageParagraphs.length &&
                                 nextIdx < $scope.msgTimecodes.length &&
-                                ct >= $scope.msgTimecodes[nextIdx];
-                            if (needAdvance) {
+                                ct >= $scope.msgTimecodes[nextIdx]) {
                                 $scope.$apply(function() {
-                                    $scope.msgCurrentTime = ct;
                                     var nextPara = $scope.messageParagraphs[nextIdx];
                                     $scope.showingMessagePara = nextPara;
                                     var title = $scope.selectedMessage ? $scope.selectedMessage.TITLE : '';
@@ -1215,10 +1214,6 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
                                         var items = panel.querySelectorAll('.bible-verse-item');
                                         if (items[nextIdx]) items[nextIdx].scrollIntoView({ block: 'nearest' });
                                     }, 50);
-                                });
-                            } else {
-                                $scope.$applyAsync(function() {
-                                    $scope.msgCurrentTime = ct;
                                 });
                             }
                         });
@@ -1297,6 +1292,7 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
         if ($scope.msgAudioPlaying) {
             msgAudio.pause();
             $scope.msgAudioPlaying = false;
+            if (msgTimerInterval) { $interval.cancel(msgTimerInterval); msgTimerInterval = null; }
         } else {
             // Начать с таймкода текущего абзаца (или с начала)
             var idx = $scope.messageParagraphs.indexOf($scope.showingMessagePara);
@@ -1305,6 +1301,10 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
             }
             msgAudio.play();
             $scope.msgAudioPlaying = true;
+            // Обновляем таймер раз в 500мс — без лишних digest-циклов
+            msgTimerInterval = $interval(function() {
+                $scope.msgCurrentTime = msgAudio ? msgAudio.currentTime : 0;
+            }, 500);
         }
     };
 
@@ -1314,6 +1314,7 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
         msgAudio.currentTime = 0;
         $scope.msgAudioPlaying = false;
         $scope.msgCurrentTime  = 0;
+        if (msgTimerInterval) { $interval.cancel(msgTimerInterval); msgTimerInterval = null; }
         // Снять активный абзац с экрана
         if ($scope.showingMessagePara !== null) {
             $scope.showingMessagePara = null;
@@ -1682,12 +1683,12 @@ app.controller('Tech', function ($scope, $http, $timeout, SongsService)
         function(connected) {
             if (connected) {
                 if (wsDisconnectTimer) { clearTimeout(wsDisconnectTimer); wsDisconnectTimer = null; }
-                $scope.$apply(function() { $scope.wsConnected = true; });
+                $scope.$applyAsync(function() { $scope.wsConnected = true; });
             } else {
                 // Показываем баннер только если разрыв длится дольше 5 секунд
                 wsDisconnectTimer = setTimeout(function() {
                     wsDisconnectTimer = null;
-                    $scope.$apply(function() { $scope.wsConnected = false; });
+                    $scope.$applyAsync(function() { $scope.wsConnected = false; });
                 }, 5000);
             }
         }

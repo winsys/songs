@@ -261,11 +261,11 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
         function(connected) {
             if (connected) {
                 if (wsDisconnectTimer) { clearTimeout(wsDisconnectTimer); wsDisconnectTimer = null; }
-                $scope.$apply(function() { $scope.wsConnected = true; });
+                $scope.$applyAsync(function() { $scope.wsConnected = true; });
             } else {
                 wsDisconnectTimer = setTimeout(function() {
                     wsDisconnectTimer = null;
-                    $scope.$apply(function() { $scope.wsConnected = false; });
+                    $scope.$applyAsync(function() { $scope.wsConnected = false; });
                 }, 5000);
             }
         }
