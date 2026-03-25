@@ -1895,7 +1895,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, SongsServic
                     state.song_name.match(/\d+:\d+/);
                 var isRestoringMessage = !isRestoringBible && state.text && state.song_name;
                 var isRestoringSong = !isRestoringBible && !isRestoringMessage &&
-                    state.image && state.image.match(/\/images\/\d+\/\d+\.jpg/);
+                    state.image && state.image.match(/\/images\/\d+\/.+\.jpg/);
                 var isRestoringMedia = !isRestoringBible && !isRestoringMessage && !isRestoringSong &&
                     (state.image || state.video_src);
 
@@ -1917,8 +1917,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, SongsServic
                 }
 
                 // Restore song if image path matches song image pattern
-                if (state.image && state.image.match(/\/images\/\d+\/\d+\.jpg/)) {
-                    var matches = state.image.match(/\/images\/(\d+)\/(\d+)\.jpg/);
+                if (state.image && state.image.match(/\/images\/\d+\/.+\.jpg/)) {
+                    var matches = state.image.match(/\/images\/(\d+)\/(.+)\.jpg/);
                     if (matches) {
                         var listId = parseInt(matches[1]);
                         var songNum = matches[2];
