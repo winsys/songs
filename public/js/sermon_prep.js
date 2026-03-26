@@ -68,6 +68,11 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.modalVideoSrcTrusted   = null;
     $scope.modalVideoEmbedSrc     = null;
 
+    // ── Prep editor font size ────────────────────────────────
+    var PREP_FONT_MIN = 10;
+    var PREP_FONT_MAX = 22;
+    $scope.prepFontSize = 13;
+
     // ── Upload loading state ─────────────────────────────────
     $scope.uploadingImage = false;
     $scope.uploadingVideo = false;
@@ -157,6 +162,22 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         root.style.setProperty('--sp-msg-color',      mc.ref);
         root.style.setProperty('--sp-msg-hover-bg',   mc.hoverBg);
     }
+    function applyPrepFontSize(size) {
+        $scope.prepFontSize = size;
+        document.documentElement.style.setProperty('--sp-base-font', size + 'px');
+    }
+
+    var _savePrepFontTimer = null;
+    $scope.changePrepFontSize = function (delta) {
+        var next = $scope.prepFontSize + delta;
+        if (next < PREP_FONT_MIN || next > PREP_FONT_MAX) return;
+        applyPrepFontSize(next);
+        if (_savePrepFontTimer) clearTimeout(_savePrepFontTimer);
+        _savePrepFontTimer = setTimeout(function() {
+            $http.post('/ajax', { command: 'save_sermon_notes_settings', sermon_prep_font_size: $scope.prepFontSize });
+        }, 600);
+    };
+
     function loadPrepUserSettings() {
         $http({ method: "POST", url: "/ajax", data: { command: 'get_user_settings' } }).then(
             function(r) {
@@ -165,6 +186,8 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                         r.data.sermon_bible_base_color || '#1565c0',
                         r.data.sermon_msg_base_color   || '#6a1b9a'
                     );
+                    var sz = parseInt(r.data.sermon_prep_font_size, 10) || 13;
+                    applyPrepFontSize(Math.max(PREP_FONT_MIN, Math.min(PREP_FONT_MAX, sz)));
                 }
             }
         );

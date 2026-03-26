@@ -242,7 +242,8 @@ CREATE TABLE IF NOT EXISTS `user_settings` (
                                                `sermon_notes_bg_color` varchar(20) NOT NULL DEFAULT '#2b2b2b' COMMENT 'Left panel (notes) background colour',
                                                `sermon_bible_base_color` varchar(20) NOT NULL DEFAULT '#7ec8f8' COMMENT 'Base (header text) colour for Bible-verse chips',
                                                `sermon_msg_base_color` varchar(20) NOT NULL DEFAULT '#ce93d8' COMMENT 'Base (header text) colour for Epistle/Message chips',
-                                               `sermon_notes_font_size` tinyint(4) NOT NULL DEFAULT '13',
+                                               `sermon_prep_font_size` tinyint(4) NOT NULL DEFAULT '13' COMMENT 'Base font size in px for sermon prep editor (10-22)',
+                                               `sermon_notes_font_size` tinyint(4) NOT NULL DEFAULT '100' COMMENT 'Display scale percentage for sermon presentation mode (50-300)',
                                                `sermon_scale_chips` tinyint(4) NOT NULL DEFAULT '0',
                                                `slide_bg_color` varchar(20) NOT NULL DEFAULT '#1a237e' COMMENT 'Background colour for sermon slides on main screen',
                                                PRIMARY KEY (`group_id`)

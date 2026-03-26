@@ -205,19 +205,26 @@ trait Ajax_Sermon
 
     private static function save_sermon_notes_settings()
     {
-        $userId   = (int)$_SESSION['curGroupId'];
-        $fontSize = isset(self::$args['sermon_notes_font_size']) ? intval(self::$args['sermon_notes_font_size']) : 100;
-        $fontSize = max(50, min(300, $fontSize));
-        $scale    = isset(self::$args['sermon_scale_chips'])     ? intval(self::$args['sermon_scale_chips'])     : 0;
+        $userId       = (int)$_SESSION['curGroupId'];
+        $prepFontSize = isset(self::$args['sermon_prep_font_size'])  ? intval(self::$args['sermon_prep_font_size'])  : null;
+        $fontSize     = isset(self::$args['sermon_notes_font_size']) ? intval(self::$args['sermon_notes_font_size']) : 100;
+        $fontSize     = max(50, min(300, $fontSize));
+        $scale        = isset(self::$args['sermon_scale_chips'])     ? intval(self::$args['sermon_scale_chips'])     : 0;
 
         $existing = Info::get('db')->get("SELECT group_id FROM user_settings WHERE group_id = {$userId}");
         if ($existing) {
+            $setPrepFont = '';
+            if ($prepFontSize !== null) {
+                $prepFontSize = max(10, min(22, $prepFontSize));
+                $setPrepFont  = "sermon_prep_font_size = {$prepFontSize},";
+            }
             Info::get('db')->exec("
-            UPDATE user_settings
-            SET sermon_notes_font_size = {$fontSize},
-                sermon_scale_chips     = {$scale}
-            WHERE group_id = {$userId}
-        ");
+                UPDATE user_settings
+                SET {$setPrepFont}
+                    sermon_notes_font_size = {$fontSize},
+                    sermon_scale_chips     = {$scale}
+                WHERE group_id = {$userId}
+            ");
         }
         return json_encode(['status' => 'success']);
     }
