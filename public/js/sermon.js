@@ -39,11 +39,10 @@ angular.module('Songs', ['csrfModule'])
         var userSettings = null;
         var activeEl     = null;
 
-        var scaleChips   = false;
-        var NOTES_FONT_MIN = 50;   // % минимум
-        var NOTES_FONT_MAX = 300;  // % максимум
+        var NOTES_FONT_MIN  = 50;   // % минимум
+        var NOTES_FONT_MAX  = 300;  // % максимум
         var NOTES_FONT_STEP = 10;  // шаг
-        var NOTES_FONT_BASE = 13;  // базовый размер в pt (из редактора)
+        var notesFontBasePx = 13;  // базовый размер в px (из sermon_prep_font_size)
         $scope.notesFontSize = 100; // % по умолчанию
 
         // ==========================================================
@@ -409,10 +408,11 @@ angular.module('Songs', ['csrfModule'])
             if (titleEl) {
                 titleEl.style.color = autoTextColor;
             }
-            // Restore notes font size and chip scaling from settings
+            // Restore base font size and scale percentage from settings
+            var rawBase = parseInt(userSettings.sermon_prep_font_size, 10) || 13;
+            notesFontBasePx = Math.max(10, Math.min(22, rawBase));
             var raw = parseInt(userSettings.sermon_notes_font_size) || 100;
             $scope.notesFontSize = raw < 50 ? 100 : raw;
-            scaleChips = !!parseInt(userSettings.sermon_scale_chips || 0);
             applyNotesFontSize();
         }
 
@@ -1001,9 +1001,11 @@ angular.module('Songs', ['csrfModule'])
         function applyNotesFontSize() {
             var scale = $scope.notesFontSize; // проценты
             var root  = document.documentElement;
-            var notesSize = (13 * scale / 100).toFixed(1) + 'px';  // было 'pt'
+            var notesSize = (notesFontBasePx * scale / 100).toFixed(1) + 'px';
 
-            root.style.setProperty('--sn-notes-font', notesSize);
+            root.style.setProperty('--sn-notes-font',      notesSize);
+            root.style.setProperty('--sn-chip-font',       notesSize);
+            root.style.setProperty('--sn-chip-verse-font', notesSize);
 
             var notesBody = document.getElementById('notes-body');
             if (notesBody) {
@@ -1016,14 +1018,6 @@ angular.module('Songs', ['csrfModule'])
                         el.style.fontSize = (base * scale / 100).toFixed(1) + 'px';
                     }
                 });
-            }
-
-            if (scaleChips) {
-                root.style.setProperty('--sn-chip-font',       (10  * scale / 100).toFixed(1) + 'px');  // было 'pt'
-                root.style.setProperty('--sn-chip-verse-font', (9.5 * scale / 100).toFixed(1) + 'px');  // было 'pt'
-            } else {
-                root.style.setProperty('--sn-chip-font',       '10px');   // было '10pt'
-                root.style.setProperty('--sn-chip-verse-font', '9.5px');  // было '9.5pt'
             }
         }
 
@@ -1039,8 +1033,7 @@ angular.module('Songs', ['csrfModule'])
             // Сохраняем немедленно — значение простое, debounce не нужен
             $http({ method: "POST", url: "/ajax", data: {
                     command: 'save_sermon_notes_settings',
-                    sermon_notes_font_size: $scope.notesFontSize,
-                    sermon_scale_chips: scaleChips ? 1 : 0
+                    sermon_notes_font_size: $scope.notesFontSize
                 }});
         };
 
