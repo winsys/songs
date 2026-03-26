@@ -180,8 +180,6 @@
                     null, // Use default /ws endpoint
                     function(data) {
                         // Handle incoming messages (only after authentication)
-                        console.log('WebSocket message received:', data);
-
                         if (data.type === 'update_needed') {
                             $scope.$apply(function() {
                                 fetchText();
@@ -190,10 +188,12 @@
                     },
                     function(error) {
                         console.error('WebSocket error:', error);
+                    },
+                    function(connected) {
+                        // On reconnect — fetch current state to catch missed notifications
+                        if (connected) $scope.$apply(function() { fetchText(); });
                     }
                 );
-
-                // Reconnect is handled internally by createAuthenticatedWebSocket
             }
 
             fetchText();

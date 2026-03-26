@@ -587,10 +587,12 @@
                     },
                     function(error) {
                         console.error('WebSocket error:', error);
+                    },
+                    function(connected) {
+                        // On reconnect — fetch current state to catch missed notifications
+                        if (connected) schedFetch();
                     }
                 );
-
-                // Reconnect is handled internally by createAuthenticatedWebSocket
             }
 
             angular.element(window).on('load resize', adjustTextSize);
