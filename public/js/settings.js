@@ -1,3 +1,4 @@
+
 app.controller('Settings', function ($scope, $http)
 {
     // Permissions - loadinng from server
