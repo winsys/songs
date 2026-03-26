@@ -565,14 +565,30 @@
         border-radius: 8px;
         overflow: hidden;
         background: #fafafa;
+        box-sizing: border-box;
     }
     .sermon-img-wrap:hover { border-color: #1a6db5; }
     .sermon-img-thumb {
         display: block;
-        max-width: 200px;
-        max-height: 150px;
-        object-fit: cover;
+        width: 100%;
+        height: auto;
+        object-fit: contain;
     }
+    /* Default small size for notes text; inside a slide fills the width */
+    :not(.sermon-slide-inner) > .sermon-img-wrap { max-width: 200px; }
+    .img-resize-handle {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 14px;
+        height: 14px;
+        background: rgba(26,109,181,0.75);
+        border-radius: 3px 0 3px 0;
+        cursor: se-resize;
+        display: none;
+        z-index: 10;
+    }
+    .sermon-img-wrap:hover .img-resize-handle { display: block; }
     .sermon-img-remove {
         position: absolute;
         top: 3px;
@@ -1501,7 +1517,7 @@
         <!-- Fullscreen image modal -->
         <div id="sermon-img-modal" ng-click="closeImgModal()">
             <span class="close-modal">×</span>
-            <img ng-src="{{ modalImgSrc }}" ng-click="$event.stopPropagation()" />
+            <img ng-src="{{ modalImgSrc }}" />
         </div>
 
         <!-- Video preview modal -->
