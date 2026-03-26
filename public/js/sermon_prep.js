@@ -577,6 +577,32 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             }
         );
     };
+    function _attachImgResize(span) {
+        var handle = span.querySelector('.img-resize-handle');
+        if (!handle) return;
+        handle.addEventListener('mousedown', function (e) {
+            e.stopPropagation();
+            e.preventDefault();
+            var startX  = e.clientX;
+            var startW  = span.offsetWidth;
+            function onMove(ev) {
+                var refEl  = span.closest('.sermon-slide-inner') || span.parentElement;
+                var refW   = refEl ? refEl.clientWidth : startW;
+                var newW   = Math.max(40, startW + (ev.clientX - startX));
+                var pct    = Math.round(Math.min(100, (newW / refW) * 100));
+                span.style.width = pct + '%';
+                span.setAttribute('data-width-pct', String(pct));
+            }
+            function onUp() {
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+                scheduleAutoSave();
+            }
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+    }
+
     function insertImageNode(path) {
         var span = document.createElement('span');
         span.className       = 'sermon-img-wrap';
@@ -606,8 +632,14 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             });
         };
 
+        var resizeHandle = document.createElement('span');
+        resizeHandle.className       = 'img-resize-handle';
+        resizeHandle.contentEditable = 'false';
+
         span.appendChild(img);
         span.appendChild(removeBtn);
+        span.appendChild(resizeHandle);
+        _attachImgResize(span);
         makeDraggable(span);
         insertNodeAtCursor(span);
     }
@@ -825,6 +857,11 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.closeVideoModal = function () {
         document.getElementById('sermon-video-modal').classList.remove('open');
         $scope.modalVideoSrc = '';
+    };
+
+    $scope.closeImgModal = function () {
+        document.getElementById('sermon-img-modal').classList.remove('open');
+        $scope.modalImgSrc = '';
     };
 
     // ──────────────────────────────────────────────────────────
@@ -1069,7 +1106,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             span.ondblclick = function (e) { e.stopPropagation(); openChipEditor(span); };
         });
 
-        // Images — re-attach remove + click
+        // Images — re-attach remove + click + resize
         editorEl.querySelectorAll('.sermon-img-wrap').forEach(function (span) {
             var path      = span.getAttribute('data-image-path');
             var removeBtn = span.querySelector('.sermon-img-remove');
@@ -1086,6 +1123,14 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     document.getElementById('sermon-img-modal').classList.add('open');
                 });
             };
+            // Add resize handle if not present
+            if (!span.querySelector('.img-resize-handle')) {
+                var h = document.createElement('span');
+                h.className = 'img-resize-handle';
+                h.contentEditable = 'false';
+                span.appendChild(h);
+            }
+            _attachImgResize(span);
             makeDraggable(span);
         });
 

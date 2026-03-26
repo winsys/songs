@@ -573,6 +573,13 @@
         #display-slide-content p { margin: 0.25em 0; }
         #display-slide-content b, #display-slide-content strong,
         #display-slide-content i, #display-slide-content em { color: inherit; }
+        /* Images inside slide on right panel — respect inline width%, fill wrap */
+        #display-slide-content .sermon-img-wrap { display: inline-block; vertical-align: top; box-sizing: border-box; overflow: hidden; }
+        #display-slide-content .sermon-img-wrap img,
+        #display-slide-content .sermon-img-thumb { display: block; width: 100%; height: auto; max-width: none; max-height: none; }
+        #display-slide-content .img-resize-handle,
+        #display-slide-content .sermon-img-remove { display: none !important; }
+
         /* Chip layout on right panel — colors come from inlined styles (natural colors) */
         #display-slide-content .bible-cite,
         #display-slide-content .message-cite {

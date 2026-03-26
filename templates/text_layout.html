@@ -101,7 +101,15 @@
             font-size: 52px;
             line-height: 1.45;
             overflow: hidden;
+            text-align: left;
         }
+        /* Images inside slide on main screen — respect inline width%, fill wrap */
+        #slide-content .sermon-img-wrap { display: inline-block; vertical-align: top; box-sizing: border-box; overflow: hidden; }
+        #slide-content .sermon-img-wrap img,
+        #slide-content .sermon-img-thumb { display: block; width: 100%; height: auto; max-width: none; max-height: none; }
+        #slide-content .img-resize-handle,
+        #slide-content .sermon-img-remove { display: none !important; }
+
         /* Chip layout on main screen — colors come from inlined styles (natural colors) */
         #slide-content .bible-cite,
         #slide-content .message-cite {
