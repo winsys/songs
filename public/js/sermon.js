@@ -1088,14 +1088,19 @@ angular.module('Songs', ['csrfModule'])
                 // Text color contrast
                 var bg = $scope.displaySlideBg || '#1a237e';
                 content.style.color = getContrastColor(bg);
-                // Auto-fit
-                var maxFs = 32, minFs = 10;
-                content.style.fontSize = maxFs + 'px';
-                while (maxFs > minFs &&
-                       (content.scrollHeight > content.clientHeight ||
-                        content.scrollWidth  > content.clientWidth)) {
-                    maxFs -= 1;
-                    content.style.fontSize = maxFs + 'px';
+                // Auto-fit: grow to fill, then shrink if overflowed
+                var maxFs = 32, minFs = 10, fs = minFs;
+                content.style.fontSize = fs + 'px';
+                while (fs < maxFs &&
+                       content.scrollHeight <= content.clientHeight &&
+                       content.scrollWidth  <= content.clientWidth) {
+                    fs++;
+                    content.style.fontSize = fs + 'px';
+                }
+                if (content.scrollHeight > content.clientHeight ||
+                    content.scrollWidth  > content.clientWidth) {
+                    fs = Math.max(minFs, fs - 1);
+                    content.style.fontSize = fs + 'px';
                 }
             }, 50);
         });

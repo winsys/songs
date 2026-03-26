@@ -324,13 +324,18 @@
 
             function _fitSlideContent() {
                 if (!_slideContent || !_slideOverlay) return;
-                var maxFs = 52, minFs = 12;
-                _slideContent.style.fontSize = maxFs + 'px';
-                while (maxFs > minFs &&
-                       (_slideContent.scrollHeight > _slideContent.clientHeight ||
-                        _slideContent.scrollWidth  > _slideContent.clientWidth)) {
-                    maxFs -= 1;
-                    _slideContent.style.fontSize = maxFs + 'px';
+                var maxFs = 52, minFs = 12, fs = minFs;
+                _slideContent.style.fontSize = fs + 'px';
+                while (fs < maxFs &&
+                       _slideContent.scrollHeight <= _slideContent.clientHeight &&
+                       _slideContent.scrollWidth  <= _slideContent.clientWidth) {
+                    fs++;
+                    _slideContent.style.fontSize = fs + 'px';
+                }
+                if (_slideContent.scrollHeight > _slideContent.clientHeight ||
+                    _slideContent.scrollWidth  > _slideContent.clientWidth) {
+                    fs = Math.max(minFs, fs - 1);
+                    _slideContent.style.fontSize = fs + 'px';
                 }
             }
 
