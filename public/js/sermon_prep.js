@@ -264,27 +264,39 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
 
             // Paste image from clipboard → auto-upload
             editorEl.addEventListener('paste', function (e) {
-                var items = e.clipboardData && e.clipboardData.items;
-                if (!items) return;
-                var imageItem = null;
-                for (var i = 0; i < items.length; i++) {
-                    if (items[i].type.indexOf('image/') === 0) {
-                        imageItem = items[i];
-                        break;
+                var cd = e.clipboardData;
+                if (!cd) return;
+
+                // Ищем image-blob: сначала в items, потом в files
+                var blob = null;
+                if (cd.items) {
+                    for (var i = 0; i < cd.items.length; i++) {
+                        if (cd.items[i].type.indexOf('image/') === 0) {
+                            blob = cd.items[i].getAsFile();
+                            break;
+                        }
                     }
                 }
-                if (!imageItem) return;
+                if (!blob && cd.files) {
+                    for (var i = 0; i < cd.files.length; i++) {
+                        if (cd.files[i].type.indexOf('image/') === 0) {
+                            blob = cd.files[i];
+                            break;
+                        }
+                    }
+                }
+                if (!blob) return;
+
                 e.preventDefault();
                 saveRange();
-                var blob = imageItem.getAsFile();
-                var ext  = blob.type === 'image/png' ? '.png'
-                         : blob.type === 'image/jpeg' ? '.jpg'
-                         : blob.type === 'image/gif' ? '.gif'
-                         : blob.type === 'image/webp' ? '.webp' : '.png';
-                var file = new File([blob], 'paste' + ext, { type: blob.type });
+
+                var ext = blob.type === 'image/jpeg' ? '.jpg'
+                        : blob.type === 'image/gif'  ? '.gif'
+                        : blob.type === 'image/webp' ? '.webp' : '.png';
+                var file = new File([blob], 'paste' + ext, { type: blob.type || 'image/png' });
                 var formData = new FormData();
-                formData.append('image',   file);
-                formData.append('command', 'upload_sermon_image');
+                formData.append('image',       file);
+                formData.append('command',     'upload_sermon_image');
                 formData.append('_csrf_token', window._getCsrfToken ? window._getCsrfToken() : '');
                 $scope.$apply(function () { $scope.uploadingImage = true; });
                 $http.post('/ajax', formData, {
@@ -299,9 +311,9 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                             alert('Ошибка загрузки: ' + ((r.data && r.data.message) || JSON.stringify(r.data)));
                         }
                     },
-                    function (e) {
+                    function (err) {
                         $scope.uploadingImage = false;
-                        alert('Ошибка загрузки (HTTP ' + (e.status || '?') + ')');
+                        alert('Ошибка загрузки (HTTP ' + (err.status || '?') + ')');
                     }
                 );
             });
