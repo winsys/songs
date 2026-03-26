@@ -262,6 +262,50 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 });
             }
 
+            // Paste image from clipboard → auto-upload
+            editorEl.addEventListener('paste', function (e) {
+                var items = e.clipboardData && e.clipboardData.items;
+                if (!items) return;
+                var imageItem = null;
+                for (var i = 0; i < items.length; i++) {
+                    if (items[i].type.indexOf('image/') === 0) {
+                        imageItem = items[i];
+                        break;
+                    }
+                }
+                if (!imageItem) return;
+                e.preventDefault();
+                saveRange();
+                var blob = imageItem.getAsFile();
+                var ext  = blob.type === 'image/png' ? '.png'
+                         : blob.type === 'image/jpeg' ? '.jpg'
+                         : blob.type === 'image/gif' ? '.gif'
+                         : blob.type === 'image/webp' ? '.webp' : '.png';
+                var file = new File([blob], 'paste' + ext, { type: blob.type });
+                var formData = new FormData();
+                formData.append('image',   file);
+                formData.append('command', 'upload_sermon_image');
+                formData.append('_csrf_token', window._getCsrfToken ? window._getCsrfToken() : '');
+                $scope.$apply(function () { $scope.uploadingImage = true; });
+                $http.post('/ajax', formData, {
+                    transformRequest: angular.identity,
+                    headers: { 'Content-Type': undefined }
+                }).then(
+                    function (r) {
+                        $scope.uploadingImage = false;
+                        if (r.data && r.data.path) {
+                            insertImageNode(r.data.path);
+                        } else {
+                            alert('Ошибка загрузки: ' + ((r.data && r.data.message) || JSON.stringify(r.data)));
+                        }
+                    },
+                    function (e) {
+                        $scope.uploadingImage = false;
+                        alert('Ошибка загрузки (HTTP ' + (e.status || '?') + ')');
+                    }
+                );
+            });
+
             // Setup drag and drop for chips
             setupEditorDropZone();
             // Инициализация редактора чипов
