@@ -2,13 +2,15 @@
  * sermon_prep.js  — v2 (video support)
  * AngularJS controller for the Sermon Preparation mode.
  *
- * ИЗМЕНЕНИЯ vs v1:
+ * ИЗМЕНЕНИЯ  vs v1:
  *  + $sce добавлен к инжекции
  *  + video state variables
  *  + insertVideoNode()
  *  + $scope.toggleVideoPanel(), insertVideoUrl(), triggerVideoUpload(), onVideoFileSelected()
  *  + attachEditorHandlers() дополнен .sermon-video-wrap
+ *
  */
+
 app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
 
     // ── Sermon data ─────────────────────────────────────────
