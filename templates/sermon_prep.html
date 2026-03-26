@@ -574,7 +574,8 @@
         height: auto;
         object-fit: contain;
     }
-    /* Default small size for notes text; inside a slide fills the width */
+    /* In notes text — thumbnail; inside a slide — fills the full slide width */
+    .sermon-slide-inner .sermon-img-wrap { display: block; width: 100%; }
     :not(.sermon-slide-inner) > .sermon-img-wrap { max-width: 200px; }
     .img-resize-handle {
         position: absolute;

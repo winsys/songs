@@ -103,8 +103,8 @@
             overflow: hidden;
             text-align: left;
         }
-        /* Images inside slide on main screen — respect inline width%, fill wrap */
-        #slide-content .sermon-img-wrap { display: inline-block; vertical-align: top; box-sizing: border-box; overflow: hidden; }
+        /* Images inside slide on main screen — fill full width, respect inline resize % */
+        #slide-content .sermon-img-wrap { display: block; width: 100%; box-sizing: border-box; overflow: hidden; }
         #slide-content .sermon-img-wrap img,
         #slide-content .sermon-img-thumb { display: block; width: 100%; height: auto; max-width: none; max-height: none; }
         #slide-content .img-resize-handle,
@@ -470,9 +470,22 @@
             }
 
 
+            var _fetchSeq   = 0;  // discards stale responses
+            var _fetchTimer = null; // debounce timer
+
+            function schedFetch() {
+                if (_fetchTimer) clearTimeout(_fetchTimer);
+                _fetchTimer = setTimeout(function() {
+                    _fetchTimer = null;
+                    fetchText();
+                }, 40);
+            }
+
             function fetchText() {
+                var seq = ++_fetchSeq;
                 $http.post('/ajax', { command: 'get_image' })
                     .then(function(response) {
+                        if (seq !== _fetchSeq) return; // stale response — discard
 
                         // Пустой ответ — сбросить всё
                         if (Array.isArray(response.data) && response.data.length === 0) {
@@ -569,9 +582,7 @@
                     function(data) {
                         // Handle incoming messages (only after authentication)
                         if (data.type === 'update_needed') {
-                            $scope.$apply(function() {
-                                fetchText();
-                            });
+                            schedFetch();
                         }
                     },
                     function(error) {
