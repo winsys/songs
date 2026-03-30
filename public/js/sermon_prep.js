@@ -224,7 +224,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             if (node.nodeType !== 1) return '';
             var tag = node.tagName.toLowerCase();
             if (tag === 'script' || tag === 'style') return '';
-            var styleAttr = node.getAttribute('style') || '';
+            var styleAttr = (node.getAttribute('style') || '').replace(/\bbackground(?:-color)?\s*:[^;]*(;|$)/gi, '');
             var isBold      = /font-weight\s*:\s*(bold|[6-9]\d\d)/i.test(styleAttr) || tag === 'b' || tag === 'strong';
             var isItalic    = /font-style\s*:\s*italic/i.test(styleAttr)             || tag === 'i' || tag === 'em';
             var isUnderline = /text-decoration[^;]*underline/i.test(styleAttr)       || tag === 'u';
