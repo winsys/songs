@@ -745,24 +745,27 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 '</style></head><body>' +
                 '<div id="ph"><h1>' + title + '</h1>' + (date ? '<p>' + date + '</p>' : '') + '</div>' +
                 clone.outerHTML +
-                '<script>window.onload = function () { window.print(); };<\/script>' +
                 '</body></html>';
 
             var iframe = document.createElement('iframe');
             iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none;visibility:hidden;';
             document.body.appendChild(iframe);
 
+            // doc.write() is synchronous for same-origin — iframe is ready immediately after doc.close().
+            // Calling print() here keeps us inside the original user gesture context.
             var doc = iframe.contentDocument || iframe.contentWindow.document;
             doc.open();
             doc.write(html);
             doc.close();
 
-            // Remove iframe after print dialog closes (or after timeout as fallback)
+            iframe.contentWindow.focus();
+            iframe.contentWindow.print();
+
             setTimeout(function () {
                 if (iframe.parentNode) { iframe.parentNode.removeChild(iframe); }
-            }, 30000);
+            }, 60000);
         };
-
+        
         // УНИВЕРСАЛЬНОЕ ПРАВИЛО для всех спец-блоков
         turndownService.addRule('keep-special-wrappers', {
             filter: function (node) {
