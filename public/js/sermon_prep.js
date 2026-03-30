@@ -703,6 +703,20 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             bulletListMarker: '-'
         });
 
+        /**
+         * Export sermon notes to PDF via browser print dialog.
+         * The print layout is defined in @media print CSS in sermon_prep.html.
+         */
+        $scope.exportToPdf = function () {
+            // Pass title and date to the hidden print header
+            var titleEl = document.getElementById('sermon-print-title');
+            var dateEl  = document.getElementById('sermon-print-date');
+            if (titleEl) titleEl.textContent = $scope.sermon.title || 'Проповедь';
+            if (dateEl)  dateEl.textContent  = $scope.sermon.date  || '';
+            window.print();
+        };
+
+
         // УНИВЕРСАЛЬНОЕ ПРАВИЛО для всех спец-блоков
         turndownService.addRule('keep-special-wrappers', {
             filter: function (node) {
