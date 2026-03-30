@@ -1108,12 +1108,117 @@
         0%, 100% { opacity: 1; }
         50%       { opacity: 0.6; }
     }
+
+    /* ── Print header (скрыт на экране, виден при печати) ─────── */
+    #sermon-print-header {
+        display: none;
+    }
+
+    /* ── @media print ──────────────────────────────────────────── */
+    @media print {
+        /* Скрыть весь интерфейс */
+        .prep-header,
+        .editor-toolbar,
+        .prep-left-panel,
+        .video-insert-wrap,
+        .btn-insert-msg,
+        #sermon-img-modal,
+        #chip-editor-overlay,
+        .color-dropdown {
+            display: none !important;
+        }
+
+        /* Убрать фоны, тени, скроллы */
+        body, .prep-page-wrapper { background: #fff !important; }
+        .prep-page-wrapper { max-width: 100%; padding: 0; }
+
+        /* Показать print-заголовок */
+        #sermon-print-header {
+            display: block;
+            margin-bottom: 18pt;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 8pt;
+        }
+        #sermon-print-title {
+            font-size: 18pt;
+            font-weight: 700;
+            margin: 0 0 4pt;
+            color: #000;
+        }
+        #sermon-print-date {
+            font-size: 10pt;
+            color: #555;
+            margin: 0;
+        }
+
+        /* Редактор: снять ограничения высоты и border */
+        #sermon-editor {
+            min-height: unset  !important;
+            max-height: unset  !important;
+            height: auto       !important;
+            overflow: visible  !important;
+            border: none       !important;
+            border-radius: 0   !important;
+            padding: 0         !important;
+            font-size: 11pt    !important;
+            line-height: 1.6   !important;
+            color: #000        !important;
+        }
+
+        /* Масштаб заголовков для печати */
+        #sermon-editor h1 { font-size: 18pt !important; }
+        #sermon-editor h2 { font-size: 15pt !important; }
+        #sermon-editor h3 { font-size: 13pt !important; }
+        #sermon-editor h4 { font-size: 11pt !important; font-style: italic; }
+
+        /* Чипы — убрать UI-кнопки, адаптировать под печать */
+        .cite-remove,
+        .sermon-img-remove,
+        .svw-del,
+        .img-resize-handle  { display: none !important; }
+
+        .bible-cite,
+        .message-cite {
+            border: 1px solid #bbb !important;
+            background: #f8f8f8  !important;
+            color: #000           !important;
+            page-break-inside: avoid;
+        }
+
+        /* Слайды и изображения */
+        .sermon-slide {
+            border: 1px solid #bbb !important;
+            page-break-inside: avoid;
+        }
+        .sermon-slide-del,
+        .slide-color-input { display: none !important; }
+
+        .sermon-img-wrap img { max-width: 100% !important; }
+        .sermon-ppt-slide img { max-width: 100% !important; }
+
+        /* Видео-чипы — показать как текст */
+        .sermon-video-wrap {
+            border: 1px dashed #aaa !important;
+            background: #f5f5f5    !important;
+            color: #555            !important;
+        }
+
+        /* Разрывы страниц */
+        p, blockquote { orphans: 3; widows: 3; }
+        h1, h2, h3 { page-break-after: avoid; }
+    }
 </style>
 
 <div ng-controller="SermonPrep">
     <div class="ws-disconnect-banner" ng-if="wsConnected === false">
         ⚠ Нет соединения с сервером. Переподключение…
     </div>
+    <!-- Visible only during printing -->
+    <div id="sermon-print-header">
+        <h1 id="sermon-print-title"></h1>
+        <p  id="sermon-print-date"></p>
+    </div>
+
     <div class="prep-page-wrapper">
 
         <!-- ── Header ─────────────────────────────────────────────── -->
@@ -1155,6 +1260,9 @@
                     </button>
                     <ul class="dropdown-menu dropdown-menu-right" style="min-width:150px;">
                         <li><a href ng-click="$event.preventDefault(); exportToMarkdown()">⬇️ Экспорт .md</a></li>
+                    </ul>
+                    <ul class="dropdown-menu dropdown-menu-right" style="min-width:150px;">
+                        <li><a href ng-click="$event.preventDefault(); exportToPdf()">🖨️ Экспорт PDF</a></li>
                     </ul>
                 </div>
                 <span class="save-status" ng-class="{'saved': saveStatus === 'saved', 'saving': saveStatus === 'saving'}"
@@ -1610,5 +1718,5 @@
 </div><!-- /ng-controller -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.2.1/turndown.min.js" integrity="sha512-8Po+00YF9yNfZmNwpwzsqKsM1lbkTACbs/TueHeY4x9l6mjWiIu5ONZ8LJ1kbL1FTOqIV25Uyaq1d1+T9cNSmA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="/js/sermon_chip_editor.min.js?v=8"></script>
-<script src="/js/sermon_prep.min.js?v=8" type="text/javascript"></script>
+<script src="/js/sermon_chip_editor.min.js?v=9"></script>
+<script src="/js/sermon_prep.min.js?v=9" type="text/javascript"></script>
