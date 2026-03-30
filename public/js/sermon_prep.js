@@ -213,6 +213,59 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     }
 
     // ──────────────────────────────────────────────────────────
+    // PASTE CLEANUP
+    // ──────────────────────────────────────────────────────────
+
+    function cleanPastedHtml(html) {
+        var tmp = document.createElement('div');
+        tmp.innerHTML = html;
+        function nodeToClean(node) {
+            if (node.nodeType === 3) return node.textContent.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+            if (node.nodeType !== 1) return '';
+            var tag = node.tagName.toLowerCase();
+            if (tag === 'script' || tag === 'style') return '';
+            var styleAttr = node.getAttribute('style') || '';
+            var isBold      = /font-weight\s*:\s*(bold|[6-9]\d\d)/i.test(styleAttr) || tag === 'b' || tag === 'strong';
+            var isItalic    = /font-style\s*:\s*italic/i.test(styleAttr)             || tag === 'i' || tag === 'em';
+            var isUnderline = /text-decoration[^;]*underline/i.test(styleAttr)       || tag === 'u';
+            var colorMatch  = styleAttr.match(/(?:^|;)\s*color\s*:\s*([^;]+)/i);
+            var color = colorMatch ? colorMatch[1].trim() : null;
+            if (color && /^(#0{3,6}|rgb\(\s*0\s*,\s*0\s*,\s*0\s*\)|black|windowtext)$/i.test(color)) color = null;
+            var isBlock = /^(p|div|h[1-6]|blockquote|pre)$/.test(tag);
+            var inner = '';
+            node.childNodes.forEach(function (c) { inner += nodeToClean(c); });
+            if (tag === 'br') return '<br>';
+            if (tag === 'li') inner = inner + '<br>';
+            if (isUnderline) inner = '<u>'    + inner + '</u>';
+            if (isItalic)    inner = '<i>'    + inner + '</i>';
+            if (isBold)      inner = '<b>'    + inner + '</b>';
+            if (color)       inner = '<span style="color:' + color + '">' + inner + '</span>';
+            if (isBlock)     inner = inner + '<br>';
+            return inner;
+        }
+        return nodeToClean(tmp);
+    }
+
+    function attachPasteCleanup(el) {
+        el.addEventListener('paste', function (e) {
+            var cd = e.clipboardData;
+            if (!cd) return;
+            // Skip if clipboard has an image blob (let the image-upload handler run)
+            if (cd.items) {
+                for (var i = 0; i < cd.items.length; i++) {
+                    if (cd.items[i].type.indexOf('image/') === 0) return;
+                }
+            }
+            var html = cd.getData('text/html');
+            if (!html) return;
+            e.preventDefault();
+            var cleaned = cleanPastedHtml(html);
+            document.execCommand('insertHTML', false, cleaned);
+            scheduleAutoSave();
+        });
+    }
+
+    // ──────────────────────────────────────────────────────────
     // INIT
     // ──────────────────────────────────────────────────────────
 
@@ -263,6 +316,8 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     $scope.$apply(function () { $scope.onVideoSelected(videoInput); });
                 });
             }
+
+            attachPasteCleanup(editorEl);
 
             // Paste image from clipboard → auto-upload
             editorEl.addEventListener('paste', function (e) {
@@ -1105,6 +1160,9 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         }
 
         if (pick) pick.oninput = _onPickChange;
+
+        var inner = wrap.querySelector('.sermon-slide-inner');
+        if (inner) attachPasteCleanup(inner);
     }
 
     // ──────────────────────────────────────────────────────────
