@@ -387,6 +387,35 @@
     }
     .toolbar-btn:hover { background: #f0f4f8; border-color: #c8d0db; }
     .toolbar-btn.active { background: #1a6db5; color: #fff; border-color: #1a6db5; }
+    /* ── Style/heading dropdown ───────────────────────────────── */
+    .toolbar-select {
+        height: 30px;
+        box-sizing: border-box;
+        padding: 0 6px;
+        font-size: 12px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 7px;
+        background: #fff;
+        color: #2c3e50;
+        cursor: pointer;
+        line-height: 1;
+    }
+    .toolbar-select:hover { border-color: #c8d0db; }
+
+    /* ── Heading sizes scale with A−/A+ (em relative to --sp-base-font) ── */
+    #sermon-editor h1 { font-size: 2.0em;  font-weight: 700; margin: 0.55em 0 0.25em; line-height: 1.2; }
+    #sermon-editor h2 { font-size: 1.65em; font-weight: 700; margin: 0.45em 0 0.2em;  line-height: 1.25; }
+    #sermon-editor h3 { font-size: 1.35em; font-weight: 600; margin: 0.4em  0 0.18em; line-height: 1.3; }
+    #sermon-editor h4 { font-size: 1.15em; font-weight: 600; margin: 0.3em  0 0.15em; }
+    #sermon-editor h5 { font-size: 1.0em;  font-weight: 600; margin: 0.25em 0 0.1em;  }
+    #sermon-editor h6 { font-size: 0.9em;  font-weight: 600; margin: 0.2em  0 0.1em;  color: #555; }
+    #sermon-editor blockquote {
+        border-left: 3px solid #dee2e6;
+        padding-left: 12px;
+        margin: 0.5em 0 0.5em 8px;
+        color: #6c757d;
+        font-style: italic;
+    }
     .toolbar-sep {
         width: 1px;
         height: 24px;
@@ -1380,10 +1409,9 @@
                     <!-- Заголовки и Цитата -->
                     <div class="toolbar-sep"></div>
                     <select class="toolbar-select"
-                            style="padding: 2px; font-size: 12px; border: 1px solid #ddd; border-radius: 4px;"
                             ng-change="execFmt('formatBlock', headingModel); headingModel=''"
                             ng-model="headingModel">
-                        <option value="" disabled selected>Заголовок</option>
+                        <option value="" disabled selected>Стиль</option>
                         <option value="H1">Заголовок 1</option>
                         <option value="H2">Заголовок 2</option>
                         <option value="H3">Заголовок 3</option>
@@ -1582,5 +1610,5 @@
 </div><!-- /ng-controller -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.2.1/turndown.min.js" integrity="sha512-8Po+00YF9yNfZmNwpwzsqKsM1lbkTACbs/TueHeY4x9l6mjWiIu5ONZ8LJ1kbL1FTOqIV25Uyaq1d1+T9cNSmA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="/js/sermon_chip_editor.min.js?v=7"></script>
-<script src="/js/sermon_prep.min.js?v=7" type="text/javascript"></script>
+<script src="/js/sermon_chip_editor.min.js?v=8"></script>
+<script src="/js/sermon_prep.min.js?v=8" type="text/javascript"></script>
