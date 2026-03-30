@@ -310,7 +310,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 var sel = window.getSelection();
                 if (!sel || !sel.isCollapsed || sel.rangeCount === 0) return;
 
-                // Walk up from cursor to find .sermon-slide-inner
+                // Walk up from cursor node to find .sermon-slide-inner
                 var node = sel.anchorNode;
                 var slideInner = null;
                 while (node && node !== editorEl) {
@@ -321,12 +321,12 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     }
                     node = node.parentNode;
                 }
-                if (!slideInner) return;                     // not inside a slide
-                if (!_isCursorAtEndOf(slideInner)) return;  // not at end
+                if (!slideInner) return;
+                if (!_isCursorAtEndOf(slideInner)) return;
 
                 e.preventDefault();
 
-                // Find parent .sermon-slide
+                // Find the nearest .sermon-slide ancestor
                 var slideBlock = slideInner.parentNode;
                 while (slideBlock && slideBlock !== editorEl) {
                     if (slideBlock.classList &&
@@ -335,13 +335,19 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 }
                 if (!slideBlock || slideBlock === editorEl) return;
 
-                // Reuse existing plain sibling or create new <p>
+                // Skip browser-injected text nodes between blocks
                 var next = slideBlock.nextSibling;
-                var targetPara;
+                while (next && next.nodeType === 3) {
+                    next = next.nextSibling;
+                }
+
                 var skipClasses = ['sermon-slide', 'sermon-img-wrap',
                     'sermon-ppt-slide', 'sermon-video-wrap'];
+                var targetPara;
                 if (next && next.nodeType === 1 &&
-                    !skipClasses.some(function (c) { return next.classList.contains(c); })) {
+                    !skipClasses.some(function (c) {
+                        return next.classList.contains(c);
+                    })) {
                     targetPara = next;
                 } else {
                     targetPara = document.createElement('p');
@@ -351,14 +357,18 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     scheduleAutoSave();
                 }
 
-                // Place cursor at start of that paragraph
-                editorEl.focus();
-                var r = document.createRange();
-                r.setStart(targetPara, 0);
-                r.collapse(true);
-                sel.removeAllRanges();
-                sel.addRange(r);
-                lastRange = r.cloneRange();
+                // Move focus out of the nested contenteditable, then set cursor
+                var capturedPara = targetPara;
+                setTimeout(function () {
+                    editorEl.focus();
+                    var r = document.createRange();
+                    r.setStart(capturedPara, 0);
+                    r.collapse(true);
+                    var s = window.getSelection();
+                    s.removeAllRanges();
+                    s.addRange(r);
+                    lastRange = r.cloneRange();
+                }, 0);
             });
 
             var fileInput = document.getElementById('sermon-image-input');
@@ -472,19 +482,22 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     // ──────────────────────────────────────────────────────────
 
     /**
-     * Returns true when the cursor sits exactly at the last character
-     * of `container` (zero-width spaces are ignored).
+     * Returns true when the collapsed cursor sits at the very end of `container`.
+     * Uses compareBoundaryPoints — immune to nbsp / zero-width chars in toString().
      */
     function _isCursorAtEndOf(container) {
         var sel = window.getSelection();
         if (!sel || !sel.isCollapsed || sel.rangeCount === 0) return false;
-        var range = sel.getRangeAt(0);
-        var testRange = document.createRange();
-        testRange.setStart(range.startContainer, range.startOffset);
+        var cur = sel.getRangeAt(0);
+        // Build a range collapsed to the very end of container
+        var endRange = document.createRange();
+        endRange.selectNodeContents(container);
+        endRange.collapse(false); // → collapse to end
         try {
-            testRange.setEnd(container, container.childNodes.length);
+            // START_TO_START: compare cur.start vs endRange.start (= container end)
+            // >= 0 means cursor is at or past the container's end boundary
+            return cur.compareBoundaryPoints(Range.START_TO_START, endRange) >= 0;
         } catch (e) { return false; }
-        return testRange.toString().replace(/\u200B/g, '').trim() === '';
     }
 
     // ──────────────────────────────────────────────────────────
