@@ -747,25 +747,22 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 clone.outerHTML +
                 '</body></html>';
 
-            var iframe = document.createElement('iframe');
-            iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none;visibility:hidden;';
-            document.body.appendChild(iframe);
+            // window.open() called synchronously inside the click handler —
+            // browser treats it as trusted and won't block it.
+            var win = window.open('', '_blank');
+            if (!win) {
+                alert('Разрешите всплывающие окна для этого сайта и попробуйте снова.');
+                return;
+            }
+            win.document.write(html);
+            win.document.close();
 
-            // doc.write() is synchronous for same-origin — iframe is ready immediately after doc.close().
-            // Calling print() here keeps us inside the original user gesture context.
-            var doc = iframe.contentDocument || iframe.contentWindow.document;
-            doc.open();
-            doc.write(html);
-            doc.close();
-
-            iframe.contentWindow.focus();
-            iframe.contentWindow.print();
-
-            setTimeout(function () {
-                if (iframe.parentNode) { iframe.parentNode.removeChild(iframe); }
-            }, 60000);
+            // print() runs inside the new window's own context, closes after dialog
+            win.onload = function () { win.print(); };
+            win.print();
         };
-        
+
+
         // УНИВЕРСАЛЬНОЕ ПРАВИЛО для всех спец-блоков
         turndownService.addRule('keep-special-wrappers', {
             filter: function (node) {
