@@ -1135,9 +1135,14 @@
             </div>
             <div class="col-xs-12 col-sm-4" style="position:relative;">
                 <label class="prep-field-label">&nbsp;</label>
-                <button class="btn-list-toggle" style="width:100%;" ng-click="showSermonList = !showSermonList">
-                    📋 Список проповедей
-                </button>
+                <div style="display:flex; gap:6px;">
+                    <button class="btn-list-toggle" style="flex:1;" ng-click="showSermonList = !showSermonList">
+                        📋 Список проповедей
+                    </button>
+                    <button class="btn-list-toggle" style="flex:1;" ng-click="newSermon()">
+                        ✏️ Новая проповедь
+                    </button>
+                </div>
                 <div class="sermons-sidebar" ng-show="showSermonList"
                      style="position:absolute; top:100%; left:15px; right:15px; z-index:200; max-height:320px; overflow-y:auto; margin-top:2px; box-shadow:0 6px 24px rgba(0,0,0,0.16);">
                     <div class="sermons-sidebar-title">
@@ -1353,6 +1358,11 @@
 
                 <!-- Toolbar -->
                 <div class="editor-toolbar">
+                    <button class="toolbar-btn" title="Отменить (Ctrl+Z)"
+                            ng-mousedown="$event.preventDefault(); execFmt('undo')">↩</button>
+                    <button class="toolbar-btn" title="Повторить (Ctrl+Y)"
+                            ng-mousedown="$event.preventDefault(); execFmt('redo')">↪</button>
+                    <div class="toolbar-sep"></div>
                     <button class="toolbar-btn" title="Жирный (Ctrl+B)"
                             ng-mousedown="$event.preventDefault(); execFmt('bold')"><b>B</b></button>
                     <button class="toolbar-btn" title="Подчёркнутый (Ctrl+U)"
