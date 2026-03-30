@@ -708,12 +708,96 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
          * The print layout is defined in @media print CSS in sermon_prep.html.
          */
         $scope.exportToPdf = function () {
-            // Pass title and date to the hidden print header
-            var titleEl = document.getElementById('sermon-print-title');
-            var dateEl  = document.getElementById('sermon-print-date');
-            if (titleEl) titleEl.textContent = $scope.sermon.title || 'Проповедь';
-            if (dateEl)  dateEl.textContent  = $scope.sermon.date  || '';
-            window.print();
+            var editor = document.getElementById('sermon-editor');
+            if (!editor) return;
+
+            // Clone editor content, strip UI-only controls
+            var clone = editor.cloneNode(true);
+            clone.querySelectorAll([
+                '.cite-remove',
+                '.sermon-img-remove',
+                '.svw-del',
+                '.img-resize-handle',
+                '.sermon-slide-del',
+                '.slide-color-input'
+            ].join(',')).forEach(function (el) { el.remove(); });
+
+            var title = $scope.sermon.title || 'Проповедь';
+            var date  = $scope.sermon.date  || '';
+
+            var html = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
+                '<title>' + title + '</title>' +
+                '<style>' +
+                'body {' +
+                'font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;' +
+                'font-size: 11pt; line-height: 1.65; color: #000;' +
+                'margin: 18mm 16mm 18mm;' +
+                '}' +
+                '#ph { margin-bottom: 14pt; padding-bottom: 8pt; border-bottom: 1px solid #ccc; }' +
+                '#ph h1 { font-size: 18pt; font-weight: 700; margin: 0 0 3pt; }' +
+                '#ph p  { font-size: 10pt; color: #666; margin: 0; }' +
+                'h1 { font-size: 18pt; font-weight: 700; margin: 12pt 0 5pt; }' +
+                'h2 { font-size: 15pt; font-weight: 700; margin: 10pt 0 4pt; }' +
+                'h3 { font-size: 13pt; font-weight: 600; margin:  8pt 0 3pt; }' +
+                'h4 { font-size: 11pt; font-weight: 600; font-style: italic; margin: 6pt 0 2pt; }' +
+                'h5, h6 { font-size: 11pt; margin: 4pt 0 2pt; }' +
+                'p  { margin: 0 0 5pt; }' +
+                'blockquote {' +
+                'border-left: 3px solid #ccc; padding-left: 10pt;' +
+                'margin: 6pt 0 6pt 6pt; color: #555; font-style: italic;' +
+                '}' +
+                /* chips */
+                '.bible-cite, .message-cite {' +
+                'display: inline-block; border: 1px solid #bbb;' +
+                'background: #f5f5f5; border-radius: 5px;' +
+                'padding: 2px 8px; margin: 2px 3px; page-break-inside: avoid;' +
+                'font-size: 0.9em;' +
+                '}' +
+                '.cite-ref { font-weight: 700; margin-right: 5px; }' +
+                /* slides */
+                '.sermon-slide {' +
+                'border: 1px solid #bbb; border-radius: 6px;' +
+                'margin: 8pt 0; page-break-inside: avoid; overflow: hidden;' +
+                '}' +
+                '.sermon-slide-header {' +
+                'padding: 4px 10px; font-size: 8pt;' +
+                'font-weight: 700; text-transform: uppercase;' +
+                '}' +
+                '.sermon-slide-inner { padding: 6px 10px; }' +
+                '.sermon-group-header { display: none; }' +
+                /* images */
+                '.sermon-img-wrap img, .sermon-ppt-slide img { max-width: 100%; height: auto; display: block; }' +
+                /* video chips — show as label only */
+                '.sermon-video-wrap {' +
+                'display: inline-block; border: 1px dashed #aaa;' +
+                'background: #f9f9f9; border-radius: 4px;' +
+                'padding: 2px 8px; color: #666; font-size: 9pt;' +
+                '}' +
+                '.svw-icon { margin-right: 4px; }' +
+                '</style></head><body>' +
+                '<div id="ph"><h1>' + title + '</h1>' +
+                (date ? '<p>' + date + '</p>' : '') + '</div>' +
+                clone.outerHTML +
+                '</body></html>';
+
+            var iframe = document.createElement('iframe');
+            iframe.style.cssText = 'position:fixed;top:-9999px;left:-9999px;width:210mm;height:297mm;border:none;visibility:hidden;';
+            document.body.appendChild(iframe);
+
+            var doc = iframe.contentDocument || iframe.contentWindow.document;
+            doc.open();
+            doc.write(html);
+            doc.close();
+
+            iframe.onload = function () {
+                setTimeout(function () {
+                    iframe.contentWindow.focus();
+                    iframe.contentWindow.print();
+                    setTimeout(function () {
+                        document.body.removeChild(iframe);
+                    }, 1000);
+                }, 200);
+            };
         };
 
 
