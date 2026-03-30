@@ -303,6 +303,64 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             });
             editorEl.addEventListener('input', function () { scheduleAutoSave(); });
 
+            // ── Exit styled block on ArrowRight / ArrowDown when at end ──────
+            editorEl.addEventListener('keydown', function (e) {
+                if (e.key !== 'ArrowRight' && e.key !== 'ArrowDown') return;
+
+                var sel = window.getSelection();
+                if (!sel || !sel.isCollapsed || sel.rangeCount === 0) return;
+
+                // Walk up from cursor to find .sermon-slide-inner
+                var node = sel.anchorNode;
+                var slideInner = null;
+                while (node && node !== editorEl) {
+                    if (node.nodeType === 1 &&
+                        node.classList.contains('sermon-slide-inner')) {
+                        slideInner = node;
+                        break;
+                    }
+                    node = node.parentNode;
+                }
+                if (!slideInner) return;                     // not inside a slide
+                if (!_isCursorAtEndOf(slideInner)) return;  // not at end
+
+                e.preventDefault();
+
+                // Find parent .sermon-slide
+                var slideBlock = slideInner.parentNode;
+                while (slideBlock && slideBlock !== editorEl) {
+                    if (slideBlock.classList &&
+                        slideBlock.classList.contains('sermon-slide')) break;
+                    slideBlock = slideBlock.parentNode;
+                }
+                if (!slideBlock || slideBlock === editorEl) return;
+
+                // Reuse existing plain sibling or create new <p>
+                var next = slideBlock.nextSibling;
+                var targetPara;
+                var skipClasses = ['sermon-slide', 'sermon-img-wrap',
+                    'sermon-ppt-slide', 'sermon-video-wrap'];
+                if (next && next.nodeType === 1 &&
+                    !skipClasses.some(function (c) { return next.classList.contains(c); })) {
+                    targetPara = next;
+                } else {
+                    targetPara = document.createElement('p');
+                    targetPara.innerHTML = '<br>';
+                    slideBlock.parentNode.insertBefore(targetPara,
+                        slideBlock.nextSibling);
+                    scheduleAutoSave();
+                }
+
+                // Place cursor at start of that paragraph
+                editorEl.focus();
+                var r = document.createRange();
+                r.setStart(targetPara, 0);
+                r.collapse(true);
+                sel.removeAllRanges();
+                sel.addRange(r);
+                lastRange = r.cloneRange();
+            });
+
             var fileInput = document.getElementById('sermon-image-input');
             if (fileInput) {
                 fileInput.addEventListener('change', function () {
@@ -407,6 +465,26 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             sel.removeAllRanges();
             sel.addRange(lastRange);
         }
+    }
+
+    // ──────────────────────────────────────────────────────────
+    // UTILITY: check if collapsed cursor is at the very end of a node
+    // ──────────────────────────────────────────────────────────
+
+    /**
+     * Returns true when the cursor sits exactly at the last character
+     * of `container` (zero-width spaces are ignored).
+     */
+    function _isCursorAtEndOf(container) {
+        var sel = window.getSelection();
+        if (!sel || !sel.isCollapsed || sel.rangeCount === 0) return false;
+        var range = sel.getRangeAt(0);
+        var testRange = document.createRange();
+        testRange.setStart(range.startContainer, range.startOffset);
+        try {
+            testRange.setEnd(container, container.childNodes.length);
+        } catch (e) { return false; }
+        return testRange.toString().replace(/\u200B/g, '').trim() === '';
     }
 
     // ──────────────────────────────────────────────────────────
