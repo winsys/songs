@@ -462,17 +462,23 @@
     }
 
     /* ---- Notes mode: full-width modal ------------------------ */
-    #list-popup.list-popup-notes-mode .modal-dialog {
-        width:     98vw;
-        max-width: 98vw;
-        margin:    8px auto;
+    #list-popup .modal-dialog {
+        width:     100%;
+        max-width: 1100px;
+        margin:    10px auto;
     }
-    #list-popup.list-popup-notes-mode .modal-content {
+    @media (max-width: 1100px) {
+        #list-popup .modal-dialog {
+            width: 96vw;
+            max-width: 96vw;
+        }
+    }
+    #list-popup .modal-content {
         max-height: 96vh;
         border-radius: 10px;
     }
-    #list-popup.list-popup-notes-mode .modal-body {
-        padding: 8px;
+    #list-popup .modal-body {
+        padding: 15px;
     }
 
     /* Toggle button in modal header */
@@ -559,33 +565,6 @@
     }
     .notes-song-card:hover .notes-card-hint { opacity: 1; }
 
-    /* ---- Notes modal (for single song notes) ---------------- */
-    #song-notes-modal {
-        display: none;
-        position: fixed;
-        z-index: 9999;
-        top: 0; left: 0;
-        width: 100%; height: 100%;
-        background: rgba(0,0,0,0.88);
-        justify-content: center;
-        align-items: center;
-    }
-    #song-notes-modal.open { display: flex; }
-    #song-notes-modal img {
-        max-width: 95vw;
-        max-height: 95vh;
-        object-fit: contain;
-        border-radius: 8px;
-    }
-    #song-notes-modal .close-modal {
-        position: fixed;
-        top: 18px; right: 24px;
-        color: #fff;
-        font-size: 30pt;
-        cursor: pointer;
-        z-index: 10000;
-        line-height: 1;
-    }
 
     .btn-select {
         padding: 8px 16px;
@@ -830,9 +809,14 @@
                             </div>
                             <div class="col-xs-5 col-s-5 col-md-5 text-right">
                                 <button class="btn btn-lg" style="font-size: 16pt; background: #ebf3fb; color: #1a6db5; border: none;"
-                                        ng-click="showSongNotes(song)">Ноты</button>
+                                        ng-click="toggleInlineNotes(song)">Ноты</button>
                                 <button class="btn btn-lg" style="font-size: 16pt; background: #1a6db5; color: #fff; border: none;"
                                         ng-click="addSongToFavorites(song.ID)">Выбрать</button>
+                            </div>
+                            <div class="col-xs-12" ng-if="song.showInlineNotes" style="margin-top: 10px;">
+                                <img ng-src="/images/{{ song.LISTID }}/{{ song.NUM }}.jpg"
+                                     style="width: 100%; border-radius: 8px; border: 1px solid #dee2e6;"
+                                     onerror="this.style.display='none'">
                             </div>
                         </div>
 
@@ -873,13 +857,7 @@
 
     </div><!-- /ng-controller -->
 
-    <!-- Fullscreen image modal for notes -->
-    <div id="song-notes-modal" ng-click="closeNotesModal()">
-        <span class="close-modal">×</span>
-        <img ng-src="{{ modalImgSrc }}" />
-    </div>
-
-<script src="/js/leader.min.js?v=8" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=9" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}
