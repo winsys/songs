@@ -6,7 +6,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
     $scope.fullScreen = false;
     $scope.visibleSongLists = [];
     $scope.langList = [];
-    $scope.modalImgSrc = '';    // путь к картинке для модалки
+    $scope.modalImgSrc = '';    // путь к картинке для модалки (deprecated)
 
     $scope.loadSongLists = function () {
         SongsService.getVisibleSongLists().then(function (lists) {
@@ -142,14 +142,8 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
         jQuery("#list-popup .modal").modal(flag ? 'show' : 'hide');
     };
 
-    $scope.showSongNotes = function(song) {
-        $scope.modalImgSrc = '/images/' + song.LISTID + '/' + song.NUM + '.jpg';
-        document.getElementById('song-notes-modal').classList.add('open');
-    };
-
-    $scope.closeNotesModal = function() {
-        document.getElementById('song-notes-modal').classList.remove('open');
-        $scope.modalImgSrc = '';
+    $scope.toggleInlineNotes = function(song) {
+        song.showInlineNotes = !song.showInlineNotes;
     };
 
     $scope.addSongToFavorites = function( songId ){
