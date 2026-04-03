@@ -559,6 +559,34 @@
     }
     .notes-song-card:hover .notes-card-hint { opacity: 1; }
 
+    /* ---- Notes modal (for single song notes) ---------------- */
+    #song-notes-modal {
+        display: none;
+        position: fixed;
+        z-index: 9999;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
+        background: rgba(0,0,0,0.88);
+        justify-content: center;
+        align-items: center;
+    }
+    #song-notes-modal.open { display: flex; }
+    #song-notes-modal img {
+        max-width: 95vw;
+        max-height: 95vh;
+        object-fit: contain;
+        border-radius: 8px;
+    }
+    #song-notes-modal .close-modal {
+        position: fixed;
+        top: 18px; right: 24px;
+        color: #fff;
+        font-size: 30pt;
+        cursor: pointer;
+        z-index: 10000;
+        line-height: 1;
+    }
+
     .btn-select {
         padding: 8px 16px;
         border-radius: 8px;
@@ -773,18 +801,13 @@
     <!-- ============================================================
          Modal: full song list
          ============================================================ -->
-    <div id="list-popup" ng-class="{'list-popup-notes-mode': showNotes}">
+    <div id="list-popup">
         <div class="modal fade list-popup" role="dialog">
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header" style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #e8edf2; position:sticky; top:0; background:#fff; z-index:10;">
                         <div style="display:flex; align-items:center; gap:10px;">
                             <span style="font-size:14px; font-weight:600; color:#2c3e50;">Список песен</span>
-                            <button class="notes-toggle-btn"
-                                    ng-class="{'notes-toggle-active': showNotes}"
-                                    ng-click="toggleNotesMode()">
-                                🎼 Показывать ноты
-                            </button>
                         </div>
                         <button type="button" data-dismiss="modal"
                                 style="border:none; background:#f4f5f7; color:#5a6272; border-radius:8px; padding:6px 14px; font-size:13px; cursor:pointer; font-weight:600;">
@@ -793,12 +816,11 @@
                     </div>
                     <div class="modal-body">
 
-                        <!-- ── Обычный режим ─────────────────────────────── -->
-                        <div ng-if="!showNotes"
-                             class="row"
+                        <!-- ── Список песен ─────────────────────────────── -->
+                        <div class="row"
                              style="padding-top: 10px; padding-bottom: 10px; border-bottom: #204d74 solid 1px"
                              ng-repeat="song in songList">
-                            <div class="col-xs-9 col-s-9 col-md-9" style="font-size: 16pt">
+                            <div class="col-xs-7 col-s-7 col-md-7" style="font-size: 16pt">
                                 {{ song.dispName }}
                                 <span class="song-lang-badges" style="margin-left: 6px; vertical-align: middle;">
                                     <span class="lang-badge"
@@ -806,34 +828,12 @@
                                           ng-if="song['hasText_' + lang.code] == '1'">{{lang.label}}</span>
                                 </span>
                             </div>
-                            <div class="col-xs-3 col-s-3 col-md-3">
-                                <button class="btn btn-lg" style="font-size: 16pt"
+                            <div class="col-xs-5 col-s-5 col-md-5 text-right">
+                                <button class="btn btn-lg" style="font-size: 16pt; background: #ebf3fb; color: #1a6db5; border: none;"
+                                        ng-click="showSongNotes(song)">Ноты</button>
+                                <button class="btn btn-lg" style="font-size: 16pt; background: #1a6db5; color: #fff; border: none;"
                                         ng-click="addSongToFavorites(song.ID)">Выбрать</button>
                             </div>
-                        </div>
-
-                        <!-- ── Режим «Ноты»: карточка во всю ширину ──────── -->
-                        <div ng-if="showNotes"
-                             class="notes-song-card"
-                             ng-repeat="song in songList">
-                            <!-- Заголовок -->
-                            <div class="notes-song-title">
-                                {{ song.dispName }}
-                                <span class="song-lang-badges">
-                                    <span class="lang-badge"
-                                          ng-repeat="lang in langList"
-                                          ng-if="song['hasText_' + lang.code] == '1'">{{lang.label}}</span>
-                                </span>
-                            </div>
-                            <!-- Изображение с нотами -->
-                            <img class="notes-song-img"
-                                 ng-src="/images/{{ song.LISTID }}/{{ song.NUM }}.jpg"
-                                 onerror="this.style.display='none'">
-                            <!-- Кнопка «Выбрать» поверх всей карточки -->
-                            <button class="notes-select-overlay"
-                                    title="Выбрать"
-                                    ng-click="addSongToFavorites(song.ID)"></button>
-                            <span class="notes-card-hint">Выбрать</span>
                         </div>
 
                     </div>
@@ -871,7 +871,13 @@
         </div>
     </div>
 
-</div><!-- /ng-controller -->
+    </div><!-- /ng-controller -->
+
+    <!-- Fullscreen image modal for notes -->
+    <div id="song-notes-modal" ng-click="closeNotesModal()">
+        <span class="close-modal">×</span>
+        <img ng-src="{{ modalImgSrc }}" />
+    </div>
 
 <script src="/js/leader.min.js?v=7" type="text/javascript"></script>
 
