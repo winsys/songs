@@ -547,13 +547,7 @@ trait Ajax_Tech
      */
     private static function get_standard_wallpapers()
     {
-        $userId = (int)$_SESSION['curUserId'];
-
-        // Проверка прав администратора (роль 'admin')
-        $userRow = Info::get('db')->get(
-            "SELECT ROLE FROM users WHERE ID = {$userId}"
-        );
-        $isAdmin = ($userRow && strtolower($userRow['ROLE']) === 'admin');
+        $isAdmin = Security::isAdmin() || Security::isLeader();
 
         $wallpapers = Info::get('db')->select(
             "SELECT id, name, src FROM standard_wallpapers ORDER BY id DESC"
@@ -580,6 +574,11 @@ trait Ajax_Tech
             return json_encode(['status' => 'error', 'message' => 'Name and src required']);
         }
 
+        // Проверка прав администратора или лидера
+        if (!Security::isAdmin() && !Security::isLeader()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+
         // Проверка на дубликаты
         $exists = Info::get('db')->get(
             "SELECT id FROM standard_wallpapers WHERE src = '{$src}'"
@@ -596,19 +595,15 @@ trait Ajax_Tech
     }
 
     /**
-     * Удалить заставку из списка стандартных (только администратор).
+     * Удалить заставку из списка стандартных (только администратор или лидер).
      * Params: id
      */
     private static function delete_wallpaper()
     {
-        $userId = (int)$_SESSION['curUserId'];
         $id = (int)self::$args['id'];
 
-        // Проверка прав администратора (роль 'admin')
-        $userRow = Info::get('db')->get(
-            "SELECT ROLE FROM users WHERE ID = {$userId}"
-        );
-        if (!$userRow || strtolower($userRow['ROLE']) !== 'admin') {
+        // Проверка прав администратора или лидера
+        if (!Security::isAdmin() && !Security::isLeader()) {
             return json_encode(['status' => 'error', 'message' => 'Access denied']);
         }
 
