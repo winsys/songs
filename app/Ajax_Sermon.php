@@ -6,15 +6,43 @@
  */
 trait Ajax_Sermon
 {
+    private static function preacherSeesAll(): bool
+    {
+        if (!Security::isPreacher()) return false;
+        $curUserId = isset($_SESSION['curUserId']) ? (int)$_SESSION['curUserId'] : 0;
+        if ($curUserId <= 0) return true;
+        $row = Info::get('db')->get(
+            "SELECT id FROM user_google_accounts WHERE user_id = {$curUserId} LIMIT 1"
+        );
+        if ($row) return false;
+        // Legacy GOOGLE_ID field fallback
+        $row2 = Info::get('db')->get(
+            "SELECT ID FROM users WHERE ID = {$curUserId} AND GOOGLE_ID IS NOT NULL AND GOOGLE_ID != '' LIMIT 1"
+        );
+        return !$row2;
+    }
+
     private static function get_sermon_list()
     {
         $userId = (int)$_SESSION['curGroupId'];
-        $list = Info::get('db')->select(
-            "SELECT ID, TITLE, SERMON_DATE, UPDATED_AT
-             FROM sermons
-             WHERE USER_ID = {$userId}
-             ORDER BY SERMON_DATE DESC, UPDATED_AT DESC"
-        );
+        if (self::preacherSeesAll()) {
+            $list = Info::get('db')->select(
+                "SELECT s.ID, s.TITLE, s.SERMON_DATE, s.UPDATED_AT, s.USER_ID,
+                        CASE WHEN s.USER_ID = {$userId} THEN NULL
+                             ELSE COALESCE(us.display_name, CONCAT('Группа #', s.USER_ID))
+                        END AS OWNER_NAME
+                 FROM sermons s
+                 LEFT JOIN user_settings us ON us.group_id = s.USER_ID
+                 ORDER BY s.SERMON_DATE DESC, s.UPDATED_AT DESC"
+            );
+        } else {
+            $list = Info::get('db')->select(
+                "SELECT ID, TITLE, SERMON_DATE, UPDATED_AT
+                 FROM sermons
+                 WHERE USER_ID = {$userId}
+                 ORDER BY SERMON_DATE DESC, UPDATED_AT DESC"
+            );
+        }
         return json_encode($list);
     }
 
@@ -22,12 +50,21 @@ trait Ajax_Sermon
     {
         $userId   = (int)$_SESSION['curGroupId'];
         $sermonId = (int)self::$args['id'];
-        $list = Info::get('db')->select(
-            "SELECT ID, TITLE, SERMON_DATE, CONTENT
-             FROM sermons
-             WHERE ID = {$sermonId} AND USER_ID = {$userId}
-             LIMIT 1"
-        );
+        if (self::preacherSeesAll()) {
+            $list = Info::get('db')->select(
+                "SELECT ID, TITLE, SERMON_DATE, CONTENT
+                 FROM sermons
+                 WHERE ID = {$sermonId}
+                 LIMIT 1"
+            );
+        } else {
+            $list = Info::get('db')->select(
+                "SELECT ID, TITLE, SERMON_DATE, CONTENT
+                 FROM sermons
+                 WHERE ID = {$sermonId} AND USER_ID = {$userId}
+                 LIMIT 1"
+            );
+        }
         return json_encode(count($list) > 0 ? $list[0] : null);
     }
 
