@@ -1709,6 +1709,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                             if (hl) hl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
                         }, 80);
                     }
+                }
             }
         );
     };
