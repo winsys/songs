@@ -474,6 +474,12 @@
         font-weight: 600;
         color: #1e7e34;
     }
+    mark.search-hl {
+        background: #fff176;
+        color: inherit;
+        border-radius: 2px;
+        padding: 0 1px;
+    }
     .bible-search-result {
         padding: 10px 14px;
         border-bottom: 1px solid #f0f2f5;
@@ -1540,7 +1546,7 @@
                              ng-class="{'chapter-selected': showingMessagePara === para}"
                              ng-click="onMsgParaClick(msgParaIdx, para)"><span ng-show="msgTimecodes.length > msgParaIdx"
                                               ng-style="msgTimecodes[msgParaIdx] === 0 ? {'color':'#c0392b','font-weight':'bold','opacity':'1'} : {'color':'#1a6db5','opacity':'0.6'}"
-                                              style="font-size:10px;font-family:monospace;margin-right:5px;display:inline-block;min-width:7ch;text-align:right;">{{formatMsgTimecode(msgTimecodes[msgParaIdx])}}</span>{{ para }}</div>
+                                              style="font-size:10px;font-family:monospace;margin-right:5px;display:inline-block;min-width:7ch;text-align:right;">{{formatMsgTimecode(msgTimecodes[msgParaIdx])}}</span><span ng-bind-html="highlightMsg(para)"></span></div>
                         <div ng-show="messageParagraphs.length === 0 && selectedMessage"
                              style="padding: 12px; color: #b0b8c1; font-size: 12px;">
                             Нет текста
@@ -1647,7 +1653,8 @@
                             <div class="bible-verse-item"
                                  ng-repeat="verse in biblePreparedVerses"
                                  ng-class="{'chapter-selected': selectedBibleVerses.indexOf(verse) > -1}"
-                                 ng-click="toggleBibleVerse(verse, $event)">{{ verse }}</div>
+                                 ng-click="toggleBibleVerse(verse, $event)"
+                                 ng-bind-html="highlightBibleVerse(verse)"></div>
                             <div ng-show="biblePreparedVerses.length === 0 && selectedBibleChapter"
                                  style="padding: 12px; color: #b0b8c1; font-size: 12px;">Загрузка...</div>
                             <div ng-show="!selectedBibleChapter"

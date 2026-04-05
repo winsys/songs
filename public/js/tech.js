@@ -1,4 +1,4 @@
-app.controller('Tech', function ($scope, $http, $timeout, $interval, SongsService)
+app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, SongsService)
 {
     // ── Songs mode state ──────────────────────────────────────
     $scope.listId = 1;
@@ -1113,6 +1113,27 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, SongsServic
     // MESSAGES MODE
     // ==========================================================
 
+    function hlEscapeHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function hlEscapeRe(s) {
+        return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    function makeHighlightHtml(text, q) {
+        var html = hlEscapeHtml(text);
+        if (q && q.trim().length >= 2) {
+            html = html.replace(new RegExp('(' + hlEscapeRe(hlEscapeHtml(q.trim())) + ')', 'gi'),
+                '<mark class="search-hl">$1</mark>');
+        }
+        return $sce.trustAsHtml(html);
+    }
+    $scope.highlightMsg = function(text) {
+        return makeHighlightHtml(text, $scope.messageTextQuery || '');
+    };
+    $scope.highlightBibleVerse = function(verse) {
+        return makeHighlightHtml(verse, $scope.bibleHighlightQuery || '');
+    };
+
     $scope.searchMessages = function() {
         if (messageSearchTimer) $timeout.cancel(messageSearchTimer);
 
@@ -1181,6 +1202,14 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, SongsServic
                 $scope.messageParagraphs = lines.filter(function(l) {
                     return l.trim().length > 0;
                 });
+                var q = ($scope.messageTextQuery || '').trim();
+                if (q.length >= 2) {
+                    $timeout(function() {
+                        var panel = document.getElementById('messages-para-panel');
+                        var hl = panel && panel.querySelector('.search-hl');
+                        if (hl) hl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                    }, 80);
+                }
             }
 
             // Разбираем таймкоды и инициализируем аудио
@@ -1390,6 +1419,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, SongsServic
             return;
         }
 
+        $scope.bibleHighlightQuery = $scope.bibleSearchQuery;
         $scope.bibleSearchQuery = ''; // close search results
 
         // Step 1 — select book (reset state, load chapters)
