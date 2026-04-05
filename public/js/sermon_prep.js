@@ -1663,6 +1663,22 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     // MESSAGES PANEL (unchanged)
     // ──────────────────────────────────────────────────────────
 
+    function hlEscapeHtml(s) {
+        return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+    function hlEscapeRe(s) {
+        return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    }
+    $scope.highlightPrepMsg = function (text) {
+        var q = ($scope.prepMsgTextQuery || '').trim();
+        var html = hlEscapeHtml(text);
+        if (q.length >= 2) {
+            html = html.replace(new RegExp('(' + hlEscapeRe(hlEscapeHtml(q)) + ')', 'gi'),
+                '<mark class="search-hl">$1</mark>');
+        }
+        return $sce.trustAsHtml(html);
+    };
+
     $scope.searchMessagesPrep = function () {
         if (prepMsgSearchTimer) $timeout.cancel(prepMsgSearchTimer);
         var titleQ = $scope.prepMsgTitleQuery || '';
@@ -1685,7 +1701,14 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     var paras = [];
                     lines.forEach(function (line, i) { if (line.trim().length>0) paras.push({idx:i,text:line.trim()}); });
                     $scope.prepMsgParagraphs = paras;
-                }
+                    var q = ($scope.prepMsgTextQuery || '').trim().toLowerCase();
+                    if (q.length >= 2) {
+                        $timeout(function () {
+                            var panel = document.getElementById('prep-msg-para-panel');
+                            var hl = panel && panel.querySelector('.search-hl');
+                            if (hl) hl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                        }, 80);
+                    }
             }
         );
     };

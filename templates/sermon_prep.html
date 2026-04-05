@@ -313,6 +313,13 @@
         color: #1e7e34;
     }
 
+    mark.search-hl {
+        background: #fff176;
+        color: inherit;
+        border-radius: 2px;
+        padding: 0 1px;
+    }
+
     /* ── Chapter number buttons ──────────────────────────────────── */
     .prep-chapter-btn {
         padding: 2px 5px;
@@ -1357,6 +1364,7 @@
 
                         <!-- Paragraphs panel -->
                         <div class="prep-panel"
+                             id="prep-msg-para-panel"
                              ng-style="{'height': prepMsgParaExpanded ? 'calc(100vh - 290px)' : '50vh'}"
                              style="margin-top:6px; transition: height 0.2s ease;"
                              ng-show="prepSelectedMessage">
@@ -1373,7 +1381,8 @@
                                   ng-class="{'verse-selected': prepSelectedParaIdx === para.idx}"
                                   ng-click="togglePrepPara(para)"
                                   ng-dblclick="togglePrepPara(para); insertMessageCitation()"
-                                  style="color:#333;">{{ para.text }}</span>
+                                  style="color:#333;"
+                                  ng-bind-html="highlightPrepMsg(para.text)"></span>
                             <div ng-show="prepMsgParagraphs.length === 0"
                                  style="padding:10px; color:#b0b8c1; font-size:11px;">
                                 Загрузка...
