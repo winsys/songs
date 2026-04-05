@@ -157,6 +157,7 @@ CREATE TABLE IF NOT EXISTS `sermons` (
                                          `TITLE` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
                                          `SERMON_DATE` date DEFAULT NULL,
                                          `CONTENT` longtext COLLATE utf8mb4_unicode_ci,
+                                         `AUTHOR_GOOGLE_ID` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Google ID of the preacher who created this sermon',
                                          `CREATED_AT` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
                                          `UPDATED_AT` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
                                          PRIMARY KEY (`ID`),

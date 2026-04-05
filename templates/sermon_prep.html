@@ -1201,7 +1201,7 @@
                             </div>
                         </div>
                         <button class="btn-sermon-delete"
-                                ng-if="!s.OWNER_NAME"
+                                ng-if="s.CAN_DELETE"
                                 ng-click="deleteSermonFromList(s.ID, $event)"
                                 title="Удалить">×</button>
                     </div>

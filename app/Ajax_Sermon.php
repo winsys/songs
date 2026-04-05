@@ -22,12 +22,43 @@ trait Ajax_Sermon
         return !$row2;
     }
 
+    private static function getCurrentGoogleId(): ?string
+    {
+        $curUserId = isset($_SESSION['curUserId']) ? (int)$_SESSION['curUserId'] : 0;
+        if ($curUserId <= 0) return null;
+        $row = Info::get('db')->get(
+            "SELECT google_id FROM user_google_accounts WHERE user_id = {$curUserId} LIMIT 1"
+        );
+        if ($row) return $row['google_id'];
+        // Legacy fallback
+        $row2 = Info::get('db')->get(
+            "SELECT GOOGLE_ID FROM users WHERE ID = {$curUserId} AND GOOGLE_ID IS NOT NULL AND GOOGLE_ID != '' LIMIT 1"
+        );
+        return $row2 ? $row2['GOOGLE_ID'] : null;
+    }
+
     private static function get_sermon_list()
     {
-        $userId = (int)$_SESSION['curGroupId'];
-        if (self::preacherSeesAll()) {
+        $userId     = (int)$_SESSION['curGroupId'];
+        $isPreacher = Security::isPreacher();
+        $googleId   = $isPreacher ? self::getCurrentGoogleId() : null;
+
+        if ($isPreacher && $googleId !== null) {
+            // Preacher WITH Google account: own sermons only, can delete authored ones
+            $esc  = mysqli_real_escape_string(Info::get('dbh'), $googleId);
+            $list = Info::get('db')->select(
+                "SELECT ID, TITLE, SERMON_DATE, UPDATED_AT,
+                        CASE WHEN AUTHOR_GOOGLE_ID = '{$esc}' THEN 1 ELSE 0 END AS CAN_DELETE
+                 FROM sermons
+                 WHERE USER_ID = {$userId}
+                   AND (AUTHOR_GOOGLE_ID = '{$esc}' OR AUTHOR_GOOGLE_ID IS NULL)
+                 ORDER BY SERMON_DATE DESC, UPDATED_AT DESC"
+            );
+        } elseif ($isPreacher) {
+            // Preacher WITHOUT Google account: sees all groups, cannot delete
             $list = Info::get('db')->select(
                 "SELECT s.ID, s.TITLE, s.SERMON_DATE, s.UPDATED_AT, s.USER_ID,
+                        0 AS CAN_DELETE,
                         CASE WHEN s.USER_ID = {$userId} THEN NULL
                              ELSE COALESCE(us.display_name, CONCAT('Группа #', s.USER_ID))
                         END AS OWNER_NAME
@@ -36,8 +67,9 @@ trait Ajax_Sermon
                  ORDER BY s.SERMON_DATE DESC, s.UPDATED_AT DESC"
             );
         } else {
+            // Non-preacher (admin, leader, etc.): own group, can delete
             $list = Info::get('db')->select(
-                "SELECT ID, TITLE, SERMON_DATE, UPDATED_AT
+                "SELECT ID, TITLE, SERMON_DATE, UPDATED_AT, 1 AS CAN_DELETE
                  FROM sermons
                  WHERE USER_ID = {$userId}
                  ORDER BY SERMON_DATE DESC, UPDATED_AT DESC"
@@ -48,24 +80,34 @@ trait Ajax_Sermon
 
     private static function get_sermon()
     {
-        $userId   = (int)$_SESSION['curGroupId'];
-        $sermonId = (int)self::$args['id'];
-        if (self::preacherSeesAll()) {
-            $list = Info::get('db')->select(
-                "SELECT ID, TITLE, SERMON_DATE, CONTENT
-                 FROM sermons
-                 WHERE ID = {$sermonId}
+        $userId     = (int)$_SESSION['curGroupId'];
+        $sermonId   = (int)self::$args['id'];
+        $isPreacher = Security::isPreacher();
+        $googleId   = $isPreacher ? self::getCurrentGoogleId() : null;
+
+        if ($isPreacher && $googleId !== null) {
+            // Preacher with Google: own sermons in group only
+            $esc = mysqli_real_escape_string(Info::get('dbh'), $googleId);
+            $row = Info::get('db')->get(
+                "SELECT ID, TITLE, SERMON_DATE, CONTENT FROM sermons
+                 WHERE ID = {$sermonId} AND USER_ID = {$userId}
+                   AND (AUTHOR_GOOGLE_ID = '{$esc}' OR AUTHOR_GOOGLE_ID IS NULL)
                  LIMIT 1"
+            );
+        } elseif ($isPreacher) {
+            // Preacher without Google: sees all
+            $row = Info::get('db')->get(
+                "SELECT ID, TITLE, SERMON_DATE, CONTENT FROM sermons
+                 WHERE ID = {$sermonId} LIMIT 1"
             );
         } else {
-            $list = Info::get('db')->select(
-                "SELECT ID, TITLE, SERMON_DATE, CONTENT
-                 FROM sermons
-                 WHERE ID = {$sermonId} AND USER_ID = {$userId}
-                 LIMIT 1"
+            // Non-preacher: own group only
+            $row = Info::get('db')->get(
+                "SELECT ID, TITLE, SERMON_DATE, CONTENT FROM sermons
+                 WHERE ID = {$sermonId} AND USER_ID = {$userId} LIMIT 1"
             );
         }
-        return json_encode(count($list) > 0 ? $list[0] : null);
+        return json_encode($row ?: null);
     }
 
     private static function save_sermon()
@@ -99,9 +141,15 @@ trait Ajax_Sermon
             }
         }
 
+        $isPreacher        = Security::isPreacher();
+        $authorGoogleId    = $isPreacher ? self::getCurrentGoogleId() : null;
+        $authorGoogleIdVal = ($authorGoogleId !== null)
+            ? "'" . mysqli_real_escape_string($dbh, $authorGoogleId) . "'"
+            : 'NULL';
+
         $dbh->query(
-            "INSERT INTO sermons (USER_ID, TITLE, SERMON_DATE, CONTENT)
-             VALUES ({$userId}, '{$title}', {$dateVal}, '{$content}')"
+            "INSERT INTO sermons (USER_ID, TITLE, SERMON_DATE, CONTENT, AUTHOR_GOOGLE_ID)
+             VALUES ({$userId}, '{$title}', {$dateVal}, '{$content}', {$authorGoogleIdVal})"
         );
         $err = $dbh->error;
         if ($err) {
@@ -114,12 +162,22 @@ trait Ajax_Sermon
 
     private static function delete_sermon()
     {
-        $userId   = (int)$_SESSION['curGroupId'];
-        $sermonId = (int)self::$args['id'];
+        $userId     = (int)$_SESSION['curGroupId'];
+        $sermonId   = (int)self::$args['id'];
+        $isPreacher = Security::isPreacher();
+        $googleId   = $isPreacher ? self::getCurrentGoogleId() : null;
+
+        if ($isPreacher && $googleId === null) {
+            return json_encode(['status' => 'error', 'message' => 'Удаление недоступно без привязанного Google аккаунта']);
+        }
+
+        $ownerCond = ($googleId !== null)
+            ? "AND USER_ID = {$userId} AND AUTHOR_GOOGLE_ID = '" . mysqli_real_escape_string(Info::get('dbh'), $googleId) . "'"
+            : "AND USER_ID = {$userId}";
 
         // Delete uploaded media files referenced in the sermon content
         $row = Info::get('db')->get(
-            "SELECT CONTENT FROM sermons WHERE ID = {$sermonId} AND USER_ID = {$userId} LIMIT 1"
+            "SELECT CONTENT FROM sermons WHERE ID = {$sermonId} {$ownerCond} LIMIT 1"
         );
         if ($row && !empty($row['CONTENT'])) {
             $allowedPrefixes = [
@@ -142,7 +200,7 @@ trait Ajax_Sermon
         }
 
         Info::get('db')->exec(
-            "DELETE FROM sermons WHERE ID = {$sermonId} AND USER_ID = {$userId}"
+            "DELETE FROM sermons WHERE ID = {$sermonId} {$ownerCond}"
         );
         return json_encode(array('status' => 'ok'));
     }
