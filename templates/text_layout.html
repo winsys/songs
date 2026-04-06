@@ -182,6 +182,7 @@
             $scope.songName = "";
             $scope.fontSize = 10;
             $scope.fontMaxSize = 64;
+            $scope.slideFontMaxSize = 64;
             $scope.userSettings = null;
             $scope.overlayImageSrc = "";
 
@@ -205,6 +206,9 @@
                     if (textElement) {
                         textElement.style.fontFamily = settings.main_font || 'Arial';
                     }
+
+                    $scope.fontMaxSize = parseInt(settings.main_font_max_size) || 64;
+                    $scope.slideFontMaxSize = parseInt(settings.slide_font_max_size) || 64;
                 }
             }
 
@@ -333,7 +337,7 @@
             function _fitSlideContent() {
                 if (!_slideContent || !_slideOverlay) return;
                 var targetH = window.innerHeight * 0.9;
-                var maxFs = $scope.fontMaxSize || 64, minFs = 12, fs = minFs;
+                var maxFs = $scope.slideFontMaxSize || 64, minFs = 12, fs = minFs;
                 if (targetH <= 0) {
                     requestAnimationFrame(function() { _fitSlideContent(); });
                     return;

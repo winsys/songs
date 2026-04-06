@@ -247,6 +247,8 @@ CREATE TABLE IF NOT EXISTS `user_settings` (
                                                `sermon_notes_font_size` tinyint(4) NOT NULL DEFAULT '100' COMMENT 'Display scale percentage for sermon presentation mode (50-300)',
                                                `sermon_scale_chips` tinyint(4) NOT NULL DEFAULT '0',
                                                `slide_bg_color` varchar(20) NOT NULL DEFAULT '#1a237e' COMMENT 'Background colour for sermon slides on main screen',
+                                               `main_font_max_size` tinyint(3) UNSIGNED NOT NULL DEFAULT '64' COMMENT 'Max auto-fit font size in px for main text display (20-200)',
+                                               `slide_font_max_size` tinyint(3) UNSIGNED NOT NULL DEFAULT '64' COMMENT 'Max auto-fit font size in px for sermon slides (20-200)',
                                                PRIMARY KEY (`group_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

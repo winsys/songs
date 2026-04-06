@@ -420,14 +420,22 @@
                     <div class="color-preview" ng-style="{'background-color': settings.main_font_color}"></div>
                 </div>
             </div>
+
+            <div class="settings-field">
+                <label class="settings-label">8. Максимальный размер шрифта ({{settings.main_font_max_size || 64}}px)</label>
+                <input type="range" min="20" max="200" step="2"
+                       ng-model="settings.main_font_max_size"
+                       class="settings-input" style="cursor:pointer;">
+                <span class="settings-hint">Верхняя граница авто-масштабирования текста на основном дисплее.</span>
+            </div>
         </div>
 
-        <!-- 8–11. Стриминговый дисплей -->
+        <!-- 9–12. Стриминговый дисплей (Streaming Display) -->
         <div class="settings-card" ng-show="permissions.canEditAllSettings">
             <span class="settings-card-title">Стриминговый дисплей (Streaming Display)</span>
 
             <div class="settings-field">
-                <label class="settings-label">8. Цвет фона</label>
+                <label class="settings-label">9. Цвет фона</label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.streaming_bg_color">
@@ -438,7 +446,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">9. Шрифт</label>
+                <label class="settings-label">10. Шрифт</label>
                 <select class="settings-input" ng-model="settings.streaming_font">
                     <option value="Arial">Arial</option>
                     <option value="Verdana">Verdana</option>
@@ -450,7 +458,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">10. Цвет шрифта</label>
+                <label class="settings-label">11. Цвет шрифта</label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.streaming_font_color">
@@ -461,7 +469,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">11. Процент высоты экрана для текста ({{settings.streaming_height_percent}}%)</label>
+                <label class="settings-label">12. Процент высоты экрана для текста ({{settings.streaming_height_percent}}%)</label>
                 <input type="range" min="20" max="100"
                        ng-model="settings.streaming_height_percent"
                        class="settings-input" style="cursor:pointer;">
@@ -469,13 +477,13 @@
             </div>
         </div>
 
-        <!-- 12–16. Режим Проповедь -->
+        <!-- 13–19. Режим Проповедь -->
         <div class="settings-card" ng-show="permissions.canEditSermonSettings">
             <span class="settings-card-title">Режим Проповедь (Sermon Display)</span>
             <p class="settings-card-subtitle">Правая сторона экрана использует параметры раздела «Основной дисплей».</p>
 
             <div class="settings-field">
-                <label class="settings-label">12. Цвет фона левой панели (заметки)</label>
+                <label class="settings-label">13. Цвет фона левой панели (заметки)</label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.sermon_notes_bg_color">
@@ -487,7 +495,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">13. Базовый цвет чипов цитат Библии</label>
+                <label class="settings-label">14. Базовый цвет чипов цитат Библии</label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.sermon_bible_base_color">
@@ -507,7 +515,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">14. Базовый цвет чипов цитат Послания</label>
+                <label class="settings-label">15. Базовый цвет чипов цитат Послания</label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.sermon_msg_base_color">
@@ -527,7 +535,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">15. Масштаб текста заметок ({{settings.sermon_notes_font_size || 100}}%)</label>
+                <label class="settings-label">16. Масштаб текста заметок ({{settings.sermon_notes_font_size || 100}}%)</label>
                 <input type="range" min="50" max="300" step="10"
                        ng-model="settings.sermon_notes_font_size"
                        class="settings-input" style="cursor:pointer;">
@@ -535,7 +543,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">16. Масштабировать цитаты</label>
+                <label class="settings-label">17. Масштабировать цитаты</label>
                 <div class="scale-row">
                     <input type="checkbox" id="scaleChipsCheck"
                            ng-model="settings.sermon_scale_chips"
@@ -547,7 +555,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">17. Цвет фона слайдов (Slide Background)</label>
+                <label class="settings-label">18. Цвет фона слайдов (Slide Background)</label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.slide_bg_color">
@@ -556,6 +564,14 @@
                     <div class="color-preview" ng-style="{'background-color': settings.slide_bg_color}"></div>
                 </div>
                 <span class="settings-hint">Фон слайдов на главном экране при показе проповеди.</span>
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">19. Максимальный размер шрифта слайдов ({{settings.slide_font_max_size || 64}}px)</label>
+                <input type="range" min="20" max="200" step="2"
+                       ng-model="settings.slide_font_max_size"
+                       class="settings-input" style="cursor:pointer;">
+                <span class="settings-hint">Верхняя граница авто-масштабирования текста слайдов на главном экране.</span>
             </div>
         </div>
 
