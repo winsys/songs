@@ -1713,6 +1713,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             }
         );
     };
+
     $scope.togglePrepPara = function (para) {
         if ($scope.prepSelectedParaIdx === para.idx) {
             $scope.prepSelectedParaIdx = null;
