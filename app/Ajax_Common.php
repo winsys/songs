@@ -441,6 +441,8 @@ trait Ajax_Common
                 'sermon_prep_font_size'  => 13,
                 'sermon_notes_font_size' => 100,
                 'sermon_scale_chips'     => 0,
+                'main_font_max_size'     => 64,
+                'slide_font_max_size'    => 64,
             ];
         }
 
@@ -452,6 +454,8 @@ trait Ajax_Common
         if (empty($settings['sermon_notes_font_size']) || $settings['sermon_notes_font_size'] < 50)
             $settings['sermon_notes_font_size'] = 100;
         if (empty($settings['sermon_scale_chips']))      $settings['sermon_scale_chips']     = 0;
+        if (empty($settings['main_font_max_size'])  || $settings['main_font_max_size']  < 20) $settings['main_font_max_size']  = 64;
+        if (empty($settings['slide_font_max_size']) || $settings['slide_font_max_size'] < 20) $settings['slide_font_max_size'] = 64;
 
         return json_encode($settings);
     }
