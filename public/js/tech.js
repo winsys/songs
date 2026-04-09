@@ -22,6 +22,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.biblePreparedVerses  = [];   // formatted for display
     $scope.selectedBibleVerses  = [];
     $scope.showingBibleVerse    = null;
+    $scope.bibleVerseCount      = 1;
     $scope.bibleSearchQuery     = '';
     $scope.bibleSearchResults   = [];
     $scope.bibleSearchQuery     = '';
@@ -1041,10 +1042,26 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 sendBibleText('', '');
                 $scope.showingBibleVerse = null;
             } else {
-                $scope.selectedBibleVerses = [verseText];
-                var cleanText = verseText.replace(/\n\(\d+\)$/, '');
-                sendBibleText(cleanText, refLabel);
-                $scope.showingBibleVerse = verseText;
+                var count = $scope.bibleVerseCount || 1;
+                if (count <= 1) {
+                    $scope.selectedBibleVerses = [verseText];
+                    var cleanText = verseText.replace(/\n\(\d+\)$/, '');
+                    sendBibleText(cleanText, refLabel);
+                    $scope.showingBibleVerse = verseText;
+                } else {
+                    var startIdx = $scope.biblePreparedVerses.indexOf(verseText);
+                    var verses = [];
+                    for (var i = 0; i < count; i++) {
+                        var idx = startIdx + i;
+                        if (idx < $scope.biblePreparedVerses.length) {
+                            verses.push($scope.biblePreparedVerses[idx]);
+                        }
+                    }
+                    $scope.selectedBibleVerses = verses;
+                    var combinedText = buildBibleCombinedText(verses);
+                    sendBibleText(combinedText, refLabel);
+                    $scope.showingBibleVerse = combinedText;
+                }
             }
         }
     };
