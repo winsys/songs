@@ -546,9 +546,9 @@
     .enlarged-image-popup img { box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
 
     #edit-song-popup .modal-dialog {
-        width: 96vw;
-        max-width: 1400px;
-        margin: 20px auto;
+        width: 100%;
+        max-width: none;
+        margin: 20px 0;
     }
     #edit-song-popup .modal-content {
         border: none;
@@ -628,10 +628,9 @@
         padding: 0;
     }
 
-    /* Three-column text editors */
+    /* Dynamic-column text editors */
     #edit-song-popup .esp-editors {
         display: grid;
-        grid-template-columns: 1fr 1fr 1fr;
         gap: 14px;
         margin-bottom: 16px;
     }
@@ -1798,37 +1797,19 @@
                                 <span ng-if="songNumError" style="color: #e74c3c; font-size: 11px; margin-left: 10px;">{{ songNumError }}</span>
                             </div>
 
-                            <!-- Three text editors -->
-                            <div class="esp-editors">
-                                <div class="esp-editor-col">
+                            <!-- Text editors (one per language) -->
+                            <div class="esp-editors"
+                                 ng-style="{'grid-template-columns': 'repeat(' + langList.length + ', 1fr)'}">
+                                <div class="esp-editor-col" ng-repeat="lang in langList">
                                     <div class="esp-editor-header">
-                                        <span class="lang-badge lang-ru">RU</span>
-                                        <span style="font-size:12px; font-weight:600; color:#2c3e50;">Русский текст</span>
-                                        <span class="esp-editor-hint">¶ — разделитель куплетов</span>
+                                        <span class="lang-badge lang-{{lang.code}}">{{lang.code | uppercase}}</span>
+                                        <span style="font-size:12px; font-weight:600; color:#2c3e50;">{{lang.label}}</span>
+                                        <span class="esp-editor-hint" ng-if="lang.is_default == '1'">¶ — разделитель куплетов</span>
+                                        <span class="esp-editor-hint" ng-if="lang.is_default != '1'">Опционально</span>
                                     </div>
                                     <textarea class="verse-editor"
-                                              ng-model="editConfig.songText"
-                                              placeholder="Текст на русском..."></textarea>
-                                </div>
-                                <div class="esp-editor-col">
-                                    <div class="esp-editor-header">
-                                        <span class="lang-badge lang-lt">LT</span>
-                                        <span style="font-size:12px; font-weight:600; color:#2c3e50;">Литовский текст</span>
-                                        <span class="esp-editor-hint">Опционально</span>
-                                    </div>
-                                    <textarea class="verse-editor"
-                                              ng-model="editConfig.songTextLt"
-                                              placeholder="Текст на литовском..."></textarea>
-                                </div>
-                                <div class="esp-editor-col">
-                                    <div class="esp-editor-header">
-                                        <span class="lang-badge lang-en">EN</span>
-                                        <span style="font-size:12px; font-weight:600; color:#2c3e50;">English text</span>
-                                        <span class="esp-editor-hint">Optional</span>
-                                    </div>
-                                    <textarea class="verse-editor"
-                                              ng-model="editConfig.songTextEn"
-                                              placeholder="English text..."></textarea>
+                                              ng-model="editConfig.texts[lang.code]"
+                                              placeholder="{{lang.label}}..."></textarea>
                                 </div>
                             </div>
 
