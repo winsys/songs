@@ -1293,14 +1293,32 @@
         <input type="file" id="techMediaVideoInput" accept="video/*" style="display:none"
                onchange="angular.element(this).scope().onMediaVideoSelected(this)">
 
-        <!-- ── Языки (все режимы) ──────────────────────────────────── -->
-        <div class="section-label" style="margin-top: 16px;">Языки</div>
-        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-            <button class="btn-lang"
-                    ng-repeat="lang in langList"
-                    ng-disabled="!isLangAvailable(lang)"
-                    ng-class="languages[lang.code] ? 'lang-active' : ''"
-                    ng-click="toggleLanguage(lang.code)">{{lang.label}}</button>
+        <!-- ── Языки (все режимы) + Отображать стихов (Библия) ──────── -->
+        <div style="display: flex; gap: 24px; align-items: flex-start; margin-top: 16px; flex-wrap: wrap;">
+            <div>
+                <div class="section-label">Языки</div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="btn-lang"
+                            ng-repeat="lang in langList"
+                            ng-disabled="!isLangAvailable(lang)"
+                            ng-class="languages[lang.code] ? 'lang-active' : ''"
+                            ng-click="toggleLanguage(lang.code)">{{lang.label}}</button>
+                </div>
+            </div>
+            <div ng-show="pageMode === 'bible'">
+                <div class="section-label">Отображать стихов:</div>
+                <div style="display: flex; gap: 6px;">
+                    <button class="btn-lang"
+                            ng-class="bibleVerseCount === 1 ? 'lang-active' : ''"
+                            ng-click="bibleVerseCount = 1">1</button>
+                    <button class="btn-lang"
+                            ng-class="bibleVerseCount === 2 ? 'lang-active' : ''"
+                            ng-click="bibleVerseCount = 2">2</button>
+                    <button class="btn-lang"
+                            ng-class="bibleVerseCount === 3 ? 'lang-active' : ''"
+                            ng-click="bibleVerseCount = 3">3</button>
+                </div>
+            </div>
         </div>
 
         <!-- ══════════════════════════════════════════════════════════
