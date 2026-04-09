@@ -1089,20 +1089,21 @@ angular.module('Songs', ['csrfModule'])
                 content.style.color = getContrastColor(bg);
                 // Auto-fit after next paint so dimensions are real
                 requestAnimationFrame(function() {
-                    var targetH = wrap.clientHeight * 0.9;
-                    if (targetH <= 0) return;
-                    var maxFs = 100, minFs = 10, fs = minFs; // maxFs matches autoFitText maxSize
+                    if (content.clientHeight <= 0) return;
+                    var maxFs = 100, minFs = 10, fs = minFs;
                     content.style.fontSize = fs + 'px';
+                    // Grow until content overflows the container or hits cap
                     while (fs < maxFs &&
-                           content.scrollHeight < targetH &&
+                           content.scrollHeight <= content.clientHeight &&
                            content.scrollWidth  <= content.clientWidth) {
                         fs++;
                         content.style.fontSize = fs + 'px';
                     }
-                    // Back off one step if content overflows its container
-                    if (content.scrollHeight > content.clientHeight ||
-                        content.scrollWidth  > content.clientWidth) {
-                        fs = Math.max(minFs, fs - 1);
+                    // Shrink until content fits (handles multi-step overflow)
+                    while (fs > minFs &&
+                           (content.scrollHeight > content.clientHeight ||
+                            content.scrollWidth  > content.clientWidth)) {
+                        fs--;
                         content.style.fontSize = fs + 'px';
                     }
                 });
