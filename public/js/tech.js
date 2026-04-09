@@ -1528,12 +1528,15 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     }
 
     $scope.editFavorite = function(listItem) {
+        var texts = {};
+        for (var i = 0; i < $scope.langList.length; i++) {
+            var lang = $scope.langList[i];
+            texts[lang.code] = songTextForDisplay(listItem['TEXT' + lang.col_suffix]);
+        }
         $scope.editConfig = {
             title: 'Редактирование песни',
             songId: listItem.ID,
-            songText:   songTextForDisplay(listItem.TEXT),
-            songTextLt: songTextForDisplay(listItem.TEXT_LT),
-            songTextEn: songTextForDisplay(listItem.TEXT_EN),
+            texts: texts,
             songName: listItem.NAME,
             songNum: listItem.NUM,
             dispName: listItem.dispName,
@@ -1545,12 +1548,14 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     $scope.addNewSong = function() {
+        var texts = {};
+        for (var i = 0; i < $scope.langList.length; i++) {
+            texts[$scope.langList[i].code] = '';
+        }
         $scope.editConfig = {
             title: 'Добавление новой песни',
             songId: null,
-            songText: '',
-            songTextLt: '',
-            songTextEn: '',
+            texts: texts,
             songName: '',
             songNum: null,
             dispName: '',
@@ -1604,9 +1609,11 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     $scope.saveSongEdits = function() {
-        var textWithCRLF   = songTextForSave($scope.editConfig.songText);
-        var textLtWithCRLF = songTextForSave($scope.editConfig.songTextLt);
-        var textEnWithCRLF = songTextForSave($scope.editConfig.songTextEn);
+        var textData = {};
+        for (var i = 0; i < $scope.langList.length; i++) {
+            var lang = $scope.langList[i];
+            textData['text' + lang.col_suffix.toLowerCase()] = songTextForSave(($scope.editConfig.texts || {})[lang.code]);
+        }
         if ($scope.editConfig.isNewSong) {
             // Check if song number is provided and unique
             if ($scope.songNumError) {
@@ -1614,13 +1621,10 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 return;
             }
             $http({ method: "POST", url: "/ajax",
-                data: { command: 'create_song',
+                data: angular.extend({ command: 'create_song',
                     list_id: $scope.listId,
-                    text: textWithCRLF,
-                    text_lt: textLtWithCRLF,
-                    text_en: textEnWithCRLF,
                     name: $scope.editConfig.songName,
-                    song_num: $scope.editConfig.songNum } }).then(
+                    song_num: $scope.editConfig.songNum }, textData) }).then(
                 function success(response) {
                     $scope.editConfig.songId  = response.data.song_id;
                     $scope.editConfig.songNum = $scope.listId + '/' + response.data.num;
@@ -1641,12 +1645,9 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             );
         } else {
             $http({ method: "POST", url: "/ajax",
-                data: { command: 'update_song',
+                data: angular.extend({ command: 'update_song',
                     id: $scope.editConfig.songId,
-                    text: textWithCRLF,
-                    text_lt: textLtWithCRLF,
-                    text_en: textEnWithCRLF,
-                    name: $scope.editConfig.songName } }).then(
+                    name: $scope.editConfig.songName }, textData) }).then(
                 function success() {
                     var fileInput = document.getElementById('imageUpload');
                     if (fileInput.files.length > 0) {
