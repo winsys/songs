@@ -94,7 +94,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // ── Page mode ─────────────────────────────────────────────
     $scope.pageMode = 'songs';  // 'songs' | 'bible' | 'messages'
 
-// ── Language selection ────────────────────────────────────
+    // ── Language selection ────────────────────────────────────
     $scope.languages = {};   // заполняется динамически из get_languages
     $scope.langList  = [];   // [{code, label, col_suffix, is_default}, ...]
 
