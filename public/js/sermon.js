@@ -2,6 +2,7 @@
  * sermon.js v6
  * Presentation mode: left = scrollable notes, right = text/image display.
  */
+
 angular.module('Songs', ['csrfModule'])
     .controller('Sermon', function ($scope, $http, $timeout, $sce) {
 
