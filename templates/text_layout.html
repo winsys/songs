@@ -336,21 +336,31 @@
 
             function _fitSlideContent() {
                 if (!_slideContent || !_slideOverlay) return;
+                // Compute available height from overlay (minus padding).
+                // Use height:auto during measurement so scrollHeight reflects actual
+                // content height — overflow:hidden + height:100% causes scrollHeight
+                // to equal clientHeight even when content truly overflows.
+                var cs = window.getComputedStyle(_slideOverlay);
+                var targetH = _slideOverlay.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+                if (targetH <= 0) return;
                 var maxFs = $scope.slideFontMaxSize || 64, minFs = 12, fs = minFs;
+                _slideContent.style.height = 'auto';
                 _slideContent.style.fontSize = fs + 'px';
-                // Grow until content overflows the container height or hits the cap
+                // Grow until content overflows the available height or hits the cap
                 while (fs < maxFs &&
-                       _slideContent.scrollHeight <= _slideContent.clientHeight) {
+                       _slideContent.scrollHeight <= targetH &&
+                       _slideContent.scrollWidth  <= _slideContent.clientWidth) {
                     fs++;
                     _slideContent.style.fontSize = fs + 'px';
                 }
                 // Shrink until content fits
                 while (fs > minFs &&
-                       (_slideContent.scrollHeight > _slideContent.clientHeight ||
+                       (_slideContent.scrollHeight > targetH ||
                         _slideContent.scrollWidth  > _slideContent.clientWidth)) {
                     fs--;
                     _slideContent.style.fontSize = fs + 'px';
                 }
+                _slideContent.style.height = '';
             }
 
             function hideSlide() {

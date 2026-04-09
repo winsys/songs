@@ -1090,23 +1090,31 @@ angular.module('Songs', ['csrfModule'])
                 content.style.color = getContrastColor(bg);
                 // Auto-fit after next paint so dimensions are real
                 requestAnimationFrame(function() {
-                    if (content.clientHeight <= 0) return;
+                    // Compute available height from wrap (minus padding).
+                    // Set height:auto during measurement so scrollHeight reflects actual
+                    // content height — overflow:hidden + height:100% causes scrollHeight
+                    // to equal clientHeight even when content truly overflows.
+                    var cs = window.getComputedStyle(wrap);
+                    var targetH = wrap.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+                    if (targetH <= 0) return;
                     var maxFs = 100, minFs = 10, fs = minFs;
+                    content.style.height = 'auto';
                     content.style.fontSize = fs + 'px';
-                    // Grow until content overflows the container or hits cap
+                    // Grow until content overflows the available height or hits cap
                     while (fs < maxFs &&
-                           content.scrollHeight <= content.clientHeight &&
+                           content.scrollHeight <= targetH &&
                            content.scrollWidth  <= content.clientWidth) {
                         fs++;
                         content.style.fontSize = fs + 'px';
                     }
-                    // Shrink until content fits (handles multi-step overflow)
+                    // Shrink until content fits
                     while (fs > minFs &&
-                           (content.scrollHeight > content.clientHeight ||
+                           (content.scrollHeight > targetH ||
                             content.scrollWidth  > content.clientWidth)) {
                         fs--;
                         content.style.fontSize = fs + 'px';
                     }
+                    content.style.height = '';
                 });
             }, 50);
         });
