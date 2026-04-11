@@ -476,9 +476,11 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 $scope.songList = respond.data;
                 angular.forEach($scope.songList, function(song) {
                     var langs = [];
-                    if (song.hasTextRu === '1') langs.push('RU');
-                    if (song.hasTextLt === '1') langs.push('LT');
-                    if (song.hasTextEn === '1') langs.push('EN');
+                    angular.forEach($scope.langList, function(lang) {
+                        if (song['hasText_' + lang.code] === '1') {
+                            langs.push(lang.label);
+                        }
+                    });
                     var bookPart = song.bookName ? song.bookName : '';
                     var langPart = langs.length ? langs.join(' · ') : '—';
                     song.langInfo = bookPart + (bookPart && langPart ? '  ·  ' : '') + langPart;
@@ -1276,12 +1278,12 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     break;
                 }
             }
-            // Фолбэк: любое непустое поле
+            // Фолбэк: любое непустое поле из всех известных языков
             if (!text) {
-                var allFields = ['TEXT', 'TEXT_LT', 'TEXT_EN'];
-                for (var j = 0; j < allFields.length; j++) {
-                    if (r.data[allFields[j]] && r.data[allFields[j]].trim()) {
-                        text = r.data[allFields[j]];
+                for (var j = 0; j < $scope.langList.length; j++) {
+                    var fbField = 'TEXT' + $scope.langList[j].col_suffix;
+                    if (r.data[fbField] && r.data[fbField].trim()) {
+                        text = r.data[fbField];
                         break;
                     }
                 }

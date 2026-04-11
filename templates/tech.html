@@ -1390,9 +1390,9 @@
                                     </div>
                                 </div>
                                 <span class="song-lang-badges" style="margin-top: 4px;">
-                                <span class="lang-badge lang-ru" ng-if="listItem.TEXT    && listItem.TEXT    != ''">RU</span>
-                                <span class="lang-badge lang-lt" ng-if="listItem.TEXT_LT && listItem.TEXT_LT != ''">LT</span>
-                                <span class="lang-badge lang-en" ng-if="listItem.TEXT_EN && listItem.TEXT_EN != ''">EN</span>
+                                <span class="lang-badge lang-{{lang.code}}"
+                                      ng-repeat="lang in langList"
+                                      ng-if="listItem['TEXT' + lang.col_suffix] && listItem['TEXT' + lang.col_suffix] != ''">{{lang.label}}</span>
                             </span>
                             </div>
 
