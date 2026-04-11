@@ -87,14 +87,21 @@ trait Ajax_Common
     private static function get_favorites()
     {
         $userId = $_SESSION['curGroupId'];
+
+        $langs = Info::get('db')->select("SELECT code, col_suffix FROM languages ORDER BY sort_order ASC");
+        $hasTextFields = '';
+        foreach ($langs as $lang) {
+            $col   = 'TEXT' . $lang['col_suffix'];
+            $alias = 'hasText_' . $lang['code'];
+            $hasTextFields .= ", (l.{$col} IS NOT NULL AND l.{$col} != '') AS {$alias}";
+        }
+
         $sql = "SELECT f.ID as FID, l.*,
                        concat(l.num, ' - ', l.name) as dispName,
                        concat('/images/', l.LISTID, '/', l.num, '.jpg') as imageName,
                        f.SONGID,
-                       n.LIST_NAME as bookName,
-                       (l.TEXT    IS NOT NULL AND l.TEXT    != '') AS hasTextRu,
-                       (l.TEXT_LT IS NOT NULL AND l.TEXT_LT != '') AS hasTextLt,
-                       (l.TEXT_EN IS NOT NULL AND l.TEXT_EN != '') AS hasTextEn
+                       n.LIST_NAME as bookName
+                       {$hasTextFields}
                 FROM favorites f
                 LEFT JOIN song_list l  ON l.ID    = f.SONGID
                 LEFT JOIN list_names n ON n.LIST_ID = l.LISTID
@@ -113,21 +120,28 @@ trait Ajax_Common
         );
         $order = ($settings && $settings['favorites_order'] === 'latest_top') ? 'DESC' : 'ASC';
 
+        $langs = Info::get('db')->select("SELECT code, col_suffix FROM languages ORDER BY sort_order ASC");
+        $hasTextFields = '';
+        $mediaHasTextFields = '';
+        foreach ($langs as $lang) {
+            $col   = 'TEXT' . $lang['col_suffix'];
+            $alias = 'hasText_' . $lang['code'];
+            $hasTextFields      .= ", (l.{$col} IS NOT NULL AND l.{$col} != '') AS {$alias}";
+            $mediaHasTextFields .= ", 0 AS {$alias}";
+        }
+
         // Songs из favorites
         $songs = Info::get('db')->select(
             "SELECT
              f.ID           AS FID,
              f.sort_order   AS sort_order,
              'song'         AS itemType,
-             l.ID, l.LISTID, l.NUM, l.NAME,
-             l.TEXT, l.TEXT_LT, l.TEXT_EN,
+             l.*,
              CONCAT(l.NUM, ' - ', l.NAME)                    AS dispName,
              n.LIST_NAME                                      AS bookName,
              CONCAT('/images/', l.LISTID, '/', l.NUM, '.jpg') AS imageName,
-             f.SONGID,
-             (l.TEXT    IS NOT NULL AND l.TEXT    != '') AS hasTextRu,
-             (l.TEXT_LT IS NOT NULL AND l.TEXT_LT != '') AS hasTextLt,
-             (l.TEXT_EN IS NOT NULL AND l.TEXT_EN != '') AS hasTextEn,
+             f.SONGID
+             {$hasTextFields},
              NULL AS src,
              NULL AS media_type
          FROM favorites f
@@ -143,12 +157,11 @@ trait Ajax_Common
              sort_order     AS sort_order,
              media_type     AS itemType,
              NULL AS ID, NULL AS LISTID, NULL AS NUM, name AS NAME,
-             NULL AS TEXT, NULL AS TEXT_LT, NULL AS TEXT_EN,
              name           AS dispName,
              NULL           AS bookName,
              NULL           AS imageName,
-             NULL           AS SONGID,
-             0 AS hasTextRu, 0 AS hasTextLt, 0 AS hasTextEn,
+             NULL           AS SONGID
+             {$mediaHasTextFields},
              src, media_type
          FROM tech_media_favorites
          WHERE group_id = {$userId}"
