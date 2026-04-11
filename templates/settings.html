@@ -363,9 +363,27 @@
             </div>
         </div>
 
-        <!-- 4. Фоновое изображение -->
+        <!-- 4. Доступные языки -->
+        <div class="settings-card" ng-show="permissions.canEditLanguages">
+            <span class="settings-card-title">4. Доступные языки</span>
+            <p style="margin:0 0 10px; font-size:13px; color:#555;">
+                Выберите языки, доступные этой группе. Если ничего не выбрано — доступны все языки.
+            </p>
+            <div class="checkbox-list">
+                <label class="checkbox-item"
+                       ng-repeat="lang in allLanguages"
+                       for="lang_{{lang.code}}">
+                    <input type="checkbox"
+                           id="lang_{{lang.code}}"
+                           ng-model="selectedLanguages[lang.code]">
+                    {{lang.label}} <span style="color:#999; font-size:12px;">({{lang.code}})</span>
+                </label>
+            </div>
+        </div>
+
+        <!-- 5. Фоновое изображение -->
         <div class="settings-card" ng-show="permissions.canEditAllSettings">
-            <span class="settings-card-title">4. Фоновое изображение (placeholder)</span>
+            <span class="settings-card-title">5. Фоновое изображение (placeholder)</span>
             <div ng-if="settings.placeholder_image" style="margin-bottom:12px;">
                 <img ng-src="{{settings.placeholder_image}}" class="placeholder-preview">
             </div>
@@ -669,4 +687,4 @@
     </div>
 </div>
 
-<script src="/js/settings.js?v=7" type="text/javascript"></script>
+<script src="/js/settings.js?v=11" type="text/javascript"></script>
