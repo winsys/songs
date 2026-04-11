@@ -1626,7 +1626,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     var span = document.createElement('span');
                     span.className       = 'bible-cite';
                     span.contentEditable = 'false';
-                    span.setAttribute('data-translation-id', l.translation_id || 1);
+                    span.setAttribute('data-translation-id', $scope.bibleTranslationId || 1);
                     span.setAttribute('data-col-suffix', l.col_suffix || '');
                     span.setAttribute('data-book-id',    book ? book.ID : '');
                     span.setAttribute('data-book-num',   book ? book.BOOK_NUM : '');
