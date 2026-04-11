@@ -54,14 +54,17 @@ trait Ajax_Import
         $listId = (int)($_POST['list_id'] ?? 0);
         $lang = trim($_POST['lang'] ?? 'ru');
 
-        if (!in_array($lang, ['ru', 'lt', 'en'])) {
+        $db = Info::get('db');
+        $dbh = Info::get('dbh');
+        $langRow = $db->get("SELECT col_suffix FROM languages WHERE code = '" . mysqli_real_escape_string($dbh, $lang) . "'");
+        if (!$langRow) {
             return json_encode(['status' => 'error', 'message' => 'Неверный язык']);
         }
         if ($listId <= 0) {
             return json_encode(['status' => 'error', 'message' => 'Не указан сборник']);
         }
 
-        $field = $lang === 'ru' ? 'TEXT' : ($lang === 'lt' ? 'TEXT_LT' : 'TEXT_EN');
+        $field = 'TEXT' . $langRow['col_suffix'];
 
         // Прочитать файл, снять UTF-8 BOM если есть
         $raw = file_get_contents($_FILES['sogfile']['tmp_name']);
@@ -70,8 +73,6 @@ trait Ajax_Import
         $raw = str_replace("\r", "\n", $raw);
         $lines = explode("\n", $raw);
 
-        $dbh = Info::get('dbh');
-        $db = Info::get('db');
         $log = [];
         $updated = 0;
         $errors = 0;
@@ -246,11 +247,14 @@ trait Ajax_Import
         }
 
         $lang = trim($_POST['lang'] ?? 'ru');
-        if (!in_array($lang, ['ru', 'lt', 'en'])) {
+        $dbh = Info::get('dbh');
+        $db = Info::get('db');
+        $langRow = $db->get("SELECT col_suffix FROM languages WHERE code = '" . mysqli_real_escape_string($dbh, $lang) . "'");
+        if (!$langRow) {
             return json_encode(['status' => 'error', 'message' => 'Неверный язык']);
         }
 
-        $textField = $lang === 'ru' ? 'TEXT' : ($lang === 'lt' ? 'TEXT_LT' : 'TEXT_EN');
+        $textField = 'TEXT' . $langRow['col_suffix'];
 
         // Прочитать файл, снять UTF-8 BOM
         $raw = file_get_contents($_FILES['sogfile']['tmp_name']);
@@ -261,8 +265,6 @@ trait Ajax_Import
         $raw = str_replace("\r", "\n", $raw);
         $lines = explode("\n", $raw);
 
-        $dbh = Info::get('dbh');
-        $db = Info::get('db');
         $userId = (int)$_SESSION['curGroupId'];
         $log = [];
         $inserted = 0;
@@ -411,7 +413,10 @@ trait Ajax_Import
         $tcLines = array_filter(array_map('trim', explode("\n", $timecodesRaw)), function($l) { return $l !== ''; });
         $timecodes = implode("\r\n", $tcLines);
 
-        if (!in_array($lang, ['ru', 'lt', 'en'])) {
+        $dbh  = Info::get('dbh');
+        $db   = Info::get('db');
+        $langRow = $db->get("SELECT col_suffix FROM languages WHERE code = '" . mysqli_real_escape_string($dbh, $lang) . "'");
+        if (!$langRow) {
             return json_encode(['status' => 'error', 'message' => 'Неверный язык']);
         }
 
@@ -462,11 +467,9 @@ trait Ajax_Import
             $tcWarning = "⚠ Несовпадение: таймкодов {$tcCount}, абзацев {$paraCount}. Таймкоды сохранены как есть.";
         }
 
-        $dbh  = Info::get('dbh');
-        $db   = Info::get('db');
         $userId = (int)$_SESSION['curGroupId'];
 
-        $textField = $lang === 'ru' ? 'TEXT' : ($lang === 'lt' ? 'TEXT_LT' : 'TEXT_EN');
+        $textField = 'TEXT' . $langRow['col_suffix'];
 
         $codeEsc       = mysqli_real_escape_string($dbh, $code);
         $titleEsc      = mysqli_real_escape_string($dbh, $title);
