@@ -120,10 +120,17 @@ trait Ajax_Tech
             $bookId = (int)self::$args['book_id'];
             $chapterNum = (int)self::$args['chapter_num'];
             $list = Info::get('db')->select(
-                "SELECT ID, VERSE_NUM, TEXT, TEXT_LT, TEXT_EN
-                 FROM bible_verses
-                 WHERE BOOK_ID = {$bookId} AND CHAPTER_NUM = {$chapterNum}
-                 ORDER BY VERSE_NUM"
+                "SELECT v.ID, v.VERSE_NUM, v.TEXT,
+                        COALESCE(v.TEXT_LT, v1.TEXT_LT) AS TEXT_LT,
+                        COALESCE(v.TEXT_EN, v1.TEXT_EN) AS TEXT_EN
+                 FROM bible_verses v
+                 JOIN bible_books b ON b.ID = v.BOOK_ID
+                 LEFT JOIN bible_books b1 ON b1.BOOK_NUM = b.BOOK_NUM AND b1.TRANSLATION_ID = 1
+                 LEFT JOIN bible_verses v1 ON v1.BOOK_ID = b1.ID
+                     AND v1.CHAPTER_NUM = v.CHAPTER_NUM
+                     AND v1.VERSE_NUM = v.VERSE_NUM
+                 WHERE v.BOOK_ID = {$bookId} AND v.CHAPTER_NUM = {$chapterNum}
+                 ORDER BY v.VERSE_NUM"
             );
         }
         return json_encode($list);
@@ -143,14 +150,20 @@ trait Ajax_Tech
 
         $list = Info::get('db')->select(
             "SELECT v.ID, v.BOOK_ID, v.CHAPTER_NUM, v.VERSE_NUM,
-                    v.TEXT, v.TEXT_LT, v.TEXT_EN,
+                    v.TEXT,
+                    COALESCE(v.TEXT_LT, v1.TEXT_LT) AS TEXT_LT,
+                    COALESCE(v.TEXT_EN, v1.TEXT_EN) AS TEXT_EN,
                     b.NAME as BOOK_NAME, b.NAME_LT as BOOK_NAME_LT, b.NAME_EN as BOOK_NAME_EN
              FROM bible_verses v
              JOIN bible_books b ON b.ID = v.BOOK_ID
+             LEFT JOIN bible_books b1 ON b1.BOOK_NUM = b.BOOK_NUM AND b1.TRANSLATION_ID = 1
+             LEFT JOIN bible_verses v1 ON v1.BOOK_ID = b1.ID
+                 AND v1.CHAPTER_NUM = v.CHAPTER_NUM
+                 AND v1.VERSE_NUM = v.VERSE_NUM
              WHERE b.TRANSLATION_ID = {$translationId}
                AND (v.TEXT LIKE '%{$query}%'
-                    OR v.TEXT_LT LIKE '%{$query}%'
-                    OR v.TEXT_EN LIKE '%{$query}%')
+                    OR COALESCE(v.TEXT_LT, v1.TEXT_LT) LIKE '%{$query}%'
+                    OR COALESCE(v.TEXT_EN, v1.TEXT_EN) LIKE '%{$query}%')
              ORDER BY b.BOOK_NUM, v.CHAPTER_NUM, v.VERSE_NUM
              LIMIT 200"
         );
