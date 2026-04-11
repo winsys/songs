@@ -1,6 +1,6 @@
 app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, SongsService)
 {
-    // ── "Songs" mode state ──────────────────────────────────────
+    // ── "Songs" mode state ─────────────────────────────────────
     $scope.listId = 1;
     $scope.songList = [];
     $scope.favorites = [];
