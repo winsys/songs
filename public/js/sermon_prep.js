@@ -2,7 +2,7 @@
  * sermon_prep.js  — v2 (video support)
  * AngularJS controller for the Sermon Preparation mode.
  *
- * ИЗМЕНЕНИЯ  vs v1:
+ * ИЗМЕНЕНИЯ vs v1:
  *  + $sce добавлен к инжекции
  *  + video state variables
  *  + insertVideoNode()
@@ -1477,13 +1477,63 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         );
     };
     $scope.setBibleTranslation = function (id) {
+        // Save current position to restore after translation change
+        var prevBookNum   = $scope.selectedBook ? parseInt($scope.selectedBook.BOOK_NUM) : null;
+        var prevChapter   = $scope.selectedChapter;
+        var prevVerseNums = $scope.selectedBibleVerseNums.slice();
+
         $scope.bibleTranslationId     = id;
         $scope.selectedBook           = null;
         $scope.selectedChapter        = null;
+        $scope.bibleChapters          = [];
         $scope.rawVerses              = [];
         $scope.preparedVerses         = [];
         $scope.selectedBibleVerseNums = [];
-        $scope.loadBibleBooks();
+
+        $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_books', translation_id: id } }).then(
+            function (r) {
+                $scope.bibleBooks = r.data;
+
+                if (!prevBookNum) return null;
+
+                var matchBook = null;
+                angular.forEach($scope.bibleBooks, function (b) {
+                    if (parseInt(b.BOOK_NUM) === prevBookNum) matchBook = b;
+                });
+                if (!matchBook) return null;
+
+                $scope.selectedBook = matchBook;
+                return $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_chapters', book_id: matchBook.ID } });
+            }
+        ).then(function (r) {
+            if (!r) return null;
+            $scope.bibleChapters = r.data;
+
+            if (!prevChapter) return null;
+
+            var chapterExists = false;
+            angular.forEach($scope.bibleChapters, function (c) { if (c === prevChapter) chapterExists = true; });
+            if (!chapterExists) return null;
+
+            $scope.selectedChapter = prevChapter;
+            return $http({ method: "POST", url: "/ajax",
+                data: { command: 'get_bible_verses', book_id: $scope.selectedBook.ID, chapter_num: prevChapter }
+            });
+        }).then(function (r) {
+            if (!r) return;
+            $scope.rawVerses      = r.data;
+            $scope.preparedVerses = r.data.map(function (v) {
+                return { num: parseInt(v.VERSE_NUM), display: v.VERSE_NUM + '. ' + (v.TEXT || '') };
+            });
+
+            // Restore verse selection — filter to verse nums that actually exist
+            if (prevVerseNums.length > 0) {
+                var existingNums = $scope.rawVerses.map(function (v) { return parseInt(v.VERSE_NUM); });
+                $scope.selectedBibleVerseNums = prevVerseNums.filter(function (n) {
+                    return existingNums.indexOf(n) >= 0;
+                });
+            }
+        });
     };
     $scope.loadBibleBooks = function () {
         $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_books', translation_id: $scope.bibleTranslationId } }).then(

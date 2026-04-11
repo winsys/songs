@@ -1,6 +1,6 @@
 app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, SongsService)
 {
-    // ── Songs mode state ──────────────────────────────────────
+    // ── "Songs" mode state ──────────────────────────────────────
     $scope.listId = 1;
     $scope.songList = [];
     $scope.favorites = [];
@@ -902,6 +902,22 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     $scope.setBibleTranslation = function(translationId) {
+        // Save current position so we can restore it after the translation changes
+        var prevBookNum   = $scope.selectedBibleBook ? parseInt($scope.selectedBibleBook.BOOK_NUM) : null;
+        var prevChapter   = $scope.selectedBibleChapter;
+        var prevVerseNums = [];
+        if ($scope.selectedBibleVerses.length > 0 && $scope.bibleVerses.length > 0) {
+            angular.forEach($scope.selectedBibleVerses, function(verseStr) {
+                var m = verseStr.match(/\n\((\d+)\)$/);
+                if (m) {
+                    var idx = parseInt(m[1]);
+                    if ($scope.bibleVerses[idx]) {
+                        prevVerseNums.push(parseInt($scope.bibleVerses[idx].VERSE_NUM));
+                    }
+                }
+            });
+        }
+
         $scope.bibleTranslationId   = translationId;
         $scope.bibleBooks           = [];
         $scope.selectedBibleBook    = null;
@@ -913,12 +929,69 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $scope.bibleSearchResults   = [];
 
         $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_books', translation_id: translationId } }).then(
-            function success(respond) {
+            function(respond) {
                 $scope.bibleBooks = respond.data;
+
+                if (!prevBookNum) return null;
+
+                // Find the same book by BOOK_NUM (canonical across all translations)
+                var matchBook = null;
+                angular.forEach($scope.bibleBooks, function(b) {
+                    if (parseInt(b.BOOK_NUM) === prevBookNum) matchBook = b;
+                });
+                if (!matchBook) return null;
+
+                $scope.selectedBibleBook = matchBook;
+                return $http({ method: "POST", url: "/ajax",
+                    data: { command: 'get_bible_chapters', book_id: matchBook.ID }
+                });
             },
-            function error(erespond) {
-                console.log('Ajax call error: ', erespond);
+            function(erespond) { console.log('Ajax call error: ', erespond); }
+        ).then(function(resp) {
+            if (!resp) { scrollBiblePanels(); return null; }
+            $scope.bibleChapters = resp.data;
+
+            if (!prevChapter) { scrollBiblePanels(); return null; }
+
+            // Check that the chapter exists in the new translation
+            var chapterExists = false;
+            angular.forEach($scope.bibleChapters, function(c) {
+                if (c === prevChapter) chapterExists = true;
             });
+            if (!chapterExists) { scrollBiblePanels(); return null; }
+
+            $scope.selectedBibleChapter = prevChapter;
+            return $http({ method: "POST", url: "/ajax",
+                data: { command: 'get_bible_verses',
+                    book_id: $scope.selectedBibleBook.ID,
+                    chapter_num: prevChapter }
+            });
+        }).then(function(resp) {
+            if (!resp) return;
+            $scope.bibleVerses         = resp.data;
+            $scope.biblePreparedVerses = prepareBibleVerses($scope.bibleVerses);
+
+            if (prevVerseNums.length === 0) { scrollBiblePanels(); return; }
+
+            // Restore verse selection by matching VERSE_NUM
+            var restoredVerses = [];
+            angular.forEach(prevVerseNums, function(verseNum) {
+                angular.forEach($scope.bibleVerses, function(v, idx) {
+                    if (parseInt(v.VERSE_NUM) === verseNum && $scope.biblePreparedVerses[idx]) {
+                        restoredVerses.push($scope.biblePreparedVerses[idx]);
+                    }
+                });
+            });
+
+            if (restoredVerses.length > 0) {
+                $scope.selectedBibleVerses = restoredVerses;
+                var combinedText = buildBibleCombinedText(restoredVerses);
+                $scope.showingBibleVerse   = combinedText;
+                var bookName = $scope.getBibleBookName($scope.selectedBibleBook);
+                sendBibleText(combinedText, bookName + ' ' + prevChapter);
+            }
+            scrollBiblePanels();
+        });
     };
 
     $scope.selectBibleBook = function(book) {
