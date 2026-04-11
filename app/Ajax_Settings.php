@@ -19,6 +19,9 @@ trait Ajax_Settings
         $displayName             = mysqli_escape_string(Info::get('dbh'), $settings['display_name']);
         $favoritesOrder          = mysqli_escape_string(Info::get('dbh'), $settings['favorites_order']);
         $availableLists          = mysqli_escape_string(Info::get('dbh'), $settings['available_lists']);
+        $availableLanguages      = isset($settings['available_languages']) && $settings['available_languages'] !== ''
+            ? mysqli_escape_string(Info::get('dbh'), $settings['available_languages'])
+            : null;
         $placeholderImage        = mysqli_escape_string(Info::get('dbh'), $settings['placeholder_image']);
         $mainBgColor             = mysqli_escape_string(Info::get('dbh'), $settings['main_bg_color']);
         $mainFont                = mysqli_escape_string(Info::get('dbh'), $settings['main_font']);
@@ -49,6 +52,7 @@ trait Ajax_Settings
                     display_name             = '{$displayName}',
                     favorites_order          = '{$favoritesOrder}',
                     available_lists          = '{$availableLists}',
+                    available_languages      = " . ($availableLanguages === null ? 'NULL' : "'{$availableLanguages}'") . ",
                     placeholder_image        = '{$placeholderImage}',
                     main_bg_color            = '{$mainBgColor}',
                     main_font                = '{$mainFont}',
@@ -71,14 +75,14 @@ trait Ajax_Settings
         } else {
             Info::get('db')->exec("
                 INSERT INTO user_settings (
-                    group_id, display_name, favorites_order, available_lists, placeholder_image,
+                    group_id, display_name, favorites_order, available_lists, available_languages, placeholder_image,
                     main_bg_color, main_font, main_font_color,
                     streaming_bg_color, streaming_font, streaming_font_color, streaming_height_percent,
                     sermon_notes_bg_color, sermon_bible_base_color, sermon_msg_base_color,
                     sermon_prep_font_size, sermon_notes_font_size, sermon_scale_chips,
                     slide_bg_color, main_font_max_size, slide_font_max_size
                 ) VALUES (
-                    {$userId}, '{$displayName}', '{$favoritesOrder}', '{$availableLists}', '{$placeholderImage}',
+                    {$userId}, '{$displayName}', '{$favoritesOrder}', '{$availableLists}', " . ($availableLanguages === null ? 'NULL' : "'{$availableLanguages}'") . ", '{$placeholderImage}',
                     '{$mainBgColor}', '{$mainFont}', '{$mainFontColor}',
                     '{$streamingBgColor}', '{$streamingFont}', '{$streamingFontColor}', {$streamingHeightPercent},
                     '{$sermonNotesBgColor}', '{$sermonBibleBaseColor}', '{$sermonMsgBaseColor}',

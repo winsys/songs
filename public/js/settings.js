@@ -1,7 +1,7 @@
 
 app.controller('Settings', function ($scope, $http)
 {
-    // Permissions - loadinng from server
+    // Permissions - loading from server
     $scope.permissions = {
         canManageUsers: false,
         canEditFavoritesOrder: false,
@@ -30,6 +30,8 @@ app.controller('Settings', function ($scope, $http)
 
     $scope.availableLists = [];
     $scope.selectedLists = {};
+    $scope.allLanguages = [];
+    $scope.selectedLanguages = {};
     $scope.placeholderImages = [
         { path: '/field_small.jpg', name: 'field_small.jpg (по умолчанию)' }
     ];
@@ -51,6 +53,12 @@ app.controller('Settings', function ($scope, $http)
             function error(e){ console.log('Ajax call error: ', e); });
     };
 
+    $scope.loadAllLanguages = function() {
+        $http({ method: "POST", url: "/ajax", data: {command: 'get_all_languages' } }).then(
+            function success(r){ $scope.allLanguages = r.data || []; },
+            function error(e){ console.log('Ajax call error: ', e); });
+    };
+
     $scope.loadSettings = function() {
         $http({ method: "POST", url: "/ajax", data: {command: 'get_user_settings' } }).then(
             function success(r){
@@ -59,6 +67,11 @@ app.controller('Settings', function ($scope, $http)
                     if ($scope.settings.available_lists) {
                         var ids = $scope.settings.available_lists.split(',');
                         angular.forEach(ids, function(id){ $scope.selectedLists[id] = true; });
+                    }
+                    $scope.selectedLanguages = {};
+                    if ($scope.settings.available_languages) {
+                        var codes = $scope.settings.available_languages.split(',');
+                        angular.forEach(codes, function(c){ $scope.selectedLanguages[c.trim()] = true; });
                     }
                     if ($scope.settings.streaming_height_percent)
                         $scope.settings.streaming_height_percent = parseInt($scope.settings.streaming_height_percent, 10);
@@ -104,6 +117,11 @@ app.controller('Settings', function ($scope, $http)
         var ids = [];
         angular.forEach($scope.selectedLists, function(v, k){ if (v) ids.push(k); });
         $scope.settings.available_lists = ids.join(',');
+
+        var langCodes = [];
+        angular.forEach($scope.selectedLanguages, function(v, k){ if (v) langCodes.push(k); });
+        // null (empty string) means "all languages" — backwards-compatible default
+        $scope.settings.available_languages = langCodes.length > 0 ? langCodes.join(',') : '';
         $http({ method: "POST", url: "/ajax", data: { command: 'save_user_settings', settings: $scope.settings } }).then(
             function success(r){
                 alert(r.data.status === 'success' ? '✅ Настройки успешно сохранены!' : '❌ Ошибка при сохранении настроек!');
@@ -135,6 +153,7 @@ app.controller('Settings', function ($scope, $http)
     };
 
     $scope.loadAvailableLists();
+    $scope.loadAllLanguages();
 
     // ============================================================
     // ПОЛЬЗОВАТЕЛИ ГРУППЫ

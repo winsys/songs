@@ -427,6 +427,7 @@ trait Ajax_Common
                 'display_name' => $_SESSION['userName'],
                 'favorites_order' => 'latest_bottom',
                 'available_lists' => '1,2,3,4,5,6',
+                'available_languages' => null,
                 'placeholder_image' => null,
                 'main_bg_color' => '#000000',
                 'main_font' => 'Arial',
@@ -461,6 +462,32 @@ trait Ajax_Common
     }
 
     private static function get_languages()
+    {
+        $userId  = $_SESSION['curGroupId'];
+        $setting = Info::get('db')->getValue(
+            "SELECT available_languages FROM user_settings WHERE group_id = {$userId}"
+        );
+
+        $sql = "SELECT l.code, l.label, l.col_suffix, l.sort_order, l.is_default
+                FROM languages l";
+
+        if ($setting) {
+            $codes = array_values(array_filter(array_map('trim', explode(',', $setting))));
+            if (!empty($codes)) {
+                $placeholders = implode(',', array_map(function ($c) {
+                    return "'" . mysqli_escape_string(Info::get('dbh'), $c) . "'";
+                }, $codes));
+                $sql .= " WHERE l.code IN ({$placeholders})";
+            }
+        }
+
+        $sql .= " ORDER BY l.sort_order ASC";
+        $langs = Info::get('db')->select($sql);
+        return json_encode($langs);
+    }
+
+    /** Returns ALL languages regardless of group settings (used by admin language management). */
+    private static function get_all_languages()
     {
         $langs = Info::get('db')->select(
             "SELECT l.code, l.label, l.col_suffix, l.sort_order, l.is_default

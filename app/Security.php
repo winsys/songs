@@ -363,6 +363,11 @@ class Security
      * Get permissions array for current user.
      * @return array
      */
+    public static function canEditLanguages(): bool
+    {
+        return self::isAdmin() || self::isLeader();
+    }
+
     public static function getSettingsPermissions(): array
     {
         return [
@@ -371,6 +376,7 @@ class Security
             'canEditSongLists' => self::canEditSongLists(),
             'canEditSermonSettings' => self::canEditSermonSettings(),
             'canEditAllSettings' => self::canEditAllSettings(),
+            'canEditLanguages' => self::canEditLanguages(),
         ];
     }
 

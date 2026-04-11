@@ -86,7 +86,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     // ─────────────────────────────────────────────────────────
     $scope.loadLanguages = function () {
         $scope.langLoading = true;
-        $http({ method: 'POST', url: '/ajax', data: { command: 'get_languages' } }).then(
+        $http({ method: 'POST', url: '/ajax', data: { command: 'get_all_languages' } }).then(
             function (r) {
                 $scope.langLoading = false;
                 var list = r.data || [];
