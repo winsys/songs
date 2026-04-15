@@ -31,10 +31,16 @@ app.service('SongsService', function ($http, $q) {
             var settings = results.settings.data;
 
             if (settings && settings.available_lists) {
-                var selectedIds = settings.available_lists.split(',');
-                return allLists.filter(function (list) {
-                    return selectedIds.indexOf(String(list.LIST_ID)) !== -1;
-                });
+                var selectedIds = settings.available_lists.split(',').map(function(id) { return id.trim(); });
+                // Preserve the order defined in available_lists
+                return selectedIds
+                    .map(function(id) {
+                        for (var i = 0; i < allLists.length; i++) {
+                            if (String(allLists[i].LIST_ID) === id) return allLists[i];
+                        }
+                        return null;
+                    })
+                    .filter(Boolean);
             }
             return allLists;
         });

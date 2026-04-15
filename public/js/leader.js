@@ -11,8 +11,13 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
     $scope.loadSongLists = function () {
         SongsService.getVisibleSongLists().then(function (lists) {
             $scope.visibleSongLists = lists;
+            if (lists.length > 0) {
+                $scope.listId = lists[0].LIST_ID;
+            }
+            $scope.reloadSongList();
         }, function () {
             console.error('leader.js: не удалось загрузить списки песен');
+            $scope.reloadSongList();
         });
     };
 
@@ -255,9 +260,8 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
         });
     });
 
-    $scope.loadSongLists();
+    $scope.loadSongLists();  // sets listId to first visible list, then calls reloadSongList
     SongsService.getLanguages().then(function (langs) { $scope.langList = langs; });
-    $scope.reloadSongList();
     $scope.reloadFavorites();
 }]);
 

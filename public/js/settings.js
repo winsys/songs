@@ -30,6 +30,7 @@ app.controller('Settings', function ($scope, $http)
 
     $scope.availableLists = [];
     $scope.selectedLists = {};
+    $scope.sortedLists = [];    // ordered list of {LIST_ID, LIST_NAME, selected}
     $scope.allLanguages = [];
     $scope.selectedLanguages = {};
     $scope.placeholderImages = [
@@ -47,9 +48,50 @@ app.controller('Settings', function ($scope, $http)
             function error(e){ console.log('Failed to load permissions: ', e); });
     };
 
+    // Flags to detect when both lists and settings have loaded, then build sortedLists
+    var _listsLoaded = false, _settingsLoaded = false;
+
+    function _buildSortedLists() {
+        if (!_listsLoaded || !_settingsLoaded) return;
+        var result = [];
+        // First: selected lists in the order defined by available_lists
+        if ($scope.settings.available_lists) {
+            var ids = $scope.settings.available_lists.split(',').map(function(id) { return id.trim(); });
+            ids.forEach(function(id) {
+                for (var i = 0; i < $scope.availableLists.length; i++) {
+                    if (String($scope.availableLists[i].LIST_ID) === id) {
+                        result.push({ LIST_ID: $scope.availableLists[i].LIST_ID, LIST_NAME: $scope.availableLists[i].LIST_NAME, selected: true });
+                        break;
+                    }
+                }
+            });
+        }
+        // Then: remaining (unselected) lists
+        $scope.availableLists.forEach(function(list) {
+            var alreadyIn = result.some(function(r) { return r.LIST_ID === list.LIST_ID; });
+            if (!alreadyIn) {
+                result.push({ LIST_ID: list.LIST_ID, LIST_NAME: list.LIST_NAME, selected: false });
+            }
+        });
+        $scope.sortedLists = result;
+    }
+
+    $scope.moveSongList = function(index, direction) {
+        var target = index + direction;
+        if (target < 0 || target >= $scope.sortedLists.length) return;
+        if (!$scope.sortedLists[target].selected) return; // don't move past unselected items
+        var temp = $scope.sortedLists[index];
+        $scope.sortedLists[index] = $scope.sortedLists[target];
+        $scope.sortedLists[target] = temp;
+    };
+
     $scope.loadAvailableLists = function() {
         $http({ method: "POST", url: "/ajax", data: {command: 'get_all_song_lists' } }).then(
-            function success(r){ $scope.availableLists = r.data; },
+            function success(r){
+                $scope.availableLists = r.data || [];
+                _listsLoaded = true;
+                _buildSortedLists();
+            },
             function error(e){ console.log('Ajax call error: ', e); });
     };
 
@@ -64,10 +106,6 @@ app.controller('Settings', function ($scope, $http)
             function success(r){
                 if (r.data && r.data.group_id) {
                     angular.extend($scope.settings, r.data);
-                    if ($scope.settings.available_lists) {
-                        var ids = $scope.settings.available_lists.split(',');
-                        angular.forEach(ids, function(id){ $scope.selectedLists[id] = true; });
-                    }
                     $scope.selectedLanguages = {};
                     if ($scope.settings.available_languages) {
                         var codes = $scope.settings.available_languages.split(',');
@@ -81,6 +119,8 @@ app.controller('Settings', function ($scope, $http)
                     if (!$scope.settings.slide_bg_color)           $scope.settings.slide_bg_color           = '#1a237e';
                     $scope.settings.sermon_notes_font_size = parseInt($scope.settings.sermon_notes_font_size, 10) || 100;
                     $scope.settings.sermon_scale_chips = parseInt($scope.settings.sermon_scale_chips) || 0;
+                    _settingsLoaded = true;
+                    _buildSortedLists();
                 }
             },
             function error(e){ console.log('Ajax call error: ', e); });
@@ -115,7 +155,7 @@ app.controller('Settings', function ($scope, $http)
 
     $scope.saveSettings = function() {
         var ids = [];
-        angular.forEach($scope.selectedLists, function(v, k){ if (v) ids.push(k); });
+        $scope.sortedLists.forEach(function(item) { if (item.selected) ids.push(String(item.LIST_ID)); });
         $scope.settings.available_lists = ids.join(',');
 
         var langCodes = [];
