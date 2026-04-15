@@ -387,7 +387,9 @@ trait Ajax_Common
 
         $uploadDir = __DIR__ . '/../public/images/' . $song['LISTID'] . '/';
         if (!file_exists($uploadDir)) {
-            mkdir($uploadDir, 0755, true);
+            if (!mkdir($uploadDir, 0755, true) && !is_dir($uploadDir)) {
+                return json_encode(['status' => 'error', 'message' => 'Failed to create upload directory: ' . $uploadDir]);
+            }
         }
 
         $filename   = $song['NUM'] . '.jpg';
@@ -397,7 +399,7 @@ trait Ajax_Common
             self::updateSocket();
             return json_encode(['status' => 'success', 'path' => '/images/' . $song['LISTID'] . '/' . $filename]);
         }
-        return json_encode(['status' => 'error', 'message' => 'Failed to move uploaded file']);
+        return json_encode(['status' => 'error', 'message' => 'Failed to move uploaded file. Check write permissions on: ' . $uploadDir]);
     }
 
     /**
