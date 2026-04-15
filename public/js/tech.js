@@ -282,6 +282,9 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.loadSongLists = function () {
         SongsService.getVisibleSongLists().then(function (lists) {
             $scope.visibleSongLists = lists;
+            if (lists.length > 0) {
+                $scope.listId = lists[0].LIST_ID;  // $watch triggers reloadSongList if changed
+            }
         }, function () {
             console.error('tech.js: не удалось загрузить списки песен');
         });
