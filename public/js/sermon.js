@@ -966,17 +966,20 @@ angular.module('Songs', ['csrfModule'])
          *    async fetch was in flight, we skip stale calls.
          */
         function autoFitText(expectedText) {
-            var wrap = document.getElementById('display-text-wrap');
-            var el   = document.getElementById('display-text');
-            if (!wrap || !el) return;
+            var wrap      = document.getElementById('display-text-wrap');
+            var container = document.getElementById('display-text-container');
+            var el        = document.getElementById('display-text');
+            if (!wrap || !container || !el) return;
 
             // Guard: skip if scope changed while we were waiting
             if (expectedText !== undefined && $scope.displayText !== expectedText) return;
 
-            var maxH = wrap.clientHeight * 0.90;
-            var maxW = wrap.clientWidth  * 0.95;
+            // Use the container's actual dimensions — it already accounts for
+            // wrap padding and the title bar height, so text never overflows.
+            var maxH = container.clientHeight - 4;
+            var maxW = container.clientWidth;
 
-            // If wrapper has no dimensions yet, retry after next paint
+            // If container has no dimensions yet, retry after next paint
             if (maxH <= 0 || maxW <= 0) {
                 requestAnimationFrame(function () { autoFitText(expectedText); });
                 return;
