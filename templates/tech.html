@@ -1172,37 +1172,47 @@
     /* ---- Song preview modal ----------------------------------- */
     .song-preview-overlay {
         position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.55);
-        z-index: 9000;
+        background: rgba(0,0,0,0.75);
+        z-index: 99999;
         display: flex; align-items: center; justify-content: center;
+        padding: 10px;
     }
     .song-preview-modal {
         background: #fff;
         border-radius: 10px;
-        padding: 20px;
-        max-width: 92vw;
-        width: 500px;
-        max-height: 90vh;
-        overflow-y: auto;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.28);
+        width: 100%; height: 100%;
+        max-width: 98vw; max-height: 96vh;
+        display: flex; flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.5);
     }
-    .song-preview-header { margin-bottom: 12px; }
-    .song-preview-title { font-size: 16px; font-weight: 700; color: #1a2533; }
+    .song-preview-header {
+        padding: 10px 16px 6px; flex-shrink: 0;
+        border-bottom: 1px solid #f0f2f5;
+    }
+    .song-preview-title { font-size: 15px; font-weight: 700; color: #1a2533; }
     .song-preview-book {
         display: inline-block; font-size: 11px; color: #6b7c93;
         background: #f0f4f8; border-radius: 10px;
         padding: 2px 8px; margin-left: 8px; vertical-align: middle;
     }
-    .song-preview-img-wrap { margin: 12px 0; text-align: center; }
+    .song-preview-img-wrap {
+        flex: 1; min-height: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: #111; overflow: hidden;
+    }
     .song-preview-img {
-        max-width: 100%; max-height: 55vh;
-        border-radius: 4px; border: 1px solid #dde3ea;
+        max-width: 100%; max-height: 100%;
+        object-fit: contain; display: block;
     }
     .song-preview-no-img {
-        color: #b0b8c1; font-size: 13px; padding: 18px;
-        background: #f5f7fa; border-radius: 6px; text-align: center;
+        color: #888; font-size: 14px;
     }
-    .song-preview-actions { display: flex; gap: 10px; margin-top: 14px; }
+    .song-preview-actions {
+        display: flex; gap: 10px;
+        padding: 10px 16px 12px; flex-shrink: 0;
+        border-top: 1px solid #f0f2f5;
+    }
 </style>
 
 <div ng-controller="Tech">
