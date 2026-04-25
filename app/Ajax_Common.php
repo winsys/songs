@@ -276,20 +276,21 @@ trait Ajax_Common
 
     private static function update_song()
     {
-        $songId = mysqli_escape_string(Info::get('dbh'), self::$args['id']);
+        $dbh    = Info::get('dbh');
+        $songId = mysqli_escape_string($dbh, self::$args['id']);
+        $name   = mysqli_escape_string($dbh, self::$args['name']);
 
-        // Preserve CRLF line breaks - don't strip them
-        $text = self::$args['text'];
-        // Escape for SQL but keep line breaks
-        $text = mysqli_escape_string(Info::get('dbh'), $text);
+        $langs = Info::get('db')->select("SELECT col_suffix FROM languages ORDER BY sort_order ASC");
 
-        $name = mysqli_escape_string(Info::get('dbh'), self::$args['name']);
+        $setClauses = "NAME = '{$name}'";
+        foreach ($langs as $lang) {
+            $colName = 'TEXT' . $lang['col_suffix'];
+            $argKey  = 'text' . strtolower($lang['col_suffix']);
+            $val = isset(self::$args[$argKey]) ? mysqli_escape_string($dbh, self::$args[$argKey]) : '';
+            $setClauses .= ", {$colName} = '{$val}'";
+        }
 
-        // Handle Lithuanian and English texts if provided
-        $textLt = isset(self::$args['text_lt']) ? mysqli_escape_string(Info::get('dbh'), self::$args['text_lt']) : '';
-        $textEn = isset(self::$args['text_en']) ? mysqli_escape_string(Info::get('dbh'), self::$args['text_en']) : '';
-
-        Info::get('db')->exec("UPDATE song_list SET TEXT = '{$text}', TEXT_LT = '{$textLt}', TEXT_EN = '{$textEn}', NAME = '{$name}' WHERE ID = {$songId}");
+        Info::get('db')->exec("UPDATE song_list SET {$setClauses} WHERE ID = {$songId}");
         self::updateSocket();
         return json_encode(['status' => 'success']);
     }
@@ -306,18 +307,24 @@ trait Ajax_Common
 
     private static function create_song()
     {
-        $listId = mysqli_escape_string(Info::get('dbh'), self::$args['list_id']);
+        $dbh    = Info::get('dbh');
+        $listId = mysqli_escape_string($dbh, self::$args['list_id']);
+        $name   = mysqli_escape_string($dbh, self::$args['name']);
 
-        // Preserve CRLF line breaks - don't strip them
-        $text = mysqli_escape_string(Info::get('dbh'), self::$args['text']);
-        $name = mysqli_escape_string(Info::get('dbh'), self::$args['name']);
+        $langs = Info::get('db')->select("SELECT col_suffix FROM languages ORDER BY sort_order ASC");
 
-        // Handle Lithuanian and English texts if provided
-        $textLt = isset(self::$args['text_lt']) ? mysqli_escape_string(Info::get('dbh'), self::$args['text_lt']) : '';
-        $textEn = isset(self::$args['text_en']) ? mysqli_escape_string(Info::get('dbh'), self::$args['text_en']) : '';
+        $colNames = 'LISTID, NUM, NAME';
+        $values   = "{$listId}, '', '{$name}'";
+        foreach ($langs as $lang) {
+            $colName = 'TEXT' . $lang['col_suffix'];
+            $argKey  = 'text' . strtolower($lang['col_suffix']);
+            $val = isset(self::$args[$argKey]) ? mysqli_escape_string($dbh, self::$args[$argKey]) : '';
+            $colNames .= ", {$colName}";
+            $values   .= ", '{$val}'";
+        }
 
         // Insert the song to get the auto-generated ID
-        Info::get('db')->exec("INSERT INTO song_list (LISTID, NUM, NAME, TEXT, TEXT_LT, TEXT_EN) VALUES ({$listId}, '', '{$name}', '{$text}', '{$textLt}', '{$textEn}')");
+        Info::get('db')->exec("INSERT INTO song_list ({$colNames}) VALUES ({$values})");
 
         // Get the newly created song's ID
         $newSongId = Info::get('db')->insert_id();
