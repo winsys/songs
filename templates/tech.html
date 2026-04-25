@@ -1140,6 +1140,41 @@
         0%, 100% { opacity: 1; }
         50%       { opacity: 0.6; }
     }
+
+    /* ---- Song preview modal ----------------------------------- */
+    .song-preview-overlay {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.55);
+        z-index: 9000;
+        display: flex; align-items: center; justify-content: center;
+    }
+    .song-preview-modal {
+        background: #fff;
+        border-radius: 10px;
+        padding: 20px;
+        max-width: 92vw;
+        width: 500px;
+        max-height: 90vh;
+        overflow-y: auto;
+        box-shadow: 0 8px 32px rgba(0,0,0,0.28);
+    }
+    .song-preview-header { margin-bottom: 12px; }
+    .song-preview-title { font-size: 16px; font-weight: 700; color: #1a2533; }
+    .song-preview-book {
+        display: inline-block; font-size: 11px; color: #6b7c93;
+        background: #f0f4f8; border-radius: 10px;
+        padding: 2px 8px; margin-left: 8px; vertical-align: middle;
+    }
+    .song-preview-img-wrap { margin: 12px 0; text-align: center; }
+    .song-preview-img {
+        max-width: 100%; max-height: 55vh;
+        border-radius: 4px; border: 1px solid #dde3ea;
+    }
+    .song-preview-no-img {
+        color: #b0b8c1; font-size: 13px; padding: 18px;
+        background: #f5f7fa; border-radius: 6px; text-align: center;
+    }
+    .song-preview-actions { display: flex; gap: 10px; margin-top: 14px; }
 </style>
 
 <div ng-controller="Tech">
@@ -1332,7 +1367,7 @@
                 <angucomplete-alt id="ccf6"
                                   placeholder="название, текст песни или номер"
                                   pause="100"
-                                  local-data="songList"
+                                  local-data="searchSongList"
                                   search-fields="dispName,TEXT"
                                   title-field="dispName"
                                   description-field="langInfo"
@@ -1915,7 +1950,29 @@
         </div>
 
     </div><!-- /tech-wrapper -->
+
+    <!-- Song preview modal -->
+    <div class="song-preview-overlay" ng-if="songPreview.visible" ng-click="closeSongPreview()">
+        <div class="song-preview-modal" ng-click="$event.stopPropagation()">
+            <div class="song-preview-header">
+                <span class="song-preview-title">{{ songPreview.song.NUM }}.&nbsp;&nbsp;{{ songPreview.song.NAME }}</span>
+                <span class="song-preview-book" ng-if="songPreview.song.bookName">{{ songPreview.song.bookName }}</span>
+            </div>
+            <div class="song-preview-img-wrap">
+                <img ng-src="{{ songPreview.song.imageName }}"
+                     class="song-preview-img"
+                     ng-hide="songPreview.imgError"
+                     onerror="angular.element(this).scope().$apply(function(s){s.songPreview.imgError=true;})">
+                <div class="song-preview-no-img" ng-show="songPreview.imgError">Изображение нот отсутствует</div>
+            </div>
+            <div class="song-preview-actions">
+                <button class="btn-action-blue" ng-click="confirmAddSongFromPreview()">+ Добавить в список</button>
+                <button class="btn btn-default" ng-click="closeSongPreview()">Отмена</button>
+            </div>
+        </div>
+    </div>
+
 </div><!-- /ng-controller -->
 
-<script src="/js/tech.js?v=17" type="text/javascript"></script>
+<script src="/js/tech.js?v=18" type="text/javascript"></script>
 

@@ -52,6 +52,36 @@ trait Ajax_Common
         return json_encode($list);
     }
 
+    private static function get_songs_for_search()
+    {
+        $rawIds = isset(self::$args['list_ids']) ? self::$args['list_ids'] : '';
+        $rawIds = preg_replace('/[^0-9,]/', '', $rawIds);
+        if (!$rawIds) return json_encode([]);
+
+        $langs = Info::get('db')->select(
+            "SELECT code, col_suffix FROM languages ORDER BY sort_order ASC"
+        );
+        $hasTextFields = '';
+        foreach ($langs as $lang) {
+            $col   = 'TEXT' . $lang['col_suffix'];
+            $alias = 'hasText_' . $lang['code'];
+            $hasTextFields .= ", (l.{$col} IS NOT NULL AND l.{$col} != '') AS {$alias}";
+        }
+
+        $list = Info::get('db')->select(
+            "SELECT l.*,
+                concat(l.NUM, '   ', l.NAME) as dispName,
+                concat('/images/', l.LISTID, '/', l.NUM, '.jpg') as imageName,
+                n.LIST_NAME as bookName
+                {$hasTextFields}
+         FROM song_list l
+         LEFT JOIN list_names n ON n.LIST_ID = l.LISTID
+         WHERE l.LISTID IN ({$rawIds})
+         ORDER BY l.LISTID, l.NUM+0"
+        );
+        return json_encode($list);
+    }
+
     // Новая версия учитывает sort_order = max(оба списка) + 1.
     private static function add_to_favorites()
     {
