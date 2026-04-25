@@ -300,27 +300,39 @@ trait Ajax_Sermon
 
     private static function save_sermon_notes_settings()
     {
-        $userId       = (int)$_SESSION['curGroupId'];
-        $prepFontSize = isset(self::$args['sermon_prep_font_size'])  ? intval(self::$args['sermon_prep_font_size'])  : null;
-        $fontSize     = isset(self::$args['sermon_notes_font_size']) ? intval(self::$args['sermon_notes_font_size']) : 100;
-        $fontSize     = max(50, min(300, $fontSize));
-        $scale        = isset(self::$args['sermon_scale_chips'])     ? intval(self::$args['sermon_scale_chips'])     : 0;
+        $userId = (int)$_SESSION['curGroupId'];
 
-        $existing = Info::get('db')->get("SELECT group_id FROM user_settings WHERE group_id = {$userId}");
-        if ($existing) {
-            $setPrepFont = '';
-            if ($prepFontSize !== null) {
-                $prepFontSize = max(10, min(22, $prepFontSize));
-                $setPrepFont  = "sermon_prep_font_size = {$prepFontSize},";
-            }
-            Info::get('db')->exec("
-                UPDATE user_settings
-                SET {$setPrepFont}
-                    sermon_notes_font_size = {$fontSize},
-                    sermon_scale_chips     = {$scale}
-                WHERE group_id = {$userId}
-            ");
-        }
+        $prepFontSize = isset(self::$args['sermon_prep_font_size'])
+            ? max(10, min(22,  intval(self::$args['sermon_prep_font_size'])))
+            : null;
+        $fontSize = isset(self::$args['sermon_notes_font_size'])
+            ? max(50, min(300, intval(self::$args['sermon_notes_font_size'])))
+            : null;
+        $scale = isset(self::$args['sermon_scale_chips'])
+            ? max(0,  min(1,   intval(self::$args['sermon_scale_chips'])))
+            : null;
+
+        // Build SET clause from only the fields that were provided
+        $sets = [];
+        if ($fontSize    !== null) $sets[] = "sermon_notes_font_size = {$fontSize}";
+        if ($prepFontSize !== null) $sets[] = "sermon_prep_font_size = {$prepFontSize}";
+        if ($scale       !== null) $sets[] = "sermon_scale_chips = {$scale}";
+
+        if (empty($sets)) return json_encode(['status' => 'success']);
+
+        // INSERT creates the row if it doesn't exist yet; ON DUPLICATE KEY only
+        // updates the provided fields without touching the rest of user_settings.
+        $insertFontSize = $fontSize    ?? 100;
+        $insertPrepFont = $prepFontSize ?? 13;
+        $insertScale    = $scale       ?? 0;
+        $updateClause   = implode(', ', $sets);
+
+        Info::get('db')->exec("
+            INSERT INTO user_settings (group_id, sermon_notes_font_size, sermon_prep_font_size, sermon_scale_chips)
+            VALUES ({$userId}, {$insertFontSize}, {$insertPrepFont}, {$insertScale})
+            ON DUPLICATE KEY UPDATE {$updateClause}
+        ");
+
         return json_encode(['status' => 'success']);
     }
 
