@@ -1141,6 +1141,34 @@
         50%       { opacity: 0.6; }
     }
 
+    /* ---- Search result row with thumbnail --------------------- */
+    .angucomplete-song-row {
+        display: flex !important;
+        align-items: center !important;
+        padding: 7px 12px !important;
+        gap: 10px;
+    }
+    .angucomplete-song-img-col {
+        width: 46px; height: 46px; flex-shrink: 0;
+        border-radius: 5px; overflow: hidden;
+        background: #e8edf2;
+        cursor: pointer;
+        position: relative;
+        display: flex; align-items: center; justify-content: center;
+        border: 1px solid #dee3ea;
+        transition: opacity 0.15s;
+    }
+    .angucomplete-song-img-col:hover { opacity: 0.75; }
+    .angucomplete-song-img-col::after {
+        content: '🎵';
+        position: absolute; font-size: 17px; opacity: 0.3;
+    }
+    .angucomplete-song-thumb-sm {
+        width: 46px; height: 46px; object-fit: cover;
+        display: block; position: relative; z-index: 1;
+    }
+    .angucomplete-song-text-col { flex: 1; min-width: 0; }
+
     /* ---- Song preview modal ----------------------------------- */
     .song-preview-overlay {
         position: fixed; top: 0; left: 0; right: 0; bottom: 0;
@@ -1364,6 +1392,41 @@
             <!-- Search -->
             <div style="margin-top: 16px; margin-bottom: 12px;">
                 <div class="section-label" style="margin-bottom: 6px;">Поиск песни</div>
+
+                <script type="text/ng-template" id="song-row-tmpl.html">
+                    <div class="angucomplete-holder" ng-class="{'angucomplete-dropdown-visible': showDropdown}">
+                        <input id="{{id}}_value" name="{{inputName}}" tabindex="{{fieldTabindex}}"
+                               ng-class="{'angucomplete-input-not-empty': notEmpty}"
+                               ng-model="searchStr" ng-disabled="disableInput" type="{{inputType}}"
+                               placeholder="{{placeholder}}" maxlength="{{maxlength}}"
+                               ng-focus="onFocusHandler()" class="{{inputClass}}"
+                               ng-focus="resetHideResults()" ng-blur="hideResults($event)"
+                               autocapitalize="off" autocorrect="off" autocomplete="off"
+                               ng-change="inputChangeHandler(searchStr)"/>
+                        <div id="{{id}}_dropdown" class="angucomplete-dropdown" ng-show="showDropdown">
+                            <div class="angucomplete-searching" ng-show="searching" ng-bind="textSearching"></div>
+                            <div class="angucomplete-searching" ng-show="!searching && (!results || results.length == 0)" ng-bind="textNoResults"></div>
+                            <div class="angucomplete-row angucomplete-song-row"
+                                 ng-repeat="result in results"
+                                 ng-click="selectResult(result)"
+                                 ng-mouseenter="hoverRow($index)"
+                                 ng-class="{'angucomplete-selected-row': $index == currentIndex}">
+                                <div class="angucomplete-song-img-col"
+                                     ng-click="$emit('song:previewSong', result.originalObject); $event.stopPropagation()"
+                                     title="Просмотр нот">
+                                    <img ng-src="{{result.image}}" class="angucomplete-song-thumb-sm"
+                                         onerror="this.style.display='none'">
+                                </div>
+                                <div class="angucomplete-song-text-col">
+                                    <div class="angucomplete-title" ng-if="matchClass" ng-bind-html="result.title"></div>
+                                    <div class="angucomplete-title" ng-if="!matchClass">{{ result.title }}</div>
+                                    <div ng-if="result.description && result.description != ''" class="angucomplete-description">{{result.description}}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </script>
+
                 <angucomplete-alt id="ccf6"
                                   placeholder="название, текст песни или номер"
                                   pause="100"
@@ -1371,9 +1434,11 @@
                                   search-fields="dispName,TEXT"
                                   title-field="dispName"
                                   description-field="langInfo"
+                                  image-field="imageName"
                                   selected-object="selectedItem"
                                   minlength="2"
-                                  input-class="form-control">
+                                  input-class="form-control"
+                                  template-url="song-row-tmpl.html">
                 </angucomplete-alt>
             </div>
 

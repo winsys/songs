@@ -66,10 +66,20 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
     $scope.selectedItem = function(item)
     {
         if (typeof item !== 'undefined') {
-            $scope.songPreview = { visible: true, song: item.originalObject, imgError: false };
-            $scope.$broadcast('angucomplete-alt:clearInput');
+            $http({ method: "POST", url: "/ajax", data: { command: 'add_to_favorites', id: item.originalObject.ID } }).then(
+                function success() {
+                    $scope.reloadFavorites();
+                    $scope.$broadcast('angucomplete-alt:clearInput');
+                },
+                function error(erespond) {
+                    console.error('leader.js Ajax error:', erespond);
+                });
         }
     };
+
+    $scope.$on('song:previewSong', function(e, song) {
+        $scope.songPreview = { visible: true, song: song, imgError: false };
+    });
 
     $scope.closeSongPreview = function () {
         $scope.songPreview.visible = false;
@@ -81,6 +91,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
             function success() {
                 $scope.reloadFavorites();
                 $scope.songPreview.visible = false;
+                $scope.$broadcast('angucomplete-alt:clearInput');
             },
             function error(erespond) {
                 console.error('leader.js Ajax error:', erespond);
