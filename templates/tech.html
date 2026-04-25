@@ -1168,6 +1168,8 @@
         display: block; position: relative; z-index: 1;
     }
     .angucomplete-song-text-col { flex: 1; min-width: 0; }
+    .angucomplete-row-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap; }
+    .angucomplete-book-name { font-size: 10px; color: #95a5a6; }
 
     /* ---- Song preview modal ----------------------------------- */
     .song-preview-overlay {
@@ -1430,7 +1432,14 @@
                                 <div class="angucomplete-song-text-col">
                                     <div class="angucomplete-title" ng-if="matchClass" ng-bind-html="result.title"></div>
                                     <div class="angucomplete-title" ng-if="!matchClass">{{ result.title }}</div>
-                                    <div ng-if="result.description && result.description != ''" class="angucomplete-description">{{result.description}}</div>
+                                    <div class="angucomplete-row-meta">
+                                        <span ng-if="result.originalObject.bookName" class="angucomplete-book-name">{{ result.originalObject.bookName }}</span>
+                                        <span class="song-lang-badges">
+                                            <span class="lang-badge lang-{{lang.code}}"
+                                                  ng-repeat="lang in $parent.$parent.langList"
+                                                  ng-if="result.originalObject['hasText_' + lang.code] == '1'">{{lang.label}}</span>
+                                        </span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
