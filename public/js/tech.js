@@ -3,6 +3,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // ── "Songs" mode state ─────────────────────────────────────
     $scope.listId = 1;
     $scope.songList = [];
+    $scope.searchSongList = [];
     $scope.favorites = [];
     $scope.fullScreen = false;
     $scope.preparedChapters = [];
@@ -10,6 +11,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.showingChapter = null;
     $scope.selectedChapters = [];
     $scope.visibleSongLists = [];
+    $scope.songPreview = { visible: false, song: null, imgError: false };
 
     // ── Bible mode state ──────────────────────────────────────
     $scope.bibleTranslations    = [];
@@ -285,8 +287,27 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             if (lists.length > 0) {
                 $scope.listId = lists[0].LIST_ID;  // $watch triggers reloadSongList if changed
             }
+            $scope.loadSearchSongs(lists);
         }, function () {
             console.error('tech.js: не удалось загрузить списки песен');
+        });
+    };
+
+    $scope.loadSearchSongs = function (lists) {
+        var ids = lists.map(function (l) { return l.LIST_ID; });
+        SongsService.getSongsForSearch(ids).then(function (songs) {
+            angular.forEach(songs, function (song) {
+                var langs = [];
+                angular.forEach($scope.langList, function (lang) {
+                    if (song['hasText_' + lang.code] === '1') {
+                        langs.push(lang.label);
+                    }
+                });
+                var bookPart = song.bookName ? song.bookName : '';
+                var langPart = langs.length ? langs.join(' · ') : '';
+                song.langInfo = bookPart + (bookPart && langPart ? '  ·  ' : '') + langPart;
+            });
+            $scope.searchSongList = songs;
         });
     };
 
@@ -496,16 +517,26 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
 
     $scope.selectedItem = function(item)
     {
-        if( typeof item !== 'undefined' ){
-            $http({ method: "POST", url: "/ajax", data: {command: 'add_to_favorites', id: item.originalObject.ID } }).then(
-                function success(){
-                    $scope.reloadFavorites();
-                    $scope.$broadcast('angucomplete-alt:clearInput');
-                },
-                function error(erespond){
-                    console.log('Ajax call error: ',erespond);
-                });
+        if (typeof item !== 'undefined') {
+            $scope.songPreview = { visible: true, song: item.originalObject, imgError: false };
+            $scope.$broadcast('angucomplete-alt:clearInput');
         }
+    };
+
+    $scope.closeSongPreview = function () {
+        $scope.songPreview.visible = false;
+    };
+
+    $scope.confirmAddSongFromPreview = function () {
+        if (!$scope.songPreview.song) return;
+        $http({ method: "POST", url: "/ajax", data: { command: 'add_to_favorites', id: $scope.songPreview.song.ID } }).then(
+            function success() {
+                $scope.reloadFavorites();
+                $scope.songPreview.visible = false;
+            },
+            function error(erespond) {
+                console.log('Ajax call error: ', erespond);
+            });
     };
 
     $scope.clearFavorites = function(){

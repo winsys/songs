@@ -47,6 +47,17 @@ app.service('SongsService', function ($http, $q) {
     };
 
     /**
+     * Загрузить все песни из указанных сборников для поиска.
+     * @param {Array} listIds — массив числовых ID сборников
+     * @returns {Promise<Array>}
+     */
+    this.getSongsForSearch = function (listIds) {
+        if (!listIds || !listIds.length) return $q.resolve([]);
+        return $http.post('/ajax', { command: 'get_songs_for_search', list_ids: listIds.join(',') })
+            .then(function (r) { return r.data || []; });
+    };
+
+    /**
      * Загрузить список языков.
      * @returns {Promise<Array>} — массив объектов языка [{code, label, col_suffix, is_default}, ...]
      */
