@@ -20,6 +20,7 @@ include "../app/Ajax_Import.php";
 include "../app/Ajax.php";
 include "../app/Security.php";
 include "../app/GoogleAuth.php";
+include "../app/T.php";
 include "../app/App.php";
 
 // Keep sessions alive for 18 hours (64800 seconds).
