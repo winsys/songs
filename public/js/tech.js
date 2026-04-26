@@ -1532,9 +1532,12 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         }
         var q = $scope.bibleBookSearchQuery.toLowerCase();
         return $scope.bibleBooks.filter(function(book) {
-            return (book.NAME    && book.NAME.toLowerCase().indexOf(q)    >= 0) ||
-                (book.NAME_LT && book.NAME_LT.toLowerCase().indexOf(q) >= 0) ||
-                (book.NAME_EN && book.NAME_EN.toLowerCase().indexOf(q) >= 0);
+            if (book.NAME && book.NAME.toLowerCase().indexOf(q) >= 0) return true;
+            for (var i = 0; i < $scope.langList.length; i++) {
+                var col = 'NAME' + $scope.langList[i].col_suffix;
+                if (book[col] && book[col].toLowerCase().indexOf(q) >= 0) return true;
+            }
+            return false;
         });
     };
 

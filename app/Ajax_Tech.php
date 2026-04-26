@@ -70,8 +70,16 @@ trait Ajax_Tech
     private static function get_bible_books()
     {
         $translationId = (int)self::$args['translation_id'];
+
+        $cols = 'ID, BOOK_NUM, NAME';
+        foreach (self::getLanguages() as $lang) {
+            if ($lang['col_suffix'] !== '') {
+                $cols .= ', NAME' . $lang['col_suffix'];
+            }
+        }
+
         $list = Info::get('db')->select(
-            "SELECT ID, BOOK_NUM, NAME, NAME_LT, NAME_EN
+            "SELECT {$cols}
              FROM bible_books
              WHERE TRANSLATION_ID = {$translationId}
              ORDER BY BOOK_NUM"
@@ -104,11 +112,21 @@ trait Ajax_Tech
     private static function get_bible_verses()
     {
         // Support both book_id (old) and book_num (new) for backwards compatibility
+        $langs = self::getLanguages();
+
         if (isset(self::$args['book_num'])) {
-            $bookNum = (int)self::$args['book_num'];
+            $bookNum    = (int)self::$args['book_num'];
             $chapterNum = (int)self::$args['chapter_num'];
+
+            $cols = 'v.ID, v.VERSE_NUM, v.TEXT';
+            foreach ($langs as $lang) {
+                if ($lang['col_suffix'] !== '') {
+                    $cols .= ', v.TEXT' . $lang['col_suffix'];
+                }
+            }
+
             $list = Info::get('db')->select(
-                "SELECT v.ID, v.VERSE_NUM, v.TEXT, v.TEXT_LT, v.TEXT_EN
+                "SELECT {$cols}
                  FROM bible_verses v
                  JOIN bible_books b ON v.BOOK_ID = b.ID
                  WHERE b.BOOK_NUM = {$bookNum} AND v.CHAPTER_NUM = {$chapterNum}
@@ -116,13 +134,20 @@ trait Ajax_Tech
                  LIMIT 1000"
             );
         } else {
-            // Fallback to old book_id method
-            $bookId = (int)self::$args['book_id'];
+            // Fallback: book_id path with COALESCE fallback to translation 1
+            $bookId     = (int)self::$args['book_id'];
             $chapterNum = (int)self::$args['chapter_num'];
+
+            $cols = 'v.ID, v.VERSE_NUM, v.TEXT';
+            foreach ($langs as $lang) {
+                if ($lang['col_suffix'] !== '') {
+                    $s    = $lang['col_suffix'];
+                    $cols .= ", COALESCE(v.TEXT{$s}, v1.TEXT{$s}) AS TEXT{$s}";
+                }
+            }
+
             $list = Info::get('db')->select(
-                "SELECT v.ID, v.VERSE_NUM, v.TEXT,
-                        COALESCE(v.TEXT_LT, v1.TEXT_LT) AS TEXT_LT,
-                        COALESCE(v.TEXT_EN, v1.TEXT_EN) AS TEXT_EN
+                "SELECT {$cols}
                  FROM bible_verses v
                  JOIN bible_books b ON b.ID = v.BOOK_ID
                  LEFT JOIN bible_books b1 ON b1.BOOK_NUM = b.BOOK_NUM AND b1.TRANSLATION_ID = 1
@@ -148,12 +173,25 @@ trait Ajax_Tech
             self::$args['query']
         );
 
+        $langs     = self::getLanguages();
+        $textCols  = 'v.TEXT';
+        $nameCols  = 'b.NAME as BOOK_NAME';
+        $whereOrs  = ["v.TEXT LIKE '%{$query}%'"];
+
+        foreach ($langs as $lang) {
+            if ($lang['col_suffix'] !== '') {
+                $s         = $lang['col_suffix'];
+                $textCols .= ", COALESCE(v.TEXT{$s}, v1.TEXT{$s}) AS TEXT{$s}";
+                $nameCols .= ", b.NAME{$s} as BOOK_NAME{$s}";
+                $whereOrs[]= "COALESCE(v.TEXT{$s}, v1.TEXT{$s}) LIKE '%{$query}%'";
+            }
+        }
+        $whereLangs = implode(' OR ', $whereOrs);
+
         $list = Info::get('db')->select(
             "SELECT v.ID, v.BOOK_ID, v.CHAPTER_NUM, v.VERSE_NUM,
-                    v.TEXT,
-                    COALESCE(v.TEXT_LT, v1.TEXT_LT) AS TEXT_LT,
-                    COALESCE(v.TEXT_EN, v1.TEXT_EN) AS TEXT_EN,
-                    b.NAME as BOOK_NAME, b.NAME_LT as BOOK_NAME_LT, b.NAME_EN as BOOK_NAME_EN
+                    {$textCols},
+                    {$nameCols}
              FROM bible_verses v
              JOIN bible_books b ON b.ID = v.BOOK_ID
              LEFT JOIN bible_books b1 ON b1.BOOK_NUM = b.BOOK_NUM AND b1.TRANSLATION_ID = 1
@@ -161,9 +199,7 @@ trait Ajax_Tech
                  AND v1.CHAPTER_NUM = v.CHAPTER_NUM
                  AND v1.VERSE_NUM = v.VERSE_NUM
              WHERE b.TRANSLATION_ID = {$translationId}
-               AND (v.TEXT LIKE '%{$query}%'
-                    OR COALESCE(v.TEXT_LT, v1.TEXT_LT) LIKE '%{$query}%'
-                    OR COALESCE(v.TEXT_EN, v1.TEXT_EN) LIKE '%{$query}%')
+               AND ({$whereLangs})
              ORDER BY b.BOOK_NUM, v.CHAPTER_NUM, v.VERSE_NUM
              LIMIT 200"
         );
