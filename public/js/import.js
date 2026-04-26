@@ -129,7 +129,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
 
         if (!code || !label) return;
         if (!/^[a-z]{2,5}$/.test(code)) {
-            langLog('error', '❌ Код должен быть 2–5 латинских букв (напр. "de")');
+            langLog('error', window.t('import.log.langCodeBad'));
             return;
         }
 
@@ -150,12 +150,12 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                     $scope.newLangLabel = '';
                     $scope.loadLanguages();   // refresh list
                 } else {
-                    langLog('error', '❌ ' + (d.message || 'Ошибка сервера'));
+                    langLog('error', window.t('import.log.passwordError', { message: d.message || window.t('import.log.serverError') }));
                 }
             },
             function () {
                 $scope.langAdding = false;
-                langLog('error', '❌ Ошибка соединения');
+                langLog('error', window.t('import.log.connError'));
             }
         );
     };
@@ -201,12 +201,12 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                     langLog('ok', '✅ ' + d.message);
                     $scope.loadLanguages();   // refresh list
                 } else {
-                    langLog('error', '❌ ' + (d.message || 'Неверный пароль или ошибка сервера'));
+                    langLog('error', window.t('import.log.passwordError', { message: d.message || window.t('import.log.passwordWrong') }));
                 }
             },
             function () {
                 $scope.langDeleting = false;
-                langLog('error', '❌ Ошибка соединения');
+                langLog('error', window.t('import.log.connError'));
             }
         );
     };
@@ -247,12 +247,12 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                     $scope.newListName = '';
                     loadSongLists();
                     $scope.songListId = r.data.list_id;
-                    songLog('ok', 'Сборник создан, ID=' + r.data.list_id);
+                    songLog('ok', window.t('import.log.songCreated', { id: r.data.list_id }));
                 } else {
-                    songLog('error', 'Ошибка: ' + (r.data && r.data.message ? r.data.message : 'неизвестная'));
+                    songLog('error', window.t('import.log.error', { message: r.data && r.data.message ? r.data.message : window.t('import.log.unknownError') }));
                 }
             },
-            function () { $scope.creating = false; songLog('error', 'Ошибка соединения'); }
+            function () { $scope.creating = false; songLog('error', window.t('import.log.connError')); }
         );
     };
 
@@ -309,7 +309,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
         $scope.songImporting = true;
         $scope.songProgress  = 0;
         $scope.songLog       = [];
-        songLog('ok', 'Начинаем импорт текстов…');
+        songLog('ok', window.t('import.log.startSong'));
 
         var fd = new FormData();
         fd.append('command',  'import_songs_sog');
@@ -326,15 +326,15 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                 $scope.songProgress  = 100;
                 var d = r.data;
                 if (d.status === 'success') {
-                    songLog('ok', '✅ Импорт завершён. Добавлено/обновлено: ' + d.updated + ', ошибок: ' + d.errors);
+                    songLog('ok', window.t('import.log.songImported', { updated: d.updated, errors: d.errors }));
                     if (d.log && d.log.length) {
                         angular.forEach(d.log, function (l) { songLog(l.type, l.msg); });
                     }
                 } else {
-                    songLog('error', '❌ ' + (d.message || 'Ошибка сервера'));
+                    songLog('error', window.t('import.log.passwordError', { message: d.message || window.t('import.log.serverError') }));
                 }
             },
-            function () { $scope.songImporting = false; songLog('error', '❌ Ошибка соединения'); }
+            function () { $scope.songImporting = false; songLog('error', window.t('import.log.connError')); }
         );
     };
 
@@ -346,7 +346,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
         $scope.zipImporting = true;
         $scope.zipProgress  = 0;
         $scope.songLog      = [];
-        songLog('ok', 'Загружаем ZIP-архив…');
+        songLog('ok', window.t('import.log.startZip'));
 
         var fd = new FormData();
         fd.append('command',  'import_song_images_zip');
@@ -362,15 +362,15 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                 $scope.zipProgress  = 100;
                 var d = r.data;
                 if (d.status === 'success') {
-                    songLog('ok', '✅ Картинки импортированы. Извлечено: ' + d.extracted + ', ошибок: ' + d.errors);
+                    songLog('ok', window.t('import.log.zipImported', { extracted: d.extracted, errors: d.errors }));
                     if (d.log && d.log.length) {
                         angular.forEach(d.log, function (l) { songLog(l.type, l.msg); });
                     }
                 } else {
-                    songLog('error', '❌ ' + (d.message || 'Ошибка сервера'));
+                    songLog('error', window.t('import.log.passwordError', { message: d.message || window.t('import.log.serverError') }));
                 }
             },
-            function () { $scope.zipImporting = false; songLog('error', '❌ Ошибка соединения'); }
+            function () { $scope.zipImporting = false; songLog('error', window.t('import.log.connError')); }
         );
     };
 
@@ -382,7 +382,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
         $scope.msgImporting = true;
         $scope.msgProgress  = 0;
         $scope.msgLog       = [];
-        msgLog('ok', 'Начинаем импорт посланий…');
+        msgLog('ok', window.t('import.log.startMsg'));
 
         var fd = new FormData();
         fd.append('command', 'import_messages_sog');
@@ -398,15 +398,15 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                 $scope.msgProgress  = 100;
                 var d = r.data;
                 if (d.status === 'success') {
-                    msgLog('ok', '✅ Импорт завершён. Добавлено: ' + d.inserted + ', обновлено: ' + d.updated + ', ошибок: ' + d.errors);
+                    msgLog('ok', window.t('import.log.msgImported', { inserted: d.inserted, updated: d.updated, errors: d.errors }));
                     if (d.log && d.log.length) {
                         angular.forEach(d.log, function (l) { msgLog(l.type, l.msg); });
                     }
                 } else {
-                    msgLog('error', '❌ ' + (d.message || 'Ошибка сервера'));
+                    msgLog('error', window.t('import.log.passwordError', { message: d.message || window.t('import.log.serverError') }));
                 }
             },
-            function () { $scope.msgImporting = false; msgLog('error', '❌ Ошибка соединения'); }
+            function () { $scope.msgImporting = false; msgLog('error', window.t('import.log.connError')); }
         );
     };
 
@@ -418,7 +418,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
         if ($scope.txtMode === 'new' && !$scope.txtTitle) return;
         $scope.txtImporting = true;
         $scope.msgLog = [];
-        msgLog('ok', 'Сохраняем послание [' + $scope.txtCode + ']…');
+        msgLog('ok', window.t('import.log.startTxtSave', { code: $scope.txtCode }));
 
         $http({
             method: 'POST',
@@ -451,12 +451,12 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                         $scope.txtTimecodes = '';
                     }
                 } else {
-                    msgLog('error', '❌ ' + (d.message || 'Ошибка сервера'));
+                    msgLog('error', window.t('import.log.passwordError', { message: d.message || window.t('import.log.serverError') }));
                 }
             },
             function () {
                 $scope.txtImporting = false;
-                msgLog('error', '❌ Ошибка соединения');
+                msgLog('error', window.t('import.log.connError'));
             }
         );
     };
@@ -497,22 +497,19 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
         }).then(function (r) {
             $scope.txtEditLoading = false;
             var d = r.data;
-            if (!d) { msgLog('error', '❌ Послание не найдено: ' + code); return; }
+            if (!d) { msgLog('error', window.t('import.log.txtNotFound', { code: code })); return; }
             var langToField = { ru: 'TEXT', lt: 'TEXT_LT', en: 'TEXT_EN', de: 'TEXT_DE' };
             var field = langToField[$scope.msgLang] || 'TEXT';
             var text  = (d[field] || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
             $scope.txtTitle     = d.TITLE    || '';
             $scope.txtCity      = d.CITY     || '';
-            $scope.txtBody      = text.replace(/
-/g, '
-
-');  // paragraphs separated by blank lines
+            $scope.txtBody      = text.replace(/\n/g, '\n\n');  // paragraphs separated by blank lines
             $scope.txtParaSep   = 'emptyline';
             $scope.txtAudioSrc  = d.AUDIO_SRC || '';
             $scope.txtTimecodes = (d.TIMECODES || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
         }, function () {
             $scope.txtEditLoading = false;
-            msgLog('error', '❌ Ошибка загрузки данных');
+            msgLog('error', window.t('import.log.txtLoadError'));
         });
     };
 
