@@ -1467,19 +1467,39 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     // BIBLE NAVIGATION (unchanged)
     // ──────────────────────────────────────────────────────────
 
+    /**
+     * Bible translations filtered by the active prepLangs toggles.
+     * Returns translations whose LANG matches any active toggle. Falls back
+     * to the full list if nothing matches so the panel is never empty.
+     */
+    $scope.getFilteredBibleTranslations = function () {
+        if (!$scope.bibleTranslations || $scope.bibleTranslations.length === 0) return [];
+        var activeCodes = $scope.prepLangList
+            .filter(function (l) { return $scope.prepLangs[l.code]; })
+            .map(function (l) { return l.code; });
+        if (activeCodes.length === 0) return $scope.bibleTranslations;
+        var filtered = $scope.bibleTranslations.filter(function (t) {
+            return activeCodes.indexOf(t.LANG) !== -1;
+        });
+        return filtered.length > 0 ? filtered : $scope.bibleTranslations;
+    };
+
     $scope.loadBibleTranslations = function () {
         $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_translations' } }).then(
             function (r) {
                 $scope.bibleTranslations = r.data;
                 if (r.data.length > 0) {
-                    // Prefer a translation whose LANG matches window.UI_LANG;
-                    // fall back to the first one in the list.
+                    // Auto-select within the filtered list (toggle-aware). Prefer a
+                    // translation whose LANG matches window.UI_LANG; otherwise take
+                    // the first translation visible under the current toggles.
+                    var filtered = $scope.getFilteredBibleTranslations();
+                    if (filtered.length === 0) filtered = r.data;
                     var uiLang = window.UI_LANG || 'ru';
                     var match = null;
-                    for (var i = 0; i < r.data.length; i++) {
-                        if (r.data[i].LANG === uiLang) { match = r.data[i]; break; }
+                    for (var i = 0; i < filtered.length; i++) {
+                        if (filtered[i].LANG === uiLang) { match = filtered[i]; break; }
                     }
-                    $scope.bibleTranslationId = (match || r.data[0]).ID;
+                    $scope.bibleTranslationId = (match || filtered[0]).ID;
                     $scope.loadBibleBooks();
                 }
             }
@@ -1613,12 +1633,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             }
         );
     };
-    $scope.togglePrepLang = function (code) {
-        $scope.prepLangs[code] = !$scope.prepLangs[code];
-        // at least one language must be active
-        var anyOn = $scope.prepLangList.some(function (l) { return $scope.prepLangs[l.code]; });
-        if (!anyOn) $scope.prepLangs[code] = true;
-    };
+    // togglePrepLang lives below — this earlier no-op stub is removed.
     $scope.langHasData = function (lang) {
         if (lang.is_default == '1') return true;             // default language is always available
         if (!$scope.rawVerses || $scope.rawVerses.length === 0) return true;  // verses not yet loaded — do not block
@@ -1652,6 +1667,22 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         // at least one language must be enabled
         var anyOn = $scope.prepLangList.some(function (l) { return $scope.prepLangs[l.code]; });
         if (!anyOn) $scope.prepLangs[lang] = true;
+
+        // Auto-switch the Bible translation if the current one no longer
+        // matches any active toggle. Mirrors the tech.js behaviour.
+        if ($scope.bibleTranslations && $scope.bibleTranslations.length > 0) {
+            var filtered  = $scope.getFilteredBibleTranslations();
+            var stillValid = filtered.some(function (t) { return t.ID == $scope.bibleTranslationId; });
+            if (!stillValid && filtered.length > 0) {
+                $scope.bibleTranslationId = filtered[0].ID;
+                $scope.selectedBook       = null;
+                $scope.bibleChapters      = [];
+                $scope.selectedChapter    = null;
+                $scope.rawVerses          = [];
+                $scope.preparedVerses     = [];
+                $scope.loadBibleBooks();
+            }
+        }
     };
     $scope.insertBibleCitation = function () {
         if ($scope.selectedBibleVerseNums.length === 0) return;

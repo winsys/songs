@@ -160,6 +160,17 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         if ($scope.pageMode === 'messages' && $scope.showingMessage) {
             prepareMessageText($scope.showingMessage);
         }
+
+        // In Bible mode, auto-switch to the first translation matching the
+        // (now possibly different) active toggles if the current one is
+        // filtered out. This makes the translation list react to the toggle.
+        if ($scope.pageMode === 'bible' && $scope.bibleTranslations.length > 0) {
+            var filtered = $scope.getFilteredBibleTranslations();
+            var stillValid = filtered.some(function(t) { return t.ID == $scope.bibleTranslationId; });
+            if (!stillValid && filtered.length > 0) {
+                $scope.setBibleTranslation(filtered[0].ID);
+            }
+        }
     };
 
     // ── Helpers for dynamic languages ───────────────────────
@@ -170,6 +181,22 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             return $scope.languages[l.code];
         });
     }
+
+    /**
+     * Bible translations filtered by the active language toggles.
+     * Returns translations whose LANG matches any active toggle. If nothing
+     * matches (e.g. only DE toggle but no German Bible imported), falls back
+     * to the full list so the panel never goes empty.
+     */
+    $scope.getFilteredBibleTranslations = function() {
+        if (!$scope.bibleTranslations || $scope.bibleTranslations.length === 0) return [];
+        var activeCodes = getActiveLangs().map(function(l) { return l.code; });
+        if (activeCodes.length === 0) return $scope.bibleTranslations;
+        var filtered = $scope.bibleTranslations.filter(function(t) {
+            return activeCodes.indexOf(t.LANG) !== -1;
+        });
+        return filtered.length > 0 ? filtered : $scope.bibleTranslations;
+    };
 
     /**
      * Checks if data exists for the language in the current context.
@@ -939,15 +966,18 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_translations' } }).then(
             function success(respond) {
                 $scope.bibleTranslations = respond.data;
-                // Auto-select a translation: prefer one whose LANG matches
-                // window.UI_LANG; fall back to the first one in the list.
+                // Auto-select within the filtered list (toggle-aware). Prefer a
+                // translation whose LANG matches window.UI_LANG; otherwise take
+                // the first translation visible under the current toggles.
                 if ($scope.bibleTranslations.length > 0 && !$scope.bibleTranslationId) {
+                    var filtered = $scope.getFilteredBibleTranslations();
+                    if (filtered.length === 0) filtered = $scope.bibleTranslations;
                     var uiLang = window.UI_LANG || 'ru';
                     var match = null;
-                    for (var i = 0; i < $scope.bibleTranslations.length; i++) {
-                        if ($scope.bibleTranslations[i].LANG === uiLang) { match = $scope.bibleTranslations[i]; break; }
+                    for (var i = 0; i < filtered.length; i++) {
+                        if (filtered[i].LANG === uiLang) { match = filtered[i]; break; }
                     }
-                    $scope.setBibleTranslation((match || $scope.bibleTranslations[0]).ID);
+                    $scope.setBibleTranslation((match || filtered[0]).ID);
                 }
             },
             function error(erespond) {
