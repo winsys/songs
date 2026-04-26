@@ -25,8 +25,13 @@ app.controller('Settings', function ($scope, $http)
         sermon_notes_bg_color:   '#2b2b2b',
         sermon_bible_base_color: '#1565c0',
         sermon_msg_base_color:   '#6a1b9a',
-        slide_bg_color:          '#1a237e'
+        slide_bg_color:          '#1a237e',
+        ui_lang:                 'ru'
     };
+
+    // ui_lang at the time settings were loaded; used to decide whether to
+    // reload the page after save so PHP-rendered chrome (UI_DICT) refreshes.
+    var _initialUiLang = null;
 
     $scope.availableLists = [];
     $scope.selectedLists = {};
@@ -119,6 +124,8 @@ app.controller('Settings', function ($scope, $http)
                     if (!$scope.settings.slide_bg_color)           $scope.settings.slide_bg_color           = '#1a237e';
                     $scope.settings.sermon_notes_font_size = parseInt($scope.settings.sermon_notes_font_size, 10) || 100;
                     $scope.settings.sermon_scale_chips = parseInt($scope.settings.sermon_scale_chips) || 0;
+                    if (!$scope.settings.ui_lang) $scope.settings.ui_lang = 'ru';
+                    _initialUiLang = $scope.settings.ui_lang;
                     _settingsLoaded = true;
                     _buildSortedLists();
                 }
@@ -164,7 +171,16 @@ app.controller('Settings', function ($scope, $http)
         $scope.settings.available_languages = langCodes.length > 0 ? langCodes.join(',') : '';
         $http({ method: "POST", url: "/ajax", data: { command: 'save_user_settings', settings: $scope.settings } }).then(
             function success(r){
-                alert(r.data.status === 'success' ? '✅ Настройки успешно сохранены!' : '❌ Ошибка при сохранении настроек!');
+                if (r.data.status !== 'success') {
+                    alert('❌ Ошибка при сохранении настроек!');
+                    return;
+                }
+                // If UI language changed, reload so PHP re-injects window.UI_DICT.
+                if ($scope.settings.ui_lang && $scope.settings.ui_lang !== _initialUiLang) {
+                    window.location.reload();
+                    return;
+                }
+                alert('✅ Настройки успешно сохранены!');
             },
             function error(e){ alert('❌ Ошибка при сохранении настроек!'); }
         );

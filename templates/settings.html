@@ -382,6 +382,22 @@
             <div class="settings-page-title">⚙️ Настройки пользователя</div>
         </div>
 
+        <!-- 0. UI language / Язык интерфейса -->
+        <div class="settings-card">
+            <span class="settings-card-title">🌐 Язык интерфейса / UI language</span>
+            <div class="settings-field">
+                <select class="settings-input" ng-model="settings.ui_lang">
+                    <option value="ru">Русский</option>
+                    <option value="de">Deutsch</option>
+                    <option value="en">English</option>
+                </select>
+                <span class="settings-hint">
+                    После сохранения страница перезагрузится, чтобы применить новый язык.<br>
+                    After saving, the page will reload to apply the new language.
+                </span>
+            </div>
+        </div>
+
         <!-- 1. Отображаемое имя -->
         <div class="settings-card">
             <span class="settings-card-title">1. Имя группы</span>
@@ -757,4 +773,4 @@
     </div>
 </div>
 
-<script src="/js/settings.js?v=11" type="text/javascript"></script>
+<script src="/js/settings.js?v=12" type="text/javascript"></script>
