@@ -479,7 +479,7 @@
         background: #fff;
     }
     #sermon-editor:empty::before {
-        content: 'Начните писать заметки по теме проповеди...';
+        content: <?php echo json_encode(T::s('prep.placeholder.notes'), JSON_UNESCAPED_UNICODE); ?>;
         color: #c5ccd4;
         pointer-events: none;
     }
@@ -885,7 +885,7 @@
     }
     .sermon-slide-inner .sermon-group-header { display: none !important; }
     /* Chips inside slides keep their natural colors (same as in notes text) */
-    /* Слайд активен (выбран для показа) */
+    /* Slide is active (selected for display) */
     .sermon-slide.active-slide { border-color: #ff6f00 !important; box-shadow: 0 0 0 3px rgba(255,111,0,.22); }
 
     /* ── Video insert dropdown ───────────────────────────────────── */
@@ -1119,7 +1119,7 @@
 
 <div ng-controller="SermonPrep">
     <div class="ws-disconnect-banner" ng-if="wsConnected === false">
-        ⚠ Нет соединения с сервером. Переподключение…
+        <?php echo T::s('common.ws.disconnected'); ?>
     </div>
     <!-- Visible only during printing -->
     <div id="sermon-print-header">
@@ -1132,10 +1132,10 @@
         <!-- ── Header ─────────────────────────────────────────────── -->
         <div class="prep-header">
             <button class="btn-back" onclick="window.location.href='/index'">
-                ← Главная
+                <?php echo T::s('common.button.back'); ?>
             </button>
             <div class="prep-title-block">
-                <div class="prep-page-title">📖 Подготовка проповеди</div>
+                <div class="prep-page-title"><?php echo T::s('prep.title'); ?></div>
                 <div class="prep-page-subtitle"><?php echo htmlspecialchars($_SESSION['userName']) ?></div>
             </div>
             <button class="bible-toggle-btn btn btn-default btn-sm" ng-click="biblePanelCollapsed = !biblePanelCollapsed">
@@ -1146,71 +1146,71 @@
         <!-- ── Title + Date + Save + List ─────────────────────────── -->
         <div class="row" style="margin-bottom: 16px;">
             <div class="col-xs-12 col-sm-4">
-                <label class="prep-field-label">Название проповеди</label>
+                <label class="prep-field-label"><?php echo T::s('prep.label.title'); ?></label>
                 <input type="text"
                        class="prep-input prep-title-input"
                        ng-model="sermon.title" />
             </div>
             <div class="col-xs-12 col-sm-2">
-                <label class="prep-field-label">Дата проповеди</label>
+                <label class="prep-field-label"><?php echo T::s('prep.label.date'); ?></label>
                 <input type="text"
                        class="prep-input"
-                       placeholder="ГГГГ-ММ-ДД"
+                       placeholder="<?php echo T::s('prep.placeholder.date'); ?>"
                        ng-model="sermon.date" />
             </div>
             <div class="col-xs-12 col-sm-2">
                 <label class="prep-field-label">&nbsp;</label>
                 <div class="btn-group" style="width:100%; display:flex;">
-                    <button class="btn-save" style="flex:1; border-radius:8px 0 0 8px;" ng-click="saveSermon()">💾 Сохранить</button>
+                    <button class="btn-save" style="flex:1; border-radius:8px 0 0 8px;" ng-click="saveSermon()"><?php echo T::s('common.button.save'); ?></button>
                     <button class="btn-save dropdown-toggle" data-toggle="dropdown"
                             style="border-radius:0 8px 8px 0; border-left:1px solid rgba(255,255,255,0.35); padding:8px 10px; flex-shrink:0;">
                         <span class="caret"></span>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-right" style="min-width:150px;">
-                        <li><a href ng-click="$event.preventDefault(); exportToMarkdown()">⬇️ Экспорт .md</a></li>
-                        <li><a href ng-click="$event.preventDefault(); exportToPdf()">🖨️ Экспорт PDF</a></li>
+                        <li><a href ng-click="$event.preventDefault(); exportToMarkdown()"><?php echo T::s('prep.button.exportMd'); ?></a></li>
+                        <li><a href ng-click="$event.preventDefault(); exportToPdf()"><?php echo T::s('prep.button.exportPdf'); ?></a></li>
                     </ul>
                 </div>
                 <span class="save-status" ng-class="{'saved': saveStatus === 'saved', 'saving': saveStatus === 'saving'}"
                       style="display:block; min-height:16px; margin-top:3px;">
-                    {{ saveStatus === 'saving' ? 'Сохранение...' : (saveStatus === 'saved' ? '✓ Сохранено' : '') }}
+                    {{ saveStatus === 'saving' ? ('<?php echo T::s('prep.status.saving'); ?>') : (saveStatus === 'saved' ? ('<?php echo T::s('prep.status.saved'); ?>') : '') }}
                 </span>
             </div>
             <div class="col-xs-12 col-sm-4" style="position:relative;">
                 <label class="prep-field-label">&nbsp;</label>
                 <div style="display:flex; gap:6px;">
                     <button class="btn-list-toggle" style="flex:1;" ng-click="showSermonList = !showSermonList">
-                        📋 Список проповедей
+                        <?php echo T::s('prep.button.list'); ?>
                     </button>
                     <button class="btn-list-toggle" style="flex:1;" ng-click="newSermon()">
-                        ✏️ Новая проповедь
+                        <?php echo T::s('prep.button.new'); ?>
                     </button>
                 </div>
                 <div class="sermons-sidebar" ng-show="showSermonList"
                      style="position:absolute; top:100%; left:15px; right:15px; z-index:200; max-height:320px; overflow-y:auto; margin-top:2px; box-shadow:0 6px 24px rgba(0,0,0,0.16);">
                     <div class="sermons-sidebar-title">
-                        <span>📋 Проповеди</span>
+                        <span><?php echo T::s('prep.panel.sermonsTitle'); ?></span>
                         <span ng-click="showSermonList=false" style="cursor:pointer; font-size:16px; color:#95a5a6; line-height:1;">×</span>
                     </div>
                     <div ng-show="sermonList.length === 0" style="padding:10px; color:#b0b8c1; font-size:11px;">
-                        Нет сохранённых проповедей
+                        <?php echo T::s('prep.empty.sermons'); ?>
                     </div>
                     <div class="sermon-list-item"
                          ng-repeat="s in sermonList"
                          ng-class="{active: sermon.id == s.ID}"
                          ng-click="loadSermon(s.ID)">
                         <div style="flex: 1; min-width: 0;">
-                            <div>{{ s.TITLE || '(без названия)' }}</div>
+                            <div>{{ s.TITLE || ('<?php echo T::s('sermon.untitled'); ?>') }}</div>
                             <div style="font-size: 10px; color: #95a5a6; margin-top: 2px;">
                                 <span ng-if="s.OWNER_NAME" style="color: #e67e22; font-weight: 600;">{{ s.OWNER_NAME }} · </span>
                                 <span ng-if="s.SERMON_DATE && s.SERMON_DATE !== '0000-00-00'">{{ s.SERMON_DATE }}</span>
-                                <span ng-if="s.UPDATED_AT" style="color: #b0b8c1;">(изм: {{ s.UPDATED_AT.substring(0, 16).replace('T', ' ') }})</span>
+                                <span ng-if="s.UPDATED_AT" style="color: #b0b8c1;">{{ ('<?php echo T::s('prep.modifiedPrefix'); ?>').replace('{date}', s.UPDATED_AT.substring(0, 16).replace('T', ' ')) }}</span>
                             </div>
                         </div>
                         <button class="btn-sermon-delete"
                                 ng-if="s.CAN_DELETE"
                                 ng-click="deleteSermonFromList(s.ID, $event)"
-                                title="Удалить">×</button>
+                                title="<?php echo T::s('common.button.delete'); ?>">×</button>
                     </div>
                 </div>
             </div>
@@ -1227,12 +1227,12 @@
                     <button class="left-tab-btn"
                             ng-class="leftPanelTab === 'bible' ? 'active-tab' : ''"
                             ng-click="leftPanelTab = 'bible'">
-                        📖 Библия
+                        <?php echo T::s('prep.tab.bible'); ?>
                     </button>
                     <button class="left-tab-btn"
                             ng-class="leftPanelTab === 'messages' ? 'active-tab-msg' : ''"
                             ng-click="leftPanelTab = 'messages'">
-                        ✍️ Послание
+                        <?php echo T::s('prep.tab.message'); ?>
                     </button>
                 </div>
 
@@ -1265,24 +1265,24 @@
                         <!-- Book search -->
                         <input type="text"
                                class="prep-bible-search"
-                               placeholder="Поиск книги..."
+                               placeholder="<?php echo T::s('prep.placeholder.bookSearch'); ?>"
                                ng-model="bookSearchQuery" />
 
                         <!-- Books panel -->
                         <div class="prep-panel" id="prep-books-panel" style="height:17vh;">
-                            <div class="prep-panel-title">Книги</div>
+                            <div class="prep-panel-title"><?php echo T::s('prep.panel.books'); ?></div>
                             <div class="prep-list-item"
                                  ng-repeat="book in getFilteredBooks()"
                                  ng-class="{selected: selectedBook && selectedBook.ID === book.ID}"
                                  ng-click="selectBook(book)">{{ getBookName(book) }}</div>
                             <div ng-show="!bibleTranslationId" style="padding:10px; color:#b0b8c1; font-size:11px;">
-                                Выберите перевод
+                                <?php echo T::s('prep.choosTranslation'); ?>
                             </div>
                         </div>
 
                         <!-- Chapters panel -->
                         <div class="prep-panel" id="prep-chapters-panel" style="height:14vh; margin-top:6px;" ng-show="selectedBook">
-                            <div class="prep-panel-title">Главы</div>
+                            <div class="prep-panel-title"><?php echo T::s('prep.panel.chapters'); ?></div>
                             <div style="display:flex; flex-wrap:wrap; gap:4px; padding:8px;">
                                 <button class="prep-chapter-btn btn btn-xs"
                                         ng-repeat="ch in bibleChapters"
@@ -1294,10 +1294,10 @@
                         <!-- Verses panel -->
                         <div class="prep-panel" id="prep-verses-panel" style="height:39vh; margin-top:6px;" ng-show="selectedChapter">
                             <div class="prep-panel-title">
-                                Стихи
+                                <?php echo T::s('prep.panel.verses'); ?>
                                 <span ng-show="selectedBibleVerseNums.length > 0"
                                       style="color:#1a6db5; font-size:10px; font-weight:normal; margin-left:6px; text-transform:none;">
-                                ({{ selectedBibleVerseNums.length }} выбр.)
+                                {{ ('<?php echo T::s('prep.versesSelectedSuffix'); ?>').replace('{count}', selectedBibleVerseNums.length) }}
                             </span>
                             </div>
                             <span class="prep-verse-item"
@@ -1307,7 +1307,7 @@
                                   ng-dblclick="toggleVerse(v, $event); insertBibleCitation()">{{ v.display }}</span>
                             <div ng-show="preparedVerses.length === 0 && selectedChapter"
                                  style="padding:10px; color:#b0b8c1; font-size:11px;">
-                                Загрузка...
+                                <?php echo T::s('common.loading'); ?>
                             </div>
                         </div>
 
@@ -1315,7 +1315,7 @@
                         <button class="btn-insert-bible"
                                 ng-disabled="selectedBibleVerseNums.length === 0"
                                 ng-click="insertBibleCitation()">
-                            📌 Вставить {{ selectedBibleVerseNums.length > 0 ? getRefLabel() : 'цитату' }}
+                            {{ ('<?php echo T::s('prep.button.insertCitation'); ?>').replace('{ref}', selectedBibleVerseNums.length > 0 ? getRefLabel() : '<?php echo T::s('prep.fallback.citation'); ?>') }}
                         </button>
 
                     </div><!-- /bible tab -->
@@ -1323,30 +1323,30 @@
                     <!-- ── MESSAGES TAB ── -->
                     <div ng-show="leftPanelTab === 'messages'">
 
-                        <!-- Search inputs + hints + results: скрываются при расширении -->
+                        <!-- Search inputs + hints + results: hidden when expanded -->
                         <div ng-hide="prepMsgParaExpanded">
                             <input type="text"
                                    class="prep-bible-search"
-                                   placeholder="Поиск по номеру или названию..."
+                                   placeholder="<?php echo T::s('prep.placeholder.msgSearchTitle'); ?>"
                                    ng-model="prepMsgTitleQuery"
                                    ng-change="searchMessagesPrep()" />
                             <input type="text"
                                    class="prep-bible-search"
-                                   placeholder="Поиск по тексту..."
+                                   placeholder="<?php echo T::s('prep.placeholder.msgSearchText'); ?>"
                                    ng-model="prepMsgTextQuery"
                                    ng-change="searchMessagesPrep()"
                                    style="margin-top:4px;" />
 
                             <div style="color:#b0b8c1; font-size:11px; padding: 4px 2px 6px;"
                                  ng-show="prepMsgTitleQuery.length < 2 && prepMsgTextQuery.length < 2">
-                                Введите минимум 2 символа для поиска
+                                <?php echo T::s('prep.hint.minChars'); ?>
                             </div>
 
                             <!-- Search results panel -->
                             <div class="prep-panel"
                                  style="height:24vh; margin-top:4px;"
                                  ng-show="prepMsgTitleQuery.length >= 2 || prepMsgTextQuery.length >= 2">
-                                <div class="prep-panel-title">Результаты ({{ prepMsgResults.length }})</div>
+                                <div class="prep-panel-title">{{ ('<?php echo T::s('prep.label.results'); ?>').replace('{count}', prepMsgResults.length) }}</div>
                                 <div class="prep-list-item"
                                      ng-repeat="msg in prepMsgResults"
                                      ng-class="{selected: prepSelectedMessage && prepSelectedMessage.ID === msg.ID}"
@@ -1357,7 +1357,7 @@
                                 </div>
                                 <div ng-show="prepMsgResults.length === 0"
                                      style="padding:10px; color:#b0b8c1; font-size:11px;">
-                                    Ничего не найдено
+                                    <?php echo T::s('prep.empty.results'); ?>
                                 </div>
                             </div>
                         </div>
@@ -1369,11 +1369,11 @@
                              style="margin-top:6px; transition: height 0.2s ease;"
                              ng-show="prepSelectedMessage">
                             <div class="prep-panel-title" style="color:#6a1b9a; text-transform:none; font-size:12px; display:flex; align-items:center; gap:6px;">
-                                <!-- Кнопка "назад" — появляется когда панель расширена -->
+                                <!-- "Back" button — visible when the panel is expanded -->
                                 <button ng-show="prepMsgParaExpanded"
                                         ng-click="collapseMsgSearch()"
                                         class="msg-back-btn"
-                                        title="Вернуться к поиску">‹</button>
+                                        title="<?php echo T::s('prep.tip.backToSearch'); ?>">‹</button>
                                 <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ prepSelectedMessage.TITLE }}</span>
                             </div>
                             <span class="prep-verse-item"
@@ -1385,7 +1385,7 @@
                                   ng-bind-html="highlightPrepMsg(para.text)"></span>
                             <div ng-show="prepMsgParagraphs.length === 0"
                                  style="padding:10px; color:#b0b8c1; font-size:11px;">
-                                Загрузка...
+                                <?php echo T::s('common.loading'); ?>
                             </div>
                         </div>
 
@@ -1393,7 +1393,7 @@
                         <button class="btn-insert-msg"
                                 ng-show="prepSelectedParaIdx !== null"
                                 ng-click="insertMessageCitation()">
-                            ✍️ Вставить цитату из послания
+                            <?php echo T::s('prep.button.insertMessage'); ?>
                         </button>
                     </div><!-- /messages tab -->
 
@@ -1405,50 +1405,50 @@
 
                 <!-- Toolbar -->
                 <div class="editor-toolbar">
-                    <button class="toolbar-btn" title="Отменить (Ctrl+Z)"
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.undo'); ?>"
                             ng-mousedown="$event.preventDefault(); execFmt('undo')">↩</button>
-                    <button class="toolbar-btn" title="Повторить (Ctrl+Y)"
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.redo'); ?>"
                             ng-mousedown="$event.preventDefault(); execFmt('redo')">↪</button>
                     <div class="toolbar-sep"></div>
-                    <button class="toolbar-btn" title="Жирный (Ctrl+B)"
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.bold'); ?>"
                             ng-mousedown="$event.preventDefault(); execFmt('bold')"><b>B</b></button>
-                    <button class="toolbar-btn" title="Подчёркнутый (Ctrl+U)"
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.underline'); ?>"
                             ng-mousedown="$event.preventDefault(); execFmt('underline')"><u>U</u></button>
-                    <button class="toolbar-btn" title="Курсив (Ctrl+I)"
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.italic'); ?>"
                             ng-mousedown="$event.preventDefault(); execFmt('italic')"><i>I</i></button>
-                    <button class="toolbar-btn" title="Зачеркнутый"
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.strike'); ?>"
                             ng-mousedown="$event.preventDefault(); execFmt('strikeThrough')"><strike>S</strike></button>
                     <div class="toolbar-sep"></div>
-                    <button class="toolbar-btn" title="Маркированный список"
-                            ng-mousedown="$event.preventDefault(); execFmt('insertUnorderedList')">• Список</button>
-                    <button class="toolbar-btn" title="Нумерованный список"
-                            ng-mousedown="$event.preventDefault(); execFmt('insertOrderedList')">1. Список</button>
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.ulist'); ?>"
+                            ng-mousedown="$event.preventDefault(); execFmt('insertUnorderedList')"><?php echo T::s('prep.tool.ulistLabel'); ?></button>
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.olist'); ?>"
+                            ng-mousedown="$event.preventDefault(); execFmt('insertOrderedList')"><?php echo T::s('prep.tool.olistLabel'); ?></button>
 
-                    <!-- Заголовки и Цитата -->
+                    <!-- Headings and Quote -->
                     <div class="toolbar-sep"></div>
                     <select class="toolbar-select"
                             ng-change="execFmt('formatBlock', headingModel); headingModel=''"
                             ng-model="headingModel">
-                        <option value="" disabled selected>Стиль</option>
-                        <option value="H1">Заголовок 1</option>
-                        <option value="H2">Заголовок 2</option>
-                        <option value="H3">Заголовок 3</option>
-                        <option value="H4">Заголовок 4</option>
-                        <option value="H5">Заголовок 5</option>
-                        <option value="H6">Заголовок 6</option>
-                        <option value="BLOCKQUOTE">Цитата</option>
-                        <option value="P">Обычный текст</option>
+                        <option value="" disabled selected><?php echo T::s('prep.style.placeholder'); ?></option>
+                        <option value="H1"><?php echo T::s('prep.style.h1'); ?></option>
+                        <option value="H2"><?php echo T::s('prep.style.h2'); ?></option>
+                        <option value="H3"><?php echo T::s('prep.style.h3'); ?></option>
+                        <option value="H4"><?php echo T::s('prep.style.h4'); ?></option>
+                        <option value="H5"><?php echo T::s('prep.style.h5'); ?></option>
+                        <option value="H6"><?php echo T::s('prep.style.h6'); ?></option>
+                        <option value="BLOCKQUOTE"><?php echo T::s('prep.style.quote'); ?></option>
+                        <option value="P"><?php echo T::s('prep.style.normal'); ?></option>
                     </select>
 
                     <div class="toolbar-sep"></div>
 
                     <!-- Font size -->
-                    <button class="toolbar-btn" title="Уменьшить шрифт"
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.fontDec'); ?>"
                             ng-mousedown="$event.preventDefault(); changePrepFontSize(-1)"
                             style="padding:4px 8px; font-size:13px; font-weight:700;">A−</button>
                     <span style="font-size:11px; color:#666; min-width:28px; text-align:center; display:inline-block; line-height:1;"
                           ng-bind="prepFontSize + 'px'"></span>
-                    <button class="toolbar-btn" title="Увеличить шрифт"
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.fontInc'); ?>"
                             ng-mousedown="$event.preventDefault(); changePrepFontSize(+1)"
                             style="padding:4px 8px; font-size:13px; font-weight:700;">A+</button>
 
@@ -1456,9 +1456,9 @@
 
                     <!-- Color picker -->
                     <div class="color-picker-wrap" style="position:relative;">
-                        <span style="font-size:11px; color:#7f8c8d; font-weight:600;">Цвет:</span>
+                        <span style="font-size:11px; color:#7f8c8d; font-weight:600;"><?php echo T::s('prep.label.color'); ?></span>
                         <span class="color-swatch" ng-style="{'background': currentColor}"
-                              ng-mousedown="$event.preventDefault(); toggleColorPicker()" title="Цвет текста"></span>
+                              ng-mousedown="$event.preventDefault(); toggleColorPicker()" title="<?php echo T::s('prep.tip.textColor'); ?>"></span>
                         <div class="color-dropdown" ng-show="showColorPicker">
                         <span class="color-swatch" ng-repeat="c in colorPalette"
                               ng-style="{'background': c}"
@@ -1469,82 +1469,82 @@
                     <div class="toolbar-sep"></div>
 
                     <!-- Image upload -->
-                    <button class="toolbar-btn" title="Вставить изображение"
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.insertImg'); ?>"
                             ng-class="{'uploading': uploadingImage}"
                             ng-mousedown="$event.preventDefault()"
                             ng-click="!uploadingImage && triggerImageUpload()"
                             style="padding:5px 10px; display:inline-flex; align-items:center; gap:5px;">
                         <span ng-if="uploadingImage" class="upload-spinner"></span>
                         <span ng-if="!uploadingImage" style="font-size:15px; line-height:1;">🖼️</span>
-                        <span ng-if="!uploadingImage" style="font-size:12px; font-weight:600;">Изображение</span>
-                        <span ng-if="uploadingImage" style="font-size:12px; font-weight:600;">Загрузка...</span>
+                        <span ng-if="!uploadingImage" style="font-size:12px; font-weight:600;"><?php echo T::s('prep.tool.imgLabel'); ?></span>
+                        <span ng-if="uploadingImage" style="font-size:12px; font-weight:600;"><?php echo T::s('common.loading'); ?></span>
                     </button>
                     <input type="file" id="sermon-image-input" accept="image/*" style="display:none;" />
 
                     <div class="toolbar-sep"></div>
 
-                    <!-- Кнопка вставки видео -->
+                    <!-- Insert video button -->
                     <div class="video-insert-wrap">
                         <button class="toolbar-btn"
-                                title="Вставить видео (файл или URL)"
+                                title="<?php echo T::s('prep.tool.insertVideo'); ?>"
                                 ng-mousedown="$event.preventDefault()"
                                 ng-click="toggleVideoPanel($event)"
                                 style="padding:5px 10px; display:inline-flex; align-items:center; gap:5px;">
                             <span style="font-size:15px; line-height:1;">🎥</span>
-                            <span style="font-size:12px; font-weight:600;">Видео</span>
+                            <span style="font-size:12px; font-weight:600;"><?php echo T::s('prep.tool.videoLabel'); ?></span>
                         </button>
 
                         <div class="video-insert-panel" ng-show="showVideoPanel"
                              ng-mousedown="$event.stopPropagation()">
-                            <div class="vip-title">Вставить видео</div>
+                            <div class="vip-title"><?php echo T::s('prep.video.popupTitle'); ?></div>
 
-                            <!-- URL-поле -->
+                            <!-- URL field -->
                             <div class="vip-row">
                                 <input type="text"
                                        ng-model="videoUrlInput"
-                                       placeholder="Ссылка: YouTube, .mp4, …"
+                                       placeholder="<?php echo T::s('prep.video.urlPlaceholder'); ?>"
                                        ng-keydown="$event.keyCode===13 && insertVideoUrl()">
                                 <button class="vip-btn-add" ng-click="insertVideoUrl()">➕</button>
                             </div>
 
-                            <div class="vip-sep">— или —</div>
+                            <div class="vip-sep"><?php echo T::s('prep.video.or'); ?></div>
 
-                            <!-- Загрузка файла -->
+                            <!-- File upload -->
                             <div class="vip-btn-file"
                                  ng-class="{'uploading': uploadingVideo}"
                                  ng-click="!uploadingVideo && triggerVideoUpload()">
                                 <span ng-if="uploadingVideo" class="upload-spinner"></span>
-                                <span ng-if="uploadingVideo">Загрузка...</span>
-                                <span ng-if="!uploadingVideo">📁 Загрузить видеофайл</span>
+                                <span ng-if="uploadingVideo"><?php echo T::s('common.loading'); ?></span>
+                                <span ng-if="!uploadingVideo"><?php echo T::s('prep.video.uploadFile'); ?></span>
                             </div>
                         </div>
                     </div>
 
-                    <!-- Скрытый input для видеофайла -->
+                    <!-- Hidden input for the video file -->
                     <input type="file" id="sermon-video-input" accept="video/*" style="display:none" />
 
                     <div class="toolbar-sep"></div>
 
-                    <!-- Вставить слайд -->
-                    <button class="toolbar-btn" title="Вставить новый слайд"
+                    <!-- Insert slide -->
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.newSlide'); ?>"
                             ng-mousedown="$event.preventDefault()"
                             ng-click="insertSlide()"
                             style="padding:5px 10px; display:inline-flex; align-items:center; gap:5px;">
                         <span style="font-size:15px; line-height:1;">🖥️</span>
-                        <span style="font-size:12px; font-weight:600;">Слайд</span>
+                        <span style="font-size:12px; font-weight:600;"><?php echo T::s('prep.tool.slideLabel'); ?></span>
                     </button>
 
-                    <!-- Преобразовать выделение в слайд -->
-                    <button class="toolbar-btn" title="Преобразовать выделенный текст в слайд"
+                    <!-- Convert selection to slide -->
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.toSlide'); ?>"
                             ng-mousedown="$event.preventDefault()"
                             ng-click="convertSelectionToSlide()"
                             style="padding:5px 10px; display:inline-flex; align-items:center; gap:5px;">
                         <span style="font-size:15px; line-height:1;">⬛</span>
-                        <span style="font-size:12px; font-weight:600;">В слайд</span>
+                        <span style="font-size:12px; font-weight:600;"><?php echo T::s('prep.tool.toSlideLabel'); ?></span>
                     </button>
 
-                    <!-- Импорт PowerPoint -->
-                    <button class="toolbar-btn" title="Импортировать слайды из PowerPoint"
+                    <!-- PowerPoint import -->
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.importPpt'); ?>"
                             ng-mousedown="$event.preventDefault()"
                             ng-click="triggerPptxImport()"
                             ng-disabled="importingPptx"
@@ -1554,7 +1554,7 @@
                         <span style="font-size:12px; font-weight:600;" ng-if="importingPptx">...</span>
                     </button>
 
-                    <!-- Скрытый input для PPTX -->
+                    <!-- Hidden input for PPTX -->
                     <input type="file" id="sermon-pptx-input" accept=".pptx,.ppt,.odp" style="display:none"
                            onchange="angular.element(this).scope().onPptxSelected(this)" />
                 </div>
@@ -1581,7 +1581,7 @@
         <div id="sermon-video-modal" ng-click="closeVideoModal()">
             <div id="svm-inner" ng-click="$event.stopPropagation()">
                 <span class="svm-close" ng-click="closeVideoModal()">×</span>
-                <!-- Локальный файл -->
+                <!-- Local file -->
                 <video ng-if="modalVideoSrcTrusted"
                        ng-src="{{ modalVideoSrcTrusted }}"
                        controls autoplay
@@ -1600,7 +1600,7 @@
         <!-- Request Access Modal -->
         <div class="access-request-modal" ng-class="{open: showAccessRequestModal}" ng-click="closeAccessRequestModal()">
             <div class="arm-inner" ng-click="$event.stopPropagation()">
-                <div class="arm-title">Запросить доступ к дисплею</div>
+                <div class="arm-title"><?php echo T::s('sermon.requestAccessModalTitle'); ?></div>
 
                 <div class="arm-groups-list" ng-if="availableGroups.length > 0">
                     <div class="arm-group-item" ng-repeat="group in availableGroups">
@@ -1609,17 +1609,17 @@
                                 ng-class="{requested: group.requested}"
                                 ng-click="!group.requested && sendAccessRequest(group.group_id)"
                                 ng-disabled="group.requested">
-                            {{group.requested ? 'Отправлено' : 'Отправить'}}
+                            {{ group.requested ? ('<?php echo T::s('prep.alert.requestSent'); ?>') : ('<?php echo T::s('common.button.send'); ?>') }}
                         </button>
                     </div>
                 </div>
 
                 <div class="arm-empty" ng-if="availableGroups.length === 0">
-                    Нет доступных групп для запроса
+                    <?php echo T::s('prep.empty.accessGroups'); ?>
                 </div>
 
                 <div class="arm-buttons">
-                    <button class="arm-btn-close" ng-click="closeAccessRequestModal()">Закрыть</button>
+                    <button class="arm-btn-close" ng-click="closeAccessRequestModal()"><?php echo T::s('common.button.close'); ?></button>
                 </div>
             </div>
         </div>
@@ -1628,5 +1628,5 @@
 </div><!-- /ng-controller -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.2.1/turndown.min.js" integrity="sha512-8Po+00YF9yNfZmNwpwzsqKsM1lbkTACbs/TueHeY4x9l6mjWiIu5ONZ8LJ1kbL1FTOqIV25Uyaq1d1+T9cNSmA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
-<script src="/js/sermon_chip_editor.min.js?v=14"></script>
-<script src="/js/sermon_prep.min.js?v=16" type="text/javascript"></script>
+<script src="/js/sermon_chip_editor.min.js?v=15"></script>
+<script src="/js/sermon_prep.min.js?v=17" type="text/javascript"></script>

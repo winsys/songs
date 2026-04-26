@@ -65,8 +65,8 @@ function openChipEditor(span) {
     // Modal window title
     var isMsg  = span.classList.contains('message-cite');
     var refEl  = span.querySelector('.cite-ref');
-    var ref    = refEl ? refEl.textContent.trim() : (isMsg ? '✍️ Послание' : '📖 Стих');
-    if (titleEl) titleEl.textContent = 'Редактировать: ' + ref;
+    var ref    = refEl ? refEl.textContent.trim() : (isMsg ? window.t('prep.tab.message') : window.t('prep.tab.verseFallback'));
+    if (titleEl) titleEl.textContent = window.t('chip.editPrefix', { ref: ref });
 
     // Load text HTML
     var verseEl   = span.querySelector('.cite-verse-text');
@@ -114,19 +114,19 @@ function _cemModalTemplate() {
     '<div id="chip-editor-modal">' +
 
       '<div class="cem-header">' +
-        '<span class="cem-title" id="cem-title">Редактировать</span>' +
+        '<span class="cem-title" id="cem-title">' + window.t('chip.editTitle') + '</span>' +
         '<button class="cem-close" id="cem-close-btn" type="button">×</button>' +
       '</div>' +
 
       '<div class="cem-toolbar">' +
-        '<button class="cem-btn" id="cem-bold"      type="button"><b>Ж</b></button>' +
-        '<button class="cem-btn" id="cem-italic"    type="button"><i>К</i></button>' +
-        '<button class="cem-btn" id="cem-underline" type="button"><u>П</u></button>' +
+        '<button class="cem-btn" id="cem-bold"      type="button"><b>' + window.t('chip.btn.bold')      + '</b></button>' +
+        '<button class="cem-btn" id="cem-italic"    type="button"><i>' + window.t('chip.btn.italic')    + '</i></button>' +
+        '<button class="cem-btn" id="cem-underline" type="button"><u>' + window.t('chip.btn.underline') + '</u></button>' +
         '<div class="cem-sep"></div>' +
 
          // Text color
         '<div class="cem-color-wrap" id="cem-tc-wrap">' +
-          '<div class="cem-swatch-btn" id="cem-tc-btn" title="Цвет текста">' +
+          '<div class="cem-swatch-btn" id="cem-tc-btn" title="' + window.t('chip.tip.textColor') + '">' +
             '<span style="font-size:13px;font-weight:700;color:inherit;">A</span>' +
             '<div class="cem-swatch-bar" id="cem-tc-bar" style="background:#e53935;"></div>' +
           '</div>' +
@@ -135,7 +135,7 @@ function _cemModalTemplate() {
 
          // Highlight color
         '<div class="cem-color-wrap" id="cem-hl-wrap">' +
-          '<div class="cem-swatch-btn" id="cem-hl-btn" title="Выделение фона">' +
+          '<div class="cem-swatch-btn" id="cem-hl-btn" title="' + window.t('chip.tip.highlight') + '">' +
             '<span style="font-size:12px;">🖊</span>' +
             '<div class="cem-swatch-bar" id="cem-hl-bar" style="background:rgba(255,235,59,0.6);"></div>' +
           '</div>' +
@@ -144,21 +144,21 @@ function _cemModalTemplate() {
 
         '<div class="cem-sep"></div>' +
 
-        '<span class="cem-label">Размер:</span>' +
+        '<span class="cem-label">' + window.t('chip.label.size') + '</span>' +
         '<input class="cem-fontsize" id="cem-fontsize" type="number" min="8" max="72" value="15" />' +
         '<button class="cem-btn" id="cem-apply-size" type="button">✓</button>' +
 
         '<div class="cem-sep"></div>' +
 
-        '<button class="cem-btn" id="cem-clear-fmt" type="button">✕ сброс</button>' +
+        '<button class="cem-btn" id="cem-clear-fmt" type="button">' + window.t('chip.button.reset') + '</button>' +
       '</div>' +
 
        // Comment input row (hidden)
       '<div id="cem-comment-input-wrap">' +
-        '<span class="cem-ci-label">Комментарий:</span>' +
-        '<input id="cem-ci-text" type="text" placeholder="Введите комментарий к выделению…" maxlength="300" />' +
-        '<button class="cem-ci-ok"  id="cem-ci-ok"     type="button">Добавить</button>' +
-        '<button class="cem-ci-can" id="cem-ci-cancel"  type="button">Отмена</button>' +
+        '<span class="cem-ci-label">' + window.t('chip.label.comment') + '</span>' +
+        '<input id="cem-ci-text" type="text" placeholder="' + window.t('chip.placeholder.comment') + '" maxlength="300" />' +
+        '<button class="cem-ci-ok"  id="cem-ci-ok"     type="button">' + window.t('chip.button.add')    + '</button>' +
+        '<button class="cem-ci-can" id="cem-ci-cancel"  type="button">' + window.t('common.button.cancel') + '</button>' +
       '</div>' +
 
        // Edit area
@@ -167,17 +167,17 @@ function _cemModalTemplate() {
        // Comments list
       '<div class="cem-comments">' +
         '<div class="cem-comments-hdr">' +
-          '<span>💬 Комментарии к фразам</span>' +
-          '<button class="cem-add-c-btn" id="cem-add-c-btn" type="button">+ К выделению</button>' +
+          '<span>' + window.t('chip.label.commentsHeader') + '</span>' +
+          '<button class="cem-add-c-btn" id="cem-add-c-btn" type="button">' + window.t('chip.button.addToSelection') + '</button>' +
         '</div>' +
         '<div id="cem-comments-list">' +
-          '<div class="cem-no-c" id="cem-no-c">Нет комментариев</div>' +
+          '<div class="cem-no-c" id="cem-no-c">' + window.t('chip.empty.comments') + '</div>' +
         '</div>' +
       '</div>' +
 
       '<div class="cem-footer">' +
-        '<button class="cem-cancel-btn" id="cem-cancel-btn" type="button">Отмена</button>' +
-        '<button class="cem-save-btn"   id="cem-save-btn"   type="button">💾 Сохранить</button>' +
+        '<button class="cem-cancel-btn" id="cem-cancel-btn" type="button">' + window.t('common.button.cancel') + '</button>' +
+        '<button class="cem-save-btn"   id="cem-save-btn"   type="button">' + window.t('common.button.save') + '</button>' +
       '</div>' +
 
     '</div>' +
@@ -296,7 +296,7 @@ function _cemBindAll() {
         e.preventDefault();
         var sel = window.getSelection();
         if (!sel || sel.isCollapsed || !editArea.contains(sel.anchorNode)) {
-            alert('Сначала выделите фразу в тексте стиха.');
+            alert(window.t('chip.alert.selectFirst'));
             return;
         }
         _cemSavedSel = { range: sel.getRangeAt(0).cloneRange(), text: sel.toString().trim() };
