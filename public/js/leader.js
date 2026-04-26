@@ -7,7 +7,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
     $scope.fullScreen = false;
     $scope.visibleSongLists = [];
     $scope.langList = [];
-    $scope.modalImgSrc = '';    // путь к картинке для модалки (deprecated)
+    $scope.modalImgSrc = '';    // path to modal image (deprecated)
     $scope.songPreview = { visible: false, song: null, imgError: false };
 
     $scope.loadSongLists = function () {
@@ -19,7 +19,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
             $scope.reloadSongList();
             $scope.loadSearchSongs(lists);
         }, function () {
-            console.error('leader.js: не удалось загрузить списки песен');
+            console.error('leader.js: failed to load song lists');
             $scope.reloadSongList();
         });
     };

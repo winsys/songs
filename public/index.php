@@ -1,7 +1,7 @@
 <?php
 
-// Показывать ошибки PHP только в режиме разработки.
-// На сервере установите APP_ENV=production (или просто не задавайте эту переменную).
+// Show PHP errors only in development mode.
+// On the server set APP_ENV=production (or leave the variable unset).
 if (getenv('APP_ENV') === 'development') {
     error_reporting(E_ALL);
     ini_set('display_errors', '1');
@@ -30,8 +30,8 @@ session_set_cookie_params(
     $sessionLifetime,   // lifetime
     '/',                // path
     '',                 // domain (empty = current)
-    true,               // только HTTPS
-    true                // httponly: недоступен из JS
+    true,               // HTTPS only
+    true                // httponly: not accessible from JS
 );
 
 session_start();

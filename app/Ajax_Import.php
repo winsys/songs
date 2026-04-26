@@ -7,8 +7,8 @@
 trait Ajax_Import
 {
     // --------------------------------------------------------
-    // Создать новый сборник песен
-    // Параметры: name
+    // Create a new song book
+    // Params: name
     // --------------------------------------------------------
     private static function create_song_list()
     {
@@ -23,7 +23,7 @@ trait Ajax_Import
             return json_encode(['status' => 'error', 'message' => 'Название не может быть пустым']);
         }
 
-        // Получить следующий LIST_ID
+        // Get the next LIST_ID
         $row = Info::get('db')->get("SELECT MAX(LIST_ID) AS max_id FROM list_names");
         $nextId = ($row && $row['max_id']) ? (int)$row['max_id'] + 1 : 1;
 
@@ -36,9 +36,9 @@ trait Ajax_Import
     }
 
     // --------------------------------------------------------
-    // Импорт текстов песен в формате SOG
-    // POST-файл: sogfile
-    // POST-поля: list_id, lang (ru|lt|en)
+    // Import song lyrics in SOG format
+    // POST file: sogfile
+    // POST fields: list_id, lang (ru|lt|en)
     // --------------------------------------------------------
     private static function import_songs_sog()
     {
@@ -66,7 +66,7 @@ trait Ajax_Import
 
         $field = 'TEXT' . $langRow['col_suffix'];
 
-        // Прочитать файл, снять UTF-8 BOM если есть
+        // Read file, strip UTF-8 BOM if present
         $raw = file_get_contents($_FILES['sogfile']['tmp_name']);
         $raw = ltrim($raw, "\xEF\xBB\xBF"); // UTF-8 BOM
         $raw = str_replace("\r\n", "\n", $raw);
@@ -81,22 +81,22 @@ trait Ajax_Import
         $total = count($lines);
 
         while ($i < $total) {
-            // Пропустить пустые строки между песнями
+            // Skip empty lines between songs
             if (trim($lines[$i]) === '') {
                 $i++;
                 continue;
             }
 
-            // Строка 1: номер песни
+            // Line 1: song number
             $num = trim($lines[$i]);
             $i++;
             if ($i >= $total) break;
 
-            // Строка 2: название
+            // Line 2: song name
             $name = trim($lines[$i]);
             $i++;
 
-            // Строки 3+: куплеты до пустой строки
+            // Lines 3+: verses until an empty line
             $verses = [];
             while ($i < $total && trim($lines[$i]) !== '') {
                 $verses[] = $lines[$i];
@@ -110,7 +110,7 @@ trait Ajax_Import
                 continue;
             }
 
-            // Найти песню в базе
+            // Look up the song in the database
             $numEsc = mysqli_real_escape_string($dbh, $num);
             $nameEsc = mysqli_real_escape_string($dbh, $name);
             $textEsc = mysqli_real_escape_string($dbh, $text);
@@ -126,7 +126,7 @@ trait Ajax_Import
                 );
                 $log[] = ['type' => 'ok', 'msg' => "Обновлена песня #{$num} «{$name}»"];
             } else {
-                // Создать новую запись
+                // Create a new record
                 $nameField = $lang === 'ru' ? "NAME='{$nameEsc}', TEXT='{$textEsc}'"
                     : "NAME='{$nameEsc}', {$field}='{$textEsc}'";
                 $db->exec(
@@ -147,9 +147,9 @@ trait Ajax_Import
     }
 
     // --------------------------------------------------------
-    // Импорт картинок сборника из ZIP-архива
-    // POST-файл: zipfile
-    // POST-поля: list_id
+    // Import song book images from a ZIP archive
+    // POST file: zipfile
+    // POST fields: list_id
     // --------------------------------------------------------
     private static function import_song_images_zip()
     {
@@ -190,7 +190,7 @@ trait Ajax_Import
         for ($i = 0; $i < $zip->numFiles; $i++) {
             $name = $zip->getNameIndex($i);
 
-            // Пропустить папки и скрытые файлы
+            // Skip directories and hidden files
             if (substr($name, -1) === '/' || strpos(basename($name), '.') === 0) continue;
 
             $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
@@ -199,7 +199,7 @@ trait Ajax_Import
                 continue;
             }
 
-            // Имя файла без пути (на случай вложенных папок в ZIP)
+            // Filename without path (handles nested directories inside the ZIP)
             $basename = basename($name);
             $targetFile = $targetDir . $basename;
 
@@ -231,9 +231,9 @@ trait Ajax_Import
     }
 
     // --------------------------------------------------------
-    // Импорт посланий в формате SOG
-    // POST-файл: sogfile
-    // POST-поля: lang (ru|lt|en)
+    // Import messages in SOG format
+    // POST file: sogfile
+    // POST fields: lang (ru|lt|en)
     // --------------------------------------------------------
     private static function import_messages_sog()
     {
@@ -256,11 +256,11 @@ trait Ajax_Import
 
         $textField = 'TEXT' . $langRow['col_suffix'];
 
-        // Прочитать файл, снять UTF-8 BOM
+        // Read file, strip UTF-8 BOM
         $raw = file_get_contents($_FILES['sogfile']['tmp_name']);
         $raw = ltrim($raw, "\xEF\xBB\xBF"); // UTF-8 BOM
 
-        // Нормализовать окончания строк (CR+LF → LF)
+        // Normalize line endings (CR+LF → LF)
         $raw = str_replace("\r\n", "\n", $raw);
         $raw = str_replace("\r", "\n", $raw);
         $lines = explode("\n", $raw);
@@ -275,21 +275,21 @@ trait Ajax_Import
         $total = count($lines);
 
         while ($i < $total) {
-            // ── Шаг 1: первая строка (игнорируется) ──────────
-            // Пропустить пустые строки между блоками
+            // ── Step 1: first line (ignored) ──────────────────
+            // Skip empty lines between blocks
             if (trim($lines[$i]) === '') {
                 $i++;
                 continue;
             }
-            $i++; // игнорируем строку-заголовок
+            $i++; // skip the header line
 
             if ($i >= $total) break;
 
-            // ── Шаг 2: строка с кодом, названием и городом ──
+            // ── Step 2: line with code, title, and city ───────
             $headerLine = $lines[$i];
             $i++;
 
-            // CODE — от начала до первого пробела
+            // CODE — from the start up to the first space
             if (!preg_match('/^(\S+)\s*/', $headerLine, $m)) {
                 $log[] = ['type' => 'warn', 'msg' => "Строка {$i}: не удалось разобрать заголовок: {$headerLine}"];
                 $errors++;
@@ -300,14 +300,14 @@ trait Ajax_Import
             $code = $m[1];
             $rest = substr($headerLine, strlen($m[0]));
 
-            // Убрать ведущие пробелы и тире
+            // Strip leading spaces and dashes
             $rest = ltrim($rest, " \t-–—");
 
-            // TITLE — до символа "("
+            // TITLE — up to the "(" character
             $parenPos = strpos($rest, '(');
             if ($parenPos !== false) {
                 $title = rtrim(substr($rest, 0, $parenPos), " \t(");
-                // CITY — между скобками
+                // CITY — between parentheses
                 $closePos = strpos($rest, ')', $parenPos);
                 $city = $closePos !== false
                     ? trim(substr($rest, $parenPos + 1, $closePos - $parenPos - 1))
@@ -324,11 +324,11 @@ trait Ajax_Import
                 continue;
             }
 
-            // ── Шаг 3: абзацы текста до пустой строки ───────
+            // ── Step 3: text paragraphs until an empty line ──
             $paragraphs = [];
             while ($i < $total) {
                 $line = $lines[$i];
-                // Пустая строка или строка из одних пробелов — конец послания
+                // Empty or whitespace-only line — end of message
                 if (trim($line) === '') {
                     $i++;
                     break;
@@ -338,7 +338,7 @@ trait Ajax_Import
             }
             $text = implode("\r\n", $paragraphs);
 
-            // Сохранить в базу данных
+            // Save to database
             $codeEsc = mysqli_real_escape_string($dbh, $code);
             $titleEsc = mysqli_real_escape_string($dbh, $title);
             $cityEsc = mysqli_real_escape_string($dbh, $city);
@@ -349,7 +349,7 @@ trait Ajax_Import
             );
 
             if ($existing) {
-                // Обновить текст на нужном языке (и при ru — также TITLE/CITY если пусты)
+                // Update text for the target language (and for ru — also TITLE/CITY if empty)
                 if ($lang === 'ru') {
                     $db->exec(
                         "UPDATE messages SET
@@ -366,7 +366,7 @@ trait Ajax_Import
                 $log[] = ['type' => 'ok', 'msg' => "Обновлено: [{$code}] {$title}"];
                 $updated++;
             } else {
-                // Новая запись
+                // New record
                 $textRu = $lang === 'ru' ? "'{$textEsc}'" : "''";
                 $textLt = $lang === 'lt' ? "'{$textEsc}'" : "''";
                 $textEn = $lang === 'en' ? "'{$textEsc}'" : "''";
@@ -390,8 +390,8 @@ trait Ajax_Import
     }
 
     // --------------------------------------------------------
-    // Импорт послания (ввод текстом вручную)
-    // POST-поля: lang, code, title, city, para_sep, body
+    // Import a message entered as plain text
+    // POST fields: lang, code, title, city, para_sep, body
     // --------------------------------------------------------
     private static function import_messages_text()
     {
@@ -406,7 +406,7 @@ trait Ajax_Import
         $paraSep  = trim(self::$args['para_sep']  ?? 'emptyline');
         $body     = self::$args['body']           ?? '';
         $audioSrc = trim(self::$args['audio_src'] ?? '');
-        // Нормализовать таймкоды: привести к \r\n, убрать пустые строки
+        // Normalize timecodes: convert to \r\n, remove empty lines
         $timecodesRaw = self::$args['timecodes'] ?? '';
         $timecodesRaw = str_replace("\r\n", "\n", $timecodesRaw);
         $timecodesRaw = str_replace("\r", "\n",   $timecodesRaw);
@@ -432,34 +432,34 @@ trait Ajax_Import
             return json_encode(['status' => 'error', 'message' => 'Текст послания пустой']);
         }
 
-        // Валидация формата кода: YY-MMDD[x][x]
+        // Validate code format: YY-MMDD[x][x]
         if (!preg_match('/^\d{2}-\d{4}[A-Za-z]{0,2}$/', $code)) {
             return json_encode(['status' => 'error', 'message' => 'Неверный формат кода: ожидается YY-MMDD или YY-MMDDx']);
         }
 
-        // Нормализовать окончания строк
+        // Normalize line endings
         $body = str_replace("\r\n", "\n", $body);
         $body = str_replace("\r", "\n", $body);
 
-        // Разбить на абзацы
+        // Split into paragraphs
         if ($paraSep === 'emptyline') {
-            // Разделитель — пустая строка; несколько пустых строк подряд = один разделитель
+            // Separator is an empty line; multiple consecutive empty lines count as one
             $blocks = preg_split('/\n{2,}/', trim($body));
         } else {
-            // Каждая непустая строка — отдельный абзац
+            // Each non-empty line is a separate paragraph
             $blocks = explode("\n", $body);
         }
 
-        // Внутри каждого абзаца убрать все оставшиеся переносы строк
+        // Within each paragraph, collapse remaining newlines to a space
         $blocks = array_map(function ($b) {
             return trim(preg_replace('/[\r\n]+/', ' ', $b));
         }, $blocks);
 
-        // Убрать пустые блоки и лишние пробелы
+        // Remove empty blocks and extra whitespace
         $paragraphs = array_filter(array_map('trim', $blocks), function ($b) { return $b !== ''; });
         $text = implode("\r\n", $paragraphs);
 
-        // Проверить совпадение числа абзацев и таймкодов
+        // Validate that paragraph and timecode counts match
         $tcCount   = count($tcLines);
         $paraCount = count($paragraphs);
         $tcWarning = '';
@@ -486,7 +486,7 @@ trait Ajax_Import
 
         if ($existing) {
             if ($mode === 'edit') {
-                // Режим редактирования: обновляем все поля целиком
+                // Edit mode: overwrite all fields
                 $db->exec(
                     "UPDATE messages SET
                         TITLE='{$titleEsc}',
@@ -522,7 +522,7 @@ trait Ajax_Import
             ]);
         }
 
-        // Новая запись
+        // New record
         $textRu = $lang === 'ru' ? "'{$textEsc}'" : "''";
         $textLt = $lang === 'lt' ? "'{$textEsc}'" : "''";
         $textEn = $lang === 'en' ? "'{$textEsc}'" : "''";
@@ -542,8 +542,8 @@ trait Ajax_Import
     }
 
     // --------------------------------------------------------
-    // Загрузить полные данные послания для режима редактирования
-    // Параметры: code
+    // Load full message data for edit mode
+    // Params: code
     // --------------------------------------------------------
     private static function load_message_for_edit()
     {
@@ -563,8 +563,8 @@ trait Ajax_Import
     }
 
     // --------------------------------------------------------
-    // Поиск посланий по коду (для автодополнения)
-    // Параметры: query
+    // Search messages by code (for autocomplete)
+    // Params: query
     // --------------------------------------------------------
     private static function search_messages_by_code()
     {
@@ -587,18 +587,18 @@ trait Ajax_Import
     }
 
     // ============================================================
-    // ЯЗЫКИ
+    // LANGUAGES
     // ============================================================
 
     // --------------------------------------------------------
-    // Добавить новый язык
-    // Только admin.
-    // Параметры: code (напр. "de"), label (напр. "DE")
+    // Add a new language
+    // Admin only.
+    // Params: code (e.g. "de"), label (e.g. "DE")
     //
-    // Автоматически:
-    //   1. Проверяет корректность кода (только a-z, 2-5 символов)
-    //   2. Вычисляет col_suffix = '_' + strtoupper(code)
-    //   3. Добавляет запись в таблицу languages
+    // Automatically:
+    //   1. Validates the code (a-z only, 2-5 characters)
+    //   2. Computes col_suffix = '_' + strtoupper(code)
+    //   3. Inserts a record into the languages table
     //   4. ALTER TABLE song_list ADD COLUMN TEXT_DE LONGTEXT NULL
     //   5. ALTER TABLE messages  ADD COLUMN TEXT_DE LONGTEXT NULL
     // --------------------------------------------------------
@@ -613,7 +613,7 @@ trait Ajax_Import
         $code = strtolower(trim(self::$args['code'] ?? ''));
         $label = strtoupper(trim(self::$args['label'] ?? ''));
 
-        // --- Валидация кода ---
+        // --- Validate code ---
         if (!preg_match('/^[a-z]{2,5}$/', $code)) {
             return json_encode([
                 'status' => 'error',
@@ -624,7 +624,7 @@ trait Ajax_Import
             return json_encode(['status' => 'error', 'message' => 'Метка языка не может быть пустой']);
         }
 
-        // --- Проверка на дубликат ---
+        // --- Check for duplicate ---
         $existing = $db->get(
             "SELECT code FROM languages WHERE code = '" . mysqli_real_escape_string($dbh, $code) . "'"
         );
@@ -632,21 +632,21 @@ trait Ajax_Import
             return json_encode(['status' => 'error', 'message' => "Язык «{$code}» уже существует"]);
         }
 
-        // --- Вычислить суффикс и имя колонки ---
-        $colSuffix = '_' . strtoupper($code);          // напр. _DE
-        $colName = 'TEXT' . $colSuffix;               // напр. TEXT_DE
+        // --- Compute suffix and column name ---
+        $colSuffix = '_' . strtoupper($code);          // e.g. _DE
+        $colName = 'TEXT' . $colSuffix;               // e.g. TEXT_DE
         $labelEsc = mysqli_real_escape_string($dbh, $label);
         $codeEsc = mysqli_real_escape_string($dbh, $code);
         $colNameEsc = mysqli_real_escape_string($dbh, $colName);
 
-        // --- Определить следующий sort_order ---
+        // --- Determine next sort_order ---
         $maxOrder = $db->get("SELECT MAX(sort_order) AS m FROM languages");
         $sortOrder = ($maxOrder && $maxOrder['m'] !== null) ? (int)$maxOrder['m'] + 1 : 1;
 
-        // --- ALTER TABLE: добавить колонку в song_list ---
+        // --- ALTER TABLE: add column to song_list ---
         $tables = ['song_list', 'messages'];
         foreach ($tables as $table) {
-            // Проверить, нет ли уже такой колонки (защита от повторного запуска)
+            // Check if the column already exists (guard against re-runs)
             $colExists = $db->get(
                 "SELECT COLUMN_NAME
                  FROM information_schema.COLUMNS
@@ -659,7 +659,7 @@ trait Ajax_Import
             }
         }
 
-        // --- Вставить запись в languages ---
+        // --- Insert record into languages ---
         $db->exec(
             "INSERT INTO languages (code, label, col_suffix, sort_order, is_default)
              VALUES ('{$codeEsc}', '{$labelEsc}', '{$colSuffix}', {$sortOrder}, 0)"
@@ -672,15 +672,15 @@ trait Ajax_Import
     }
 
     // --------------------------------------------------------
-    // Удалить язык
-    // Только admin + требует спецпароль из config_example.php.
+    // Delete a language
+    // Admin only + requires the special password from config.php.
     //
-    // Параметры: code, delete_password
+    // Params: code, delete_password
     //
-    // Защиты:
-    //   - нельзя удалить язык с is_default = 1 (русский)
-    //   - проверяется спецпароль из config['lang_delete_password']
-    //   - DROP COLUMN из song_list и messages
+    // Guards:
+    //   - cannot delete the language with is_default = 1
+    //   - special password from config['lang_delete_password'] is verified
+    //   - DROP COLUMN from song_list and messages
     // --------------------------------------------------------
     private static function delete_language()
     {
@@ -694,20 +694,20 @@ trait Ajax_Import
         $givenPassword = trim(self::$args['delete_password'] ?? '');
         $config = Info::get('config');
 
-        // --- Проверить спецпароль ---
+        // --- Verify special password ---
         $correctPassword = $config['lang_delete_password'] ?? '';
         if ($correctPassword === '' || $givenPassword !== $correctPassword) {
             return json_encode(['status' => 'error', 'message' => 'Неверный пароль удаления']);
         }
 
-        // --- Найти язык ---
+        // --- Look up language ---
         $codeEsc = mysqli_real_escape_string($dbh, $code);
         $lang = $db->get("SELECT * FROM languages WHERE code = '{$codeEsc}'");
         if (!$lang) {
             return json_encode(['status' => 'error', 'message' => "Язык «{$code}» не найден"]);
         }
 
-        // --- Запретить удаление языка по умолчанию ---
+        // --- Forbid deletion of the default language ---
         if ((int)$lang['is_default'] === 1) {
             return json_encode([
                 'status' => 'error',
@@ -715,11 +715,11 @@ trait Ajax_Import
             ]);
         }
 
-        // --- Вычислить имя колонки ---
-        $colSuffix = $lang['col_suffix'];              // напр. _DE
-        $colName = 'TEXT' . $colSuffix;              // напр. TEXT_DE
+        // --- Compute column name ---
+        $colSuffix = $lang['col_suffix'];              // e.g. _DE
+        $colName = 'TEXT' . $colSuffix;              // e.g. TEXT_DE
 
-        // --- DROP COLUMN из song_list и messages ---
+        // --- DROP COLUMN from song_list and messages ---
         $tables = ['song_list', 'messages'];
         foreach ($tables as $table) {
             $colExists = $db->get(
@@ -734,7 +734,7 @@ trait Ajax_Import
             }
         }
 
-        // --- Удалить запись из languages ---
+        // --- Delete record from languages ---
         $db->exec("DELETE FROM languages WHERE code = '{$codeEsc}'");
 
         return json_encode([

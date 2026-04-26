@@ -24,10 +24,10 @@ angular.module('Songs', ['csrfModule'])
         $scope.availableGroups          = [];
         $scope.selectedGroupForRequest  = '';
 
-         $scope.displayVideoSrc       = '';   // непустое = показывать оверлей
+         $scope.displayVideoSrc       = '';   // non-empty = show video overlay
          $scope.displayVideoIsYouTube = false;
-         $scope.displayVideoEmbedSrc  = null;  // trustAsResourceUrl для YT
-         $scope.displayVideoSrcLocal  = null;  // trustAsResourceUrl для файла
+         $scope.displayVideoEmbedSrc  = null;  // trustAsResourceUrl for YT
+         $scope.displayVideoSrcLocal  = null;  // trustAsResourceUrl for local file
          $scope.videoActive      = false;
          $scope.videoPlaying     = false;
          $scope.videoIsYouTube   = false;
@@ -40,11 +40,11 @@ angular.module('Songs', ['csrfModule'])
         var userSettings = null;
         var activeEl     = null;
 
-        var NOTES_FONT_MIN  = 50;   // % минимум
-        var NOTES_FONT_MAX  = 300;  // % максимум
-        var NOTES_FONT_STEP = 10;  // шаг
-        var notesFontBasePx = 13;  // базовый размер в px (из sermon_prep_font_size)
-        $scope.notesFontSize = 100; // % по умолчанию
+        var NOTES_FONT_MIN  = 50;   // % min
+        var NOTES_FONT_MAX  = 300;  // % max
+        var NOTES_FONT_STEP = 10;  // step
+        var notesFontBasePx = 13;  // base size in px (from sermon_prep_font_size)
+        $scope.notesFontSize = 100; // % default
 
         // ==========================================================
         // INIT
@@ -61,10 +61,10 @@ angular.module('Songs', ['csrfModule'])
                 const container = document.getElementById('notes-body');
                 if (!container) return;
 
-                // Удаляем старые заголовки
+                // Remove old headers
                 container.querySelectorAll('.sermon-group-header').forEach(h => h.remove());
 
-                // Ищем именно span (как в вашем примере)
+                // Look for span elements specifically
                 const items = container.querySelectorAll('span.bible-cite, span.message-cite');
                 let lastGroupKey = null;
 
@@ -82,32 +82,32 @@ angular.module('Songs', ['csrfModule'])
                         currentKey = `msg-${titleText}`;
                     }
 
-                    // ПРОВЕРКА НА РАЗРЫВ
+                    // CHECK FOR BREAK
                     let isBrokenByContent = false;
                     let node = el.previousSibling;
 
                     while (node) {
-                        // Если уперлись в предыдущую цитату - разрыва нет
+                        // Reached a previous citation — no break
                         if (node.nodeType === 1 && (node.classList.contains('bible-cite') || node.classList.contains('message-cite'))) {
                             break;
                         }
 
                         if (node.nodeType === 3) {
-                            // Очищаем текст от пробелов И невидимых символов (\u200B и прочих)
+                            // Strip whitespace and invisible characters (​ etc.)
                             const cleanText = node.textContent.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
                             if (cleanText.length > 0) {
                                 isBrokenByContent = true;
                                 break;
                             }
                         } else if (node.nodeType === 1) {
-                            // Любой другой тег (br, img, div) разрывает группу
+                            // Any other tag (br, img, div) breaks the group
                             isBrokenByContent = true;
                             break;
                         }
                         node = node.previousSibling;
                     }
 
-                    // Вставляем заголовок, если сменился ключ или был текст/тег между ними
+                    // Insert header when key changed or content was interleaved
                     if (currentKey !== lastGroupKey || isBrokenByContent) {
                         if (titleText) {
                             const header = document.createElement('div');
@@ -128,7 +128,7 @@ angular.module('Songs', ['csrfModule'])
         // ==========================================================
 
         $scope.navigateSermonContent = function(direction) {
-            // 1. Все интерактивные элементы верхнего уровня (цитаты внутри слайдов — пропускаем)
+            // 1. All top-level interactive elements (cites inside slides — skipped)
             var all = document.querySelectorAll(
                 '#notes-body .bible-cite, #notes-body .sermon-img-wrap, ' +
                 '#notes-body .sermon-ppt-slide, ' +
@@ -141,7 +141,7 @@ angular.module('Songs', ['csrfModule'])
             });
             if (!items.length) return;
 
-            // 2. Ищем индекс текущего активного элемента
+            // 2. Find current active element index
             var currentIndex = -1;
             for (var i = 0; i < items.length; i++) {
                 var cl = items[i].classList;
@@ -152,31 +152,31 @@ angular.module('Songs', ['csrfModule'])
                 }
             }
 
-            // 3. Определяем индекс следующего элемента
+            // 3. Determine next element index
             var nextIndex;
             if (direction === 'next') {
                 nextIndex = currentIndex + 1;
-                if (nextIndex >= items.length) return; // Дошли до конца
+                if (nextIndex >= items.length) return; // reached end
             } else {
                 nextIndex = currentIndex - 1;
-                // Если ничего не выбрано, при нажатии "назад" выберем первый элемент
+                // If nothing is selected, pressing "back" selects the first element
                 if (currentIndex === -1) nextIndex = 0;
-                if (nextIndex < 0) return; // Дошли до начала
+                if (nextIndex < 0) return; // reached beginning
             }
 
-            // 4. Активируем элемент
+            // 4. Activate element
             var target = items[nextIndex];
 
-            // Имитируем клик (это запустит вашу существующую логику отображения)
+            // Simulate click to trigger the existing display logic
             target.click();
 
-            // Плавно скроллим левую панель к этому элементу
+            // Smooth-scroll the left panel to this element
             target.scrollIntoView({ behavior: 'smooth', block: 'center' });
         };
 
 
         document.addEventListener('keydown', function(e) {
-            // Проверяем, не пишет ли пользователь в этот момент в каком-нибудь input
+            // Skip if user is currently typing in an input
             if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') return;
 
             if (e.key === "ArrowDown") {
@@ -197,17 +197,17 @@ angular.module('Songs', ['csrfModule'])
 
         displayPanel.addEventListener('touchend', function(e) {
             var touchEndY = e.changedTouches[0].screenY;
-            var deltaY = touchStartY - touchEndY; // Положительное число = свайп вверх
+            var deltaY = touchStartY - touchEndY; // positive = swipe up
 
-            var threshold = 50; // Чувствительность в пикселях
+            var threshold = 50; // sensitivity in pixels
 
             if (Math.abs(deltaY) > threshold) {
                 $scope.$apply(function() {
                     if (deltaY > 0) {
-                        // Палец ушел вверх -> показываем следующий контент
+                        // finger moved up → show next content
                         $scope.navigateSermonContent('next');
                     } else {
-                        // Палец ушел вниз -> показываем предыдущий контент
+                        // finger moved down → show previous content
                         $scope.navigateSermonContent('prev');
                     }
                 });
@@ -220,14 +220,14 @@ angular.module('Songs', ['csrfModule'])
 
         var notesPanel = document.getElementById('notes-panel');
         var lastDistance = 0;
-        var minPinchDistance = 40; // Чувствительность: через сколько пикселей срабатывает зум
+        var minPinchDistance = 40; // sensitivity: pixel delta to trigger zoom
 
         notesPanel.addEventListener('touchmove', function(e) {
-            // Проверяем, что на экране именно 2 пальца
+            // Ensure exactly 2 fingers are on screen
             if (e.touches.length === 2) {
-                e.preventDefault(); // Предотвращаем стандартный зум браузера
+                e.preventDefault(); // prevent browser native zoom
 
-                // Считаем расстояние между пальцами (гипотенуза)
+                // Calculate distance between fingers (hypotenuse)
                 var dist = Math.hypot(
                     e.touches[0].pageX - e.touches[1].pageX,
                     e.touches[0].pageY - e.touches[1].pageY
@@ -236,14 +236,14 @@ angular.module('Songs', ['csrfModule'])
                 if (lastDistance > 0) {
                     var diff = dist - lastDistance;
 
-                    // Если пальцы раздвигаются
+                    // fingers spreading apart
                     if (diff > minPinchDistance) {
                         $scope.$apply(function() {
                             $scope.changeNotesFontSize(1);
                         });
                         lastDistance = dist;
                     }
-                    // Если пальцы сжимаются
+                    // fingers pinching together
                     else if (diff < -minPinchDistance) {
                         $scope.$apply(function() {
                             $scope.changeNotesFontSize(-1);
@@ -257,7 +257,7 @@ angular.module('Songs', ['csrfModule'])
         }, { passive: false });
 
         notesPanel.addEventListener('touchend', function() {
-            lastDistance = 0; // Сбрасываем при отпускании пальцев
+            lastDistance = 0; // reset on finger lift
         });
 
         // ==========================================================
@@ -342,15 +342,15 @@ angular.module('Songs', ['csrfModule'])
             var rgb  = hexToRgb(bgHex);
             var hsl_ = rgbToHsl(rgb[0], rgb[1], rgb[2]);
             var h = hsl_[0], s = hsl_[1], l = hsl_[2];
-            var dark = l < 50;                          // тёмный фон?
+            var dark = l < 50;                          // dark background?
             return {
                 bodyBg:    hsl(h, s, Math.max(l - 8, 0)),
                 bg:        bgHex,
                 headerBg:  hsl(h, s, Math.max(l - 5, 0)),
                 border:    hsl(h, s, Math.min(l + 12, 55)),
                 selectBg:  hsl(h, s, Math.min(l + 4,  50)),
-                textColor: dark ? hsl(h, Math.min(s, 12), 88) : hsl(h, Math.min(s, 12), 12),  // основной текст
-                textDim:   dark ? hsl(h, Math.min(s, 12), 55) : hsl(h, Math.min(s, 12), 48)   // второстепенный
+                textColor: dark ? hsl(h, Math.min(s, 12), 88) : hsl(h, Math.min(s, 12), 12),  // primary text
+                textDim:   dark ? hsl(h, Math.min(s, 12), 55) : hsl(h, Math.min(s, 12), 48)   // secondary text
             };
         }
 
@@ -483,12 +483,12 @@ angular.module('Songs', ['csrfModule'])
             );
         };
 
-        // Сохраняем оригинальный inline font-size при загрузке
+        // Store original inline font-size on load
         function _storeBaseFontSizes() {
             var body = document.getElementById('notes-body');
             if (!body) return;
             body.querySelectorAll('*').forEach(function(el) {
-                // Пропускаем чипы и их содержимое
+                // Skip chips and their content
                 if (el.closest('.bible-cite') || el.closest('.message-cite') ||
                     el.closest('.sermon-video-wrap') || el.closest('.sermon-img-wrap') ||
                     el.closest('.sermon-ppt-slide') ||
@@ -613,7 +613,7 @@ angular.module('Songs', ['csrfModule'])
             body.querySelectorAll('.sermon-slide').forEach(function (el) {
                 _applySlideVisuals(el);
                 el.style.cursor = 'pointer';
-                // Клик по внутренней части слайда не активирует его (чтобы не мешать скроллу)
+                // Click inside the slide content does not activate it (avoids blocking scroll)
                 var inner = el.querySelector('.sermon-slide-inner');
                 if (inner) inner.style.pointerEvents = 'none';
 
@@ -661,7 +661,7 @@ angular.module('Songs', ['csrfModule'])
                 el.onclick = function (e) {
                     e.preventDefault();
 
-                    // Деактивировать при повторном клике
+                    // Deactivate on repeated click
                     if (activeEl === el) {
                         el.classList.remove('active-video');
                         activeEl = null;
@@ -669,7 +669,7 @@ angular.module('Songs', ['csrfModule'])
                         return;
                     }
 
-                    // Деактивировать предыдущий элемент
+                    // Deactivate previous element
                     if (activeEl) activeEl.classList.remove('active-cite', 'active-img', 'active-video');
                     activeEl = el;
                     el.classList.add('active-video');
@@ -834,7 +834,7 @@ angular.module('Songs', ['csrfModule'])
             $scope.videoPlaying     = true;
             $scope.videoCurrentName = name || src.split('/').pop();
 
-            // Очищаем текст/картинку
+            // Clear text/image
             clearDisplayScope();
 
             if (!ytId) { _startProgress(); }
@@ -939,7 +939,7 @@ angular.module('Songs', ['csrfModule'])
             if (el) { el.pause(); el.currentTime = 0; }
             clearVideoDisplay();
             sendVideoClear();
-            // Снять активность с чипа
+            // Clear active state from chip
             if (activeEl) {
                 activeEl.classList.remove('active-cite', 'active-img', 'active-video');
                 activeEl = null;
@@ -1002,7 +1002,7 @@ angular.module('Songs', ['csrfModule'])
         }
 
         function applyNotesFontSize() {
-            var scale = $scope.notesFontSize; // проценты
+            var scale = $scope.notesFontSize; // percent
             var root  = document.documentElement;
             var notesSize = (notesFontBasePx * scale / 100).toFixed(1) + 'px';
 
@@ -1014,7 +1014,7 @@ angular.module('Songs', ['csrfModule'])
             if (notesBody) {
                 notesBody.style.fontSize = notesSize;
 
-                // Масштабируем inline font-size у текстовых элементов
+                // Scale inline font-size of text elements
                 notesBody.querySelectorAll('[data-base-font-px]').forEach(function(el) {
                     var base = parseFloat(el.dataset.baseFontPx);
                     if (!isNaN(base)) {
@@ -1033,7 +1033,7 @@ angular.module('Songs', ['csrfModule'])
             if (next < NOTES_FONT_MIN || next > NOTES_FONT_MAX) return;
             $scope.notesFontSize = next;
             applyNotesFontSize();
-            // Сохраняем немедленно — значение простое, debounce не нужен
+            // Save immediately — simple scalar, no debounce needed
             $http({ method: "POST", url: "/ajax", data: {
                     command: 'save_sermon_notes_settings',
                     sermon_notes_font_size: $scope.notesFontSize
@@ -1057,12 +1057,12 @@ angular.module('Songs', ['csrfModule'])
             $http.post('/ajax', { command: 'get_display_targets' }).then(
                 function (r) {
                     if (r.data && r.data.status === 'ok') {
-                        // Add "не транслировать" as first option
+                        // Add "do not broadcast" option as first item
                         $scope.displayTargets = [
                             { group_id: null, display_name: '— не транслировать —' }
                         ].concat(r.data.targets || []);
 
-                        // Set default to "не транслировать" (null)
+                        // Default to "do not broadcast" (null)
                         if (!$scope.selectedDisplayTarget) {
                             $scope.selectedDisplayTarget = null;
                         }

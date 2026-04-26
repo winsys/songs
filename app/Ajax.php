@@ -25,7 +25,7 @@ class Ajax
             return json_encode(array('status'=>false, 'message'=>'User not logged in!'));
         }
 
-        // [SECURITY #3] CSRF-проверка для всех команд (кроме Google OAuth callback)
+        // [SECURITY #3] CSRF validation for all commands (except Google OAuth callback)
         $csrfExempt = ['handle_google_callback'];
         if (!in_array($command, $csrfExempt) && !Security::validateCsrf()) {
             http_response_code(403);

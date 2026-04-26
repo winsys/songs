@@ -2,7 +2,6 @@
 
 define('RUNNING_MIGRATION', true);
 
-// Подключаем зависимости (пути от корня проекта)
 require_once __DIR__ . '/../app/Info.php';
 require_once __DIR__ . '/../app/Database.php';
 require_once __DIR__ . '/../app/Security.php';
@@ -16,13 +15,13 @@ Info::set('dbh', $database->db_handle());
 $db  = Info::get('db');
 $dbh = Info::get('dbh');
 
-echo "=== Миграция паролей ===\n";
+echo "=== Password migration ===\n";
 
-// Проверяем ключ шифрования
+// Verify encryption key
 $conf = Info::get('config');
 if (empty($conf['encryption_key']) || $conf['encryption_key'] === 'ЗАМЕНИТЕ_НА_СЛУЧАЙНЫЙ_КЛЮЧ_32_БАЙТА_base64==') {
-    die("❌ ОШИБКА: Сначала задайте encryption_key в app/config_example.php!\n"
-        . "   Команда для генерации ключа:\n"
+    die("❌ ERROR: Set encryption_key in app/config_example.php first!\n"
+        . "   Generate a key with:\n"
         . "   php -r \"echo base64_encode(random_bytes(32));\" \n");
 }
 
@@ -34,25 +33,25 @@ foreach ($users as $user) {
     $id   = (int)$user['ID'];
     $pass = $user['PASS'];
 
-    // Пропускаем уже зашифрованные
+    // Skip already encrypted passwords
     if (strncmp($pass, 'enc:', 4) === 0) {
-        echo "  [пропуск] ID={$id} — уже зашифрован\n";
+        echo "  [skip]    ID={$id} — already encrypted\n";
         $skipped++;
         continue;
     }
 
-    // Шифруем
+    // Encrypt
     try {
         $encrypted = Security::encryptPassword($pass);
     } catch (Exception $e) {
-        echo "  [ошибка]  ID={$id} — {$e->getMessage()}\n";
+        echo "  [error]   ID={$id} — {$e->getMessage()}\n";
         continue;
     }
 
     $escapedEnc = mysqli_real_escape_string($dbh, $encrypted);
     $db->exec("UPDATE users SET PASS='{$escapedEnc}' WHERE ID={$id}");
-    echo "  [✓]       ID={$id} — пароль зашифрован\n";
+    echo "  [✓]       ID={$id} — password encrypted\n";
     $migrated++;
 }
 
-echo "\n=== Готово: зашифровано {$migrated}, пропущено {$skipped} ===\n";
+echo "\n=== Done: encrypted {$migrated}, skipped {$skipped} ===\n";

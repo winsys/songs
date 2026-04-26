@@ -220,14 +220,14 @@ trait Ajax_Sermon
             return json_encode(['status' => 'error', 'message' => $codes[$code] ?? 'Error ' . $code]);
         }
 
-        // [SECURITY #5] Проверка расширения
+        // [SECURITY #5] Validate file extension
         $ext         = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
         $allowedExt  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         if (!in_array($ext, $allowedExt, true)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid file type: ' . $ext]);
         }
 
-        // [SECURITY #5] Проверка реального MIME-типа
+        // [SECURITY #5] Validate actual MIME type
         $allowedMime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!self::checkMime($_FILES['image']['tmp_name'], $allowedMime)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid file type (MIME mismatch)']);
@@ -249,7 +249,7 @@ trait Ajax_Sermon
     }
 
     /**
-     * Загрузить видеофайл для проповеди.
+     * Upload a video file for a sermon.
      * Input: multipart file 'video'
      * Output: { status, path, name }
      */
@@ -262,18 +262,18 @@ trait Ajax_Sermon
             return json_encode(['status' => 'error', 'message' => 'Upload error code: ' . $code]);
         }
 
-        // [SECURITY #5] Проверка расширения
+        // [SECURITY #5] Validate file extension
         $ext         = strtolower(pathinfo($_FILES['video']['name'], PATHINFO_EXTENSION));
         $allowedExt  = ['mp4', 'webm', 'ogg', 'mov', 'avi', 'mkv'];
         if (!in_array($ext, $allowedExt, true)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid video type: ' . $ext]);
         }
 
-        // [SECURITY #5] Проверка реального MIME-типа
+        // [SECURITY #5] Validate actual MIME type
         $allowedMime = [
             'video/mp4', 'video/webm', 'video/ogg',
             'video/quicktime', 'video/x-msvideo', 'video/x-matroska',
-            'application/octet-stream', // некоторые .mkv/.mov
+            'application/octet-stream', // some .mkv/.mov files
         ];
         if (!self::checkMime($_FILES['video']['tmp_name'], $allowedMime)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid file type (MIME mismatch)']);
@@ -337,8 +337,8 @@ trait Ajax_Sermon
     }
 
     /**
-     * Удалить медиафайл проповеди (изображение или видео).
-     * Params: path (относительный путь типа /sermon_images/123/img_abc.jpg)
+     * Delete a sermon media file (image or video).
+     * Params: path (relative path such as /sermon_images/123/img_abc.jpg)
      */
     private static function delete_sermon_media()
     {
@@ -349,7 +349,7 @@ trait Ajax_Sermon
             return json_encode(['status' => 'error', 'message' => 'Empty path']);
         }
 
-        // Проверяем, что путь относится к разрешённым директориям пользователя
+        // Verify the path is within the allowed user directories
         $allowedPrefixes = [
             '/sermon_images/' . $userId . '/',
             '/sermon_videos/' . $userId . '/'
@@ -367,10 +367,9 @@ trait Ajax_Sermon
             return json_encode(['status' => 'error', 'message' => 'Invalid path']);
         }
 
-        // Формируем полный путь к файлу
         $filePath = __DIR__ . '/../public' . $path;
 
-        // Удаляем файл, если он существует
+        // Delete the file if it exists
         if (file_exists($filePath)) {
             unlink($filePath);
         }

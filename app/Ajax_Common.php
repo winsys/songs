@@ -6,15 +6,15 @@
 trait Ajax_Common
 {
     /**
-     * Проверить MIME-тип файла через finfo (читает реальные байты файла).
-     * @param  string $tmpPath  путь к временному файлу
-     * @param  array  $allowed  разрешённые MIME-типы
+     * Validate MIME type via finfo (reads actual file bytes).
+     * @param  string $tmpPath  path to the temporary file
+     * @param  array  $allowed  allowed MIME types
      * @return bool
      */
     private static function checkMime(string $tmpPath, array $allowed): bool
     {
         if (!function_exists('finfo_open')) {
-            // Если finfo недоступен — пропускаем (не блокируем)
+            // finfo not available — skip check (do not block)
             error_log('finfo extension not available — MIME check skipped');
             return true;
         }
@@ -24,14 +24,26 @@ trait Ajax_Common
         return in_array($mime, $allowed, true);
     }
 
+    /** Cached language list for the current request. */
+    private static $cachedLanguages = null;
+
+    /** Returns all languages (code + col_suffix) ordered by sort_order, cached per request. */
+    private static function getLanguages(): array
+    {
+        if (self::$cachedLanguages === null) {
+            self::$cachedLanguages = Info::get('db')->select(
+                "SELECT code, col_suffix FROM languages ORDER BY sort_order ASC"
+            );
+        }
+        return self::$cachedLanguages;
+    }
+
     private static function get_song_list()
     {
         $listId = (int)self::$args['list_id'];
 
-        // Динамически строим hasText_code поля по таблице languages
-        $langs = Info::get('db')->select(
-            "SELECT code, col_suffix FROM languages ORDER BY sort_order ASC"
-        );
+        // Build hasText_* fields dynamically from the languages table
+        $langs = self::getLanguages();
         $hasTextFields = '';
         foreach ($langs as $lang) {
             $col   = 'TEXT' . $lang['col_suffix'];        // TEXT, TEXT_LT, TEXT_DE…
@@ -58,9 +70,7 @@ trait Ajax_Common
         $rawIds = preg_replace('/[^0-9,]/', '', $rawIds);
         if (!$rawIds) return json_encode([]);
 
-        $langs = Info::get('db')->select(
-            "SELECT code, col_suffix FROM languages ORDER BY sort_order ASC"
-        );
+        $langs = self::getLanguages();
         $hasTextFields = '';
         foreach ($langs as $lang) {
             $col   = 'TEXT' . $lang['col_suffix'];
@@ -82,14 +92,14 @@ trait Ajax_Common
         return json_encode($list);
     }
 
-    // Новая версия учитывает sort_order = max(оба списка) + 1.
+    // Uses combined max sort_order from both favorites lists + 1.
     private static function add_to_favorites()
     {
         $dbh    = Info::get('dbh');
         $userId = (int)$_SESSION['curGroupId'];
         $songId = mysqli_real_escape_string($dbh, self::$args['id']);
 
-        // Общий max sort_order по обоим спискам
+        // Combined max sort_order across both lists
         $maxSong  = Info::get('db')->get(
             "SELECT IFNULL(MAX(sort_order), 0) AS m FROM favorites WHERE groupId = {$userId}"
         );
@@ -118,7 +128,7 @@ trait Ajax_Common
     {
         $userId = $_SESSION['curGroupId'];
 
-        $langs = Info::get('db')->select("SELECT code, col_suffix FROM languages ORDER BY sort_order ASC");
+        $langs = self::getLanguages();
         $hasTextFields = '';
         foreach ($langs as $lang) {
             $col   = 'TEXT' . $lang['col_suffix'];
@@ -150,7 +160,7 @@ trait Ajax_Common
         );
         $order = ($settings && $settings['favorites_order'] === 'latest_top') ? 'DESC' : 'ASC';
 
-        $langs = Info::get('db')->select("SELECT code, col_suffix FROM languages ORDER BY sort_order ASC");
+        $langs = self::getLanguages();
         $hasTextFields = '';
         $mediaHasTextFields = '';
         foreach ($langs as $lang) {
@@ -160,7 +170,7 @@ trait Ajax_Common
             $mediaHasTextFields .= ", 0 AS {$alias}";
         }
 
-        // Songs из favorites
+        // Songs from favorites
         $songs = Info::get('db')->select(
             "SELECT
              f.ID           AS FID,
@@ -180,7 +190,7 @@ trait Ajax_Common
          WHERE f.groupId = {$userId}"
         );
 
-        // Media из tech_media_favorites
+        // Media from tech_media_favorites
         $media = Info::get('db')->select(
             "SELECT
              id             AS FID,
@@ -310,7 +320,7 @@ trait Ajax_Common
         $songId = mysqli_escape_string($dbh, self::$args['id']);
         $name   = mysqli_escape_string($dbh, self::$args['name']);
 
-        $langs = Info::get('db')->select("SELECT col_suffix FROM languages ORDER BY sort_order ASC");
+        $langs = self::getLanguages();
 
         $setClauses = "NAME = '{$name}'";
         foreach ($langs as $lang) {
@@ -341,7 +351,7 @@ trait Ajax_Common
         $listId = mysqli_escape_string($dbh, self::$args['list_id']);
         $name   = mysqli_escape_string($dbh, self::$args['name']);
 
-        $langs = Info::get('db')->select("SELECT col_suffix FROM languages ORDER BY sort_order ASC");
+        $langs = self::getLanguages();
 
         $colNames = 'LISTID, NUM, NAME';
         $values   = "{$listId}, '', '{$name}'";
@@ -409,14 +419,14 @@ trait Ajax_Common
             return json_encode(['status' => 'error', 'message' => 'Upload error']);
         }
 
-        // [SECURITY #5] Проверка расширения
+        // [SECURITY #5] Validate file extension
         $ext         = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
         $allowedExt  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         if (!in_array($ext, $allowedExt, true)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid extension: ' . $ext]);
         }
 
-        // [SECURITY #5] Проверка реального MIME-типа
+        // [SECURITY #5] Validate actual MIME type
         $allowedMime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!self::checkMime($_FILES['image']['tmp_name'], $allowedMime)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid file type (MIME mismatch)']);

@@ -1,7 +1,7 @@
 (function() {
     'use strict';
 
-    // Считываем CSRF-токен из мета-тега или глобальной переменной
+    // Read the CSRF token from the meta tag or global variable
     function getCsrfToken() {
         var meta = document.querySelector('meta[name="csrf-token"]');
         if (meta) return meta.getAttribute('content');

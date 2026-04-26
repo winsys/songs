@@ -2,16 +2,16 @@
 
 /**
  * Google OAuth handler.
- * Extracted from App.php — отвечает за все сценарии Google-авторизации:
- *   - инициация OAuth-потока (initiateLogin)
- *   - обработка callback после логина (handleLoginCallback)
- *   - обработка Google One Tap (handleOneTapLogin)
- *   - привязка Google-аккаунта к существующему пользователю (handleAccountLinking)
+ * Extracted from App.php — handles all Google authentication flows:
+ *   - OAuth flow initiation (initiateLogin)
+ *   - login callback processing (handleLoginCallback)
+ *   - Google One Tap processing (handleOneTapLogin)
+ *   - linking a Google account to an existing user (handleAccountLinking)
  */
 class GoogleAuth
 {
     // =========================================================
-    //  Public entry points (вызываются из App::selectRoute)
+    //  Public entry points (called from App::selectRoute)
     // =========================================================
 
     public static function initiateLogin(): void
@@ -49,14 +49,14 @@ class GoogleAuth
             return;
         }
 
-        // Обменять код на access token
+        // Exchange authorization code for access token
         $tokenJson = self::exchangeCodeForToken($code, $clientId, $clientSecret);
         if (!isset($tokenJson['access_token'])) {
             self::renderError('Не удалось получить токен доступа от Google.', '/login', 'Вернуться к входу');
             return;
         }
 
-        // Получить профиль пользователя от Google
+        // Fetch user profile from Google
         $userInfo = self::fetchGoogleUserInfo($tokenJson['access_token']);
         if (!isset($userInfo['id'])) {
             self::renderError('Не удалось получить информацию о пользователе от Google.', '/login', 'Вернуться к входу');
@@ -93,7 +93,7 @@ class GoogleAuth
             return;
         }
 
-        // Декодировать JWT (header.payload.signature)
+        // Decode JWT (header.payload.signature)
         $parts = explode('.', $credential);
         if (count($parts) !== 3) {
             echo json_encode(['error' => 'Invalid credential format']);
@@ -185,8 +185,8 @@ class GoogleAuth
     // =========================================================
 
     /**
-     * Найти пользователя по Google ID: сначала в таблице user_google_accounts,
-     * затем fallback на старую колонку GOOGLE_ID в users (совместимость с миграцией).
+     * Find a user by Google ID: first checks user_google_accounts,
+     * then falls back to the legacy GOOGLE_ID column in users (migration compatibility).
      */
     private static function findUserByGoogleId(string $googleId): ?array
     {
@@ -198,7 +198,7 @@ class GoogleAuth
         );
 
         if (!$googleAccount) {
-            // Fallback: старая колонка (для совместимости при миграции)
+            // Fallback: legacy column (migration compatibility)
             return $db->get(
                 "SELECT ID, NAME, ROLE, GROUP_ID FROM users WHERE GOOGLE_ID = '{$safeId}'"
             );
@@ -209,7 +209,7 @@ class GoogleAuth
             "SELECT ID, NAME, ROLE, GROUP_ID FROM users WHERE ID = {$userId}"
         );
 
-        // Обновить временную метку последнего использования
+        // Update last_used timestamp
         $db->exec(
             "UPDATE user_google_accounts SET last_used = NOW() WHERE google_id = '{$safeId}'"
         );
@@ -218,7 +218,7 @@ class GoogleAuth
     }
 
     /**
-     * Получить URI для Google OAuth callback (логин).
+     * Get the Google OAuth callback URI for login.
      */
     private static function getLoginCallbackUri(): string
     {
@@ -227,7 +227,7 @@ class GoogleAuth
     }
 
     /**
-     * Обменять авторизационный код на токен Google.
+     * Exchange an authorization code for a Google access token.
      */
     private static function exchangeCodeForToken(string $code, string $clientId, string $clientSecret): array
     {
@@ -247,7 +247,7 @@ class GoogleAuth
     }
 
     /**
-     * Получить профиль пользователя от Google по access token.
+     * Fetch user profile from Google using an access token.
      */
     private static function fetchGoogleUserInfo(string $accessToken): array
     {
@@ -260,8 +260,8 @@ class GoogleAuth
     }
 
     /**
-     * Вывести простую HTML-страницу с ошибкой.
-     * Используется вместо повторяющихся inline-строк с HTML.
+     * Render a simple HTML error page.
+     * Used instead of repeating inline HTML strings.
      */
     private static function renderError(string $message, string $backUrl, string $backLabel): void
     {
@@ -277,7 +277,7 @@ class GoogleAuth
     }
 
     /**
-     * Вывести страницу успешного входа с мгновенным редиректом.
+     * Render a login success page with an instant redirect.
      */
     private static function renderSuccessPage(string $userName, string $redirectUrl): void
     {

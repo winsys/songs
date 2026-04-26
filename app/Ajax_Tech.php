@@ -53,7 +53,7 @@ trait Ajax_Tech
     }
 
     // -----------------------------------------------------------
-    // Получить все переводы Библии
+    // Get all Bible translations
     // -----------------------------------------------------------
     private static function get_bible_translations()
     {
@@ -64,8 +64,8 @@ trait Ajax_Tech
     }
 
     // -----------------------------------------------------------
-    // Получить все книги для указанного перевода
-    // Параметры: translation_id
+    // Get all books for a given translation
+    // Params: translation_id
     // -----------------------------------------------------------
     private static function get_bible_books()
     {
@@ -80,8 +80,8 @@ trait Ajax_Tech
     }
 
     // -----------------------------------------------------------
-    // Получить номера глав для книги
-    // Параметры: book_id
+    // Get chapter numbers for a book
+    // Params: book_id
     // -----------------------------------------------------------
     private static function get_bible_chapters()
     {
@@ -98,8 +98,8 @@ trait Ajax_Tech
     }
 
     // -----------------------------------------------------------
-    // Получить все стихи для книги + главы
-    // Параметры: book_id, chapter_num
+    // Get all verses for a book + chapter
+    // Params: book_id, chapter_num
     // -----------------------------------------------------------
     private static function get_bible_verses()
     {
@@ -137,8 +137,8 @@ trait Ajax_Tech
     }
 
     // -----------------------------------------------------------
-    // Поиск стихов по тексту
-    // Параметры: translation_id, query
+    // Search verses by text
+    // Params: translation_id, query
     // -----------------------------------------------------------
     private static function search_bible_verses()
     {
@@ -171,12 +171,12 @@ trait Ajax_Tech
     }
 
     // -----------------------------------------------------------
-    // Отправить стих Библии на экран.
-    // В отличие от set_text (который делает UPDATE по image_name),
-    // этот метод делает DELETE + INSERT — строка в current всегда
-    // будет создана, даже если её ещё нет.
-    // Параметры: text, song_name
-    // При пустом text — просто очищает экран.
+    // Send a Bible verse to the display.
+    // Unlike set_text (which does UPDATE by image_name),
+    // this method does DELETE + INSERT so the row in current
+    // is always created even if it did not exist yet.
+    // Params: text, song_name
+    // Empty text clears the display.
     // -----------------------------------------------------------
     private static function set_bible_text()
     {
@@ -198,7 +198,7 @@ trait Ajax_Tech
         return '';
     }
 
-    // Поиск посланий по названию и тексту
+    // Search messages by title and text
     private static function search_messages()
     {
         $dbh = Info::get('dbh');
@@ -234,7 +234,7 @@ trait Ajax_Tech
         return json_encode($list);
     }
 
-    // Получить абзацы одного послания
+    // Get paragraphs of a single message
     private static function get_message()
     {
         $id = (int)self::$args['id'];
@@ -245,7 +245,7 @@ trait Ajax_Tech
         return json_encode(count($list) > 0 ? $list[0] : null);
     }
 
-    // Показать абзац послания на экране текста
+    // Show a message paragraph on the text display
     private static function set_message_text()
     {
         $userId = (int)$_SESSION['curGroupId'];
@@ -267,7 +267,7 @@ trait Ajax_Tech
         return '';
     }
 
-    // Сохранить откалиброванные таймкоды послания
+    // Save calibrated timecodes for a message
     private static function save_message_timecodes()
     {
         if (!Security::isAdmin()) {
@@ -285,7 +285,7 @@ trait Ajax_Tech
     }
 
     /**
-     * Добавить медиафайл в плейлист техника.
+     * Add a media file to the tech playlist.
      * Params: name, src, media_type ('image'|'video')
      */
     private static function add_media_to_favorites()
@@ -316,7 +316,7 @@ trait Ajax_Tech
     }
 
     /**
-     * Удалить медиафайл из плейлиста.
+     * Remove a media file from the playlist.
      * Params: id
      */
     private static function delete_media_favorite()
@@ -337,14 +337,14 @@ trait Ajax_Tech
         // Delete the physical file if it's an uploaded file (starts with /tech_media/)
         // BUT only if it's NOT used in standard wallpapers
         if ($media && isset($media['src']) && strpos($media['src'], '/tech_media/') === 0) {
-            // Проверяем, используется ли это изображение в стандартных заставках
+            // Check if this image is referenced in standard wallpapers
             $dbh = Info::get('dbh');
             $srcSafe = mysqli_real_escape_string($dbh, $media['src']);
             $inWallpapers = Info::get('db')->get(
                 "SELECT id FROM standard_wallpapers WHERE src = '{$srcSafe}'"
             );
 
-            // Удаляем файл только если он не в заставках
+            // Delete the file only if it is not used in standard wallpapers
             if (!$inWallpapers) {
                 $filePath = __DIR__ . '/../public' . $media['src'];
                 if (file_exists($filePath)) {
@@ -358,7 +358,7 @@ trait Ajax_Tech
     }
 
     /**
-     * Загрузить медиа-изображение и добавить в плейлист.
+     * Upload a media image and add it to the playlist.
      * Input: multipart file 'file', optional 'name'
      */
     private static function upload_media_image()
@@ -369,14 +369,14 @@ trait Ajax_Tech
             return json_encode(['status' => 'error', 'message' => 'Upload error']);
         }
 
-        // [SECURITY #5] Проверка расширения
+        // [SECURITY #5] Validate file extension
         $ext         = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
         $allowedExt  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         if (!in_array($ext, $allowedExt, true)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid image type: ' . $ext]);
         }
 
-        // [SECURITY #5] Проверка реального MIME-типа
+        // [SECURITY #5] Validate actual MIME type
         $allowedMime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!self::checkMime($_FILES['file']['tmp_name'], $allowedMime)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid file type (MIME mismatch)']);
@@ -393,7 +393,7 @@ trait Ajax_Tech
         }
 
         $path = '/tech_media/' . $userId . '/' . $filename;
-        // Использовать переданное название или имя файла по умолчанию
+        // Use provided name or fall back to the original filename
         $name = isset($_POST['name']) && !empty($_POST['name']) ? $_POST['name'] : $_FILES['file']['name'];
 
         $dbh      = Info::get('dbh');
@@ -413,7 +413,7 @@ trait Ajax_Tech
     }
 
     /**
-     * Загрузить видеофайл и добавить в плейлист.
+     * Upload a video file and add it to the playlist.
      * Input: multipart file 'file', optional 'name'
      */
     private static function upload_media_video()
@@ -424,14 +424,14 @@ trait Ajax_Tech
             return json_encode(['status' => 'error', 'message' => 'Upload error']);
         }
 
-        // [SECURITY #5] Проверка расширения
+        // [SECURITY #5] Validate file extension
         $ext         = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
         $allowedExt  = ['mp4', 'webm', 'ogg', 'mov', 'avi'];
         if (!in_array($ext, $allowedExt, true)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid video type: ' . $ext]);
         }
 
-        // [SECURITY #5] Проверка реального MIME-типа
+        // [SECURITY #5] Validate actual MIME type
         $allowedMime = [
             'video/mp4', 'video/webm', 'video/ogg',
             'video/quicktime', 'video/x-msvideo',
@@ -452,7 +452,7 @@ trait Ajax_Tech
         }
 
         $path = '/tech_media/' . $userId . '/' . $filename;
-        // Использовать переданное название или имя файла по умолчанию
+        // Use provided name or fall back to the original filename
         $name = isset($_POST['name']) && !empty($_POST['name']) ? $_POST['name'] : $_FILES['file']['name'];
 
         $dbh      = Info::get('dbh');
@@ -472,7 +472,7 @@ trait Ajax_Tech
     }
 
     /**
-     * Отправить видео на текстовый дисплей.
+     * Send a video to the text display.
      * Params: video_src (string), video_state ('playing'|'paused'|'stopped')
      */
     private static function set_video()
@@ -493,7 +493,7 @@ trait Ajax_Tech
     }
 
     /**
-     * Управление воспроизведением (без смены источника).
+     * Control playback without changing the video source.
      * Params: video_state ('playing'|'paused'|'stopped')
      */
     private static function video_control()
@@ -514,8 +514,8 @@ trait Ajax_Tech
     }
 
     /**
-     * Показать слайд проповеди на главном экране.
-     * Params: html (HTML-содержимое слайда), title (заголовок слайда), target_group_id
+     * Show a sermon slide on the main display.
+     * Params: html (slide HTML content), title (slide title), target_group_id
      */
     private static function set_slide()
     {
@@ -523,7 +523,7 @@ trait Ajax_Tech
         $userId        = (int)$_SESSION['curGroupId'];
         $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
 
-        // Базовая санитизация: убираем script/iframe и потенциально опасные атрибуты
+        // Basic sanitization: strip script/iframe tags and potentially dangerous attributes
         $html = self::$args['html'] ?? '';
         $html = preg_replace('/<script\b[^>]*>.*?<\/script>/is', '', $html);
         $html = preg_replace('/<iframe\b[^>]*>.*?<\/iframe>/is', '', $html);
@@ -555,8 +555,8 @@ trait Ajax_Tech
     }
 
     /**
-     * Получить список стандартных заставок.
-     * Возвращает: {status, wallpapers: [{id, name, src}], is_admin}
+     * Get the list of standard wallpapers.
+     * Returns: {status, wallpapers: [{id, name, src}], is_admin}
      */
     private static function get_standard_wallpapers()
     {
@@ -574,7 +574,7 @@ trait Ajax_Tech
     }
 
     /**
-     * Добавить изображение в стандартные заставки.
+     * Add an image to standard wallpapers.
      * Params: name, src
      */
     private static function add_to_wallpapers()
@@ -587,12 +587,12 @@ trait Ajax_Tech
             return json_encode(['status' => 'error', 'message' => 'Name and src required']);
         }
 
-        // Проверка прав администратора или лидера
+        // Only admin or leader may perform this action
         if (!Security::isAdmin() && !Security::isLeader()) {
             return json_encode(['status' => 'error', 'message' => 'Access denied']);
         }
 
-        // Проверка на дубликаты
+        // Check for duplicates
         $exists = Info::get('db')->get(
             "SELECT id FROM standard_wallpapers WHERE src = '{$src}'"
         );
@@ -608,14 +608,14 @@ trait Ajax_Tech
     }
 
     /**
-     * Удалить заставку из списка стандартных (только администратор или лидер).
+     * Remove a wallpaper from the standard list (admin or leader only).
      * Params: id
      */
     private static function delete_wallpaper()
     {
         $id = (int)self::$args['id'];
 
-        // Проверка прав администратора или лидера
+        // Only admin or leader may perform this action
         if (!Security::isAdmin() && !Security::isLeader()) {
             return json_encode(['status' => 'error', 'message' => 'Access denied']);
         }

@@ -72,17 +72,17 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     // ── Tech Media state ──────────────────────────────────────
-    $scope.showMediaAddPanel  = false;   // панель добавления медиа
-    $scope.mediaUrlInput      = '';      // поле ввода URL
+    $scope.showMediaAddPanel  = false;   // media add panel
+    $scope.mediaUrlInput      = '';      // URL input field
     $scope.mediaUrlType       = 'video'; // 'image' | 'video'
-    $scope.mediaUrlName       = '';      // имя для URL-ссылки
-    $scope.uploadingImage     = false;   // флаг загрузки изображения
-    $scope.uploadingVideo     = false;   // флаг загрузки видео
+    $scope.mediaUrlName       = '';      // name for URL link
+    $scope.uploadingImage     = false;   // image upload flag
+    $scope.uploadingVideo     = false;   // video upload flag
 
     // ── Standard Wallpapers state ─────────────────────────────
-    $scope.showWallpapersPanel = false;  // панель стандартных заставок
-    $scope.standardWallpapers  = [];     // список стандартных заставок
-    $scope.isAdmin             = false;  // является ли пользователь администратором
+    $scope.showWallpapersPanel = false;  // standard wallpapers panel
+    $scope.standardWallpapers  = []; // standard wallpapers list
+    $scope.isAdmin             = false;  // whether user is an administrator
 
     // ── Active media item (video controls) ────────────────────
     $scope.activeMediaItem    = null;    // { FID, itemType, name, src }
@@ -97,7 +97,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.pageMode = 'songs';  // 'songs' | 'bible' | 'messages'
 
     // ── Language selection ────────────────────────────────────
-    $scope.languages = {};   // заполняется динамически из get_languages
+    $scope.languages = {};   // populated dynamically from get_languages
     $scope.langList  = [];   // [{code, label, col_suffix, is_default}, ...]
 
     // ==========================================================
@@ -124,19 +124,19 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // ==========================================================
 
     $scope.toggleLanguage = function(lang) {
-        // Найти объект языка в langList
+        // Find the language object in langList
         var langObj = null;
         for (var i = 0; i < $scope.langList.length; i++) {
             if ($scope.langList[i].code === lang) { langObj = $scope.langList[i]; break; }
         }
 
-        // Если язык недоступен в данном контексте — не включать
+        // If language is not available in this context — do not enable
         if (!$scope.languages[lang] && langObj && !$scope.isLangAvailable(langObj)) return;
 
         $scope.languages[lang] = !$scope.languages[lang];
 
-        // Хотя бы один язык должен быть включён.
-        // Фолбэк — язык с is_default=1, иначе первый в списке.
+        // At least one language must be enabled.
+        // Fallback — language with is_default=1, otherwise first in list.
         var anyActive = false;
         for (var k in $scope.languages) {
             if ($scope.languages[k]) { anyActive = true; break; }
@@ -150,7 +150,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             if (fallback) $scope.languages[fallback] = true;
         }
 
-        // Обновить отображение (эти строки остаются без изменений)
+        // Update display (these lines remain unchanged)
         if ($scope.pageMode === 'songs' && $scope.showingSong) {
             splitText($scope.showingSong);
         }
@@ -162,9 +162,9 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         }
     };
 
-    // ── Хелперы для динамических языков ──────────────────────
+    // ── Helpers for dynamic languages ───────────────────────
 
-    /** Возвращает языки из langList, которые сейчас включены. */
+    /** Returns languages from langList that are currently enabled. */
     function getActiveLangs() {
         return $scope.langList.filter(function(l) {
             return $scope.languages[l.code];
@@ -172,19 +172,19 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     }
 
     /**
-     * Проверяет, есть ли данные для языка в текущем контексте.
-     * Используется для ng-disabled на кнопках языков.
+     * Checks if data exists for the language in the current context.
+     * Used for ng-disabled on language buttons.
      *
-     * Правила:
-     *   songs   — если песня выбрана: есть ли текст в её колонке?
-     *             если не выбрана: доступны все (нечего ограничивать)
-     *   bible   — если стихи загружены: хотя бы один стих с текстом?
-     *             если нет: доступны все
-     *   messages — если послание выбрано (с полными данными): есть ли текст?
-     *              если нет: доступны все
+     * Rules:
+     *   songs   — if a song is selected: does its column have text?
+     *             if not selected: all available (nothing to restrict)
+     *   bible   — if verses are loaded: does at least one have text?
+     *             if not: all available
+     *   messages — if a message is selected (with full data): does it have text?
+     *              if not: all available
      *
-     * @param  {Object} lang  — элемент из langList {code, col_suffix, ...}
-     * @return {boolean}      true = кнопка активна, false = заблокирована
+     * @param  {Object} lang  — element from langList {code, col_suffix, ...}
+     * @return {boolean}      true = button active, false = disabled
      */
     $scope.isLangAvailable = function(lang) {
         var field = 'TEXT' + lang.col_suffix;   // 'TEXT', 'TEXT_LT', 'TEXT_DE'...
@@ -196,7 +196,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
 
         if ($scope.pageMode === 'bible') {
             if (!$scope.bibleVerses || $scope.bibleVerses.length === 0) return true;
-            // Хватит одного стиха с данными
+            // One verse with data is enough
             for (var i = 0; i < $scope.bibleVerses.length; i++) {
                 if ($scope.bibleVerses[i][field]) return true;
             }
@@ -204,11 +204,11 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         }
 
         if ($scope.pageMode === 'messages') {
-            // Пока послание не выбрано — не блокируем ничего
+            // No message selected — do not block anything
             if (!$scope.selectedMessage) return true;
 
-            // Если selectedMessage ещё не обновился полными данными
-            // (нет ни одного поля TEXT*) — не блокируем
+            // If selectedMessage has not yet been updated with full data
+            // (no TEXT* fields yet) — do not block
             var hasAnyTextField = false;
             for (var fi = 0; fi < $scope.langList.length; fi++) {
                 var f = 'TEXT' + $scope.langList[fi].col_suffix;
@@ -216,27 +216,27 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             }
             if (!hasAnyTextField) return true;
 
-            // Полные данные загружены — проверяем конкретное поле
+            // Full data is loaded — check the specific field
             var val = $scope.selectedMessage[field];
             return !!(val && val.trim());
         }
 
-        return true;   // неизвестный режим — не блокируем
+        return true;   // unknown mode — do not block
     };
 
 
     /**
-     * Имя текстовой колонки для языка: '' → 'TEXT', '_LT' → 'TEXT_LT'.
-     * Работает для song_list (TEXT / TEXT_LT / TEXT_EN / TEXT_DE…)
-     * и для bible_verses (те же имена).
+     * Text column name for language: '' → 'TEXT', '_LT' → 'TEXT_LT'.
+     * Works for song_list (TEXT / TEXT_LT / TEXT_EN / TEXT_DE…)
+     * and for bible_verses (same names).
      */
     function textCol(lang) {
         return 'TEXT' + lang.col_suffix;
     }
 
     /**
-     * Имя колонки названия для языка: '' → 'NAME', '_LT' → 'NAME_LT'.
-     * Нужно для bible_books.
+     * Name column for language: '' → 'NAME', '_LT' → 'NAME_LT'.
+     * Used for bible_books.
      */
     function nameCol(lang) {
         return 'NAME' + lang.col_suffix;
@@ -247,21 +247,21 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             function (list) {
                 $scope.langList = list;
 
-                // Найти язык по умолчанию
+                // Find default language
                 var defaultCode = null;
                 for (var i = 0; i < list.length; i++) {
                     if (list[i].is_default == '1') { defaultCode = list[i].code; break; }
                 }
                 if (!defaultCode && list.length > 0) defaultCode = list[0].code;
 
-                // Инициализировать $scope.languages:
-                //   - язык по умолчанию включён,
-                //   - остальные выключены,
-                //   - уже существующие значения сохраняются (при перезагрузке).
+                // Initialize $scope.languages:
+                //   - default language enabled,
+                //   - others disabled,
+                //   - existing values preserved (on reload).
                 var newLangs = {};
                 for (var j = 0; j < list.length; j++) {
                     var code = list[j].code;
-                    // Если уже было значение — сохранить; иначе включить только дефолтный
+                    // Preserve existing value; otherwise enable only the default
                     if (code in $scope.languages) {
                         newLangs[code] = $scope.languages[code];
                     } else {
@@ -271,7 +271,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 $scope.languages = newLangs;
             },
             function () {
-                console.error('tech.js: не удалось загрузить список языков');
+                console.error('tech.js: failed to load language list');
             }
         );
     }
@@ -289,7 +289,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             }
             $scope.loadSearchSongs(lists);
         }, function () {
-            console.error('tech.js: не удалось загрузить списки песен');
+            console.error('tech.js: failed to load song lists');
         });
     };
 
@@ -312,16 +312,16 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     /**
-     * Строит $scope.preparedChapters для выбранной песни.
-     * Итерирует по активным языкам из langList — без хардкода.
+     * Builds $scope.preparedChapters for the selected song.
+     * Iterates active languages from langList — no hard-coding.
      *
-     * @param {Object} song  — объект из favorites (содержит TEXT, TEXT_LT, TEXT_DE…)
+     * @param {Object} song  — object from favorites (contains TEXT, TEXT_LT, TEXT_DE…)
      */
     function splitText(song) {
         $scope.preparedChapters = [];
         if (!song) return;
 
-        // Язык по умолчанию задаёт «скелет» куплетов (количество и порядок).
+        // Default language defines the verse "skeleton" (count and order).
         var defaultLang = null;
         for (var i = 0; i < $scope.langList.length; i++) {
             if ($scope.langList[i].is_default == '1') { defaultLang = $scope.langList[i]; break; }
@@ -332,7 +332,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         var baseField  = textCol(defaultLang);
         var baseText   = song[baseField] || '';
         if (!baseText) {
-            // Фолбэк: попробовать первый активный язык с непустым текстом
+            // Fallback: try first active language with non-empty text
             var activeLangs = getActiveLangs();
             for (var j = 0; j < activeLangs.length; j++) {
                 var t = song[textCol(activeLangs[j])];
@@ -367,13 +367,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             function success(respond) {
                 $scope.favorites = respond.data;
 
-                // Восстанавливаем состояние showingSong после перезагрузки
+                // Restore showingSong state after reload
                 angular.forEach($scope.favorites, function (item) {
                     if (item.itemType === 'song' &&
                         $scope.showingSong && item.FID === $scope.showingSong.FID) {
                         $scope.showingSong = item;
                     }
-                    // Восстанавливаем activeMediaItem для изображений и видео
+                    // Restore activeMediaItem for images and videos
                     if ((item.itemType === 'image' || item.itemType === 'video') &&
                         $scope.activeMediaItem && item.FID === $scope.activeMediaItem.FID) {
                         $scope.activeMediaItem = item;
@@ -565,7 +565,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     // ─────────────────────────────────────────────────────────
-    // Открыть/закрыть панель добавления медиа
+    // Open/close the media add panel
     // ─────────────────────────────────────────────────────────
 
     $scope.toggleMediaAddPanel = function () {
@@ -574,24 +574,24 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             $scope.mediaUrlInput = '';
             $scope.mediaUrlName  = '';
             $scope.mediaUrlType  = 'video';
-            $scope.showWallpapersPanel = false; // Закрыть панель заставок
+            $scope.showWallpapersPanel = false; // close wallpapers panel
         }
     };
 
     // ─────────────────────────────────────────────────────────
-    // Открыть/закрыть панель стандартных заставок
+    // Open/close the standard wallpapers panel
     // ─────────────────────────────────────────────────────────
 
     $scope.toggleWallpapersPanel = function () {
         $scope.showWallpapersPanel = !$scope.showWallpapersPanel;
         if ($scope.showWallpapersPanel) {
-            $scope.showMediaAddPanel = false; // Закрыть панель добавления медиа
+            $scope.showMediaAddPanel = false; // close media add panel
             $scope.loadStandardWallpapers();
         }
     };
 
     // ─────────────────────────────────────────────────────────
-    // Загрузить список стандартных заставок
+    // Load standard wallpapers list
     // ─────────────────────────────────────────────────────────
 
     $scope.loadStandardWallpapers = function () {
@@ -606,7 +606,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     // ─────────────────────────────────────────────────────────
-    // Добавить изображение в стандартные заставки
+    // Add image to standard wallpapers
     // ─────────────────────────────────────────────────────────
 
     $scope.addToWallpapers = function (item) {
@@ -632,7 +632,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     // ─────────────────────────────────────────────────────────
-    // Добавить заставку из списка в избранное
+    // Add wallpaper from list to favorites
     // ─────────────────────────────────────────────────────────
 
     $scope.addWallpaperToFavorites = function (wallpaper) {
@@ -650,7 +650,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     // ─────────────────────────────────────────────────────────
-    // Удалить заставку из списка стандартных (только админ)
+    // Remove wallpaper from standard list (admin only)
     // ─────────────────────────────────────────────────────────
 
     $scope.deleteWallpaper = function (id, name) {
@@ -675,7 +675,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     // ─────────────────────────────────────────────────────────
-    // Определить тип медиа по URL
+    // Determine media type by URL
     // ─────────────────────────────────────────────────────────
 
     function _detectMediaType(url) {
@@ -690,7 +690,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     }
 
     // ─────────────────────────────────────────────────────────
-    // Добавить медиа по URL
+    // Add media by URL
     // ─────────────────────────────────────────────────────────
 
     $scope.addMediaUrl = function () {
@@ -727,7 +727,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     // ─────────────────────────────────────────────────────────
-    // Загрузить изображение → добавить в плейлист
+    // Upload image → add to playlist
     // ─────────────────────────────────────────────────────────
 
     $scope.triggerMediaImageUpload = function () {
@@ -737,15 +737,15 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.onMediaImageSelected = function (input) {
         if (!input.files || !input.files[0]) return;
 
-        // Запросить название для изображения
+        // Prompt for image name
         var mediaName = prompt('Введите краткое название для изображения:');
         if (mediaName === null) {
             input.value = '';
-            return; // Пользователь отменил
+            return; // user cancelled
         }
         mediaName = mediaName.trim();
         if (!mediaName) {
-            mediaName = input.files[0].name; // Используем имя файла по умолчанию
+            mediaName = input.files[0].name; // use filename as default
         }
 
         $scope.uploadingImage = true;
@@ -777,7 +777,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
 
 
     // ─────────────────────────────────────────────────────────
-    // Загрузить видео → добавить в плейлист
+    // Upload video → add to playlist
     // ─────────────────────────────────────────────────────────
 
     $scope.triggerMediaVideoUpload = function () {
@@ -786,15 +786,15 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
 
     $scope.onMediaVideoSelected = function (input) {
         if (!input.files || !input.files[0]) return;
-        // Запросить название для видео
+        // Prompt for video name
         var mediaName = prompt('Введите краткое название для видео:');
         if (mediaName === null) {
             input.value = '';
-            return; // Пользователь отменил
+            return; // user cancelled
         }
         mediaName = mediaName.trim();
         if (!mediaName) {
-            mediaName = input.files[0].name; // Используем имя файла по умолчанию
+            mediaName = input.files[0].name; // use filename as default
         }
         $scope.uploadingVideo = true;
         var formData = new FormData();
@@ -824,22 +824,22 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     // ─────────────────────────────────────────────────────────
-    // Кликнуть на медиа-элемент в плейлисте
+    // Click on a media item in the playlist
     // ─────────────────────────────────────────────────────────
 
     $scope.activateMediaItem = function (item) {
-        // Повторный клик = деактивация
+        // Repeated click = deactivation
         if ($scope.activeMediaItem && $scope.activeMediaItem.FID === item.FID) {
-            // Очистить активный элемент
+            // Clear active item
             $scope.activeMediaItem  = null;
             $scope.techVideoPlaying = false;
 
-            // Очистить изображение на дисплее
+            // Clear image on display
             $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' }});
             return;
         }
 
-        // Снять выделение с песни
+         // Deselect song
         $scope.showingSong      = null;
         $scope.preparedChapters = [];
         $scope.showingChapter   = null;
@@ -848,14 +848,14 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $scope.activeMediaItem = item;
 
         if (item.itemType === 'image') {
-            // Изображение → set_tech_image
+            // Image → set_tech_image
             $scope.techVideoPlaying = false;
             $http({ method: "POST", url: "/ajax", data: {
                     command:    'set_tech_image',
                     image_name: item.src
                 }});
         } else {
-            // Видео → set_video
+            // Video → set_video
             $scope.techVideoPlaying = true;
             techVideoSrc = item.src;
             $http({ method: "POST", url: "/ajax", data: {
@@ -867,7 +867,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     // ─────────────────────────────────────────────────────────
-    // Управление видео в техническом режиме
+    // Video control in tech mode
     // ─────────────────────────────────────────────────────────
 
     $scope.techToggleVideo = function () {
@@ -893,7 +893,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             var isMedia  = (itemType === 'image' || itemType === 'video');
             var command  = isMedia ? 'delete_media_favorite' : 'delete_favorite_item';
 
-            // Если удаляем активный элемент — очистить дисплей
+            // If deleting active item — clear display
             var isDeletingActive = $scope.showingSong && $scope.showingSong.FID === fav_id &&
                 (!isMedia);
             var isDeletingActiveMedia = $scope.activeMediaItem &&
@@ -1102,13 +1102,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
      */
     $scope.getBibleBookName = function(book) {
         if (!book) return '';
-        // Перебираем активные языки в порядке sort_order.
-        // Первый не-русский (col_suffix != '') с заполненным полем победит.
-        // Если ничего нет — вернём базовое NAME.
+        // Iterate active languages in sort_order.
+        // First non-default (col_suffix != '') with a filled field wins.
+        // If nothing found — return base NAME.
         var active = getActiveLangs();
         for (var i = 0; i < active.length; i++) {
             var lang  = active[i];
-            if (lang.col_suffix === '') continue;           // пропустить дефолтный язык
+            if (lang.col_suffix === '') continue;           // skip default language
             var field = nameCol(lang);
             if (book[field]) return book[field];
         }
@@ -1119,7 +1119,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
      * Get verse display text for search results.
      */
     $scope.getBibleVerseDisplay = function(verse) {
-        // Вернуть текст первого активного языка с непустым полем.
+        // Return text of first active language with a non-empty field.
         var active = getActiveLangs();
         for (var i = 0; i < active.length; i++) {
             var v = verse[textCol(active[i])];
@@ -1294,10 +1294,10 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     $scope.selectMessage = function(msg) {
-        $scope.selectedMessage    = msg;   // предварительно (для подсветки списка)
+        $scope.selectedMessage    = msg;   // preliminary (for list highlight)
         $scope.messageParagraphs  = [];
         $scope.showingMessagePara = null;
-        // Сброс аудио
+        // Reset audio
         $scope.msgTimecodes    = [];
         $scope.msgAudioPlaying = false;
         $scope.msgAudioLoaded  = false;
@@ -1310,10 +1310,10 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             }}).then(function(r) {
             if (!r.data) return;
 
-            // Всегда обновляем полными данными (TEXT, TEXT_LT, TEXT_EN, …)
+            // Always update with full data (TEXT, TEXT_LT, TEXT_EN, …)
             $scope.selectedMessage = r.data;
 
-            // Строим абзацы из первого активного языка с данными
+            // Build paragraphs from first active language with data
             var text = '';
             var active = getActiveLangs();
             for (var i = 0; i < active.length; i++) {
@@ -1323,7 +1323,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     break;
                 }
             }
-            // Фолбэк: любое непустое поле из всех известных языков
+            // Fallback: any non-empty field from all known languages
             if (!text) {
                 for (var j = 0; j < $scope.langList.length; j++) {
                     var fbField = 'TEXT' + $scope.langList[j].col_suffix;
@@ -1349,10 +1349,10 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 }
             }
 
-            // Разбираем таймкоды и инициализируем аудио
+            // Parse timecodes and initialize audio
             $scope.msgTimecodes = parseMsgTimecodes(r.data.TIMECODES);
             if (r.data.AUDIO_SRC) {
-                // Ленивая инициализация элемента <audio>
+                // Lazy initialization of <audio> element
                 if (!msgAudio) {
                     msgAudio = document.getElementById('msgAudioEl');
                     if (msgAudio) {
@@ -1429,14 +1429,14 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         });
     }
 
-    // Нажатие на абзац: показать/скрыть текст на экране + перейти к таймкоду если аудио уже играет
-    // Повторное нажатие на активный воспроизводимый абзац = Стоп
+    // Paragraph click: show/hide text on display + jump to timecode if audio is playing
+    // Repeated click on active playing paragraph = Stop
     $scope.onMsgParaClick = function(idx, para) {
         if ($scope.msgAudioPlaying && $scope.showingMessagePara === para && !$scope.msgCalibrating) {
             $scope.stopMsgAudio();
             return;
         }
-        // Режим калибровки: фиксируем таймкод, делаем абзац активным, сохраняем в БД
+        // Calibration mode: capture timecode, activate paragraph, save to DB
         if ($scope.msgCalibrating && msgAudio && $scope.msgAudioLoaded) {
             $scope.msgTimecodes[idx] = Math.round(msgAudio.currentTime * 10) / 10;
             $scope.showingMessagePara = para;
@@ -1460,14 +1460,14 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             $scope.msgAudioPlaying = false;
             if (msgTimerInterval) { $interval.cancel(msgTimerInterval); msgTimerInterval = null; }
         } else {
-            // Начать с таймкода текущего абзаца (или с начала)
+            // Start from current paragraph timecode (or from beginning)
             var idx = $scope.messageParagraphs.indexOf($scope.showingMessagePara);
             if (idx >= 0 && $scope.msgTimecodes[idx] !== undefined) {
                 msgAudio.currentTime = $scope.msgTimecodes[idx];
             }
             msgAudio.play();
             $scope.msgAudioPlaying = true;
-            // Обновляем таймер раз в 500мс — без лишних digest-циклов
+            // Update timer every 500 ms — no extra digest cycles
             msgTimerInterval = $interval(function() {
                 $scope.msgCurrentTime = msgAudio ? msgAudio.currentTime : 0;
             }, 500);
@@ -1481,12 +1481,12 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $scope.msgAudioPlaying = false;
         $scope.msgCurrentTime  = 0;
         if (msgTimerInterval) { $interval.cancel(msgTimerInterval); msgTimerInterval = null; }
-        // Снять активный абзац с экрана
+        // Clear active paragraph from display
         if ($scope.showingMessagePara !== null) {
             $scope.showingMessagePara = null;
             $http({ method: 'POST', url: '/ajax', data: { command: 'set_message_text', text: '', song_name: '' }});
         }
-        // В режиме калибровки сохраняем изменённые таймкоды в БД
+        // In calibration mode, save updated timecodes to DB
         if ($scope.msgCalibrating) {
             saveMsgTimecodesToDb();
         }
@@ -1828,7 +1828,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // ==========================================================
 
     // [SECURITY] Use authenticated WebSocket connection
-    $scope.wsConnected = null; // null = ещё не подключались, true/false после первого соединения
+    $scope.wsConnected = null; // null = not yet connected, true/false after first connection
     var wsDisconnectTimer = null;
 
     // URL is auto-detected (wss:// for HTTPS, ws:// for HTTP)
@@ -1853,7 +1853,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 if (wsDisconnectTimer) { clearTimeout(wsDisconnectTimer); wsDisconnectTimer = null; }
                 $scope.$applyAsync(function() { $scope.wsConnected = true; });
             } else {
-                // Показываем баннер только если разрыв длится дольше 5 секунд
+                // Show banner only if disconnect lasts more than 5 seconds
                 wsDisconnectTimer = setTimeout(function() {
                     wsDisconnectTimer = null;
                     $scope.$applyAsync(function() { $scope.wsConnected = false; });
@@ -2247,7 +2247,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // ==========================================================
 
     $scope.loadSongLists();
-    loadLanguages();   // инициализирует langList + $scope.languages (переключатели)
+    loadLanguages();   // initializes langList + $scope.languages (toggles)
     $scope.reloadSongList();
     loadPendingAccessRequests();  // Load any existing pending requests on page load
 
