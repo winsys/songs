@@ -1546,14 +1546,22 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         }
         var q = $scope.bookSearchQuery.toLowerCase();
         return $scope.bibleBooks.filter(function (book) {
-            return (book.NAME    && book.NAME.toLowerCase().indexOf(q)    >= 0) ||
-                (book.NAME_LT && book.NAME_LT.toLowerCase().indexOf(q) >= 0) ||
-                (book.NAME_EN && book.NAME_EN.toLowerCase().indexOf(q) >= 0);
+            if (book.NAME && book.NAME.toLowerCase().indexOf(q) >= 0) return true;
+            for (var i = 0; i < $scope.prepLangList.length; i++) {
+                var col = 'NAME' + $scope.prepLangList[i].col_suffix;
+                if (book[col] && book[col].toLowerCase().indexOf(q) >= 0) return true;
+            }
+            return false;
         });
     };
     $scope.getBookName = function (book) {
         if (!book) return '';
-        return book.NAME || book.NAME_LT || book.NAME_EN || '';
+        if (book.NAME) return book.NAME;
+        for (var i = 0; i < $scope.prepLangList.length; i++) {
+            var col = 'NAME' + $scope.prepLangList[i].col_suffix;
+            if (book[col]) return book[col];
+        }
+        return '';
     };
     $scope.selectBook = function (book) {
         $scope.selectedBook           = book;
@@ -1618,9 +1626,8 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.togglePrepLang = function (lang) {
         $scope.prepLangs[lang] = !$scope.prepLangs[lang];
         // at least one language must be enabled
-        if (!$scope.prepLangs.ru && !$scope.prepLangs.lt && !$scope.prepLangs.en) {
-            $scope.prepLangs[lang] = true;
-        }
+        var anyOn = $scope.prepLangList.some(function (l) { return $scope.prepLangs[l.code]; });
+        if (!anyOn) $scope.prepLangs[lang] = true;
     };
     $scope.insertBibleCitation = function () {
         if ($scope.selectedBibleVerseNums.length === 0) return;
