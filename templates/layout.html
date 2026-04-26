@@ -12,6 +12,9 @@
         window.WS_USER_ID = <?php echo Security::getCurrentUserId(); ?>;
         window.WS_GROUP_ID = <?php echo Security::getGroupId(); ?>;
         window.WS_AUTH_TOKEN = "<?php echo Security::generateWebSocketToken(); ?>";
+        // [I18N] UI language and dictionary, consumed by /js/i18n.min.js
+        window.UI_LANG = "<?php echo T::lang(); ?>";
+        window.UI_DICT = <?php echo T::dictJson(); ?>;
     </script>
     <link href="/a-icon-120.png" rel="apple-touch-icon" />
     <link href="/a-icon-152.png" rel="apple-touch-icon" sizes="152x152" />
@@ -24,13 +27,14 @@
     <script src="/js/jquery.min.js" type="text/javascript"></script>
     <script src="/js/bootstrap.min.js" type="text/javascript"></script>
     <script src="/js/angular.min.js" type="text/javascript"></script>
+    <script src="/js/i18n.min.js?v=1"></script>
     <script src="/js/csrf_interceptor.min.js"></script>
     <script src="/js/websocket_auth.min.js"></script>
     <script src="/js/angular-touch.min.js" type="text/javascript"></script>
     <script src="/js/angucomplete-alt.min.js" type="text/javascript"></script>
     <script src="https://accounts.google.com" async defer></script>
     <script type="text/javascript">
-        let app = angular.module('Songs', ['angucomplete-alt', 'ngTouch', 'csrfModule']);
+        let app = angular.module('Songs', ['angucomplete-alt', 'ngTouch', 'csrfModule', 'i18nModule']);
     </script>
     <script src="/js/songs_service.min.js"></script>
 

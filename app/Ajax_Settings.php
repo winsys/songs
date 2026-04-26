@@ -43,6 +43,8 @@ trait Ajax_Settings
         $mainFontMaxSize  = max(20, min(200, $mainFontMaxSize));
         $slideFontMaxSize = isset($settings['slide_font_max_size']) ? intval($settings['slide_font_max_size']) : 64;
         $slideFontMaxSize = max(20, min(200, $slideFontMaxSize));
+        $uiLang = isset($settings['ui_lang']) ? (string)$settings['ui_lang'] : 'ru';
+        if (!in_array($uiLang, ['ru', 'de', 'en'], true)) $uiLang = 'ru';
 
         $existing = Info::get('db')->get("SELECT group_id FROM user_settings WHERE group_id = {$userId}");
 
@@ -69,7 +71,8 @@ trait Ajax_Settings
                     sermon_scale_chips       = {$sermonScaleChips},
                     slide_bg_color           = '{$slideBgColor}',
                     main_font_max_size       = {$mainFontMaxSize},
-                    slide_font_max_size      = {$slideFontMaxSize}
+                    slide_font_max_size      = {$slideFontMaxSize},
+                    ui_lang                  = '{$uiLang}'
                 WHERE group_id = {$userId}
             ");
         } else {
@@ -80,17 +83,20 @@ trait Ajax_Settings
                     streaming_bg_color, streaming_font, streaming_font_color, streaming_height_percent,
                     sermon_notes_bg_color, sermon_bible_base_color, sermon_msg_base_color,
                     sermon_prep_font_size, sermon_notes_font_size, sermon_scale_chips,
-                    slide_bg_color, main_font_max_size, slide_font_max_size
+                    slide_bg_color, main_font_max_size, slide_font_max_size, ui_lang
                 ) VALUES (
                     {$userId}, '{$displayName}', '{$favoritesOrder}', '{$availableLists}', " . ($availableLanguages === null ? 'NULL' : "'{$availableLanguages}'") . ", '{$placeholderImage}',
                     '{$mainBgColor}', '{$mainFont}', '{$mainFontColor}',
                     '{$streamingBgColor}', '{$streamingFont}', '{$streamingFontColor}', {$streamingHeightPercent},
                     '{$sermonNotesBgColor}', '{$sermonBibleBaseColor}', '{$sermonMsgBaseColor}',
                     {$sermonPrepFontSize}, {$sermonNotesFontSize}, {$sermonScaleChips},
-                    '{$slideBgColor}', {$mainFontMaxSize}, {$slideFontMaxSize}
+                    '{$slideBgColor}', {$mainFontMaxSize}, {$slideFontMaxSize}, '{$uiLang}'
                 )
             ");
         }
+
+        // Reflect new UI language in the current session so the next page render picks it up.
+        $_SESSION['ui_lang'] = $uiLang;
 
         return json_encode(['status' => 'success']);
     }

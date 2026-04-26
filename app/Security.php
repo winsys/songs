@@ -142,11 +142,29 @@ class Security
         $_SESSION['userRole']   = $user['ROLE'] ?? 'musician';
         $_SESSION['loginError'] = '';
 
+        // Load saved UI language; defensively handles the case where the column
+        // does not yet exist (migration not yet run).
+        $_SESSION['ui_lang'] = self::loadUiLang((int)$_SESSION['curGroupId']);
+
         Info::get('db')->exec(
             'UPDATE users SET LAST_LOGIN = NOW() WHERE ID = ' . (int)$user['ID']
         );
 
         session_regenerate_id(true);
+    }
+
+    /** Returns the saved ui_lang for a group, or 'ru' on any failure. */
+    private static function loadUiLang(int $groupId): string
+    {
+        if ($groupId <= 0) return 'ru';
+        $dbh = Info::get('dbh');
+        $res = @$dbh->query("SELECT ui_lang FROM user_settings WHERE group_id = {$groupId} LIMIT 1");
+        if (!$res) return 'ru';
+        $row = $res->fetch_assoc();
+        $res->free();
+        if (!$row || empty($row['ui_lang'])) return 'ru';
+        $l = (string)$row['ui_lang'];
+        return in_array($l, ['ru', 'de', 'en'], true) ? $l : 'ru';
     }
 
     /**

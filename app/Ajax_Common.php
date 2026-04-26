@@ -542,9 +542,13 @@ trait Ajax_Common
                 'sermon_scale_chips'     => 0,
                 'main_font_max_size'     => 64,
                 'slide_font_max_size'    => 64,
+                'ui_lang'                => 'ru',
             ];
         }
 
+        if (empty($settings['ui_lang']) || !in_array($settings['ui_lang'], ['ru', 'de', 'en'], true)) {
+            $settings['ui_lang'] = 'ru';
+        }
         if (empty($settings['sermon_notes_bg_color']))   $settings['sermon_notes_bg_color']   = '#2b2b2b';
         if (empty($settings['sermon_bible_base_color'])) $settings['sermon_bible_base_color']  = '#1565c0';
         if (empty($settings['sermon_msg_base_color']))   $settings['sermon_msg_base_color']    = '#6a1b9a';
