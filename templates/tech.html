@@ -1265,7 +1265,7 @@
             <div class="section-label"><?php echo T::s('tech.label.translation'); ?></div>
             <div class="btn-row">
                 <button class="btn-list"
-                        ng-repeat="tr in bibleTranslations"
+                        ng-repeat="tr in getFilteredBibleTranslations()"
                         ng-class="bibleTranslationId == tr.ID ? 'btn-selected' : ''"
                         ng-click="setBibleTranslation(tr.ID)">{{ tr.NAME }}</button>
             </div>
@@ -2058,5 +2058,5 @@
 
 </div><!-- /ng-controller -->
 
-<script src="/js/tech.js?v=21" type="text/javascript"></script>
+<script src="/js/tech.js?v=22" type="text/javascript"></script>
 
