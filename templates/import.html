@@ -410,61 +410,61 @@
         <!-- Header -->
         <div class="import-header">
             <button class="btn-back" onclick="window.location.href='/index'">
-                ← Главная
+                <?php echo T::s('common.button.back'); ?>
             </button>
-            <div class="import-page-title">📥 Импорт данных</div>
+            <div class="import-page-title"><?php echo T::s('import.title'); ?></div>
         </div>
 
         <!-- Tab bar -->
         <div class="tab-bar">
-            <button class="tab-btn" ng-class="{active: tab==='songs'}"    ng-click="tab='songs'">🎵 Сборники песен</button>
-            <button class="tab-btn" ng-class="{active: tab==='messages'}" ng-click="tab='messages'">📖 Послания</button>
-            <button class="tab-btn" ng-class="{active: tab==='languages'}" ng-click="tab='languages'; loadLanguages()">🌐 Языки</button>
+            <button class="tab-btn" ng-class="{active: tab==='songs'}"    ng-click="tab='songs'"><?php echo T::s('import.tab.songs'); ?></button>
+            <button class="tab-btn" ng-class="{active: tab==='messages'}" ng-click="tab='messages'"><?php echo T::s('import.tab.messages'); ?></button>
+            <button class="tab-btn" ng-class="{active: tab==='languages'}" ng-click="tab='languages'; loadLanguages()"><?php echo T::s('import.tab.langs'); ?></button>
         </div>
 
         <!-- ===================== SONGS TAB ===================== -->
         <div ng-show="tab==='songs'">
 
-            <!-- 1. Выбор сборника -->
+            <!-- 1. Collection selection -->
             <div class="import-section">
-                <h4>1. Выберите сборник песен</h4>
+                <h4><?php echo T::s('import.section.songList'); ?></h4>
 
-                <label class="import-label">Существующий сборник</label>
+                <label class="import-label"><?php echo T::s('import.label.existingList'); ?></label>
                 <select class="import-select" ng-model="songListId"
                         ng-options="l.LIST_ID as l.LIST_NAME for l in songLists">
-                    <option value="">— выберите сборник —</option>
+                    <option value=""><?php echo T::s('import.choose.list'); ?></option>
                 </select>
 
-                <span class="or-divider">или создайте новый</span>
+                <span class="or-divider"><?php echo T::s('import.label.newList'); ?></span>
                 <div class="new-list-row">
                     <input type="text" class="import-input" ng-model="newListName"
-                           placeholder="Название нового сборника" />
+                           placeholder="<?php echo T::s('import.placeholder.newList'); ?>" />
                     <button class="btn-import-success" ng-click="createSongList()"
                             ng-disabled="!newListName || creating">
-                        <span ng-if="!creating">➕ Создать</span>
+                        <span ng-if="!creating"><?php echo T::s('import.button.add'); ?></span>
                         <span ng-if="creating">⏳ …</span>
                     </button>
                 </div>
 
                 <div class="status-ok" ng-if="songListId">
-                    ✅ Выбран сборник ID={{songListId}}
+                    {{ ('<?php echo T::s('import.selected.list'); ?>').replace('{id}', songListId) }}
                 </div>
             </div>
 
-            <!-- 2. Язык -->
+            <!-- 2. Language -->
             <div class="import-section" ng-show="songListId">
-                <h4>2. Язык импорта</h4>
+                <h4><?php echo T::s('import.section.langImport'); ?></h4>
                 <select class="import-select" ng-model="songLang"
                         ng-options="l.code as (l.label + ' (TEXT' + l.col_suffix + ')') for l in langList">
                 </select>
             </div>
 
-            <!-- 3. Тексты SOG -->
+            <!-- 3. SOG lyrics -->
             <div class="import-section" ng-show="songListId">
-                <h4>3. Импорт текстов (формат SOG)</h4>
-                <p>Текстовый файл UTF-8. Каждая песня: строка 1 — номер, строка 2 — название, далее куплеты, пустая строка — конец песни.</p>
+                <h4><?php echo T::s('import.section.songTexts'); ?></h4>
+                <p><?php echo T::s('import.hint.songFormat'); ?></p>
 
-                <label class="import-label">Выберите SOG-файл (.txt)</label>
+                <label class="import-label"><?php echo T::s('import.label.sogFile'); ?></label>
                 <input type="file" id="songSogFile" accept=".txt,.sog"
                        class="import-input"
                        onchange="angular.element(this).scope().onSongSogSelected()" />
@@ -476,17 +476,17 @@
                 <button class="btn-import-primary"
                         ng-click="importSongsSog()"
                         ng-disabled="!selectedSogFile || songImporting">
-                    <span ng-if="!songImporting">⬆️ Импортировать тексты</span>
-                    <span ng-if="songImporting">⏳ Импортируется…</span>
+                    <span ng-if="!songImporting"><?php echo T::s('import.button.songImport'); ?></span>
+                    <span ng-if="songImporting"><?php echo T::s('import.loading.songImport'); ?></span>
                 </button>
             </div>
 
-            <!-- 4. Картинки ZIP -->
+            <!-- 4. ZIP images -->
             <div class="import-section" ng-show="songListId">
-                <h4>4. Импорт картинок с нотами (ZIP)</h4>
-                <p>ZIP-архив, в котором имена файлов картинок совпадают с номерами песен (например, <code>001.jpg</code>).</p>
+                <h4><?php echo T::s('import.section.images'); ?></h4>
+                <p><?php echo T::s('import.hint.zipFormat'); ?></p>
 
-                <label class="import-label">Выберите ZIP-файл</label>
+                <label class="import-label"><?php echo T::s('import.field.zipFile'); ?></label>
                 <input type="file" id="songZipFile" accept=".zip"
                        class="import-input"
                        onchange="angular.element(this).scope().onSongZipSelected()" />
@@ -498,14 +498,14 @@
                 <button class="btn-import-primary"
                         ng-click="importSongZip()"
                         ng-disabled="!selectedZipFile || zipImporting">
-                    <span ng-if="!zipImporting">⬆️ Импортировать картинки</span>
-                    <span ng-if="zipImporting">⏳ Распаковывается…</span>
+                    <span ng-if="!zipImporting"><?php echo T::s('import.button.zipImport'); ?></span>
+                    <span ng-if="zipImporting"><?php echo T::s('import.loading.zipImport'); ?></span>
                 </button>
             </div>
 
             <!-- Song log -->
             <div class="import-section" ng-show="songLog.length">
-                <h4>Протокол импорта</h4>
+                <h4><?php echo T::s('import.label.protocol'); ?></h4>
                 <div class="import-log" id="songLogEl">
                     <div ng-repeat="entry in songLog" ng-class="'log-' + entry.type">{{entry.msg}}</div>
                 </div>
@@ -516,27 +516,26 @@
         <!-- ===================== MESSAGES TAB ===================== -->
         <div ng-show="tab==='messages'">
 
-            <!-- 1. Язык -->
+            <!-- 1. Language -->
             <div class="import-section">
-                <h4>1. Язык импорта</h4>
+                <h4><?php echo T::s('import.section.lang'); ?></h4>
                 <select class="import-select" ng-model="msgLang"
                         ng-options="l.code as (l.label + ' (TEXT' + l.col_suffix + ')') for l in langList">
                 </select>
             </div>
 
-            <!-- Вложенные закладки -->
+            <!-- Sub-tabs -->
             <div class="msg-sub-tabs">
-                <button class="msg-sub-btn" ng-class="{active: msgSubTab==='sog'}"  ng-click="msgSubTab='sog'">📄 Файл SOG</button>
-                <button class="msg-sub-btn" ng-class="{active: msgSubTab==='manual'}" ng-click="msgSubTab='manual'">✍️ Вручную</button>
+                <button class="msg-sub-btn" ng-class="{active: msgSubTab==='sog'}"  ng-click="msgSubTab='sog'"><?php echo T::s('import.msg.subFile'); ?></button>
+                <button class="msg-sub-btn" ng-class="{active: msgSubTab==='manual'}" ng-click="msgSubTab='manual'"><?php echo T::s('import.msg.subManual'); ?></button>
             </div>
 
-            <!-- 2. SOG файл -->
+            <!-- 2. SOG file -->
             <div class="import-section" ng-show="msgSubTab==='sog'">
-                <h4>Импорт текстов посланий (формат SOG)</h4>
-                <p>Файл UTF-8-BOM с окончаниями CR+LF. Каждое послание: строка игнорируется, затем
-                    <code>КОД — НАЗВАНИЕ (ГОРОД)</code>, далее абзацы текста, пустая строка — конец послания.</p>
+                <h4><?php echo T::s('import.msg.title'); ?></h4>
+                <p><?php echo T::s('import.hint.msgFormat'); ?></p>
 
-                <label class="import-label">Выберите SOG-файл (.txt)</label>
+                <label class="import-label"><?php echo T::s('import.label.sogFile'); ?></label>
                 <input type="file" id="msgSogFile" accept=".txt,.sog"
                        class="import-input"
                        onchange="angular.element(this).scope().onMsgSogSelected()" />
@@ -548,33 +547,33 @@
                 <button class="btn-import-primary"
                         ng-click="importMessagesSog()"
                         ng-disabled="!selectedMsgFile || msgImporting">
-                    <span ng-if="!msgImporting">⬆️ Импортировать послания</span>
-                    <span ng-if="msgImporting">⏳ Импортируется…</span>
+                    <span ng-if="!msgImporting"><?php echo T::s('import.button.msgImport'); ?></span>
+                    <span ng-if="msgImporting"><?php echo T::s('import.loading.msgImport'); ?></span>
                 </button>
             </div>
 
-            <!-- 3. Ввод вручную -->
+            <!-- 3. Manual entry -->
             <div class="import-section" ng-show="msgSubTab==='manual'">
-                <h4>Импорт текста послания (вручную)</h4>
-                <p>Введите данные вручную и вставьте текст перевода из буфера обмена.</p>
+                <h4><?php echo T::s('import.msg.titleManual'); ?></h4>
+                <p><?php echo T::s('import.hint.txtManual'); ?></p>
 
-                <label class="import-label">Режим</label>
+                <label class="import-label"><?php echo T::s('import.field.msgMode'); ?></label>
                 <div class="radio-group">
                     <label>
-                        <input type="radio" ng-model="txtMode" value="new" /> Новое послание
+                        <input type="radio" ng-model="txtMode" value="new" /> <?php echo T::s('import.txt.modeNew'); ?>
                     </label>
                     <label>
-                        <input type="radio" ng-model="txtMode" value="translate" /> Добавить перевод к существующему
+                        <input type="radio" ng-model="txtMode" value="translate" /> <?php echo T::s('import.txt.modeTranslate'); ?>
                     </label>
                     <label>
-                        <input type="radio" ng-model="txtMode" value="edit" /> Редактировать
+                        <input type="radio" ng-model="txtMode" value="edit" /> <?php echo T::s('import.txt.modeEdit'); ?>
                     </label>
                 </div>
 
-                <label class="import-label">Код послания (YY-MMDD[x])</label>
+                <label class="import-label"><?php echo T::s('import.field.msgCode'); ?></label>
                 <div style="position:relative;">
                     <input type="text" class="import-input" ng-model="txtCode"
-                           placeholder="например: 62-0318"
+                           placeholder="<?php echo T::s('import.placeholder.msgCode'); ?>"
                            style="font-family:monospace;"
                            ng-change="onTxtCodeInput()"
                            ng-blur="clearCodeSuggestions()" />
@@ -595,58 +594,58 @@
                 </div>
 
                 <div ng-show="txtMode === 'new' || txtMode === 'edit'">
-                    <label class="import-label">Название</label>
+                    <label class="import-label"><?php echo T::s('import.field.msgTitle'); ?></label>
                     <input type="text" class="import-input" ng-model="txtTitle"
-                           placeholder="Название послания" />
+                           placeholder="<?php echo T::s('import.placeholder.msgTitle'); ?>" />
 
-                    <label class="import-label">Место перевода</label>
+                    <label class="import-label"><?php echo T::s('import.field.msgCity'); ?></label>
                     <input type="text" class="import-input" ng-model="txtCity"
-                           placeholder="Город / источник перевода" />
+                           placeholder="<?php echo T::s('import.placeholder.msgCity'); ?>" />
                 </div>
 
-                <!-- Индикатор загрузки данных в режиме редактирования -->
+                <!-- Loading indicator in edit mode -->
                 <div ng-show="txtEditLoading"
                      style="color:#1a6db5; font-size:12px; margin-bottom:12px;">
-                    ⏳ Загрузка данных послания…
+                    <?php echo T::s('import.loading.txtLoad'); ?>
                 </div>
 
-                <label class="import-label">Разделитель абзацев</label>
+                <label class="import-label"><?php echo T::s('import.field.txtSep'); ?></label>
                 <select class="import-select" ng-model="txtParaSep">
-                    <option value="newline">Перевод строки (каждая строка — абзац)</option>
-                    <option value="emptyline">Пустая строка (блоки между пустыми строками)</option>
+                    <option value="newline"><?php echo T::s('import.option.byNewline'); ?></option>
+                    <option value="emptyline"><?php echo T::s('import.option.byEmptyLine'); ?></option>
                 </select>
 
-                <label class="import-label">Текст перевода</label>
+                <label class="import-label"><?php echo T::s('import.field.txtBody'); ?></label>
                 <textarea class="import-input" ng-model="txtBody" rows="12"
-                          placeholder="Вставьте текст из буфера обмена (Ctrl+V)…"></textarea>
-                <div class="char-counter">Символов: {{txtBody.length}}</div>
+                          placeholder="<?php echo T::s('import.placeholder.txtBody'); ?>"></textarea>
+                <div class="char-counter">{{ ('<?php echo T::s('import.charCounter'); ?>').replace('{count}', txtBody.length) }}</div>
 
-                <label class="import-label">Ссылка на аудиофайл (URL или путь на сервере)</label>
+                <label class="import-label"><?php echo T::s('import.field.audioUrl'); ?></label>
                 <input type="text" class="import-input" ng-model="txtAudioSrc"
-                       placeholder="https://example.com/audio.mp3 или /media/sermons/62-0318.mp3" />
+                       placeholder="<?php echo T::s('import.placeholder.audio'); ?>" />
 
-                <label class="import-label">Таймкоды абзацев (по одному на строку, формат М:СС или Ч:ММ:СС)</label>
+                <label class="import-label"><?php echo T::s('import.field.timecodes'); ?></label>
                 <textarea class="import-input" ng-model="txtTimecodes" rows="6"
                           placeholder="0:00&#10;1:23&#10;4:56&#10;..."></textarea>
                 <div class="char-counter" ng-show="txtTimecodes">
-                    Таймкодов: {{countTimecodes()}}
+                    {{ ('<?php echo T::s('import.timecodes.count'); ?>').replace('{count}', countTimecodes()) }}
                     <span ng-show="txtBody && countTimecodes() !== countParagraphs()"
                           style="color:#e67e22; margin-left:8px;">
-                        ⚠ Абзацев: {{countParagraphs()}} — несовпадение!
+                        {{ ('<?php echo T::s('import.timecodeMismatch'); ?>').replace('{paragraphs}', countParagraphs()) }}
                     </span>
                 </div>
 
                 <button class="btn-import-success"
                         ng-click="importMessagesText()"
                         ng-disabled="!txtCode || ((txtMode==='new' || txtMode==='edit') && !txtTitle) || !txtBody || txtImporting">
-                    <span ng-if="!txtImporting">💾 Сохранить послание</span>
-                    <span ng-if="txtImporting">⏳ Сохраняется…</span>
+                    <span ng-if="!txtImporting"><?php echo T::s('import.button.txtSave'); ?></span>
+                    <span ng-if="txtImporting"><?php echo T::s('import.loading.txtImport'); ?></span>
                 </button>
             </div>
 
             <!-- Message log -->
             <div class="import-section" ng-show="msgLog.length">
-                <h4>Протокол импорта</h4>
+                <h4><?php echo T::s('import.label.protocol'); ?></h4>
                 <div class="import-log" id="msgLogEl">
                     <div ng-repeat="entry in msgLog" ng-class="'log-' + entry.type">{{entry.msg}}</div>
                 </div>
@@ -657,52 +656,50 @@
         <!-- ===================== LANGUAGES TAB ===================== -->
         <div ng-show="tab==='languages'">
 
-            <!-- Текущие языки -->
+            <!-- Current languages -->
             <div class="import-section">
-                <h4>Зарегистрированные языки</h4>
+                <h4><?php echo T::s('import.langs.title'); ?></h4>
 
-                <div ng-if="langLoading" style="color:#aab; font-size:13px; padding:8px 0;">⏳ Загрузка…</div>
+                <div ng-if="langLoading" style="color:#aab; font-size:13px; padding:8px 0;"><?php echo T::s('import.langs.loading'); ?></div>
 
                 <div class="lang-list" ng-if="!langLoading">
                     <div ng-repeat="lang in langList">
 
-                        <!-- Строка языка -->
+                        <!-- Language row -->
                         <div class="lang-row">
                             <span class="lang-badge-big">{{lang.label}}</span>
                             <span style="font-size:13px; color:#2c3e50; font-weight:500;">{{lang.code}}</span>
-                            <span class="lang-badge-default" ng-if="lang.is_default == '1'">✔ по умолчанию</span>
+                            <span class="lang-badge-default" ng-if="lang.is_default == '1'"><?php echo T::s('import.langs.default'); ?></span>
                             <span class="lang-col-hint">TEXT{{lang.col_suffix}}</span>
                             <button class="btn-lang-delete"
                                     ng-if="lang.is_default != '1'"
                                     ng-click="toggleDeletePanel(lang)">
-                                🗑 Удалить
+                                <?php echo T::s('import.button.delete'); ?>
                             </button>
                             <span ng-if="lang.is_default == '1'"
-                                  style="font-size:11px; color:#aab; padding: 5px 12px;">защищён</span>
+                                  style="font-size:11px; color:#aab; padding: 5px 12px;"><?php echo T::s('import.lang.protected'); ?></span>
                         </div>
 
-                        <!-- Панель подтверждения удаления -->
+                        <!-- Delete-confirmation panel -->
                         <div class="lang-delete-panel" ng-if="langDeleteTarget === lang.code">
-                            <p>⚠️ Удаление языка <strong>{{lang.label}} ({{lang.code}})</strong> необратимо удалит
-                                колонку <code>TEXT{{lang.col_suffix}}</code> из таблиц <code>song_list</code>
-                                и <code>messages</code> со всеми данными.</p>
+                            <p>{{ ('<?php echo T::s('import.delete.warning'); ?>').replace('{label}', lang.label).replace('{code}', lang.code).replace('{suffix}', lang.col_suffix) }}</p>
                             <div class="lang-delete-confirm-row">
                                 <input type="password"
                                        class="import-input"
                                        ng-model="langDeletePassword"
-                                       placeholder="Введите пароль удаления…"
+                                       placeholder="<?php echo T::s('import.delete.password'); ?>"
                                        style="margin-bottom:0;" />
                                 <button class="btn-import-primary"
                                         style="background:#e74c3c; border-color:#c0392b; white-space:nowrap;"
                                         ng-click="deleteLanguage(lang)"
                                         ng-disabled="!langDeletePassword || langDeleting">
-                                    <span ng-if="!langDeleting">🗑 Подтвердить</span>
-                                    <span ng-if="langDeleting">⏳ Удаляем…</span>
+                                    <span ng-if="!langDeleting"><?php echo T::s('import.button.confirmDelete'); ?></span>
+                                    <span ng-if="langDeleting"><?php echo T::s('import.loading.langDeleting'); ?></span>
                                 </button>
                                 <button class="btn-import-success"
                                         style="white-space:nowrap;"
                                         ng-click="langDeleteTarget=null; langDeletePassword=''">
-                                    Отмена
+                                    <?php echo T::s('import.button.cancel'); ?>
                                 </button>
                             </div>
                         </div>
@@ -711,18 +708,16 @@
                 </div><!-- /lang-list -->
             </div>
 
-            <!-- Добавить язык -->
+            <!-- Add a language -->
             <div class="import-section">
-                <h4>Добавить новый язык</h4>
+                <h4><?php echo T::s('import.langs.add'); ?></h4>
                 <p style="font-size:12px; color:#7f8c8d; margin-bottom:14px;">
-                    Код — 2–5 латинских букв в нижнем регистре (напр. <code>de</code>).
-                    Метка — то, что будет отображаться на кнопке (напр. <code>DE</code>).
-                    Колонка <code>TEXT_DE</code> будет добавлена автоматически.
+                    <?php echo T::s('import.hint.langAdd'); ?>
                 </p>
 
                 <div style="display:flex; gap:10px; margin-bottom:12px;">
                     <div style="flex:1;">
-                        <label class="import-label">Код</label>
+                        <label class="import-label"><?php echo T::s('import.field.langCode'); ?></label>
                         <input type="text"
                                class="import-input"
                                ng-model="newLangCode"
@@ -731,7 +726,7 @@
                                style="font-family:monospace; text-transform:lowercase;" />
                     </div>
                     <div style="flex:1;">
-                        <label class="import-label">Метка кнопки</label>
+                        <label class="import-label"><?php echo T::s('import.field.langLabel'); ?></label>
                         <input type="text"
                                class="import-input"
                                ng-model="newLangLabel"
@@ -744,14 +739,14 @@
                 <button class="btn-import-success"
                         ng-click="addLanguage()"
                         ng-disabled="!newLangCode || !newLangLabel || langAdding">
-                    <span ng-if="!langAdding">➕ Добавить язык</span>
-                    <span ng-if="langAdding">⏳ Добавляем…</span>
+                    <span ng-if="!langAdding"><?php echo T::s('import.button.langAdd'); ?></span>
+                    <span ng-if="langAdding"><?php echo T::s('import.loading.langAdding'); ?></span>
                 </button>
             </div>
 
-            <!-- Лог операций с языками -->
+            <!-- Language operations log -->
             <div class="import-section" ng-show="langLog.length">
-                <h4>Протокол</h4>
+                <h4><?php echo T::s('import.langs.protocol'); ?></h4>
                 <div class="import-log" id="langLogEl">
                     <div ng-repeat="entry in langLog" ng-class="'log-' + entry.type">{{entry.msg}}</div>
                 </div>
@@ -763,4 +758,4 @@
     </div>
 </div>
 
-<script src="/js/import.js?v=11" type="text/javascript"></script>
+<script src="/js/import.js?v=12" type="text/javascript"></script>
