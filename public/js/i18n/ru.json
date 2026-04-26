@@ -1,1 +1,16 @@
-{}
+{
+  "home.button.import": "Импорт данных",
+  "home.button.logout": "Выйти",
+  "home.label.settings": "Настройки",
+  "home.role.leader": "Ведущий",
+  "home.role.musician": "Музыкант",
+  "home.role.preacher": "Проповедь",
+  "home.role.sermon_prep": "Подготовка проповеди",
+  "home.role.tech": "Технический режим",
+  "home.screen.main": "Главный экран",
+  "home.screen.streaming": "Слова для трансляции",
+  "home.section.admin": "Администрирование",
+  "home.section.ministry": "Служение",
+  "home.section.screens": "Экраны",
+  "home.section.sermon": "Проповедь"
+}
