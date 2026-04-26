@@ -53,13 +53,52 @@ trait Ajax_Tech
     }
 
     // -----------------------------------------------------------
-    // Get all Bible translations
+    // Get all Bible translations.
+    // Each row also gets a `supported_langs` array — language codes the
+    // translation can actually display content in. This is determined by
+    // sampling Genesis 1:1 and checking which TEXT* columns are populated.
+    // The Synodal row, for example, typically holds RU primary text plus
+    // parallel LT/EN columns and so supports {ru, lt, en} despite LANG='ru'.
     // -----------------------------------------------------------
     private static function get_bible_translations()
     {
-        $list = Info::get('db')->select(
-            "SELECT ID, NAME, LANG FROM bible_translations ORDER BY SORT_ORDER, ID"
-        );
+        $langs = self::getBibleLanguages();
+
+        $cols = ["t.ID", "t.NAME", "t.LANG", "t.SORT_ORDER"];
+        $cols[] = "(v.TEXT IS NOT NULL AND v.TEXT != '') AS has_text";
+        foreach ($langs as $lang) {
+            if ($lang['col_suffix'] !== '') {
+                $s = $lang['col_suffix'];
+                $alias = 'has_text' . strtolower($s);
+                $cols[] = "(v.TEXT{$s} IS NOT NULL AND v.TEXT{$s} != '') AS {$alias}";
+            }
+        }
+
+        $sql = "SELECT " . implode(', ', $cols) . "
+                FROM bible_translations t
+                LEFT JOIN bible_books b
+                       ON b.TRANSLATION_ID = t.ID AND b.BOOK_NUM = 1
+                LEFT JOIN bible_verses v
+                       ON v.BOOK_ID = b.ID AND v.CHAPTER_NUM = 1 AND v.VERSE_NUM = 1
+                ORDER BY t.SORT_ORDER, t.ID";
+        $list = Info::get('db')->select($sql);
+
+        foreach ($list as &$row) {
+            $supported = [];
+            if (!empty($row['has_text'])) $supported[] = $row['LANG'];
+            foreach ($langs as $lang) {
+                if ($lang['col_suffix'] !== '') {
+                    $key = 'has_text' . strtolower($lang['col_suffix']);
+                    if (!empty($row[$key])) $supported[] = $lang['code'];
+                }
+            }
+            $row['supported_langs'] = array_values(array_unique($supported));
+            // Drop intermediate has_* helpers from the response.
+            foreach (array_keys($row) as $k) {
+                if (strpos($k, 'has_text') === 0) unset($row[$k]);
+            }
+        }
+        unset($row);
         return json_encode($list);
     }
 

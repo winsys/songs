@@ -184,16 +184,24 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
 
     /**
      * Bible translations filtered by the active language toggles.
-     * Returns translations whose LANG matches any active toggle. If nothing
-     * matches (e.g. only DE toggle but no German Bible imported), falls back
-     * to the full list so the panel never goes empty.
+     * A translation is included if its `supported_langs` (computed by the
+     * server from non-NULL TEXT* columns) overlaps the active toggles.
+     * E.g. Synodal supports {ru, lt, en} via its parallel TEXT_LT/TEXT_EN
+     * columns and shows up under the EN toggle alone, not just under RU.
+     * Falls back to the full list when nothing matches so the panel never
+     * goes empty. Backward-compatible: translations without supported_langs
+     * fall back to LANG-based matching.
      */
     $scope.getFilteredBibleTranslations = function() {
         if (!$scope.bibleTranslations || $scope.bibleTranslations.length === 0) return [];
         var activeCodes = getActiveLangs().map(function(l) { return l.code; });
         if (activeCodes.length === 0) return $scope.bibleTranslations;
         var filtered = $scope.bibleTranslations.filter(function(t) {
-            return activeCodes.indexOf(t.LANG) !== -1;
+            var langs = t.supported_langs && t.supported_langs.length ? t.supported_langs : [t.LANG];
+            for (var i = 0; i < langs.length; i++) {
+                if (activeCodes.indexOf(langs[i]) !== -1) return true;
+            }
+            return false;
         });
         return filtered.length > 0 ? filtered : $scope.bibleTranslations;
     };

@@ -1469,8 +1469,11 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
 
     /**
      * Bible translations filtered by the active prepLangs toggles.
-     * Returns translations whose LANG matches any active toggle. Falls back
-     * to the full list if nothing matches so the panel is never empty.
+     * Uses each translation's `supported_langs` (server-computed from which
+     * TEXT* columns are populated) so a translation that holds parallel
+     * texts in multiple languages — like Synodal with TEXT_EN = English KJV
+     * — also shows up under the EN toggle. Falls back to the full list if
+     * nothing matches so the panel is never empty.
      */
     $scope.getFilteredBibleTranslations = function () {
         if (!$scope.bibleTranslations || $scope.bibleTranslations.length === 0) return [];
@@ -1479,7 +1482,11 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             .map(function (l) { return l.code; });
         if (activeCodes.length === 0) return $scope.bibleTranslations;
         var filtered = $scope.bibleTranslations.filter(function (t) {
-            return activeCodes.indexOf(t.LANG) !== -1;
+            var langs = t.supported_langs && t.supported_langs.length ? t.supported_langs : [t.LANG];
+            for (var i = 0; i < langs.length; i++) {
+                if (activeCodes.indexOf(langs[i]) !== -1) return true;
+            }
+            return false;
         });
         return filtered.length > 0 ? filtered : $scope.bibleTranslations;
     };
