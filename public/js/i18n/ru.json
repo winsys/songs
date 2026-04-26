@@ -1,4 +1,10 @@
 {
+  "common.button.back": "← Главная",
+  "common.button.cancel": "Отмена",
+  "common.button.close": "Закрыть",
+  "common.button.yes": "Да",
+  "common.ws.disconnected": "⚠ Нет соединения с сервером. Переподключение…",
+
   "home.button.import": "Импорт данных",
   "home.button.logout": "Выйти",
   "home.label.settings": "Настройки",
@@ -12,5 +18,29 @@
   "home.section.admin": "Администрирование",
   "home.section.ministry": "Служение",
   "home.section.screens": "Экраны",
-  "home.section.sermon": "Проповедь"
+  "home.section.sermon": "Проповедь",
+
+  "leader.addSong.save": "Сохранить",
+  "leader.addSong.takePhoto": "Сделать фото",
+  "leader.button.clear": "🗑 Очистить список",
+  "leader.button.delete": "Удалить",
+  "leader.button.showAll": "📋 Весь список песен сборника",
+  "leader.confirm.clearTitle": "Список выбранных песен",
+  "leader.confirm.deleteMessage": "Удалить [{name}]?",
+  "leader.confirm.deleteTitle": "УДАЛЕНИЕ",
+  "leader.empty.subtitle": "Найдите песню в поиске выше.",
+  "leader.empty.title": "Нет выбранных песен.",
+  "leader.list.notes": "Ноты",
+  "leader.list.select": "Выбрать",
+  "leader.list.title": "Список песен",
+  "leader.preview.add": "+ Добавить в список",
+  "leader.preview.noImage": "Изображение нот отсутствует",
+  "leader.search.placeholder": "название, текст или номер",
+  "leader.search.viewNotes": "Просмотр нот",
+  "leader.section.books": "Сборники",
+  "leader.section.search": "Поиск песни",
+  "leader.section.selected": "Выбранные песни",
+  "leader.subtitle": "Управление списком песен службы",
+  "leader.thumb.openNotes": "Открыть ноты",
+  "leader.title": "🎤 Ведущий пения"
 }

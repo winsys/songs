@@ -1,4 +1,10 @@
 {
+  "common.button.back": "← Home",
+  "common.button.cancel": "Cancel",
+  "common.button.close": "Close",
+  "common.button.yes": "Yes",
+  "common.ws.disconnected": "⚠ No connection to the server. Reconnecting…",
+
   "home.button.import": "Data import",
   "home.button.logout": "Sign out",
   "home.label.settings": "Settings",
@@ -12,5 +18,29 @@
   "home.section.admin": "Administration",
   "home.section.ministry": "Service",
   "home.section.screens": "Screens",
-  "home.section.sermon": "Sermon"
+  "home.section.sermon": "Sermon",
+
+  "leader.addSong.save": "Save",
+  "leader.addSong.takePhoto": "Take a photo",
+  "leader.button.clear": "🗑 Clear list",
+  "leader.button.delete": "Delete",
+  "leader.button.showAll": "📋 Full song list of the collection",
+  "leader.confirm.clearTitle": "Selected songs list",
+  "leader.confirm.deleteMessage": "Delete [{name}]?",
+  "leader.confirm.deleteTitle": "DELETE",
+  "leader.empty.subtitle": "Find a song using the search above.",
+  "leader.empty.title": "No songs selected.",
+  "leader.list.notes": "Notes",
+  "leader.list.select": "Select",
+  "leader.list.title": "Song list",
+  "leader.preview.add": "+ Add to list",
+  "leader.preview.noImage": "Sheet music not available",
+  "leader.search.placeholder": "title, lyrics, or number",
+  "leader.search.viewNotes": "View sheet music",
+  "leader.section.books": "Collections",
+  "leader.section.search": "Find a song",
+  "leader.section.selected": "Selected songs",
+  "leader.subtitle": "Manage the service song list",
+  "leader.thumb.openNotes": "Open sheet music",
+  "leader.title": "🎤 Worship leader"
 }

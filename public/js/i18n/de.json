@@ -1,4 +1,10 @@
 {
+  "common.button.back": "← Startseite",
+  "common.button.cancel": "Abbrechen",
+  "common.button.close": "Schließen",
+  "common.button.yes": "Ja",
+  "common.ws.disconnected": "⚠ Keine Serververbindung. Verbindung wird wiederhergestellt…",
+
   "home.button.import": "Datenimport",
   "home.button.logout": "Abmelden",
   "home.label.settings": "Einstellungen",
@@ -12,5 +18,29 @@
   "home.section.admin": "Verwaltung",
   "home.section.ministry": "Gottesdienst",
   "home.section.screens": "Bildschirme",
-  "home.section.sermon": "Predigt"
+  "home.section.sermon": "Predigt",
+
+  "leader.addSong.save": "Speichern",
+  "leader.addSong.takePhoto": "Foto aufnehmen",
+  "leader.button.clear": "🗑 Liste leeren",
+  "leader.button.delete": "Löschen",
+  "leader.button.showAll": "📋 Gesamte Liederliste der Sammlung",
+  "leader.confirm.clearTitle": "Liste ausgewählter Lieder",
+  "leader.confirm.deleteMessage": "[{name}] löschen?",
+  "leader.confirm.deleteTitle": "LÖSCHEN",
+  "leader.empty.subtitle": "Finden Sie ein Lied in der Suche oben.",
+  "leader.empty.title": "Keine Lieder ausgewählt.",
+  "leader.list.notes": "Noten",
+  "leader.list.select": "Auswählen",
+  "leader.list.title": "Liederliste",
+  "leader.preview.add": "+ Zur Liste hinzufügen",
+  "leader.preview.noImage": "Notenbild nicht verfügbar",
+  "leader.search.placeholder": "Titel, Text oder Nummer",
+  "leader.search.viewNotes": "Noten ansehen",
+  "leader.section.books": "Sammlungen",
+  "leader.section.search": "Lied suchen",
+  "leader.section.selected": "Ausgewählte Lieder",
+  "leader.subtitle": "Liederliste des Gottesdienstes verwalten",
+  "leader.thumb.openNotes": "Noten öffnen",
+  "leader.title": "🎤 Lobpreisleitung"
 }

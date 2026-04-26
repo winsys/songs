@@ -547,7 +547,7 @@
     .notes-select-overlay:hover  { background: rgba(41,128,185, 0.10); }
     .notes-select-overlay:active { background: rgba(41,128,185, 0.22); }
 
-    /* Small "Выбрать" pill visible in the corner on hover via sibling trick */
+    /* Small "Select" pill visible in the corner on hover via sibling trick */
     .notes-card-hint {
         position:      absolute;
         top:           8px;
@@ -710,22 +710,22 @@
 
         <!-- ── WebSocket disconnect banner ────────────────────────── -->
         <div class="ws-disconnect-banner" ng-if="wsConnected === false">
-            ⚠ Нет соединения с сервером. Переподключение…
+            <?php echo T::s('common.ws.disconnected'); ?>
         </div>
 
         <!-- Header: Back button + Title -->
         <div class="leader-header">
             <button class="btn-back" onclick="window.location.href='/index'">
-                ← Главная
+                <?php echo T::s('common.button.back'); ?>
             </button>
             <div class="leader-title-block">
-                <div class="leader-page-title">🎤 Ведущий пения</div>
-                <div class="leader-page-subtitle">Управление списком песен службы</div>
+                <div class="leader-page-title"><?php echo T::s('leader.title'); ?></div>
+                <div class="leader-page-subtitle"><?php echo T::s('leader.subtitle'); ?></div>
             </div>
         </div>
 
         <!-- Song list selector -->
-        <div class="section-label">Сборники</div>
+        <div class="section-label"><?php echo T::s('leader.section.books'); ?></div>
 
         <div class="songlist-row">
             <button class="btn-list songlist-btn"
@@ -736,11 +736,11 @@
             </button>
         </div>
         <div class="songlist-row" style="margin-top: 8px;">
-            <button class="btn-action-blue" ng-click="openList()">📋 Весь список песен сборника</button>
+            <button class="btn-action-blue" ng-click="openList()"><?php echo T::s('leader.button.showAll'); ?></button>
         </div>
 
         <!-- Search -->
-        <div class="section-label" style="margin-top: 20px;">Поиск песни</div>
+        <div class="section-label" style="margin-top: 20px;"><?php echo T::s('leader.section.search'); ?></div>
 
         <script type="text/ng-template" id="song-row-tmpl.html">
             <div class="angucomplete-holder" ng-class="{'angucomplete-dropdown-visible': showDropdown}">
@@ -762,7 +762,7 @@
                          ng-class="{'angucomplete-selected-row': $index == currentIndex}">
                         <div class="angucomplete-song-img-col"
                              ng-click="$emit('song:previewSong', result.originalObject); $event.stopPropagation()"
-                             title="Просмотр нот">
+                             title="<?php echo T::s('leader.search.viewNotes'); ?>">
                             <img ng-src="{{result.image}}" class="angucomplete-song-thumb-sm"
                                  onerror="this.style.display='none'">
                         </div>
@@ -784,7 +784,7 @@
         </script>
 
         <angucomplete-alt id="ccf6"
-                          placeholder="название, текст или номер"
+                          placeholder="<?php echo T::s('leader.search.placeholder'); ?>"
                           pause="100"
                           local-data="searchSongList"
                           search-fields="dispName,TEXT"
@@ -799,7 +799,7 @@
 
         <!-- Selected songs -->
         <div class="section-label" style="margin-top: 20px;">
-            Выбранные песни
+            <?php echo T::s('leader.section.selected'); ?>
             <span ng-if="favorites.length > 0"
                   style="background:#ebf3fb; color:#1a6db5; border-radius:20px;
                          padding:1px 8px; font-size:10px; margin-left:6px; font-weight:700;">
@@ -811,7 +811,7 @@
         <div ng-if="favorites.length === 0"
              style="text-align:center; padding: 28px 16px; color: #b0b8c1;">
             <div style="font-size: 32px; margin-bottom: 8px;">🎵</div>
-            <div style="font-size: 13px;">Нет выбранных песен.<br>Найдите песню в поиске выше.</div>
+            <div style="font-size: 13px;"><?php echo T::s('leader.empty.title'); ?><br><?php echo T::s('leader.empty.subtitle'); ?></div>
         </div>
 
         <!-- Favorites list -->
@@ -822,7 +822,7 @@
                 <!-- Delete button -->
                 <button class="btn-delete"
                         ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)"
-                        title="Удалить">✕</button>
+                        title="<?php echo T::s('leader.button.delete'); ?>">✕</button>
 
                 <!-- Song info -->
                 <span style="flex: 1; min-width: 0;">
@@ -841,7 +841,7 @@
                 <div class="song-thumb-wrap"
                      ng-attr-id="{{ 'wrap' + listItem.ID }}"
                      ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"
-                     title="Открыть ноты">
+                     title="<?php echo T::s('leader.thumb.openNotes'); ?>">
                     <img class="song-thumb"
                          ng-attr-id="{{ 'img' + listItem.ID }}"
                          ng-src="{{ listItem.imageName }}"/>
@@ -852,7 +852,7 @@
         <!-- Bottom actions -->
         <div class="bottom-actions" ng-if="favorites.length > 0">
             <button class="btn-clear" ng-click="clearFavorites()">
-                🗑 Очистить список
+                <?php echo T::s('leader.button.clear'); ?>
             </button>
         </div>
 
@@ -880,7 +880,7 @@
                         <button type="button"
                                 class="btn-select"
                                 style="background:#f4f5f7; color:#5a6272;"
-                                data-dismiss="modal">Отмена</button>
+                                data-dismiss="modal"><?php echo T::s('common.button.cancel'); ?></button>
                         <button type="button"
                                 ng-repeat="button in confirmationDialogConfig.buttons"
                                 ng-click="button.action()"
@@ -904,16 +904,16 @@
                 <div class="modal-content">
                     <div class="modal-header" style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #e8edf2; position:sticky; top:0; background:#fff; z-index:10;">
                         <div style="display:flex; align-items:center; gap:10px;">
-                            <span style="font-size:14px; font-weight:600; color:#2c3e50;">Список песен</span>
+                            <span style="font-size:14px; font-weight:600; color:#2c3e50;"><?php echo T::s('leader.list.title'); ?></span>
                         </div>
                         <button type="button" data-dismiss="modal"
                                 style="border:none; background:#f4f5f7; color:#5a6272; border-radius:8px; padding:6px 14px; font-size:13px; cursor:pointer; font-weight:600;">
-                            ✕ Закрыть
+                            ✕ <?php echo T::s('common.button.close'); ?>
                         </button>
                     </div>
                     <div class="modal-body">
 
-                        <!-- ── Список песен ─────────────────────────────── -->
+                        <!-- Song list rows -->
                         <div class="row"
                              style="padding-top: 10px; padding-bottom: 10px; border-bottom: #204d74 solid 1px"
                              ng-repeat="song in songList">
@@ -927,9 +927,9 @@
                             </div>
                             <div class="col-xs-5 col-s-5 col-md-5 text-right">
                                 <button class="btn btn-lg" style="font-size: 16pt; background: #ebf3fb; color: #1a6db5; border: none;"
-                                        ng-click="toggleInlineNotes(song)">Ноты</button>
+                                        ng-click="toggleInlineNotes(song)"><?php echo T::s('leader.list.notes'); ?></button>
                                 <button class="btn btn-lg" style="font-size: 16pt; background: #1a6db5; color: #fff; border: none;"
-                                        ng-click="addSongToFavorites(song.ID)">Выбрать</button>
+                                        ng-click="addSongToFavorites(song.ID)"><?php echo T::s('leader.list.select'); ?></button>
                             </div>
                             <div class="col-xs-12" ng-if="song.showInlineNotes" style="margin-top: 10px;">
                                 <img ng-src="/images/{{ song.LISTID }}/{{ song.NUM }}.jpg"
@@ -964,7 +964,7 @@
                             </div>
                             <div class="col-xs-3 col-s-3 col-md-3">
                                 <button class="btn btn-lg" style="font-size: 16pt"
-                                        ng-click="closeAddSong()">Закрыть</button>
+                                        ng-click="closeAddSong()"><?php echo T::s('common.button.close'); ?></button>
                             </div>
                         </div>
                     </div>
@@ -985,18 +985,18 @@
                      class="song-preview-img"
                      ng-hide="songPreview.imgError"
                      onerror="angular.element(this).scope().$apply(function(s){s.songPreview.imgError=true;})">
-                <div class="song-preview-no-img" ng-show="songPreview.imgError">Изображение нот отсутствует</div>
+                <div class="song-preview-no-img" ng-show="songPreview.imgError"><?php echo T::s('leader.preview.noImage'); ?></div>
             </div>
             <div class="song-preview-actions">
-                <button class="btn-action-blue" ng-click="confirmAddSongFromPreview()">+ Добавить в список</button>
-                <button class="btn btn-default" ng-click="closeSongPreview()">Отмена</button>
+                <button class="btn-action-blue" ng-click="confirmAddSongFromPreview()"><?php echo T::s('leader.preview.add'); ?></button>
+                <button class="btn btn-default" ng-click="closeSongPreview()"><?php echo T::s('common.button.cancel'); ?></button>
             </div>
         </div>
     </div>
 
     </div><!-- /ng-controller -->
 
-<script src="/js/leader.min.js?v=10" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=11" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}
