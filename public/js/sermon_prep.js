@@ -200,12 +200,14 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             function (r) {
                 var list = r.data || [];
                 $scope.prepLangList = list;
+                // Default-enable both the default content language AND the language
+                // matching window.UI_LANG (so a German UI starts with German chips on).
+                var uiLang  = window.UI_LANG || 'ru';
                 var newLangs = {};
                 list.forEach(function (l) {
-                    // preserve the current selection, otherwise only default language is active
                     newLangs[l.code] = ($scope.prepLangs[l.code] !== undefined)
                         ? $scope.prepLangs[l.code]
-                        : (l.is_default == '1');
+                        : (l.is_default == '1' || l.code === uiLang);
                 });
                 $scope.prepLangs = newLangs;
             }
@@ -1470,7 +1472,14 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             function (r) {
                 $scope.bibleTranslations = r.data;
                 if (r.data.length > 0) {
-                    $scope.bibleTranslationId = r.data[0].ID;
+                    // Prefer a translation whose LANG matches window.UI_LANG;
+                    // fall back to the first one in the list.
+                    var uiLang = window.UI_LANG || 'ru';
+                    var match = null;
+                    for (var i = 0; i < r.data.length; i++) {
+                        if (r.data[i].LANG === uiLang) { match = r.data[i]; break; }
+                    }
+                    $scope.bibleTranslationId = (match || r.data[0]).ID;
                     $scope.loadBibleBooks();
                 }
             }
@@ -1556,12 +1565,17 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     };
     $scope.getBookName = function (book) {
         if (!book) return '';
-        if (book.NAME) return book.NAME;
+        // Prefer the column matching window.UI_LANG; fall back to base NAME (Russian)
+        // if that translation has no entry for the UI language.
+        var uiLang = window.UI_LANG || 'ru';
         for (var i = 0; i < $scope.prepLangList.length; i++) {
-            var col = 'NAME' + $scope.prepLangList[i].col_suffix;
-            if (book[col]) return book[col];
+            if ($scope.prepLangList[i].code === uiLang) {
+                var col = 'NAME' + $scope.prepLangList[i].col_suffix;
+                if (book[col]) return book[col];
+                break;
+            }
         }
-        return '';
+        return book.NAME || '';
     };
     $scope.selectBook = function (book) {
         $scope.selectedBook           = book;
