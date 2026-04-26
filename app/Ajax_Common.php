@@ -413,7 +413,7 @@ trait Ajax_Common
             if ($existing) {
                 // Delete the created song and return error
                 Info::get('db')->exec("DELETE FROM song_list WHERE ID = {$newSongId}");
-                return json_encode(['status' => 'error', 'message' => 'Номер песни уже используется']);
+                return json_encode(['status' => 'error', 'message' => T::s('ajax.error.songNumberInUse')]);
             }
         } else {
             // Generate NUM based on the ID

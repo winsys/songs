@@ -20,7 +20,7 @@ trait Ajax_Import
         $name = mysqli_real_escape_string($dbh, trim(self::$args['name'] ?? ''));
 
         if ($name === '') {
-            return json_encode(['status' => 'error', 'message' => 'Название не может быть пустым']);
+            return json_encode(['status' => 'error', 'message' => T::s('import.error.nameEmpty')]);
         }
 
         // Get the next LIST_ID
@@ -48,7 +48,7 @@ trait Ajax_Import
 
         if (!isset($_FILES['sogfile']) || $_FILES['sogfile']['error'] !== UPLOAD_ERR_OK) {
             $errCode = isset($_FILES['sogfile']) ? $_FILES['sogfile']['error'] : 'no file';
-            return json_encode(['status' => 'error', 'message' => 'Файл не загружен (код ' . $errCode . ')']);
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.fileNotUploaded', ['code' => $errCode])]);
         }
 
         $listId = (int)($_POST['list_id'] ?? 0);
@@ -58,10 +58,10 @@ trait Ajax_Import
         $dbh = Info::get('dbh');
         $langRow = $db->get("SELECT col_suffix FROM languages WHERE code = '" . mysqli_real_escape_string($dbh, $lang) . "'");
         if (!$langRow) {
-            return json_encode(['status' => 'error', 'message' => 'Неверный язык']);
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.invalidLang')]);
         }
         if ($listId <= 0) {
-            return json_encode(['status' => 'error', 'message' => 'Не указан сборник']);
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.noCollection')]);
         }
 
         $field = 'TEXT' . $langRow['col_suffix'];
@@ -105,7 +105,7 @@ trait Ajax_Import
             $text = implode("\r\n", $verses);
 
             if ($num === '') {
-                $log[] = ['type' => 'warn', 'msg' => "Строка ~{$i}: пропущен номер песни"];
+                $log[] = ['type' => 'warn', 'msg' => T::s('import.log.skippedSongNumber', ['line' => $i])];
                 $errors++;
                 continue;
             }
@@ -124,7 +124,7 @@ trait Ajax_Import
                     "UPDATE song_list SET {$field}='{$textEsc}', NAME=IF(NAME='', '{$nameEsc}', NAME)
                      WHERE ID={$existing['ID']}"
                 );
-                $log[] = ['type' => 'ok', 'msg' => "Обновлена песня #{$num} «{$name}»"];
+                $log[] = ['type' => 'ok', 'msg' => T::s('import.log.songUpdated', ['num' => $num, 'name' => $name])];
             } else {
                 // Create a new record
                 $nameField = $lang === 'ru' ? "NAME='{$nameEsc}', TEXT='{$textEsc}'"
@@ -133,7 +133,7 @@ trait Ajax_Import
                     "INSERT INTO song_list (LISTID, NUM, NAME, {$field})
                      VALUES ({$listId}, '{$numEsc}', '{$nameEsc}', '{$textEsc}')"
                 );
-                $log[] = ['type' => 'ok', 'msg' => "Добавлена песня #{$num} «{$name}»"];
+                $log[] = ['type' => 'ok', 'msg' => T::s('import.log.songAdded', ['num' => $num, 'name' => $name])];
             }
             $updated++;
         }
@@ -159,22 +159,22 @@ trait Ajax_Import
 
         if (!isset($_FILES['zipfile']) || $_FILES['zipfile']['error'] !== UPLOAD_ERR_OK) {
             $errCode = isset($_FILES['zipfile']) ? $_FILES['zipfile']['error'] : 'no file';
-            return json_encode(['status' => 'error', 'message' => 'Файл не загружен (код ' . $errCode . ')']);
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.fileNotUploaded', ['code' => $errCode])]);
         }
 
         $listId = (int)($_POST['list_id'] ?? 0);
         if ($listId <= 0) {
-            return json_encode(['status' => 'error', 'message' => 'Не указан сборник']);
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.noCollection')]);
         }
 
         if (!class_exists('ZipArchive')) {
-            return json_encode(['status' => 'error', 'message' => 'Расширение ZipArchive не установлено на сервере']);
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.zipNotInstalled')]);
         }
 
         $zip = new ZipArchive();
         $res = $zip->open($_FILES['zipfile']['tmp_name']);
         if ($res !== true) {
-            return json_encode(['status' => 'error', 'message' => 'Не удалось открыть ZIP (код ' . $res . ')']);
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.zipOpenFailed', ['code' => $res])]);
         }
 
         $targetDir = __DIR__ . '/../public/images/' . $listId . '/';
@@ -195,7 +195,7 @@ trait Ajax_Import
 
             $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
             if (!in_array($ext, $allowedExt)) {
-                $log[] = ['type' => 'warn', 'msg' => "Пропущен файл (не картинка): {$name}"];
+                $log[] = ['type' => 'warn', 'msg' => T::s('import.log.skippedNotImage', ['name' => $name])];
                 continue;
             }
 
@@ -205,18 +205,18 @@ trait Ajax_Import
 
             $content = $zip->getFromIndex($i);
             if ($content === false) {
-                $log[] = ['type' => 'error', 'msg' => "Ошибка чтения из ZIP: {$name}"];
+                $log[] = ['type' => 'error', 'msg' => T::s('import.log.zipReadError', ['name' => $name])];
                 $errors++;
                 continue;
             }
 
             if (file_put_contents($targetFile, $content) === false) {
-                $log[] = ['type' => 'error', 'msg' => "Ошибка записи файла: {$basename}"];
+                $log[] = ['type' => 'error', 'msg' => T::s('import.log.fileWriteError', ['name' => $basename])];
                 $errors++;
                 continue;
             }
 
-            $log[] = ['type' => 'ok', 'msg' => "Сохранён: {$basename}"];
+            $log[] = ['type' => 'ok', 'msg' => T::s('import.log.imageSaved', ['name' => $basename])];
             $extracted++;
         }
 
@@ -243,7 +243,7 @@ trait Ajax_Import
 
         if (!isset($_FILES['sogfile']) || $_FILES['sogfile']['error'] !== UPLOAD_ERR_OK) {
             $errCode = isset($_FILES['sogfile']) ? $_FILES['sogfile']['error'] : 'no file';
-            return json_encode(['status' => 'error', 'message' => 'Файл не загружен (код ' . $errCode . ')']);
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.fileNotUploaded', ['code' => $errCode])]);
         }
 
         $lang = trim($_POST['lang'] ?? 'ru');
@@ -251,7 +251,7 @@ trait Ajax_Import
         $db = Info::get('db');
         $langRow = $db->get("SELECT col_suffix FROM languages WHERE code = '" . mysqli_real_escape_string($dbh, $lang) . "'");
         if (!$langRow) {
-            return json_encode(['status' => 'error', 'message' => 'Неверный язык']);
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.invalidLang')]);
         }
 
         $textField = 'TEXT' . $langRow['col_suffix'];
@@ -291,9 +291,9 @@ trait Ajax_Import
 
             // CODE — from the start up to the first space
             if (!preg_match('/^(\S+)\s*/', $headerLine, $m)) {
-                $log[] = ['type' => 'warn', 'msg' => "Строка {$i}: не удалось разобрать заголовок: {$headerLine}"];
+                $log[] = ['type' => 'warn', 'msg' => T::s('import.log.parseHeaderFailed', ['line' => $i, 'header' => $headerLine])];
                 $errors++;
-                // Пропустить до следующей пустой строки
+                // Skip ahead to the next blank line
                 while ($i < $total && trim($lines[$i]) !== '') $i++;
                 continue;
             }
@@ -318,7 +318,7 @@ trait Ajax_Import
             }
 
             if ($code === '') {
-                $log[] = ['type' => 'warn', 'msg' => "Строка ~{$i}: пустой код послания, пропускаем"];
+                $log[] = ['type' => 'warn', 'msg' => T::s('import.log.skippedEmptyCode', ['line' => $i])];
                 $errors++;
                 while ($i < $total && trim($lines[$i]) !== '') $i++;
                 continue;
@@ -363,7 +363,7 @@ trait Ajax_Import
                         "UPDATE messages SET {$textField}='{$textEsc}' WHERE ID={$existing['ID']}"
                     );
                 }
-                $log[] = ['type' => 'ok', 'msg' => "Обновлено: [{$code}] {$title}"];
+                $log[] = ['type' => 'ok', 'msg' => T::s('import.success.msgUpdated', ['code' => $code, 'title' => $title])];
                 $updated++;
             } else {
                 // New record
@@ -375,7 +375,7 @@ trait Ajax_Import
                     "INSERT INTO messages (USER_ID, CODE, TITLE, CITY, TEXT, TEXT_LT, TEXT_EN)
                      VALUES ({$userId}, '{$codeEsc}', '{$titleEsc}', '{$cityEsc}', {$textRu}, {$textLt}, {$textEn})"
                 );
-                $log[] = ['type' => 'ok', 'msg' => "Добавлено: [{$code}] {$title} ({$city})"];
+                $log[] = ['type' => 'ok', 'msg' => T::s('import.success.msgInsertedCity', ['code' => $code, 'title' => $title, 'city' => $city])];
                 $inserted++;
             }
         }
@@ -417,24 +417,24 @@ trait Ajax_Import
         $db   = Info::get('db');
         $langRow = $db->get("SELECT col_suffix FROM languages WHERE code = '" . mysqli_real_escape_string($dbh, $lang) . "'");
         if (!$langRow) {
-            return json_encode(['status' => 'error', 'message' => 'Неверный язык']);
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.invalidLang')]);
         }
 
         $mode    = trim(self::$args['mode'] ?? 'new');
 
         if ($code === '') {
-            return json_encode(['status' => 'error', 'message' => 'Код послания не может быть пустым']);
+            return json_encode(['status' => 'error', 'message' => T::s('import.error.codeEmpty')]);
         }
         if ($mode === 'new' && $title === '') {
-            return json_encode(['status' => 'error', 'message' => 'Название не может быть пустым']);
+            return json_encode(['status' => 'error', 'message' => T::s('import.error.nameEmpty')]);
         }
         if (trim($body) === '') {
-            return json_encode(['status' => 'error', 'message' => 'Текст послания пустой']);
+            return json_encode(['status' => 'error', 'message' => T::s('import.error.bodyEmpty')]);
         }
 
         // Validate code format: YY-MMDD[x][x]
         if (!preg_match('/^\d{2}-\d{4}[A-Za-z]{0,2}$/', $code)) {
-            return json_encode(['status' => 'error', 'message' => 'Неверный формат кода: ожидается YY-MMDD или YY-MMDDx']);
+            return json_encode(['status' => 'error', 'message' => T::s('import.error.invalidCodeFormat')]);
         }
 
         // Normalize line endings
@@ -464,7 +464,7 @@ trait Ajax_Import
         $paraCount = count($paragraphs);
         $tcWarning = '';
         if ($tcCount > 0 && $tcCount !== $paraCount) {
-            $tcWarning = "⚠ Несовпадение: таймкодов {$tcCount}, абзацев {$paraCount}. Таймкоды сохранены как есть.";
+            $tcWarning = T::s('import.warn.timecodeMismatch', ['tc' => $tcCount, 'paragraphs' => $paraCount]);
         }
 
         $userId = (int)$_SESSION['curGroupId'];
@@ -481,7 +481,7 @@ trait Ajax_Import
         $existing = $db->get("SELECT ID FROM messages WHERE CODE='{$codeEsc}' LIMIT 1");
 
         if (in_array($mode, ['translate', 'edit']) && !$existing) {
-            return json_encode(['status' => 'error', 'message' => "Послание [{$codeEsc}] не найдено. Сначала создайте его (режим «Новое послание»)"]);
+            return json_encode(['status' => 'error', 'message' => T::s('import.error.msgNotFoundCreateFirst', ['code' => $codeEsc])]);
         }
 
         if ($existing) {
@@ -517,7 +517,7 @@ trait Ajax_Import
             return json_encode([
                 'status'   => 'success',
                 'action'   => 'updated',
-                'message'  => "Обновлено: [{$code}] {$title}" . ($city ? " ({$city})" : ''),
+                'message'  => ($city ? T::s('import.success.msgUpdatedCity', ['code' => $code, 'title' => $title, 'city' => $city])       : T::s('import.success.msgUpdated',     ['code' => $code, 'title' => $title])),
                 'warning'  => $tcWarning,
             ]);
         }
@@ -536,7 +536,7 @@ trait Ajax_Import
         return json_encode([
             'status'  => 'success',
             'action'  => 'inserted',
-            'message' => "Добавлено: [{$code}] {$title}" . ($city ? " ({$city})" : ''),
+            'message' => ($city ? T::s('import.success.msgInsertedCity', ['code' => $code, 'title' => $title, 'city' => $city])       : T::s('import.success.msgInserted',     ['code' => $code, 'title' => $title])),
             'warning' => $tcWarning,
         ]);
     }
@@ -617,11 +617,11 @@ trait Ajax_Import
         if (!preg_match('/^[a-z]{2,5}$/', $code)) {
             return json_encode([
                 'status' => 'error',
-                'message' => 'Код языка должен содержать 2–5 латинских букв (напр. "de", "pl")'
+                'message' => T::s('import.lang.error.codeFormat')
             ]);
         }
         if (empty($label)) {
-            return json_encode(['status' => 'error', 'message' => 'Метка языка не может быть пустой']);
+            return json_encode(['status' => 'error', 'message' => T::s('import.lang.error.labelEmpty')]);
         }
 
         // --- Check for duplicate ---
@@ -629,7 +629,7 @@ trait Ajax_Import
             "SELECT code FROM languages WHERE code = '" . mysqli_real_escape_string($dbh, $code) . "'"
         );
         if ($existing) {
-            return json_encode(['status' => 'error', 'message' => "Язык «{$code}» уже существует"]);
+            return json_encode(['status' => 'error', 'message' => T::s('import.lang.error.exists', ['code' => $code])]);
         }
 
         // --- Compute suffix and column name ---
@@ -667,7 +667,7 @@ trait Ajax_Import
 
         return json_encode([
             'status' => 'success',
-            'message' => "Язык «{$label}» добавлен. Колонка {$colName} создана в song_list и messages."
+            'message' => T::s('import.lang.success.added', ['label' => $label, 'column' => $colName])
         ]);
     }
 
@@ -697,21 +697,21 @@ trait Ajax_Import
         // --- Verify special password ---
         $correctPassword = $config['lang_delete_password'] ?? '';
         if ($correctPassword === '' || $givenPassword !== $correctPassword) {
-            return json_encode(['status' => 'error', 'message' => 'Неверный пароль удаления']);
+            return json_encode(['status' => 'error', 'message' => T::s('import.lang.error.wrongPassword')]);
         }
 
         // --- Look up language ---
         $codeEsc = mysqli_real_escape_string($dbh, $code);
         $lang = $db->get("SELECT * FROM languages WHERE code = '{$codeEsc}'");
         if (!$lang) {
-            return json_encode(['status' => 'error', 'message' => "Язык «{$code}» не найден"]);
+            return json_encode(['status' => 'error', 'message' => T::s('import.lang.error.notFound', ['code' => $code])]);
         }
 
         // --- Forbid deletion of the default language ---
         if ((int)$lang['is_default'] === 1) {
             return json_encode([
                 'status' => 'error',
-                'message' => "Нельзя удалить язык по умолчанию («{$code}»). Сначала смените флаг is_default."
+                'message' => T::s('import.lang.error.cannotDeleteDefault', ['code' => $code])
             ]);
         }
 
@@ -739,7 +739,7 @@ trait Ajax_Import
 
         return json_encode([
             'status' => 'success',
-            'message' => "Язык «{$lang['label']}» удалён. Колонка {$colName} удалена из song_list и messages."
+            'message' => T::s('import.lang.success.deleted', ['label' => $lang['label'], 'column' => $colName])
         ]);
     }
 }
