@@ -201,7 +201,7 @@
 
     .btn-lang:disabled,
     .btn-lang[disabled] {
-        opacity: 1;                   /* не тушим — меняем цвет */
+        opacity: 1;                   /* don't dim — just change color */
         cursor: not-allowed;
         pointer-events: none;
         background: #f0f2f5;
@@ -210,8 +210,8 @@
         box-shadow: none;
         transform: none;
     }
-    /* Активная (включённая) кнопка никогда не выглядит серой,
-       даже если AngularJS добавляет disabled — защита на случай гонки */
+    /* An active (enabled) button never looks grey, even if AngularJS
+       toggles `disabled` — race-condition guard. */
     .btn-lang.lang-active:disabled,
     .btn-lang.lang-active[disabled] {
         opacity: 1;
@@ -763,7 +763,7 @@
         .bible-panel { height: 55vh; }
         .btn-mode { font-size: 12px; padding: 8px 6px; }
     }
-    /* ── Карточка медиа в плейлисте ──────────────────────────────── */
+    /* ── Media card in the playlist ──────────────────────────────── */
     .media-fav-card {
         display: flex;
         align-items: center;
@@ -803,7 +803,7 @@
         max-width: 200px;
     }
 
-    /* Превью изображения в карточке */
+    /* Image preview in the card */
     .mfc-thumb {
         width: 52px;
         height: 42px;
@@ -813,7 +813,7 @@
         flex-shrink: 0;
     }
 
-    /* Кнопка "В заставки" */
+    /* "Add to wallpapers" button */
     .mfc-wallpaper-btn {
         flex-shrink: 0;
         color: #1a6db5;
@@ -829,7 +829,7 @@
     }
     .mfc-wallpaper-btn:hover { background: #daeeff; }
 
-    /* Кнопка удаления медиа */
+    /* Media delete button */
     .mfc-del {
         flex-shrink: 0;
         color: #c0392b;
@@ -844,7 +844,7 @@
     }
     .mfc-del:hover { background: #fad7d4; }
 
-    /* ── Панель добавления медиа ────────────────────────────────── */
+    /* ── Add-media panel ────────────────────────────────────────── */
     .media-add-panel {
         background: #f8f9ff;
         border: 1.5px solid #d0d7f0;
@@ -856,7 +856,7 @@
         gap: 9px;
     }
 
-    /* ── Панель стандартных заставок ─────────────────────────────── */
+    /* ── Standard wallpapers panel ──────────────────────────────── */
     .wallpapers-panel {
         background: #fff8ee;
         border: 1.5px solid #f0dbb5;
@@ -992,7 +992,7 @@
     }
     .map-btn-add:hover { background: #2980b9; }
 
-    /* ── Видео-контролы под активным видео-чипом ────────────────── */
+    /* ── Video controls under the active video chip ─────────────── */
     .tech-video-controls {
         display: flex;
         gap: 8px;
@@ -1039,7 +1039,7 @@
         border-color: #e74c3c;
     }
 
-    /* ── Анимированный спиннер загрузки ────────────────────────── */
+    /* ── Animated loading spinner ──────────────────────────────── */
     @keyframes spin {
         0% { transform: rotate(0deg); }
         100% { transform: rotate(360deg); }
@@ -1222,37 +1222,37 @@
 
         <!-- ── WebSocket disconnect banner ────────────────────────── -->
         <div class="ws-disconnect-banner" ng-if="wsConnected === false">
-            ⚠ Нет соединения с сервером. Переподключение…
+            <?php echo T::s('common.ws.disconnected'); ?>
         </div>
 
         <!-- ── Header ─────────────────────────────────────────────── -->
         <div class="tech-header">
             <button class="btn-back" onclick="window.location.href='/index'">
-                ← Главная
+                <?php echo T::s('common.button.back'); ?>
             </button>
             <div class="tech-title-block">
-                <div class="tech-page-title">🖥️ Технический режим</div>
+                <div class="tech-page-title"><?php echo T::s('tech.title'); ?></div>
                 <div class="tech-page-subtitle"><?php echo htmlspecialchars($_SESSION['userName']) ?></div>
             </div>
         </div>
 
-        <!-- ── Строка 1: Переключение режимов ─────────────────────── -->
-        <div class="section-label">Режим</div>
+        <!-- ── Row 1: mode switch ─────────────────────────────────── -->
+        <div class="section-label"><?php echo T::s('tech.label.mode'); ?></div>
         <div class="btn-row">
             <button class="btn-mode"
                     ng-class="pageMode === 'songs'    ? 'mode-btn-active' : ''"
-                    ng-click="songMode()">🎵 Песни</button>
+                    ng-click="songMode()"><?php echo T::s('tech.mode.songs'); ?></button>
             <button class="btn-mode"
                     ng-class="pageMode === 'bible'    ? 'mode-btn-active' : ''"
-                    ng-click="bibleMode()">📖 Библия</button>
+                    ng-click="bibleMode()"><?php echo T::s('tech.mode.bible'); ?></button>
             <button class="btn-mode"
                     ng-class="pageMode === 'messages' ? 'mode-btn-active' : ''"
-                    ng-click="messagesMode()">✉️ Послание</button>
+                    ng-click="messagesMode()"><?php echo T::s('tech.mode.message'); ?></button>
         </div>
 
-        <!-- ── Строка 2: Сборники (Песни) / Переводы (Библия) ──────── -->
+        <!-- ── Row 2: collections (Songs) / translations (Bible) ──── -->
         <div ng-show="pageMode === 'songs'">
-            <div class="section-label">Сборник</div>
+            <div class="section-label"><?php echo T::s('tech.label.collection'); ?></div>
             <div class="btn-row">
                 <button class="btn-list"
                         ng-repeat="list in visibleSongLists"
@@ -1262,7 +1262,7 @@
         </div>
 
         <div ng-show="pageMode === 'bible'">
-            <div class="section-label">Перевод</div>
+            <div class="section-label"><?php echo T::s('tech.label.translation'); ?></div>
             <div class="btn-row">
                 <button class="btn-list"
                         ng-repeat="tr in bibleTranslations"
@@ -1271,54 +1271,54 @@
             </div>
         </div>
 
-        <!-- ── Строка 3: Доп. действия (только Песни) ──────────────── -->
+        <!-- ── Row 3: extra actions (Songs only) ────────────────────── -->
         <div ng-show="pageMode === 'songs'">
             <div class="btn-row" style="margin-top: 8px;">
-                <button class="btn-action-blue" ng-click="openList()">📋 Весь список песен сборника</button>
-                <button class="btn-action-orange" ng-click="addNewSong()">＋ Добавить песню в сборник</button>
+                <button class="btn-action-blue" ng-click="openList()"><?php echo T::s('leader.button.showAll'); ?></button>
+                <button class="btn-action-orange" ng-click="addNewSong()"><?php echo T::s('tech.songs.addNew'); ?></button>
             </div>
-            <div class="section-label" style="margin-top: 16px;">Дополнительные материалы</div>
+            <div class="section-label" style="margin-top: 16px;"><?php echo T::s('tech.label.extras'); ?></div>
             <div class="btn-row" style="margin-top: 8px;">
                 <button class="btn-action-blue"
                         ng-click="toggleMediaAddPanel()"
                         ng-class="showMediaAddPanel ? 'mode-btn-active' : ''">
-                    🖼️ Фотографии / Медиа
+                    <?php echo T::s('tech.button.photosMedia'); ?>
                 </button>
                 <button class="btn-action-blue"
                         ng-click="toggleWallpapersPanel()"
                         ng-class="showWallpapersPanel ? 'mode-btn-active' : ''">
-                    🎨 Стандартные заставки
+                    <?php echo T::s('tech.button.standardWallpapers'); ?>
                 </button>
             </div>
         </div>
 
-        <!-- Панель добавления медиа в плейлист -->
+        <!-- Add-media-to-playlist panel -->
         <div class="media-add-panel" ng-show="showMediaAddPanel">
-            <div class="map-title">➕ Добавить в плейлист</div>
+            <div class="map-title"><?php echo T::s('tech.add.title'); ?></div>
 
-            <!-- Загрузка файлов -->
+            <!-- File uploads -->
             <div class="map-upload-row">
                 <div class="map-btn-upload"
                      ng-class="{'uploading': uploadingImage}"
                      ng-click="!uploadingImage && triggerMediaImageUpload()">
                     <span ng-if="uploadingImage" class="upload-spinner"></span>
                     <span ng-if="!uploadingImage">🖼️</span>
-                    <span ng-if="uploadingImage">Загрузка...</span>
-                    <span ng-if="!uploadingImage">Изображение</span>
+                    <span ng-if="uploadingImage"><?php echo T::s('common.loading'); ?></span>
+                    <span ng-if="!uploadingImage"><?php echo T::s('prep.tool.imgLabel'); ?></span>
                 </div>
                 <div class="map-btn-upload"
                      ng-class="{'uploading': uploadingVideo}"
                      ng-click="!uploadingVideo && triggerMediaVideoUpload()">
                     <span ng-if="uploadingVideo" class="upload-spinner"></span>
                     <span ng-if="!uploadingVideo">🎬</span>
-                    <span ng-if="uploadingVideo">Загрузка...</span>
-                    <span ng-if="!uploadingVideo">Видеофайл</span>
+                    <span ng-if="uploadingVideo"><?php echo T::s('common.loading'); ?></span>
+                    <span ng-if="!uploadingVideo"><?php echo T::s('tech.add.videoFile'); ?></span>
                 </div>
             </div>
 
-            <div class="map-sep">— или ссылка —</div>
+            <div class="map-sep"><?php echo T::s('tech.add.or'); ?></div>
 
-            <!-- URL-поле -->
+            <!-- URL field -->
             <div class="map-url-row">
                 <input type="text"
                        ng-model="mediaUrlInput"
@@ -1327,24 +1327,24 @@
                 <button class="map-btn-add" ng-click="addMediaUrl()">➕</button>
             </div>
 
-            <!-- Необязательное название -->
+            <!-- Optional name -->
             <div class="map-name-row">
                 <input type="text"
                        ng-model="mediaUrlName"
-                       placeholder="Название (необязательно)">
+                       placeholder="<?php echo T::s('tech.add.namePlaceholder'); ?>">
             </div>
         </div>
 
-        <!-- Панель стандартных заставок -->
+        <!-- Standard wallpapers panel -->
         <div class="wallpapers-panel" ng-show="showWallpapersPanel">
             <div class="map-title">
-                🎨 Стандартные заставки
+                <?php echo T::s('tech.button.standardWallpapers'); ?>
             </div>
 
-            <!-- Список заставок -->
+            <!-- Wallpapers list -->
             <div ng-if="standardWallpapers.length === 0"
                  style="text-align:center; padding:16px; color:#b0b8c1; font-size:12px;">
-                Список пуст
+                <?php echo T::s('tech.add.empty'); ?>
             </div>
 
             <div class="wallpaper-item"
@@ -1358,20 +1358,20 @@
                 <button class="wp-del"
                         ng-if="isAdmin"
                         ng-click="$event.stopPropagation(); deleteWallpaper(wp.id, wp.name)"
-                        title="Удалить из стандартных заставок">✕</button>
+                        title="<?php echo T::s('tech.tooltip.removeFromWallpapers'); ?>">✕</button>
             </div>
         </div>
 
-        <!-- Скрытые file inputs (добавить в любом месте внутри контроллера) -->
+        <!-- Hidden file inputs (place anywhere inside the controller) -->
         <input type="file" id="techMediaImageInput" accept="image/*" style="display:none"
                onchange="angular.element(this).scope().onMediaImageSelected(this)">
         <input type="file" id="techMediaVideoInput" accept="video/*" style="display:none"
                onchange="angular.element(this).scope().onMediaVideoSelected(this)">
 
-        <!-- ── Языки (все режимы) + Отображать стихов (Библия) ──────── -->
+        <!-- ── Languages (all modes) + Verses-per-page (Bible) ──────── -->
         <div style="display: flex; gap: 24px; align-items: flex-start; margin-top: 16px; flex-wrap: wrap;">
             <div>
-                <div class="section-label">Языки</div>
+                <div class="section-label"><?php echo T::s('tech.label.languages'); ?></div>
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
                     <button class="btn-lang"
                             ng-repeat="lang in langList"
@@ -1381,7 +1381,7 @@
                 </div>
             </div>
             <div ng-show="pageMode === 'bible'">
-                <div class="section-label">Отображать стихов:</div>
+                <div class="section-label"><?php echo T::s('tech.label.versesPerPage'); ?></div>
                 <div style="display: flex; gap: 6px;">
                     <button class="btn-lang"
                             ng-class="bibleVerseCount === 1 ? 'lang-active' : ''"
@@ -1397,13 +1397,13 @@
         </div>
 
         <!-- ══════════════════════════════════════════════════════════
-             РЕЖИМ ПЕСНИ
+             SONGS MODE
              ══════════════════════════════════════════════════════════ -->
         <div ng-show="pageMode === 'songs'">
 
             <!-- Search -->
             <div style="margin-top: 16px; margin-bottom: 12px;">
-                <div class="section-label" style="margin-bottom: 6px;">Поиск песни</div>
+                <div class="section-label" style="margin-bottom: 6px;"><?php echo T::s('leader.section.search'); ?></div>
 
                 <script type="text/ng-template" id="song-row-tmpl.html">
                     <div class="angucomplete-holder" ng-class="{'angucomplete-dropdown-visible': showDropdown}">
@@ -1425,7 +1425,7 @@
                                  ng-class="{'angucomplete-selected-row': $index == currentIndex}">
                                 <div class="angucomplete-song-img-col"
                                      ng-click="$emit('song:previewSong', result.originalObject); $event.stopPropagation()"
-                                     title="Просмотр нот">
+                                     title="<?php echo T::s('leader.search.viewNotes'); ?>">
                                     <img ng-src="{{result.image}}" class="angucomplete-song-thumb-sm"
                                          onerror="this.style.display='none'">
                                 </div>
@@ -1447,7 +1447,7 @@
                 </script>
 
                 <angucomplete-alt id="ccf6"
-                                  placeholder="название, текст песни или номер"
+                                  placeholder="<?php echo T::s('tech.search.placeholder'); ?>"
                                   pause="100"
                                   local-data="searchSongList"
                                   search-fields="dispName,TEXT"
@@ -1465,10 +1465,10 @@
             <!-- Shared header row — keeps both labels at the same height -->
             <div class="row" style="margin-bottom: 4px;">
                 <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                    <div class="section-label" style="margin-top: 16px; margin-bottom: 0;">Выбранные песни</div>
+                    <div class="section-label" style="margin-top: 16px; margin-bottom: 0;"><?php echo T::s('leader.section.selected'); ?></div>
                 </div>
                 <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                    <div class="section-label" style="margin-top: 16px; margin-bottom: 0;">Куплеты</div>
+                    <div class="section-label" style="margin-top: 16px; margin-bottom: 0;"><?php echo T::s('tech.label.verses'); ?></div>
                 </div>
             </div>
 
@@ -1481,7 +1481,7 @@
                     <div ng-if="favorites.length === 0"
                          style="text-align:center; padding: 24px 8px; color: #b0b8c1;">
                         <div style="font-size:28px; margin-bottom:6px;">🎵</div>
-                        <div style="font-size:12px;">Нет выбранных песен</div>
+                        <div style="font-size:12px;"><?php echo T::s('tech.empty.songs'); ?></div>
                     </div>
 
                     <div class="row" style="position: relative; margin-bottom: 12px;"
@@ -1495,7 +1495,7 @@
 
                             <button class="song-del"
                                     ng-click="$event.stopPropagation(); deleteFavoriteItem(listItem.FID, listItem.dispName, listItem.itemType)"
-                                    title="Удалить из плейлиста">✕</button>
+                                    title="<?php echo T::s('tech.tooltip.removeFromPlaylist'); ?>">✕</button>
 
                             <!-- Left: title + meta -->
                             <div class="text-container">
@@ -1505,7 +1505,7 @@
                                     <span class="book-name" style="margin-top:0;">{{ listItem.bookName }}</span>
                                     <!-- Desktop: edit button -->
                                     <div class="song-text-edit" ng-click="$event.stopPropagation()" style="margin-top:0;">
-                                        <button class="btn-edit" ng-click="editFavorite(listItem)">✏️ Ред.</button>
+                                        <button class="btn-edit" ng-click="editFavorite(listItem)"><?php echo T::s('tech.button.edit'); ?></button>
                                     </div>
                                 </div>
                                 <span class="song-lang-badges" style="margin-top: 4px;">
@@ -1521,11 +1521,11 @@
                                      ng-attr-id="{{ 'img' + listItem.ID }}"
                                      ng-src="{{ listItem.imageName }}" />
                                 <button class="btn-edit"
-                                        ng-click="editFavorite(listItem)">✏️ Ред.</button>
+                                        ng-click="editFavorite(listItem)"<?php echo T::s('tech.button.edit'); ?></button>
                             </div>
                         </div>
 
-                        <!-- ── Медиа-карточка (изображение или видео) ── -->
+                        <!-- ── Media card (image or video) ── -->
                         <div ng-if="listItem.itemType === 'image' || listItem.itemType === 'video'"
                              class="media-fav-card"
                              ng-class="{
@@ -1535,13 +1535,13 @@
                              }"
                              ng-click="activateMediaItem(listItem)">
 
-                            <!-- Превью (только для изображений) -->
+                            <!-- Preview (images only) -->
                             <img ng-if="listItem.itemType === 'image'"
                                  class="mfc-thumb"
                                  ng-src="{{ listItem.src }}"
                                  onerror="this.style.visibility='hidden'">
 
-                            <!-- Иконка для видео -->
+                            <!-- Icon for video -->
                             <span ng-if="listItem.itemType === 'video'"
                                   class="mfc-icon">🎬</span>
 
@@ -1550,31 +1550,31 @@
                                 <div class="mfc-src">{{ listItem.src }}</div>
                             </div>
 
-                            <!-- Кнопка "В заставки" для изображений -->
+                            <!-- "Add to wallpapers" button for images -->
                             <button ng-if="listItem.itemType === 'image'"
                                     class="mfc-wallpaper-btn"
                                     ng-click="$event.stopPropagation(); addToWallpapers(listItem)"
-                                    title="Добавить в стандартные заставки">📌</button>
+                                    title="<?php echo T::s('tech.tooltip.addToWallpapers'); ?>">📌</button>
 
-                            <!-- Кнопка удалить -->
+                            <!-- Delete button -->
                             <button class="mfc-del"
                                     ng-click="$event.stopPropagation(); deleteFavoriteItem(listItem.FID, listItem.NAME || listItem.dispName, listItem.itemType)"
-                                    title="Удалить из плейлиста">✕</button>
+                                    title="<?php echo T::s('tech.tooltip.removeFromPlaylist'); ?>">✕</button>
                         </div>
 
-                        <!-- Видео-контролы под активным видео-чипом -->
+                        <!-- Video controls under the active video chip -->
                         <div ng-if="listItem.itemType === 'video' && activeMediaItem && activeMediaItem.FID === listItem.FID"
                              class="tech-video-controls">
                             <button class="tvc-btn tvc-play" ng-click="techToggleVideo()">
-                                {{ techVideoPlaying ? '⏸ Пауза' : '▶ Играть' }}
+                                {{ techVideoPlaying ? ('<?php echo T::s('sermon.video.pause'); ?>') : ('<?php echo T::s('sermon.video.play'); ?>') }}
                             </button>
-                            <button class="tvc-btn tvc-stop" ng-click="techStopVideo()">⏹ Стоп</button>
+                            <button class="tvc-btn tvc-stop" ng-click="techStopVideo()"><?php echo T::s('tech.video.stop'); ?></button>
                         </div>
 
                     </div>
 
                     <button class="btn-clear" ng-if="favorites.length > 0" ng-click="clearFavorites()">
-                        🗑 Очистить список
+                        <?php echo T::s('leader.button.clear'); ?>
                     </button>
                 </div>
 
@@ -1582,7 +1582,7 @@
                 <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
                     <div ng-if="preparedChapters.length === 0"
                          style="text-align:center; padding: 24px 8px; color: #b0b8c1; font-size:12px;">
-                        Выберите песню
+                        <?php echo T::s('tech.empty.song'); ?>
                     </div>
                     <div ng-repeat="chapter in preparedChapters">
                     <span class="text-chapter"
@@ -1595,7 +1595,7 @@
         </div><!-- /songs mode -->
 
         <!-- ══════════════════════════════════════════════════════════
-             РЕЖИМ ПОСЛАНИЕ
+             EPISTLE MODE
              ══════════════════════════════════════════════════════════ -->
         <div ng-show="pageMode === 'messages'">
 
@@ -1604,14 +1604,14 @@
                 <div class="col-sm-5 col-xs-5" style="margin-bottom: 10px; padding-right: 5px;">
                     <input type="text"
                            class="search-input"
-                           placeholder="Поиск по номеру или названию..."
+                           placeholder="<?php echo T::s('prep.placeholder.msgSearchTitle'); ?>"
                            ng-model="messageTitleQuery"
                            ng-change="searchMessages()" />
                 </div>
                 <div class="col-sm-7 col-xs-7" style="margin-bottom: 10px; padding-left: 5px;">
                     <input type="text"
                            class="search-input"
-                           placeholder="Поиск по тексту..."
+                           placeholder="<?php echo T::s('prep.placeholder.msgSearchText'); ?>"
                            ng-model="messageTextQuery"
                            ng-change="searchMessages()" />
                 </div>
@@ -1621,7 +1621,7 @@
                 <!-- Left: search results -->
                 <div class="col-sm-5 col-xs-5">
                     <div class="bible-panel" id="messages-list-panel">
-                        <div class="bible-panel-title">📋 Результаты поиска</div>
+                        <div class="bible-panel-title"><?php echo T::s('tech.label.searchResults'); ?></div>
                         <div class="bible-list-item"
                              ng-repeat="msg in messageSearchResults"
                              ng-class="{'selected': selectedMessage && selectedMessage.ID === msg.ID}"
@@ -1632,11 +1632,11 @@
                         </div>
                         <div ng-show="messageSearchResults.length === 0"
                              style="padding: 12px; color: #b0b8c1; font-size: 12px;">
-                            Ничего не найдено
+                            <?php echo T::s('prep.empty.results'); ?>
                         </div>
                         <div ng-show="messageTitleQuery.length < 2 && messageTextQuery.length < 2"
                              style="padding: 12px; color: #b0b8c1; font-size: 12px;">
-                            Введите минимум 2 символа
+                            <?php echo T::s('tech.hint.minChars'); ?>
                         </div>
                     </div>
                 </div>
@@ -1646,7 +1646,7 @@
                     <div class="bible-panel" id="messages-para-panel">
                         <div class="bible-panel-title" style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
                             <span>
-                                ✍️ Абзацы
+                                <?php echo T::s('tech.label.paragraphs'); ?>
                                 <span ng-show="selectedMessage" style="color:#1a6db5;font-weight:600;text-transform:none;">
                                     — {{ selectedMessage.TITLE }}
                                 </span>
@@ -1656,8 +1656,8 @@
                                   style="display:inline-flex;align-items:center;gap:4px;flex-shrink:0;">
                                 <button ng-click="toggleMsgAudio()"
                                         style="padding:3px 10px;border-radius:6px;font-size:12px;border:1.5px solid #1a6db5;background:#ebf3fb;color:#1a6db5;cursor:pointer;line-height:1.4;">
-                                    <span ng-if="!msgAudioPlaying">▶ Слушать</span>
-                                    <span ng-if="msgAudioPlaying">⏸ Пауза</span>
+                                    <span ng-if="!msgAudioPlaying"><?php echo T::s('tech.audio.listen'); ?></span>
+                                    <span ng-if="msgAudioPlaying"><?php echo T::s('sermon.video.pause'); ?></span>
                                 </button>
                                 <span ng-show="msgAudioPlaying"
                                       style="font-family:monospace;font-size:13px;color:#1a6db5;min-width:5ch;display:inline-block;text-align:center;">{{formatMsgTimecode(msgCurrentTime)}}</span>
@@ -1669,10 +1669,10 @@
                                 <!-- Calibration mode toggle -->
                                 <button ng-show="msgAudioLoaded"
                                         ng-click="msgCalibrating = !msgCalibrating"
-                                        title="Режим калибровки: клик по абзацу фиксирует таймкод; Стоп сохраняет в БД"
+                                        title="<?php echo T::s('tech.tooltip.calibration'); ?>"
                                         ng-style="msgCalibrating ? {'border-color':'#e67e22','background':'#fef3e2','color':'#c0580a'} : {'border-color':'#ccc','background':'#f4f5f7','color':'#666'}"
                                         style="padding:3px 8px;border-radius:6px;font-size:12px;border:1.5px solid;cursor:pointer;line-height:1.4;">
-                                    ✂ Калибровка
+                                    <?php echo T::s('tech.audio.calibrate'); ?>
                                 </button>
                             </span>
                         </div>
@@ -1685,11 +1685,11 @@
                                               style="font-size:10px;font-family:monospace;margin-right:5px;display:inline-block;min-width:7ch;text-align:right;">{{formatMsgTimecode(msgTimecodes[msgParaIdx])}}</span><span ng-bind-html="highlightMsg(para)"></span></div>
                         <div ng-show="messageParagraphs.length === 0 && selectedMessage"
                              style="padding: 12px; color: #b0b8c1; font-size: 12px;">
-                            Нет текста
+                            <?php echo T::s('tech.empty.noText'); ?>
                         </div>
                         <div ng-show="!selectedMessage"
                              style="padding: 12px; color: #b0b8c1; font-size: 12px;">
-                            Выберите послание
+                            <?php echo T::s('tech.empty.message'); ?>
                         </div>
                     </div>
                 </div>
@@ -1699,7 +1699,7 @@
         </div><!-- /messages mode -->
 
         <!-- ══════════════════════════════════════════════════════════
-             РЕЖИМ БИБЛИЯ
+             BIBLE MODE
              ══════════════════════════════════════════════════════════ -->
         <div ng-show="pageMode === 'bible'">
 
@@ -1708,13 +1708,13 @@
                 <div class="col-sm-3 col-xs-4" style="margin-bottom: 10px; padding-right: 5px;">
                     <input type="text"
                            class="search-input"
-                           placeholder="Поиск книги..."
+                           placeholder="<?php echo T::s('prep.placeholder.bookSearch'); ?>"
                            ng-model="bibleBookSearchQuery" />
                 </div>
                 <div class="col-sm-9 col-xs-8" style="margin-bottom: 10px; padding-left: 5px;">
                     <input type="text"
                            class="search-input"
-                           placeholder="Поиск в Библии..."
+                           placeholder="<?php echo T::s('tech.search.bibleText'); ?>"
                            ng-model="bibleSearchQuery"
                            ng-change="searchBible(); bibleBookSearchQuery=''" />
                 </div>
@@ -1724,7 +1724,7 @@
             <div ng-show="bibleSearchQuery.length >= 2">
                 <div style="border: 1.5px solid #dee2e6; border-radius: 10px; max-height: 300px; overflow-y: auto; margin-bottom: 12px; background:#fff;">
                     <div class="bible-panel-title">
-                        Результаты поиска ({{ bibleSearchResults.length }})
+                        {{ ('<?php echo T::s('tech.label.searchResultsCount'); ?>').replace('{count}', bibleSearchResults.length) }}
                     </div>
                     <div class="bible-search-result"
                          ng-repeat="r in bibleSearchResults"
@@ -1734,7 +1734,7 @@
                     </div>
                     <div ng-show="bibleSearchResults.length === 0"
                          style="padding: 12px; color: #b0b8c1; font-size: 12px;">
-                        Ничего не найдено
+                        <?php echo T::s('prep.empty.results'); ?>
                     </div>
                 </div>
             </div>
@@ -1746,7 +1746,7 @@
                     <!-- Books -->
                     <div class="col-sm-3 col-xs-4">
                         <div class="bible-panel" id="bible-books-panel">
-                            <div class="bible-panel-title">📖 Книги</div>
+                            <div class="bible-panel-title"><?php echo T::s('tech.bible.books'); ?></div>
                             <div class="bible-list-item"
                                  ng-repeat="book in getFilteredBibleBooks()"
                                  ng-class="{'selected': selectedBibleBook && selectedBibleBook.ID === book.ID}"
@@ -1754,25 +1754,25 @@
                                 {{ getBibleBookName(book) }}
                             </div>
                             <div ng-show="bibleBooks.length === 0 && bibleTranslationId"
-                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;">Загрузка...</div>
+                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;"><?php echo T::s('common.loading'); ?></div>
                             <div ng-show="!bibleTranslationId"
-                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;">Выберите перевод</div>
+                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;"><?php echo T::s('prep.choosTranslation'); ?></div>
                         </div>
                     </div>
 
                     <!-- Chapters -->
                     <div class="col-sm-2 col-xs-3">
                         <div class="bible-panel" id="bible-chapters-panel">
-                            <div class="bible-panel-title">📑 Главы</div>
+                            <div class="bible-panel-title"><?php echo T::s('tech.bible.chapters'); ?></div>
                             <div class="bible-list-item"
                                  ng-repeat="ch in bibleChapters"
                                  ng-class="{'selected': selectedBibleChapter === ch}"
                                  ng-click="selectBibleChapter(ch)"
                                  style="text-align: center;">{{ ch }}</div>
                             <div ng-show="bibleChapters.length === 0 && selectedBibleBook"
-                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;">Загрузка...</div>
+                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;"><?php echo T::s('common.loading'); ?></div>
                             <div ng-show="!selectedBibleBook"
-                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;">Выберите книгу</div>
+                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;"><?php echo T::s('tech.empty.book'); ?></div>
                         </div>
                     </div>
 
@@ -1780,7 +1780,7 @@
                     <div class="col-sm-7 col-xs-5">
                         <div class="bible-panel" id="bible-verses-panel">
                             <div class="bible-panel-title">
-                                ✍️ Стихи
+                                <?php echo T::s('tech.label.versesHeader'); ?>
                                 <span ng-show="selectedBibleBook && selectedBibleChapter"
                                       style="color: #1a6db5; font-weight: 600; text-transform: none;">
                                 — {{ getBibleBookName(selectedBibleBook) }} {{ selectedBibleChapter }}
@@ -1792,9 +1792,9 @@
                                  ng-click="toggleBibleVerse(verse, $event)"
                                  ng-bind-html="highlightBibleVerse(verse)"></div>
                             <div ng-show="biblePreparedVerses.length === 0 && selectedBibleChapter"
-                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;">Загрузка...</div>
+                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;"><?php echo T::s('common.loading'); ?></div>
                             <div ng-show="!selectedBibleChapter"
-                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;">Выберите главу</div>
+                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;"><?php echo T::s('tech.empty.chapter'); ?></div>
                         </div>
                     </div>
                 </div>
@@ -1805,7 +1805,7 @@
 
 
         <!-- ══════════════════════════════════════════════════════════
-             МОДАЛЬНЫЕ ОКНА (внутри ng-controller)
+             MODAL DIALOGS (inside the ng-controller)
              ══════════════════════════════════════════════════════════ -->
 
         <!-- Full song list -->
@@ -1814,10 +1814,10 @@
                 <div class="modal-dialog">
                     <div class="modal-content">
                         <div class="modal-header" style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #e8edf2; position:sticky; top:0; background:#fff; z-index:10;">
-                            <span style="font-size:14px; font-weight:600; color:#2c3e50;">Список песен</span>
+                            <span style="font-size:14px; font-weight:600; color:#2c3e50;"><?php echo T::s('leader.list.title'); ?></span>
                             <button type="button" data-dismiss="modal"
                                     style="border:none; background:#f4f5f7; color:#5a6272; border-radius:8px; padding:6px 14px; font-size:13px; cursor:pointer; font-weight:600;">
-                                ✕ Закрыть
+                                ✕ <?php echo T::s('common.button.close'); ?>
                             </button>
                         </div>
                         <div class="modal-body">
@@ -1834,7 +1834,7 @@
                                 </div>
                                 <div class="col-xs-3 col-s-3 col-md-3">
                                     <button class="btn btn-lg" style="font-size: 14px;"
-                                            ng-click="addSongToFavorites(song.ID)">Выбрать</button>
+                                            ng-click="addSongToFavorites(song.ID)"><?php echo T::s('leader.list.select'); ?></button>
                                 </div>
                             </div>
                         </div>
@@ -1860,7 +1860,7 @@
                                 </div>
                                 <div class="col-xs-3 col-s-3 col-md-3">
                                     <button class="btn btn-lg" style="font-size: 16pt"
-                                            ng-click="addSongToFavorites(song.ID)">Выбрать</button>
+                                            ng-click="addSongToFavorites(song.ID)"><?php echo T::s('leader.list.select'); ?></button>
                                 </div>
                             </div>
                         </div>
@@ -1886,7 +1886,7 @@
                             <button type="button"
                                     style="font-size: 12pt"
                                     class="btn btn-default btn-lg"
-                                    data-dismiss="modal">Отмена</button>
+                                    data-dismiss="modal"><?php echo T::s('common.button.cancel'); ?></button>
                             <button type="button"
                                     style="font-size: 12pt"
                                     ng-repeat="button in confirmationDialogConfig.buttons"
@@ -1915,15 +1915,15 @@
 
                             <!-- Song name and number -->
                             <div class="esp-name-row">
-                                <span class="esp-name-label">Название</span>
+                                <span class="esp-name-label"><?php echo T::s('tech.esp.name'); ?></span>
                                 <input type="text"
                                        class="esp-name-input"
-                                       placeholder="Введите название песни..."
+                                       placeholder="<?php echo T::s('tech.esp.namePlaceholder'); ?>"
                                        ng-model="editConfig.songName">
                             </div>
 
                             <div class="esp-name-row" ng-if="editConfig.isNewSong">
-                                <span class="esp-name-label">Номер песни</span>
+                                <span class="esp-name-label"><?php echo T::s('tech.esp.number'); ?></span>
                                 <input type="number"
                                        class="esp-name-input"
                                        style="width: 120px;"
@@ -1941,8 +1941,8 @@
                                     <div class="esp-editor-header">
                                         <span class="lang-badge lang-{{lang.code}}">{{lang.code | uppercase}}</span>
                                         <span style="font-size:12px; font-weight:600; color:#2c3e50;">{{lang.label}}</span>
-                                        <span class="esp-editor-hint" ng-if="lang.is_default == '1'">¶ — разделитель куплетов</span>
-                                        <span class="esp-editor-hint" ng-if="lang.is_default != '1'">Опционально</span>
+                                        <span class="esp-editor-hint" ng-if="lang.is_default == '1'"><?php echo T::s('tech.esp.verseSeparator'); ?></span>
+                                        <span class="esp-editor-hint" ng-if="lang.is_default != '1'"><?php echo T::s('tech.esp.optional'); ?></span>
                                     </div>
                                     <textarea class="verse-editor"
                                               ng-model="editConfig.texts[lang.code]"
@@ -1952,16 +1952,16 @@
 
                             <!-- Image -->
                             <div class="esp-image-row">
-                                <span class="esp-image-label">Изображение</span>
+                                <span class="esp-image-label"><?php echo T::s('tech.esp.image'); ?></span>
                                 <img ng-if="editConfig.previewImage"
                                      class="esp-image-thumb"
                                      ng-src="{{ editConfig.previewImage }}"
                                      ng-click="$parent.showEnlargedImage(editConfig.previewImage)"
-                                     title="Увеличить" />
+                                     title="<?php echo T::s('tech.esp.zoom'); ?>" />
                                 <img ng-if="!editConfig.previewImage && editConfig.currentImage"
                                      class="esp-image-thumb"
                                      ng-src="{{ editConfig.currentImage }}"
-                                     title="Текущее изображение" />
+                                     title="<?php echo T::s('tech.esp.currentImage'); ?>" />
                                 <div ng-if="!editConfig.previewImage && !editConfig.currentImage"
                                      style="width:64px; height:64px; border:1.5px dashed #dee2e6; border-radius:8px; display:flex; align-items:center; justify-content:center; color:#b0b8c1; font-size:22px;">
                                     🖼
@@ -1974,12 +1974,12 @@
                                            onchange="angular.element(this).scope().previewImage()" />
                                     <button class="esp-btn esp-btn-image"
                                             onclick="document.getElementById('imageUpload').click()">
-                                        📷 Выбрать изображение
+                                        <?php echo T::s('tech.esp.chooseImage'); ?>
                                     </button>
                                     <button class="esp-btn esp-btn-clear-img"
                                             ng-if="editConfig.previewImage"
                                             ng-click="clearImagePreview()">
-                                        ✕ Убрать
+                                        <?php echo T::s('tech.esp.removeImage'); ?>
                                     </button>
                                 </div>
                             </div>
@@ -1987,9 +1987,9 @@
                         </div><!-- /modal-body -->
 
                         <div class="modal-footer">
-                            <button class="esp-btn esp-btn-cancel" data-dismiss="modal">Отмена</button>
+                            <button class="esp-btn esp-btn-cancel" data-dismiss="modal"><?php echo T::s('common.button.cancel'); ?></button>
                             <button class="esp-btn esp-btn-save" ng-click="saveSongEdits()">
-                                💾 Сохранить изменения
+                                <?php echo T::s('tech.esp.saveChanges'); ?>
                             </button>
                         </div>
 
@@ -2005,7 +2005,7 @@
                     <div class="modal-content">
                         <div class="modal-header">
                             <button type="button" class="close" data-dismiss="modal" style="font-size: 30pt;">&times;</button>
-                            <h3 class="modal-title">Полный размер изображения</h3>
+                            <h3 class="modal-title"><?php echo T::s('tech.esp.fullSize'); ?></h3>
                         </div>
                         <div class="modal-body" style="text-align: center;">
                             <img ng-src="{{ editConfig.previewImage }}"
@@ -2019,16 +2019,16 @@
 
         <!-- Access Request Popup -->
         <div class="access-request-popup" ng-if="currentAccessRequest">
-            <div class="arp-title">Запрос доступа к дисплею</div>
+            <div class="arp-title"><?php echo T::s('tech.access.requestTitle'); ?></div>
             <div class="arp-requester">
-                <strong>{{currentAccessRequest.requester_name}}</strong> запрашивает доступ к отображению проповедей на вашем дисплее.
+                {{ ('<?php echo T::s('tech.access.requestPrompt'); ?>').replace('{requester}', currentAccessRequest.requester_name) }}
             </div>
             <div class="arp-buttons">
                 <button class="arp-btn arp-btn-approve" ng-click="respondToAccessRequest('approve')">
-                    ✓ Разрешить
+                    <?php echo T::s('tech.access.approve'); ?>
                 </button>
                 <button class="arp-btn arp-btn-reject" ng-click="respondToAccessRequest('reject')">
-                    ✗ Отказать
+                    <?php echo T::s('tech.access.deny'); ?>
                 </button>
             </div>
         </div>
@@ -2047,16 +2047,16 @@
                      class="song-preview-img"
                      ng-hide="songPreview.imgError"
                      onerror="angular.element(this).scope().$apply(function(s){s.songPreview.imgError=true;})">
-                <div class="song-preview-no-img" ng-show="songPreview.imgError">Изображение нот отсутствует</div>
+                <div class="song-preview-no-img" ng-show="songPreview.imgError"><?php echo T::s('leader.preview.noImage'); ?></div>
             </div>
             <div class="song-preview-actions">
-                <button class="btn-action-blue" ng-click="confirmAddSongFromPreview()">+ Добавить в список</button>
-                <button class="btn btn-default" ng-click="closeSongPreview()">Отмена</button>
+                <button class="btn-action-blue" ng-click="confirmAddSongFromPreview()"><?php echo T::s('leader.preview.add'); ?></button>
+                <button class="btn btn-default" ng-click="closeSongPreview()"><?php echo T::s('common.button.cancel'); ?></button>
             </div>
         </div>
     </div>
 
 </div><!-- /ng-controller -->
 
-<script src="/js/tech.js?v=18" type="text/javascript"></script>
+<script src="/js/tech.js?v=19" type="text/javascript"></script>
 

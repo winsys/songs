@@ -552,7 +552,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
 
     $scope.clearFavorites = function(){
         if($scope.favorites.length > 0)
-            $scope.confirmationDialog("Список выбранных песен", function() {
+            $scope.confirmationDialog(window.t('leader.confirm.clearTitle'), function() {
                 $http({method: "POST", url: "/ajax", data: {command: 'clear_favorites'}}).then(
                     function success() {
                         $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' } });
@@ -610,7 +610,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // ─────────────────────────────────────────────────────────
 
     $scope.addToWallpapers = function (item) {
-        var confirmMsg = 'Добавить "' + (item.NAME || item.dispName) + '" в стандартные заставки?';
+        var confirmMsg = window.t('tech.confirm.addToWallpapers', { name: item.NAME || item.dispName });
         if (!confirm(confirmMsg)) return;
 
         $http({ method: "POST", url: "/ajax", data: {
@@ -620,9 +620,9 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             }}).then(
             function (r) {
                 if (r.data && r.data.status === 'success') {
-                    alert('Изображение добавлено в стандартные заставки');
+                    alert(window.t('tech.confirm.addedToWallpapers'));
                 } else {
-                    alert('Ошибка: ' + (r.data && r.data.message ? r.data.message : 'unknown'));
+                    alert(window.t('sermon.errorPrefix', { message: r.data && r.data.message ? r.data.message : window.t('common.unknownError') }));
                 }
             },
             function (e) {
@@ -654,7 +654,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // ─────────────────────────────────────────────────────────
 
     $scope.deleteWallpaper = function (id, name) {
-        var confirmMsg = 'Удалить заставку "' + name + '" из списка?';
+        var confirmMsg = window.t('tech.confirm.removeWallpaper', { name: name });
         if (!confirm(confirmMsg)) return;
 
         $http({ method: "POST", url: "/ajax", data: {
@@ -665,7 +665,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 if (r.data && r.data.status === 'success') {
                     $scope.loadStandardWallpapers();
                 } else {
-                    alert('Ошибка: ' + (r.data && r.data.message ? r.data.message : 'unknown'));
+                    alert(window.t('sermon.errorPrefix', { message: r.data && r.data.message ? r.data.message : window.t('common.unknownError') }));
                 }
             },
             function (e) {
@@ -738,7 +738,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         if (!input.files || !input.files[0]) return;
 
         // Prompt for image name
-        var mediaName = prompt('Введите краткое название для изображения:');
+        var mediaName = prompt(window.t('tech.prompt.imageName'));
         if (mediaName === null) {
             input.value = '';
             return; // user cancelled
@@ -763,7 +763,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     $scope.showMediaAddPanel = false;
                     $scope.reloadFavorites();
                 } else {
-                    alert('Ошибка: ' + (r.data && r.data.message ? r.data.message : ''));
+                    alert(window.t('sermon.errorPrefix', { message: r.data && r.data.message ? r.data.message : '' }));
                 }
                 input.value = '';
             },
@@ -787,7 +787,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.onMediaVideoSelected = function (input) {
         if (!input.files || !input.files[0]) return;
         // Prompt for video name
-        var mediaName = prompt('Введите краткое название для видео:');
+        var mediaName = prompt(window.t('tech.prompt.videoName'));
         if (mediaName === null) {
             input.value = '';
             return; // user cancelled
@@ -811,7 +811,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     $scope.showMediaAddPanel = false;
                     $scope.reloadFavorites();
                 } else {
-                    alert('Ошибка: ' + (r.data && r.data.message ? r.data.message : ''));
+                    alert(window.t('sermon.errorPrefix', { message: r.data && r.data.message ? r.data.message : '' }));
                 }
                 input.value = '';
             },
@@ -1615,7 +1615,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
 
     $scope.listConfig = {};
     $scope.openList = function(callback) {
-        $scope.listConfig = { buttons: [{ label: 'Выбрать', action: callback }] };
+        $scope.listConfig = { buttons: [{ label: window.t('leader.list.select'), action: callback }] };
         $scope.showList(true);
     };
     $scope.showList = function(flag) {
@@ -1635,9 +1635,9 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.confirmationDialogConfig = {};
     $scope.confirmationDialog = function(msg, callback) {
         $scope.confirmationDialogConfig = {
-            title: 'УДАЛЕНИЕ',
-            message: 'Удалить [' + msg + ']?',
-            buttons: [{ label: 'Да', action: callback }]
+            title: window.t('leader.confirm.deleteTitle'),
+            message: window.t('leader.confirm.deleteMessage', { name: msg }),
+            buttons: [{ label: window.t('common.button.yes'), action: callback }]
         };
         $scope.showDialog(true);
     };
@@ -1650,8 +1650,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $scope.addConfig = {
             image: null,
             buttons: [
-                { label: 'Сделать фото', action: callback },
-                { label: 'Сохранить',    action: callback }
+                { label: window.t('leader.addSong.takePhoto'), action: callback },
+                { label: window.t('leader.addSong.save'),      action: callback }
             ]
         };
         $scope.addSongPopup(true);
@@ -1674,7 +1674,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             texts[lang.code] = songTextForDisplay(listItem['TEXT' + lang.col_suffix]);
         }
         $scope.editConfig = {
-            title: 'Редактирование песни',
+            title: window.t('tech.dialog.editSong'),
             songId: listItem.ID,
             texts: texts,
             songName: listItem.NAME,
@@ -1693,7 +1693,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             texts[$scope.langList[i].code] = '';
         }
         $scope.editConfig = {
-            title: 'Добавление новой песни',
+            title: window.t('tech.dialog.addSong'),
             songId: null,
             texts: texts,
             songName: '',
@@ -1740,7 +1740,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 song_num: $scope.editConfig.songNum } }).then(
             function(response) {
                 if (response.data.exists) {
-                    $scope.songNumError = 'Номер уже используется';
+                    $scope.songNumError = window.t('tech.error.numberInUse');
                 } else {
                     $scope.songNumError = '';
                 }
@@ -1757,7 +1757,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         if ($scope.editConfig.isNewSong) {
             // Check if song number is provided and unique
             if ($scope.songNumError) {
-                alert('Исправьте ошибки перед сохранением');
+                alert(window.t('tech.error.fixBeforeSave'));
                 return;
             }
             $http({ method: "POST", url: "/ajax",
@@ -2013,7 +2013,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     accessRequestQueue.shift();
                     $scope.currentAccessRequest = accessRequestQueue.length > 0 ? accessRequestQueue[0] : null;
                 } else {
-                    alert('Ошибка: ' + (r.data.message || 'unknown'));
+                    alert(window.t('sermon.errorPrefix', { message: r.data.message || window.t('common.unknownError') }));
                 }
             },
             function (e) { alert('HTTP error: ' + e.status); }
