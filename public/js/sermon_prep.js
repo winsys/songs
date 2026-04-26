@@ -433,12 +433,12 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                         if (r.data && r.data.path) {
                             insertImageNode(r.data.path);
                         } else {
-                            alert('Ошибка загрузки: ' + ((r.data && r.data.message) || JSON.stringify(r.data)));
+                            alert(window.t('common.error.loadPrefix', { message: (r.data && r.data.message) || JSON.stringify(r.data) }));
                         }
                     },
                     function (err) {
                         $scope.uploadingImage = false;
-                        alert('Ошибка загрузки (HTTP ' + (err.status || '?') + ')');
+                        alert(window.t('common.error.loadHttp', { status: err.status || '?' }));
                     }
                 );
             });
@@ -644,13 +644,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 $scope.loadSermonList();
                 $timeout(function () { $scope.saveStatus = ''; }, 3000);
             },
-            function () { $scope.saveStatus = ''; alert('Ошибка сохранения'); }
+            function () { $scope.saveStatus = ''; alert(window.t('prep.error.save')); }
         );
     };
 
     $scope.deleteSermonFromList = function (id, $event) {
         $event.stopPropagation(); // prevent opening the sermon on click
-        if (!confirm('Удалить эту проповедь?')) return;
+        if (!confirm(window.t('prep.confirm.delete'))) return;
         $http({ method: "POST", url: "/ajax", data: { command: 'delete_sermon', id: id } }).then(
             function () {
                 // If deleting the currently open sermon — reset the editor
@@ -762,7 +762,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             '.slide-color-input'
         ].join(',')).forEach(function (el) { el.remove(); });
 
-        var title = $scope.sermon.title || 'Проповедь';
+        var title = $scope.sermon.title || window.t('sermon.label.sermon');
         var date  = $scope.sermon.date  || '';
 
         var html = '<!DOCTYPE html><html><head><meta charset="utf-8">' +
@@ -867,13 +867,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     insertImageNode(r.data.path);
                 } else {
                     var msg = (r.data && r.data.message) ? r.data.message : JSON.stringify(r.data);
-                    alert('Ошибка загрузки: ' + msg);
+                    alert(window.t('common.error.loadPrefix', { message: msg }));
                 }
                 input.value = '';
             },
             function (e) {
                 $scope.uploadingImage = false;
-                alert('Ошибка загрузки (HTTP ' + (e.status || '?') + '): ' + (e.statusText || ''));
+                alert(window.t('common.error.loadHttp', { status: e.status || '?' }) + ': ' + (e.statusText || ''));
                 input.value = '';
             }
         );
@@ -913,7 +913,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         var img        = document.createElement('img');
         img.src        = path;
         img.className  = 'sermon-img-thumb';
-        img.alt        = 'Изображение';
+        img.alt        = window.t('prep.alt.image');
 
         var removeBtn       = document.createElement('span');
         removeBtn.className = 'sermon-img-remove';
@@ -977,13 +977,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     scheduleAutoSave();
                 } else {
                     var msg = (r.data && r.data.message) ? r.data.message : JSON.stringify(r.data);
-                    alert('Ошибка импорта: ' + msg);
+                    alert(window.t('prep.error.importPrefix', { message: msg }));
                 }
                 input.value = '';
             },
             function (e) {
                 $scope.importingPptx = false;
-                alert('Ошибка импорта (HTTP ' + (e.status || '?') + '): ' + (e.statusText || ''));
+                alert(window.t('prep.error.importHttp', { status: e.status || '?', statusText: e.statusText || '' }));
                 input.value = '';
             }
         );
@@ -1004,7 +1004,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
 
         var img   = document.createElement('img');
         img.src   = path;
-        img.alt   = 'Слайд';
+        img.alt   = window.t('sermon.slide.fallbackLabel');
         img.style.cssText = 'max-width:100%; display:block; border-radius:4px;';
 
         var removeBtn       = document.createElement('span');
@@ -1085,13 +1085,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     restoreRange();
                     insertVideoNode(r.data.path, r.data.name || r.data.path.split('/').pop());
                 } else {
-                    alert('Ошибка загрузки видео: ' + (r.data && r.data.message ? r.data.message : ''));
+                    alert(window.t('prep.error.videoLoadPrefix', { message: r.data && r.data.message ? r.data.message : '' }));
                 }
                 input.value = '';
             },
             function (e) {
                 $scope.uploadingVideo = false;
-                alert('Ошибка загрузки видео (HTTP ' + (e.status || '?') + ')');
+                alert(window.t('prep.error.videoLoadHttp', { status: e.status || '?' }));
                 input.value = '';
             }
         );
@@ -1116,7 +1116,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         var del        = document.createElement('span');
         del.className  = 'svw-del';
         del.innerHTML  = '×';
-        del.title      = 'Удалить';
+        del.title      = window.t('common.button.delete');
         del.onclick    = function (e) {
             e.stopPropagation();
             deleteSermonMedia(src);
@@ -1192,13 +1192,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.convertSelectionToSlide = function () {
         var sel = window.getSelection();
         if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
-            alert('Выделите фрагмент заметок для преобразования в слайд.');
+            alert(window.t('prep.alert.selectForSlide'));
             return;
         }
         var range = sel.getRangeAt(0);
          // Ensure the selection is inside the editor
         if (!editorEl || !editorEl.contains(range.commonAncestorContainer)) {
-            alert('Выделение должно быть внутри редактора заметок.');
+            alert(window.t('prep.alert.selectionInsideEditor'));
             return;
         }
         var fragment = range.extractContents();
@@ -1273,19 +1273,19 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
 
         var label = document.createElement('span');
         label.className = 'sermon-slide-label';
-        label.textContent = '▶ Слайд';
+        label.textContent = window.t('prep.slide.label');
 
         var pick = document.createElement('input');
         pick.type = 'color';
         pick.className = 'slide-color-input';
-        pick.title = 'Цвет фона слайда';
+        pick.title = window.t('prep.slide.bgColor');
         pick.contentEditable = 'false';
         pick.value = bg;
 
         var del = document.createElement('span');
         del.className = 'sermon-slide-del';
         del.innerHTML = '×';
-        del.title = 'Удалить слайд';
+        del.title = window.t('prep.slide.delete');
         del.contentEditable = 'false';
         del.onclick = function (e) {
             e.stopPropagation();
@@ -1339,7 +1339,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 pick = document.createElement('input');
                 pick.type = 'color';
                 pick.className = 'slide-color-input';
-                pick.title = 'Цвет фона слайда';
+                pick.title = window.t('prep.slide.bgColor');
                 pick.contentEditable = 'false';
                 pick.value = bg;
                 var delEl = header.querySelector('.sermon-slide-del');
@@ -1702,7 +1702,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                         (verseText ?
                             '<span class="cite-verse-text">' + verseText + '</span>' : '') +
                         '</span>' +
-                        '<span class="cite-remove" title="Удалить">×</span>';
+                        '<span class="cite-remove" title="' + window.t('common.button.delete') + '">×</span>';
 
                     span.querySelector('.cite-remove').onclick = function (e) {
                         e.stopPropagation(); span.remove(); scheduleAutoSave();
@@ -1799,7 +1799,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         span.setAttribute('data-para-html',       '');
         span.setAttribute('data-verse-comments',  '[]');
         span.innerHTML = '✍️ ' + para.text +
-            ' <span class="cite-remove" title="Удалить">×</span>';
+            ' <span class="cite-remove" title="' + window.t('common.button.delete') + '">×</span>';
         span.querySelector('.cite-remove').onclick = function (e) { e.stopPropagation(); span.remove(); scheduleAutoSave(); };
         span.ondblclick = function (e) { e.stopPropagation(); openChipEditor(span); };
         makeDraggable(span);
@@ -1861,9 +1861,9 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                             break;
                         }
                     }
-                    alert('Запрос отправлен');
+                    alert(window.t('prep.alert.requestSent'));
                 } else {
-                    alert('Ошибка: ' + (r.data.message || 'unknown'));
+                    alert(window.t('sermon.errorPrefix', { message: r.data.message || window.t('common.unknownError') }));
                 }
             },
             function (e) { alert('HTTP error: ' + e.status); }
@@ -1889,10 +1889,10 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             if (data.type === 'access_response') {
                 $scope.$apply(function() {
                     if (data.data.status === 'approved') {
-                        alert('✓ Доступ одобрен: ' + data.data.target_name);
+                        alert(window.t('prep.access.approvedPrefix', { name: data.data.target_name }));
                         loadDisplayTargets();
                     } else if (data.data.status === 'rejected') {
-                        alert('✗ Доступ отклонен: ' + data.data.target_name);
+                        alert(window.t('prep.access.deniedPrefix', { name: data.data.target_name }));
                     }
                 });
             }
