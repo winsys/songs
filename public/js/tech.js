@@ -256,16 +256,17 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
 
                 // Initialize $scope.languages:
                 //   - default language enabled,
+                //   - language matching window.UI_LANG enabled (if different),
                 //   - others disabled,
                 //   - existing values preserved (on reload).
+                var uiLang = window.UI_LANG || 'ru';
                 var newLangs = {};
                 for (var j = 0; j < list.length; j++) {
                     var code = list[j].code;
-                    // Preserve existing value; otherwise enable only the default
                     if (code in $scope.languages) {
                         newLangs[code] = $scope.languages[code];
                     } else {
-                        newLangs[code] = (code === defaultCode);
+                        newLangs[code] = (code === defaultCode || code === uiLang);
                     }
                 }
                 $scope.languages = newLangs;
@@ -938,9 +939,15 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_translations' } }).then(
             function success(respond) {
                 $scope.bibleTranslations = respond.data;
-                // Auto-select first translation if none selected
+                // Auto-select a translation: prefer one whose LANG matches
+                // window.UI_LANG; fall back to the first one in the list.
                 if ($scope.bibleTranslations.length > 0 && !$scope.bibleTranslationId) {
-                    $scope.setBibleTranslation($scope.bibleTranslations[0].ID);
+                    var uiLang = window.UI_LANG || 'ru';
+                    var match = null;
+                    for (var i = 0; i < $scope.bibleTranslations.length; i++) {
+                        if ($scope.bibleTranslations[i].LANG === uiLang) { match = $scope.bibleTranslations[i]; break; }
+                    }
+                    $scope.setBibleTranslation((match || $scope.bibleTranslations[0]).ID);
                 }
             },
             function error(erespond) {
@@ -1098,19 +1105,20 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     }
 
     /**
-     * Get a book display name based on active languages.
+     * Get a book display name. Prefer the column matching the UI language
+     * (window.UI_LANG); fall back to the default Russian NAME column when
+     * that translation has no entry for the UI language (e.g. NAME_DE
+     * was never added to bible_books).
      */
     $scope.getBibleBookName = function(book) {
         if (!book) return '';
-        // Iterate active languages in sort_order.
-        // First non-default (col_suffix != '') with a filled field wins.
-        // If nothing found — return base NAME.
-        var active = getActiveLangs();
-        for (var i = 0; i < active.length; i++) {
-            var lang  = active[i];
-            if (lang.col_suffix === '') continue;           // skip default language
-            var field = nameCol(lang);
-            if (book[field]) return book[field];
+        var uiLang = window.UI_LANG || 'ru';
+        for (var i = 0; i < $scope.langList.length; i++) {
+            if ($scope.langList[i].code === uiLang) {
+                var col = 'NAME' + $scope.langList[i].col_suffix;
+                if (book[col]) return book[col];
+                break;
+            }
         }
         return book.NAME || '';
     };
