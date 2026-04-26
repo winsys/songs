@@ -39,7 +39,7 @@ app.controller('Settings', function ($scope, $http)
     $scope.allLanguages = [];
     $scope.selectedLanguages = {};
     $scope.placeholderImages = [
-        { path: '/field_small.jpg', name: 'field_small.jpg (по умолчанию)' }
+        { path: '/field_small.jpg', name: window.t('settings.placeholder.default') }
     ];
 
     // Load permissions from server
@@ -151,11 +151,11 @@ app.controller('Settings', function ($scope, $http)
                         if (!exists) {
                             $scope.placeholderImages.push({ path: response.data.path, name: response.data.path.split('/').pop() });
                         }
-                        alert('Изображение загружено успешно!');
+                        alert(window.t('settings.alert.imageUploadSuccess'));
                         fileInput.value = '';
                     }
                 },
-                function error(e){ alert('Ошибка загрузки изображения!'); }
+                function error(e){ alert(window.t('settings.alert.imageUploadError')); }
             );
         }
     };
@@ -172,7 +172,7 @@ app.controller('Settings', function ($scope, $http)
         $http({ method: "POST", url: "/ajax", data: { command: 'save_user_settings', settings: $scope.settings } }).then(
             function success(r){
                 if (r.data.status !== 'success') {
-                    alert('❌ Ошибка при сохранении настроек!');
+                    alert(window.t('settings.alert.saveError'));
                     return;
                 }
                 // If UI language changed, reload so PHP re-injects window.UI_DICT.
@@ -180,9 +180,9 @@ app.controller('Settings', function ($scope, $http)
                     window.location.reload();
                     return;
                 }
-                alert('✅ Настройки успешно сохранены!');
+                alert(window.t('settings.alert.saveSuccess'));
             },
-            function error(e){ alert('❌ Ошибка при сохранении настроек!'); }
+            function error(e){ alert(window.t('settings.alert.saveError')); }
         );
     };
 
@@ -217,12 +217,12 @@ app.controller('Settings', function ($scope, $http)
     // ============================================================
 
     var ALL_ROLES = [
-        { role: 'admin',    roleLabel: 'Администратор' },
-        { role: 'leader',   roleLabel: 'Ведущий' },
-        { role: 'musician', roleLabel: 'Музыкант' },
-        { role: 'preacher', roleLabel: 'Проповедник' },
-        { role: 'tech',     roleLabel: 'Техник' },
-        { role: 'screen',   roleLabel: 'Экраны' }
+        { role: 'admin',    roleLabel: window.t('role.admin') },
+        { role: 'leader',   roleLabel: window.t('role.leader') },
+        { role: 'musician', roleLabel: window.t('role.musician') },
+        { role: 'preacher', roleLabel: window.t('role.preacher') },
+        { role: 'tech',     roleLabel: window.t('role.tech') },
+        { role: 'screen',   roleLabel: window.t('role.screen') }
     ];
 
     $scope.userSlots = ALL_ROLES.map(function(r) {
@@ -293,10 +293,10 @@ app.controller('Settings', function ($scope, $http)
                         }
                     }
                 } else {
-                    alert('❌ Ошибка создания пользователя: ' + (r.data.message || ''));
+                    alert(window.t('settings.alert.userCreateError', { message: r.data.message || '' }));
                 }
             },
-            function error(e) { alert('❌ Ошибка при создании пользователя!'); }
+            function error(e) { alert(window.t('settings.alert.userCreateFailed')); }
         );
     };
 
@@ -310,29 +310,30 @@ app.controller('Settings', function ($scope, $http)
             }}).then(
             function success(r) {
                 if (r.data && r.data.status === 'success') {
-                    alert('✅ Пользователь сохранён!');
+                    alert(window.t('settings.alert.userSaveSuccess'));
                 } else {
-                    alert('❌ Ошибка при сохранении!');
+                    alert(window.t('settings.alert.userSaveError'));
                 }
             },
-            function error(e) { alert('❌ Ошибка при сохранении!'); }
+            function error(e) { alert(window.t('settings.alert.userSaveError')); }
         );
     };
 
     $scope.shareUser = function(user, roleLabel) {
-        var text =
-            'https://songs.winsys.lv' + '\n' +
-            'Роль: '   + roleLabel    + '\n' +
-            'Имя: '    + user.NAME   + '\n' +
-            'Логин: '  + user.LOGIN  + '\n' +
-            'Пароль: ' + user.PASS;
+        var body = window.t('settings.share.template', {
+            role: roleLabel,
+            name: user.NAME,
+            login: user.LOGIN,
+            password: user.PASS
+        });
+        var text = 'https://songs.winsys.lv\n' + body;
         if (navigator.clipboard && navigator.clipboard.writeText) {
             navigator.clipboard.writeText(text).then(
-                function() { alert('📋 Данные скопированы в буфер обмена!'); },
-                function() { prompt('Скопируйте данные:', text); }
+                function() { alert(window.t('settings.alert.userCopied')); },
+                function() { prompt(window.t('settings.share.copyPrompt'), text); }
             );
         } else {
-            prompt('Скопируйте данные:', text);
+            prompt(window.t('settings.share.copyPrompt'), text);
         }
     };
 
@@ -368,15 +369,15 @@ app.controller('Settings', function ($scope, $http)
                     // Redirect to Google OAuth
                     window.location.href = r.data.url;
                 } else {
-                    alert('❌ Ошибка: ' + (r.data.message || 'Unknown error'));
+                    alert(window.t('settings.alert.googleLinkError', { message: r.data.message || window.t('common.unknownError') }));
                 }
             },
-            function error(e) { alert('❌ Ошибка при получении OAuth URL!'); }
+            function error(e) { alert(window.t('settings.alert.googleLinkUrlError')); }
         );
     };
 
     $scope.unlinkGoogleAccount = function(user, accountId) {
-        if (!confirm('Отвязать этот Google аккаунт?')) return;
+        if (!confirm(window.t('settings.confirm.unlinkGoogle'))) return;
 
         $http({ method: 'POST', url: '/ajax', data: {
             command: 'unlink_google_account',
@@ -385,12 +386,12 @@ app.controller('Settings', function ($scope, $http)
             function success(r) {
                 if (r.data && r.data.status === 'ok') {
                     $scope.loadGoogleAccounts(user);
-                    alert('✅ Google аккаунт отвязан!');
+                    alert(window.t('settings.alert.googleUnlinkSuccess'));
                 } else {
-                    alert('❌ Ошибка: ' + (r.data.message || 'Unknown error'));
+                    alert(window.t('settings.alert.googleLinkError', { message: r.data.message || window.t('common.unknownError') }));
                 }
             },
-            function error(e) { alert('❌ Ошибка при отвязке Google аккаунта!'); }
+            function error(e) { alert(window.t('settings.alert.googleUnlinkError')); }
         );
     };
 
