@@ -3,7 +3,7 @@
  * Presentation mode: left = scrollable notes, right = text/image display.
  */
 
-angular.module('Songs', ['csrfModule'])
+angular.module('Songs', ['csrfModule', 'i18nModule'])
     .controller('Sermon', function ($scope, $http, $timeout, $sce) {
 
         $scope.sermonList       = [];
@@ -76,7 +76,9 @@ angular.module('Songs', ['csrfModule'])
                         const book = el.getAttribute('data-book-name') || "";
                         const chapter = el.getAttribute('data-chapter') || "";
                         currentKey = `bible-${book}-${chapter}`;
-                        titleText = `${book}${chapter ? ", глава " + chapter : ""}`;
+                        titleText = chapter
+                            ? window.t('sermon.bible.chapterRef', { book: book, chapter: chapter })
+                            : book;
                     } else if (el.classList.contains('message-cite')) {
                         titleText = el.getAttribute('data-msg-title') || "";
                         currentKey = `msg-${titleText}`;
@@ -631,7 +633,7 @@ angular.module('Songs', ['csrfModule'])
 
                     var slideInner = el.querySelector('.sermon-slide-inner');
                     var html  = slideInner ? _inlineComputedColors(slideInner) : el.innerHTML;
-                    var title = (el.querySelector('.sermon-slide-label') || {}).textContent || 'Слайд';
+                    var title = (el.querySelector('.sermon-slide-label') || {}).textContent || window.t('sermon.slide.fallbackLabel');
                     var bg    = el.dataset.bg || (userSettings && userSettings.slide_bg_color) || '#1a237e';
 
                     $timeout(function () {
@@ -1059,7 +1061,7 @@ angular.module('Songs', ['csrfModule'])
                     if (r.data && r.data.status === 'ok') {
                         // Add "do not broadcast" option as first item
                         $scope.displayTargets = [
-                            { group_id: null, display_name: '— не транслировать —' }
+                            { group_id: null, display_name: window.t('sermon.broadcast.none') }
                         ].concat(r.data.targets || []);
 
                         // Default to "do not broadcast" (null)
@@ -1137,15 +1139,15 @@ angular.module('Songs', ['csrfModule'])
             }).then(
                 function(r) {
                     if (r.data && r.data.status === 'ok') {
-                        alert('✓ Запрос отправлен. Ожидайте подтверждения от владельца дисплея.');
+                        alert(window.t('sermon.requestSent'));
                         $scope.showAccessRequestModal = false;
                         $scope.selectedGroupForRequest = '';
                     } else {
-                        alert('Ошибка: ' + (r.data.message || 'Неизвестная ошибка'));
+                        alert(window.t('sermon.errorPrefix', { message: r.data.message || window.t('common.unknownError') }));
                     }
                 },
                 function(err) {
-                    alert('Ошибка отправки запроса');
+                    alert(window.t('sermon.error.requestSendFailed'));
                 }
             );
         };

@@ -1,17 +1,21 @@
 <!DOCTYPE html>
-<html ng-app="Songs" lang="ru">
+<html ng-app="Songs" lang="<?php echo T::lang(); ?>">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="<?php echo htmlspecialchars(Security::getCsrfToken(), ENT_QUOTES); ?>">
-    <title>Проповедь</title>
+    <title><?php echo T::s('sermon.page.title'); ?></title>
     <script type="text/javascript">
         // [SECURITY] WebSocket authentication credentials
         window.WS_USER_ID = <?php echo Security::getCurrentUserId(); ?>;
         window.WS_GROUP_ID = <?php echo Security::getGroupId(); ?>;
         window.WS_AUTH_TOKEN = "<?php echo Security::generateWebSocketToken(); ?>";
+        // [I18N] UI language and dictionary, consumed by /js/i18n.min.js
+        window.UI_LANG = "<?php echo T::lang(); ?>";
+        window.UI_DICT = <?php echo T::dictJson(); ?>;
     </script>
     <script src="/js/angular.min.js" type="text/javascript"></script>
+    <script src="/js/i18n.min.js?v=1"></script>
     <script src="/js/csrf_interceptor.min.js"></script>
     <style>
         :root {
@@ -74,7 +78,7 @@
             flex-direction: column;
         }
 
-        /* ===== Компактный заголовок ===== */
+        /* ===== Compact header ===== */
         #notes-header {
             background: var(--sn-notes-header);
             padding: 0 8px;
@@ -166,7 +170,7 @@
             height: 34px;
         }
 
-        /* ── Кнопка «⋮» меню ── */
+        /* ── "⋮" menu button ── */
         #header-menu-btn {
             width: 36px;
             height: 34px;
@@ -186,7 +190,7 @@
         }
         #header-menu-btn:hover { background: rgba(255,255,255,0.15); }
 
-        /* ── Выпадающее меню ── */
+        /* ── Dropdown menu ── */
         #header-dropdown {
             display: none;
             position: absolute;
@@ -356,7 +360,7 @@
         #notes-body .sermon-ppt-slide.active-img { border-color: var(--sn-bible-shadow); box-shadow: 0 0 0 2px var(--sn-bible-shadow); }
         #notes-body .sermon-ppt-slide img { display: block; max-width: 100%; }
 
-        /* ── Видео-чип в левой панели (notes-body) ── */
+        /* ── Video chip in the left (notes-body) panel ── */
         #notes-body .sermon-video-wrap {
             display: inline-flex;
             align-items: center;
@@ -378,7 +382,7 @@
         #notes-body .svw-label { font-size: 10pt; color: #c0ccff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
         #notes-body .svw-del   { display: none !important; }
 
-        /* ── Слайды в левой панели (sermon display mode) ── */
+        /* ── Slides in the left panel (sermon display mode) ── */
         /* background, border-color, text color — set dynamically by JS via data-bg */
         #notes-body .sermon-slide {
             display: block;
@@ -420,7 +424,7 @@
         #notes-body .sermon-slide.active-slide { border-color: #ff6f00 !important; box-shadow: 0 0 0 3px rgba(255,111,0,.22); }
         #notes-body .sermon-slide.active-slide .sermon-slide-header { background: #ff6f00 !important; }
 
-        /* ── Панель управления видео в левой панели ── */
+        /* ── Video controls panel in the left panel ── */
         #sermon-video-controls {
             flex-shrink: 0;
             border-top: 1px solid rgba(255,255,255,.1);
@@ -549,7 +553,7 @@
 
         .no-sermon-msg { padding: 40px 20px; color: #666; text-align: center; font-size: 12pt; }
 
-        /* ── Слайд-оверлей в правой панели (z-index: 12) ── */
+        /* ── Slide overlay in the right panel (z-index: 12) ── */
         #display-slide-wrap {
             position: absolute;
             inset: 0;
@@ -601,7 +605,7 @@
         #display-slide-content .sermon-slide-del,
         #display-slide-content .sermon-group-header { display: none !important; }
 
-        /* ── Видео-оверлей в правой панели ── */
+        /* ── Video overlay in the right panel ── */
         #display-video-wrap {
             position: absolute;
             inset: 0;
@@ -742,7 +746,7 @@
             }
         }
 
-        /* ===== Группировочные заголовки ===== */
+        /* ===== Group headers ===== */
         .sermon-group-header {
             display: block;
             margin: 15px 3px 5px 3px;
@@ -774,10 +778,10 @@
     <!-- LEFT: Notes panel -->
     <div id="notes-panel">
         <div id="notes-header">
-            <button class="btn-back" ng-click="clearAndGoHome()">← Главная</button>
+            <button class="btn-back" ng-click="clearAndGoHome()"><?php echo T::s('common.button.back'); ?></button>
 
             <div id="notes-title-wrap">
-                <div id="notes-title">{{ currentSermon ? currentSermon.TITLE || '(без названия)' : 'Выберите проповедь' }}</div>
+                <div id="notes-title">{{ currentSermon ? currentSermon.TITLE || ('<?php echo T::s('sermon.untitled'); ?>') : ('<?php echo T::s('sermon.selectSermon'); ?>') }}</div>
                 <div id="notes-date">{{ currentSermon ? currentSermon.SERMON_DATE : '' }}</div>
             </div>
 
@@ -786,59 +790,59 @@
                     <select id="display-target-select"
                             ng-model="selectedDisplayTarget"
                             ng-options="t.group_id as t.display_name for t in displayTargets"
-                            title="Выбор дисплея">
+                            title="<?php echo T::s('sermon.selectDisplayTitle'); ?>">
                     </select>
                 </div>
-                <button id="header-menu-btn" onclick="toggleHeaderMenu(event)" title="Меню">⋮</button>
+                <button id="header-menu-btn" onclick="toggleHeaderMenu(event)" title="<?php echo T::s('common.menu'); ?>">⋮</button>
             </div>
 
-            <!-- Выпадающее меню -->
+            <!-- Dropdown menu -->
             <div id="header-dropdown">
                 <div class="hd-row">
-                    <span class="hd-label">Проповедь</span>
+                    <span class="hd-label"><?php echo T::s('sermon.label.sermon'); ?></span>
                     <select id="sermon-select" ng-model="selectedSermonId" ng-change="loadSermon(selectedSermonId)">
-                        <option value="">— выбрать —</option>
+                        <option value=""><?php echo T::s('common.choose'); ?></option>
                         <option ng-repeat="s in sermonList" value="{{ s.ID }}">
-                            {{ s.TITLE || '(без названия)' }} {{ s.SERMON_DATE ? '(' + s.SERMON_DATE + ')' : '' }}
+                            {{ s.TITLE || ('<?php echo T::s('sermon.untitled'); ?>') }} {{ s.SERMON_DATE ? '(' + s.SERMON_DATE + ')' : '' }}
                         </option>
                     </select>
                 </div>
                 <div class="hd-row">
-                    <span class="hd-label">Шрифт</span>
+                    <span class="hd-label"><?php echo T::s('sermon.label.font'); ?></span>
                     <div id="font-size-controls">
-                        <button class="font-size-btn" ng-click="changeNotesFontSize(-1)" title="Уменьшить">−</button>
-                        <button class="font-size-btn" ng-click="changeNotesFontSize(+1)" title="Увеличить">+</button>
+                        <button class="font-size-btn" ng-click="changeNotesFontSize(-1)" title="<?php echo T::s('common.button.decrease'); ?>">−</button>
+                        <button class="font-size-btn" ng-click="changeNotesFontSize(+1)" title="<?php echo T::s('common.button.increase'); ?>">+</button>
                     </div>
                 </div>
                 <div class="hd-row">
                     <button class="request-access-btn"
                             ng-click="showAccessRequestModal = true"
-                            title="Запросить доступ к другому дисплею"
+                            title="<?php echo T::s('sermon.requestAccessTitle'); ?>"
                             style="width:100%">
-                        + Запросить доступ к дисплею
+                        <?php echo T::s('sermon.requestAccessButton'); ?>
                     </button>
                 </div>
             </div>
         </div>
 
         <div id="notes-body" ng-bind-html="notesHtml" ng-if="currentSermon"></div>
-        <div class="no-sermon-msg" ng-if="!currentSermon">Выберите проповедь из списка выше</div>
+        <div class="no-sermon-msg" ng-if="!currentSermon"><?php echo T::s('sermon.empty'); ?></div>
 
-        <!-- Панель управления видео (появляется при активном видео) -->
+        <!-- Video controls panel (appears when a video is active) -->
         <div id="sermon-video-controls" ng-show="videoActive">
 
-            <!-- Название видео + кнопки -->
+            <!-- Video title + buttons -->
             <div class="svc-row">
                 <span class="svc-name" title="{{ videoCurrentName }}">🎬 {{ videoCurrentName }}</span>
                 <button class="svc-btn"
                         ng-class="videoPlaying ? 'svc-btn-pause' : 'svc-btn-play'"
                         ng-click="toggleVideoPlayback()">
-                    {{ videoPlaying ? '⏸ Пауза' : '▶ Играть' }}
+                    {{ videoPlaying ? ('<?php echo T::s('sermon.video.pause'); ?>') : ('<?php echo T::s('sermon.video.play'); ?>') }}
                 </button>
                 <button class="svc-btn svc-btn-stop" ng-click="stopVideo()">⏹</button>
             </div>
 
-            <!-- Прогресс (только локальные файлы) -->
+            <!-- Progress (local files only) -->
             <div class="svc-progress" ng-if="!videoIsYouTube">
                 <input type="range" min="0" max="100" step="0.1"
                        ng-model="videoProgress"
@@ -846,7 +850,7 @@
                        ng-mouseup="seekVideo(); videoSeeking = false">
                 <span class="svc-time">{{ videoCurrentTime }}</span>
             </div>
-            <div class="svc-yt" ng-if="videoIsYouTube">YouTube — управление в плеере</div>
+            <div class="svc-yt" ng-if="videoIsYouTube"><?php echo T::s('sermon.video.youtubeNote'); ?></div>
 
         </div>
 
@@ -876,7 +880,7 @@
             <div id="display-slide-content" ng-bind-html="displaySlideHtml"></div>
         </div>
 
-        <!-- Video overlay (z-index:11, выше image overlay z:10) -->
+        <!-- Video overlay (z-index:11, above image overlay z:10) -->
         <div id="display-video-wrap" ng-show="displayVideoSrc">
 
             <!-- YouTube -->
@@ -888,7 +892,7 @@
                     allowfullscreen>
             </iframe>
 
-            <!-- HTML5 видео (локальный файл / прямая ссылка) -->
+            <!-- HTML5 video (local file / direct URL) -->
             <video ng-if="!displayVideoIsYouTube"
                    id="sermon-display-video"
                    ng-src="{{ displayVideoSrcLocal }}"
@@ -900,32 +904,32 @@
 
         <!-- Empty state hint -->
         <div id="display-empty" ng-show="!displayText && !displayImageSrc && !displaySlideHtml">
-            Нажмите на цитату или изображение
+            <?php echo T::s('sermon.display.empty'); ?>
         </div>
 
     </div>
 </div>
 
-<button id="fullscreen-btn" ng-click="toggleFullscreen()">⛶ Полный экран</button>
+<button id="fullscreen-btn" ng-click="toggleFullscreen()"><?php echo T::s('sermon.fullscreen'); ?></button>
 
 <!-- Access Request Modal -->
 <div class="modal-overlay" ng-show="showAccessRequestModal" ng-click="showAccessRequestModal = false">
     <div class="modal-content" ng-click="$event.stopPropagation()">
-        <div class="modal-title">Запросить доступ к дисплею</div>
-        <div class="modal-text">Выберите группу, к дисплею которой вы хотите получить доступ:</div>
+        <div class="modal-title"><?php echo T::s('sermon.requestAccessModalTitle'); ?></div>
+        <div class="modal-text"><?php echo T::s('sermon.requestGroupPrompt'); ?></div>
         <select class="modal-select" ng-model="selectedGroupForRequest">
-            <option value="">— выберите группу —</option>
+            <option value=""><?php echo T::s('sermon.chooseGroup'); ?></option>
             <option ng-repeat="g in availableGroups" value="{{ g.group_id }}">{{ g.display_name }}</option>
         </select>
         <div class="modal-buttons">
-            <button class="modal-btn modal-btn-secondary" ng-click="showAccessRequestModal = false">Отмена</button>
-            <button class="modal-btn modal-btn-primary" ng-click="sendAccessRequest()" ng-disabled="!selectedGroupForRequest">Отправить запрос</button>
+            <button class="modal-btn modal-btn-secondary" ng-click="showAccessRequestModal = false"><?php echo T::s('common.button.cancel'); ?></button>
+            <button class="modal-btn modal-btn-primary" ng-click="sendAccessRequest()" ng-disabled="!selectedGroupForRequest"><?php echo T::s('common.button.send'); ?></button>
         </div>
     </div>
 </div>
 
 <script src="/js/websocket_auth.min.js"></script>
-<script src="/js/sermon.min.js?v=9" type="text/javascript"></script>
+<script src="/js/sermon.min.js?v=10" type="text/javascript"></script>
 <script>
     function toggleHeaderMenu(e) {
         e.stopPropagation();
@@ -937,7 +941,7 @@
             dd.classList.remove('open');
         }
     });
-    // Закрыть дропдаун при выборе проповеди
+    // Close the dropdown when a sermon is selected
     document.addEventListener('change', function(e) {
         if (e.target && e.target.id === 'sermon-select') {
             document.getElementById('header-dropdown').classList.remove('open');
