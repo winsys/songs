@@ -2,12 +2,12 @@
  * sermon_prep.js  — v2 (video support)
  * AngularJS controller for the Sermon Preparation mode.
  *
- * ИЗМЕНЕНИЯ vs v1:
- *  + $sce добавлен к инжекции
+ * Changes vs v1:
+ *  + $sce added to injection
  *  + video state variables
  *  + insertVideoNode()
  *  + $scope.toggleVideoPanel(), insertVideoUrl(), triggerVideoUpload(), onVideoFileSelected()
- *  + attachEditorHandlers() дополнен .sermon-video-wrap
+ *  + attachEditorHandlers() extended with .sermon-video-wrap
  *
  */
 
@@ -202,7 +202,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 $scope.prepLangList = list;
                 var newLangs = {};
                 list.forEach(function (l) {
-                    // сохранить уже выбранное, иначе: включён только язык по умолчанию
+                    // preserve the current selection, otherwise only default language is active
                     newLangs[l.code] = ($scope.prepLangs[l.code] !== undefined)
                         ? $scope.prepLangs[l.code]
                         : (l.is_default == '1');
@@ -392,7 +392,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 var cd = e.clipboardData;
                 if (!cd) return;
 
-                // Ищем image-blob: сначала в items, потом в files
+                // Look for image-blob: first in items, then in files
                 var blob = null;
                 if (cd.items) {
                     for (var i = 0; i < cd.items.length; i++) {
@@ -445,9 +445,9 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
 
             // Setup drag and drop for chips
             setupEditorDropZone();
-            // Инициализация редактора чипов
+            // Initialize chip editor
             initChipEditor();
-            // Экспортируем scheduleAutoSave для sermon_chip_editor.js
+            // Export scheduleAutoSave for sermon_chip_editor.js
             window._sermonScheduleAutoSave = scheduleAutoSave;
         }, 0);
     });
@@ -649,11 +649,11 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     };
 
     $scope.deleteSermonFromList = function (id, $event) {
-        $event.stopPropagation(); // не открывать проповедь при клике
+        $event.stopPropagation(); // prevent opening the sermon on click
         if (!confirm('Удалить эту проповедь?')) return;
         $http({ method: "POST", url: "/ajax", data: { command: 'delete_sermon', id: id } }).then(
             function () {
-                // Если удаляем текущую открытую — сбросить редактор
+                // If deleting the currently open sermon — reset the editor
                 if ($scope.sermon.id == id) {
                     $scope.newSermon();
                 }
@@ -697,41 +697,41 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.exportToMarkdown = function() {
         var htmlContent = document.getElementById('sermon-editor').innerHTML;
 
-        // Инициализация сервиса
+        // Service initialization
         var turndownService = new TurndownService({
             headingStyle: 'atx',
             bulletListMarker: '-'
         });
 
-        // УНИВЕРСАЛЬНОЕ ПРАВИЛО для всех спец-блоков
+        // Universal rule for all special blocks
         turndownService.addRule('keep-special-wrappers', {
             filter: function (node) {
-                // Перечисляем все классы ваших специальных вставок
+                // List all classes of your special embeds
                 const specialClasses = [
                     'bible-cite',
                     'message-cite',
                     'sermon-video-wrap',
                     'sermon-img-wrap'
                 ];
-                // Проверяем, есть ли у элемента хотя бы один из этих классов
+                // Check if the element has at least one of these classes
                 return specialClasses.some(className => node.classList.contains(className));
             },
             replacement: function (content, node) {
-                // Создаем клон узла, чтобы не ломать оригинал в редакторе
+                // Clone the node so we do not mutate the original in the editor
                 var clone = node.cloneNode(true);
 
-                // Удаляем кнопки "Удалить" (крестики) внутри клона перед сохранением
+                // Remove delete buttons (×) from the clone before saving
                 var removeButtons = clone.querySelectorAll('.cite-remove, .svw-del, .sermon-img-remove');
                 removeButtons.forEach(btn => btn.remove());
 
-                // Возвращаем чистый HTML без крестиков
+                // Return clean HTML without delete buttons
                 return clone.outerHTML;
             }
         });
 
         var markdown = turndownService.turndown(htmlContent);
 
-        // Логика скачивания файла
+        // File download logic
         var blob = new Blob([markdown], { type: 'text/markdown' });
         var url = window.URL.createObjectURL(blob);
         var a = document.createElement('a');
@@ -1028,24 +1028,24 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     }
 
     // ──────────────────────────────────────────────────────────
-    // VIDEO INSERT  ◄── НОВЫЙ БЛОК
+    // VIDEO INSERT  ◄── NEW BLOCK
     // ──────────────────────────────────────────────────────────
 
-    /** Распознать YouTube-ссылку и извлечь videoId */
+    /** Parse a YouTube URL and extract videoId */
     function getYouTubeId(url) {
         var m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
         return m ? m[1] : null;
     }
 
-    /** Открыть/закрыть панель вставки видео */
+    /** Open/close the video insert panel */
     $scope.toggleVideoPanel = function ($event) {
         if ($event) { $event.preventDefault(); $event.stopPropagation(); }
-        saveRange(); // сохранить курсор перед тем как фокус уйдёт
+        saveRange(); // save cursor before focus leaves the editor
         $scope.showVideoPanel  = !$scope.showVideoPanel;
         $scope.videoUrlInput   = '';
     };
 
-    /** Вставить видео по URL */
+    /** Insert a video by URL */
     $scope.insertVideoUrl = function () {
         var url = ($scope.videoUrlInput || '').trim();
         if (!url) return;
@@ -1058,14 +1058,14 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         $scope.videoUrlInput  = '';
     };
 
-    /** Открыть диалог выбора видеофайла */
+    /** Open the video file picker dialog */
     $scope.triggerVideoUpload = function () {
         saveRange();
         $scope.showVideoPanel = false;
         document.getElementById('sermon-video-input').click();
     };
 
-    /** Обработчик выбора видеофайла */
+    /** Handler for video file selection */
     $scope.onVideoSelected = function (input) {
         if (!input.files || input.files.length === 0) return;
         $scope.uploadingVideo = true;
@@ -1097,7 +1097,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         );
     };
 
-    /** Создать DOM-узел видео-чипа и вставить в редактор */
+    /** Create a video chip DOM node and insert it into the editor */
     function insertVideoNode(src, label) {
         var wrap           = document.createElement('span');
         wrap.className     = 'sermon-video-wrap';
@@ -1124,7 +1124,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             scheduleAutoSave();
         };
 
-        // Клик = предпросмотр в модалке
+         // Click = preview in modal
         wrap.onclick = function (e) {
             if (e.target === del) return;
             _openVideoModal(src);
@@ -1137,7 +1137,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         insertNodeAtCursor(wrap);
     }
 
-    /** Открыть модалку предпросмотра видео */
+    /** Open video preview modal */
     function _openVideoModal(src) {
         var ytId = getYouTubeId(src);
         $scope.$apply(function () {
@@ -1169,13 +1169,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     // SLIDES
     // ──────────────────────────────────────────────────────────
 
-    /** Вставить новый пустой слайд после курсора */
+    /** Insert a new empty slide after the cursor */
     $scope.insertSlide = function () {
         saveRange();
         var slide = _buildSlideNode('<p><br></p>');
         _attachSlideHandlers(slide);
         insertNodeAtCursor(slide);
-        // Поставить курсор внутрь слайда
+         // Place cursor inside the slide
         var inner = slide.querySelector('.sermon-slide-inner');
         if (inner) {
             var r = document.createRange();
@@ -1188,7 +1188,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         }
     };
 
-    /** Преобразовать выделенный текст/чипы в слайд */
+    /** Wrap selected text/chips into a slide */
     $scope.convertSelectionToSlide = function () {
         var sel = window.getSelection();
         if (!sel || sel.rangeCount === 0 || sel.isCollapsed) {
@@ -1196,7 +1196,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             return;
         }
         var range = sel.getRangeAt(0);
-        // Убедиться что выделение внутри редактора
+         // Ensure the selection is inside the editor
         if (!editorEl || !editorEl.contains(range.commonAncestorContainer)) {
             alert('Выделение должно быть внутри редактора заметок.');
             return;
@@ -1207,7 +1207,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         inner.appendChild(fragment);
         _attachSlideHandlers(slide);
         range.insertNode(slide);
-        // Сдвинуть курсор за слайд
+         // Move cursor past the slide
         var after = document.createRange();
         after.setStartAfter(slide);
         after.collapse(true);
@@ -1217,7 +1217,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         scheduleAutoSave();
     };
 
-    /** Создать DOM-структуру слайда */
+    /** Build the slide DOM structure */
     var DEFAULT_SLIDE_BG = '#1a237e';
     var _lastSlideColor  = DEFAULT_SLIDE_BG;
 
@@ -1308,7 +1308,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         return wrap;
     }
 
-    /** Навесить обработчики после загрузки из БД */
+    /** Attach event handlers after loading from DB */
     function _attachSlideHandlers(wrap) {
         var bg = wrap.dataset.bg || DEFAULT_SLIDE_BG;
         _applySlideColor(wrap, bg);
@@ -1443,7 +1443,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             _attachSlideHandlers(slide);
         });
 
-        // ── VIDEO chips — re-attach (НОВЫЙ блок) ──
+        // ── VIDEO chips — re-attach (new block) ──
         editorEl.querySelectorAll('.sermon-video-wrap').forEach(function (span) {
             var src = span.getAttribute('data-video-src');
             var del = span.querySelector('.svw-del');
@@ -1583,13 +1583,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     };
     $scope.togglePrepLang = function (code) {
         $scope.prepLangs[code] = !$scope.prepLangs[code];
-        // хотя бы один язык должен быть активен
+        // at least one language must be active
         var anyOn = $scope.prepLangList.some(function (l) { return $scope.prepLangs[l.code]; });
         if (!anyOn) $scope.prepLangs[code] = true;
     };
     $scope.langHasData = function (lang) {
-        if (lang.is_default == '1') return true;             // язык по умолчанию всегда доступен
-        if (!$scope.rawVerses || $scope.rawVerses.length === 0) return true;  // стихи ещё не загружены — не блокировать
+        if (lang.is_default == '1') return true;             // default language is always available
+        if (!$scope.rawVerses || $scope.rawVerses.length === 0) return true;  // verses not yet loaded — do not block
         var col = 'TEXT' + lang.col_suffix;
         return $scope.rawVerses.some(function (v) { return v[col] && v[col].trim() !== ''; });
     };
@@ -1617,7 +1617,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     };
     $scope.togglePrepLang = function (lang) {
         $scope.prepLangs[lang] = !$scope.prepLangs[lang];
-        // хотя бы один язык должен быть включён
+        // at least one language must be enabled
         if (!$scope.prepLangs.ru && !$scope.prepLangs.lt && !$scope.prepLangs.en) {
             $scope.prepLangs[lang] = true;
         }
@@ -1628,12 +1628,12 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         var refLabel = $scope.getRefLabel();
         var book     = $scope.selectedBook;
 
-        // Только активные и доступные языки
+         // Only active and available languages
         var activeLangs = $scope.prepLangList.filter(function (l) {
             return $scope.prepLangs[l.code] && $scope.langHasData(l);
         });
 
-        // Собрать тексты стихов для каждого языка
+         // Collect verse texts for each language
         var langTexts = {};
         activeLangs.forEach(function (l) {
             var col  = 'TEXT' + l.col_suffix;
@@ -1655,13 +1655,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     var verseText  = langTexts[l.code] || '';
                     var langSuffix = activeLangs.length > 1 ? ' [' + l.label + ']' : '';
 
-                    // Имя книги на языке цитаты
+                    // Book name in the citation language
                     var nameField   = 'NAME' + l.col_suffix;
                     var langBookName = (book[nameField] && book[nameField].trim())
                         ? book[nameField]
                         : book.NAME || '';
 
-                    // Ссылка с языковым именем книги
+                    // Reference with the language-specific book name
                     var langRefLabel = langBookName + ' ' + $scope.selectedChapter + ':' + nums[0];
                     if (nums.length > 1) {
                         var consecutive = true;
@@ -1767,10 +1767,10 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.togglePrepPara = function (para) {
         if ($scope.prepSelectedParaIdx === para.idx) {
             $scope.prepSelectedParaIdx = null;
-            // не сворачиваем — пусть пользователь жмёт стрелку сам
+            // do not collapse — let the user press the arrow themselves
         } else {
             $scope.prepSelectedParaIdx = para.idx;
-            $scope.prepMsgParaExpanded = true;   // ← расширяем при выборе абзаца
+            $scope.prepMsgParaExpanded = true;   // expand when paragraph is selected
         }
     };
     $scope.collapseMsgSearch = function () {

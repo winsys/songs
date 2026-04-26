@@ -37,7 +37,7 @@ app.controller('Settings', function ($scope, $http)
         { path: '/field_small.jpg', name: 'field_small.jpg (по умолчанию)' }
     ];
 
-    // Загрузка разрешений с сервера
+    // Load permissions from server
     $scope.loadPermissions = function() {
         $http({ method: "POST", url: "/ajax", data: {command: 'get_settings_permissions' } }).then(
             function success(r){
@@ -196,8 +196,8 @@ app.controller('Settings', function ($scope, $http)
     $scope.loadAllLanguages();
 
     // ============================================================
-    // ПОЛЬЗОВАТЕЛИ ГРУППЫ
-    // Вставить в public/js/settings.js ПЕРЕД строкой loadSettings();
+    // GROUP USERS
+    // Insert before loadSettings();
     // ============================================================
 
     var ALL_ROLES = [
@@ -214,13 +214,13 @@ app.controller('Settings', function ($scope, $http)
     });
 
     $scope.getCurrentUserId = function() {
-        // Получить ID текущего пользователя из сессии (будет передан через PHP)
+        // Get current user ID from session (passed via PHP)
         return parseInt(window.currentUserId) || 0;
     };
 
     $scope.canEditUser = function(user) {
         if (!user) return false;
-        // Админ может редактировать всех, остальные только себя
+        // Admin can edit all users, others can only edit themselves
         return $scope.permissions.canManageUsers || parseInt(user.ID) === $scope.getCurrentUserId();
     };
 
@@ -241,7 +241,7 @@ app.controller('Settings', function ($scope, $http)
             function success(r) {
                 var users = r.data || [];
 
-                // Сбросить слоты
+                // Reset slots
                 $scope.userSlots = ALL_ROLES.map(function(slot) {
                     var found = null;
                     for (var i = 0; i < users.length; i++) {
@@ -269,7 +269,7 @@ app.controller('Settings', function ($scope, $http)
         $http({ method: 'POST', url: '/ajax', data: { command: 'create_group_user', role: role } }).then(
             function success(r) {
                 if (r.data && r.data.status === 'success') {
-                    // Найти слот и вставить нового пользователя
+                    // Find slot and insert new user
                     for (var i = 0; i < $scope.userSlots.length; i++) {
                         if ($scope.userSlots[i].role === role) {
                             $scope.userSlots[i].user = r.data.user;

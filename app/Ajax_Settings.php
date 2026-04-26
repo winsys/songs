@@ -95,7 +95,7 @@ trait Ajax_Settings
         return json_encode(['status' => 'success']);
     }
 
-    /** Быстрое сохранение только цвета слайда */
+    /** Quick-save only the slide background color. */
     private static function save_slide_bg_color()
     {
         $userId = (int)$_SESSION['curGroupId'];
@@ -113,7 +113,7 @@ trait Ajax_Settings
     }
 
     // ============================================================
-    // ПОЛЬЗОВАТЕЛИ ГРУППЫ
+    // GROUP USERS
     // ============================================================
 
     private static function get_group_users()
@@ -149,14 +149,14 @@ trait Ajax_Settings
         $login  = mysqli_real_escape_string($dbh, self::$args['login'] ?? '');
         $pass   = self::$args['pass'] ?? '';
 
-        // Проверка прав: можно редактировать только себя, или всех если админ
+        // Permission check: users may edit only themselves; admins may edit all group members
         if (Security::canManageUsers()) {
-            // Админ может редактировать всех в своей группе
+            // Admin can edit any user in their group
             $check = Info::get('db')->get(
                 "SELECT ID FROM users WHERE ID = {$id} AND (ID = {$currentUserId} OR GROUP_ID = {$groupId})"
             );
         } else {
-            // Остальные могут редактировать только себя
+            // Non-admins can edit only their own account
             $check = Info::get('db')->get(
                 "SELECT ID FROM users WHERE ID = {$id} AND ID = {$currentUserId}"
             );
@@ -166,7 +166,7 @@ trait Ajax_Settings
             return json_encode(['status' => 'error', 'message' => 'Access denied']);
         }
 
-        // [SECURITY #1] Шифруем пароль перед сохранением
+        // [SECURITY #1] Encrypt password before storing
         $encryptedPass = Security::encryptPassword($pass);
         $escapedPass   = mysqli_real_escape_string($dbh, $encryptedPass);
 
@@ -217,14 +217,14 @@ trait Ajax_Settings
         $defaultName  = $groupName . ' - ' . $roleLabels[$role];
         $defaultLogin = strtolower(preg_replace('/\s+/', '_', $groupName)) . '_' . $role;
 
-        // Генерация пароля: 8 символов
+        // Generate an 8-character random password
         $chars    = 'abcdefghjkmnpqrstuvwxyz23456789';
         $password = '';
         for ($i = 0; $i < 8; $i++) {
             $password .= $chars[random_int(0, strlen($chars) - 1)];
         }
 
-        // [SECURITY #1] Шифруем пароль перед сохранением
+        // [SECURITY #1] Encrypt password before storing
         $encryptedPass = Security::encryptPassword($password);
 
         $escapedName  = mysqli_real_escape_string($dbh, $defaultName);
@@ -243,7 +243,7 @@ trait Ajax_Settings
                 'ID'    => $newId,
                 'NAME'  => $defaultName,
                 'LOGIN' => $defaultLogin,
-                'PASS'  => $password,   // plaintext возвращается только один раз при создании
+                'PASS'  => $password,   // plaintext returned only once at creation time
                 'ROLE'  => $role,
             ],
         ]);
@@ -255,14 +255,14 @@ trait Ajax_Settings
             return json_encode(['status' => 'error', 'message' => 'No file uploaded']);
         }
 
-        // [SECURITY #5] Проверка расширения
+        // [SECURITY #5] Validate file extension
         $ext     = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
         $allowedExt  = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         if (!in_array($ext, $allowedExt, true)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid file extension: ' . $ext]);
         }
 
-        // [SECURITY #5] Проверка реального MIME-типа файла
+        // [SECURITY #5] Validate actual MIME type
         $allowedMime = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
         if (!self::checkMime($_FILES['image']['tmp_name'], $allowedMime)) {
             return json_encode(['status' => 'error', 'message' => 'Invalid file type (MIME mismatch)']);

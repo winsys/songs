@@ -1,15 +1,15 @@
 /**
- * ImportCtrl — контроллер страницы "Импорт данных"
- * Поддерживает импорт:
- *   - Сборников песен (SOG-текст + ZIP-картинки)
- *   - Посланий (SOG-текст)
+ * ImportCtrl — "Import" page controller
+ * Supports import of:
+ *   - Song books (SOG text + ZIP images)
+ *   - Messages (SOG text)
  */
 angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeout) {
 
-    // ── Общее ────────────────────────────────────────────────
+    // ── General ───────────────────────────────────────────────
     $scope.tab = 'songs';
 
-    // ── Послания ─────────────────────────────────────────────
+    // ── Messages ──────────────────────────────────────────────
     $scope.msgLang       = 'ru';
     $scope.selectedMsgFile = null;
     $scope.msgImporting  = false;
@@ -17,7 +17,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     $scope.msgLog        = [];
     $scope.msgSubTab = 'sog';
 
-    // ── Послания (ввод текстом) ───────────────────────────────
+    // ── Messages (text input) ──────────────────────────────────
     $scope.txtCode      = '';
     $scope.txtTitle     = '';
     $scope.txtCity      = '';
@@ -41,7 +41,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
         return $scope.txtBody.split('\n').filter(function(l) { return l.trim() !== ''; }).length;
     };
 
-    // ── Сборники ─────────────────────────────────────────────
+    // ── Song books ─────────────────────────────────────────────
     $scope.songLists      = [];
     $scope.songListId     = '';
     $scope.songLang       = 'ru';
@@ -55,7 +55,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     $scope.zipProgress    = 0;
     $scope.songLog        = [];
 
-    // ── Послания ─────────────────────────────────────────────
+    // ── Messages ──────────────────────────────────────────────
     $scope.msgLang       = 'ru';
     $scope.selectedMsgFile = null;
     $scope.msgImporting  = false;
@@ -66,23 +66,23 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     $scope.txtCodeSuggestions = [];
     $scope.txtCodeSearching   = false;
 
-    // Состояние
+    // State
     $scope.langList           = [];
     $scope.langLoading        = false;
     $scope.newLangCode        = '';
     $scope.newLangLabel       = '';
     $scope.langAdding         = false;
-    $scope.langDeleteTarget   = null;   // code языка, для которого открыта панель удаления
+    $scope.langDeleteTarget   = null;   // language code for which the delete panel is open
     $scope.langDeletePassword = '';
     $scope.langDeleting       = false;
     $scope.langLog            = [];
 
     // ─────────────────────────────────────────────────────────
-    // ── УПРАВЛЕНИЕ ЯЗЫКАМИ ────────────────────────────────────
+    // ── LANGUAGE MANAGEMENT ─────────────────────────────────────
     // ─────────────────────────────────────────────────────────
 
     // ─────────────────────────────────────────────────────────
-    // Загрузить список языков с сервера
+    // Load language list from server
     // ─────────────────────────────────────────────────────────
     $scope.loadLanguages = function () {
         $scope.langLoading = true;
@@ -94,34 +94,34 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
 
                 if (list.length === 0) return;
 
-                // Найти язык по умолчанию (is_default == '1')
+                // Find default language (is_default == '1')
                 var defaultLang = null;
                 for (var i = 0; i < list.length; i++) {
                     if (list[i].is_default == '1') { defaultLang = list[i].code; break; }
                 }
-                // Фолбэк — первый в списке
+                // Fallback — first in list
                 if (!defaultLang) defaultLang = list[0].code;
 
-                // Собрать множество допустимых кодов
+                // Build set of valid codes
                 var validCodes = {};
                 for (var j = 0; j < list.length; j++) validCodes[list[j].code] = true;
 
-                // Обновить songLang/msgLang только если текущее значение
-                // больше не присутствует в списке (напр. был удалён язык)
+                // Update songLang/msgLang only if the current value
+                // is no longer present in the list (e.g. a language was deleted)
                 if (!validCodes[$scope.songLang]) $scope.songLang = defaultLang;
                 if (!validCodes[$scope.msgLang])  $scope.msgLang  = defaultLang;
             },
             function () {
                 $scope.langLoading = false;
-                // Не вызываем langLog здесь — langLog может быть не определён
-                // до того как пользователь открыл вкладку Языки.
-                console.error('Не удалось загрузить список языков');
+                // Do not call langLog here — langLog may not be defined
+                // before the user opens the Languages tab.
+                console.error('Failed to load language list');
             }
         );
     };
 
     // ─────────────────────────────────────────────────────────
-    // Добавить язык
+    // Add language
     // ─────────────────────────────────────────────────────────
     $scope.addLanguage = function () {
         var code  = ($scope.newLangCode  || '').toLowerCase().trim();
@@ -148,7 +148,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                     langLog('ok', '✅ ' + d.message);
                     $scope.newLangCode  = '';
                     $scope.newLangLabel = '';
-                    $scope.loadLanguages();   // обновить список
+                    $scope.loadLanguages();   // refresh list
                 } else {
                     langLog('error', '❌ ' + (d.message || 'Ошибка сервера'));
                 }
@@ -161,7 +161,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     };
 
     // ─────────────────────────────────────────────────────────
-    // Показать / скрыть панель удаления для конкретного языка
+    // Show/hide delete panel for a specific language
     // ─────────────────────────────────────────────────────────
     $scope.toggleDeletePanel = function (lang) {
         if ($scope.langDeleteTarget === lang.code) {
@@ -174,7 +174,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     };
 
     // ─────────────────────────────────────────────────────────
-    // Удалить язык (после ввода пароля)
+    // Delete language (after password entry)
     // ─────────────────────────────────────────────────────────
     $scope.deleteLanguage = function (lang) {
         if (!$scope.langDeletePassword) return;
@@ -199,7 +199,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                 var d = r.data;
                 if (d.status === 'success') {
                     langLog('ok', '✅ ' + d.message);
-                    $scope.loadLanguages();   // обновить список
+                    $scope.loadLanguages();   // refresh list
                 } else {
                     langLog('error', '❌ ' + (d.message || 'Неверный пароль или ошибка сервера'));
                 }
@@ -212,7 +212,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     };
 
     // ─────────────────────────────────────────────────────────
-    // Лог операций с языками
+    // Language operation log
     // ─────────────────────────────────────────────────────────
     function langLog(type, msg) {
         $scope.langLog.push({ type: type, msg: msg });
@@ -224,7 +224,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
 
     // ─────────────────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────
-    // Загрузить список сборников
+    // Load song book list
     // ─────────────────────────────────────────────────────────
     function loadSongLists() {
         $http({ method: 'POST', url: '/ajax', data: { command: 'get_all_song_lists' } }).then(
@@ -235,7 +235,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     $scope.loadLanguages();
 
     // ─────────────────────────────────────────────────────────
-    // Создать новый сборник
+    // Create a new song book
     // ─────────────────────────────────────────────────────────
     $scope.createSongList = function () {
         if (!$scope.newListName) return;
@@ -257,7 +257,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     };
 
     // ─────────────────────────────────────────────────────────
-    // Выбор файлов
+    // File selection
     // ─────────────────────────────────────────────────────────
     $scope.onSongSogSelected = function () {
         var f = document.getElementById('songSogFile');
@@ -281,7 +281,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     };
 
     // ─────────────────────────────────────────────────────────
-    // Helpers: лог
+    // Helpers: log
     // ─────────────────────────────────────────────────────────
     function songLog(type, msg) {
         $scope.songLog.push({ type: type, msg: msg });
@@ -301,8 +301,8 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
 
 
     // ─────────────────────────────────────────────────────────
-    // Импорт текстов песен (SOG)
-    // Разбор происходит на СЕРВЕРЕ (PHP), клиент только отправляет файл.
+    // Import song texts (SOG)
+    // Parsing happens on the SERVER (PHP); the client only sends the file.
     // ─────────────────────────────────────────────────────────
     $scope.importSongsSog = function () {
         if (!$scope.selectedSogFile || !$scope.songListId) return;
@@ -339,7 +339,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     };
 
     // ─────────────────────────────────────────────────────────
-    // Импорт картинок (ZIP)
+    // Import images (ZIP)
     // ─────────────────────────────────────────────────────────
     $scope.importSongZip = function () {
         if (!$scope.selectedZipFile || !$scope.songListId) return;
@@ -375,7 +375,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     };
 
     // ─────────────────────────────────────────────────────────
-    // Импорт посланий (SOG)
+    // Import messages (SOG)
     // ─────────────────────────────────────────────────────────
     $scope.importMessagesSog = function () {
         if (!$scope.selectedMsgFile) return;
@@ -411,7 +411,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     };
 
     // ─────────────────────────────────────────────────────────
-    // Импорт послания (ввод текстом вручную)
+    // Import message (manual text input)
     // ─────────────────────────────────────────────────────────
     $scope.importMessagesText = function () {
         if (!$scope.txtCode || !$scope.txtBody) return;
@@ -462,7 +462,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     };
 
 // ─────────────────────────────────────────────────────────
-    // Автодополнение кода послания (режимы translate и edit)
+    // Message code autocomplete (translate and edit modes)
     // ─────────────────────────────────────────────────────────
     var codeSearchTimer = null;
 
@@ -487,7 +487,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
         }, 300);
     };
 
-    // Загрузить полные данные послания для режима редактирования
+    // Load full message data for edit mode
     $scope.loadMessageForEdit = function (code) {
         $scope.txtEditLoading = true;
         $http({
@@ -503,7 +503,10 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
             var text  = (d[field] || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
             $scope.txtTitle     = d.TITLE    || '';
             $scope.txtCity      = d.CITY     || '';
-            $scope.txtBody      = text.replace(/\n/g, '\n\n');  // абзацы через пустую строку
+            $scope.txtBody      = text.replace(/
+/g, '
+
+');  // paragraphs separated by blank lines
             $scope.txtParaSep   = 'emptyline';
             $scope.txtAudioSrc  = d.AUDIO_SRC || '';
             $scope.txtTimecodes = (d.TIMECODES || '').replace(/\r\n/g, '\n').replace(/\r/g, '\n');
@@ -527,7 +530,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
         }, 200);
     };
 
-    // При смене режима сбрасываем поля (кроме кода)
+    // Reset fields on mode change (except code)
     $scope.$watch('txtMode', function (newVal, oldVal) {
         if (newVal === oldVal) return;
         $scope.txtTitle     = '';

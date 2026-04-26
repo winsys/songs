@@ -1,25 +1,25 @@
 /**
  * sermon_chip_editor.js — v2
- * Редактор форматирования чипов (Стих / Послание) для sermon_prep.
+ * Chip formatting editor (Verse / Message) for sermon_prep.
  *
- * Подключить в sermon_prep.html перед закрывающим </body>:
+ * Include in sermon_prep.html before the closing </body>:
  *   <script src="/js/sermon_chip_editor.js"></script>
  *
- * Требует:
- *   - initChipEditor() вызвать один раз после загрузки DOM
- *     (см. инструкцию внизу файла)
- *   - openChipEditor(spanEl) вызывать из ondblclick на чипе
+ * Requires:
+ *   - initChipEditor() call once after DOM load
+ *     (see instructions at the bottom of the file)
+ *   - openChipEditor(spanEl) call from ondblclick on a chip
  */
 
 // ════════════════════════════════════════════════════════════════════
-// СОСТОЯНИЕ МОДУЛЯ
+// MODULE STATE
 // ════════════════════════════════════════════════════════════════════
 
 var _cemCurrentSpan   = null;
 var _cemComments      = [];
 var _cemCommentIdSeq  = 0;
-var _cemSavedSel      = null;   // Range, сохранённый для добавления комментария
-var _cemSavedRangeForFontSize = null;  // Range, сохранённый при клике на input[number]
+var _cemSavedSel      = null;   // Range saved for adding a comment
+var _cemSavedRangeForFontSize = null;  // Range saved on click of input[number]
 
 var CEM_TEXT_COLORS = [
     '#000000','#ffffff','#e53935','#d81b60','#8e24aa',
@@ -37,12 +37,12 @@ var CEM_HIGHLIGHT_COLORS = [
 ];
 
 // ════════════════════════════════════════════════════════════════════
-// ПУБЛИЧНЫЕ ФУНКЦИИ (вызываются снаружи)
+// PUBLIC FUNCTIONS (called externally)
 // ════════════════════════════════════════════════════════════════════
 
 /**
- * Вызвать один раз при загрузке страницы.
- * Например в $timeout(function(){ ... initChipEditor(); }, 0)
+ * Call once on page load.
+  * For example: $timeout(function(){ ... initChipEditor(); }, 0)
  */
 function initChipEditor() {
     _cemBuildModal();
@@ -50,8 +50,8 @@ function initChipEditor() {
 }
 
 /**
- * Открыть редактор для конкретного чипа.
- * Вызывается из ondblclick на span.bible-cite / span.message-cite
+ * Open the editor for a specific chip.
+ * Called from ondblclick on span.bible-cite / span.message-cite
  */
 function openChipEditor(span) {
     var overlay  = document.getElementById('chip-editor-overlay');
@@ -62,13 +62,13 @@ function openChipEditor(span) {
 
     _cemCurrentSpan = span;
 
-    // Заголовок модального окна
+    // Modal window title
     var isMsg  = span.classList.contains('message-cite');
     var refEl  = span.querySelector('.cite-ref');
     var ref    = refEl ? refEl.textContent.trim() : (isMsg ? '✍️ Послание' : '📖 Стих');
     if (titleEl) titleEl.textContent = 'Редактировать: ' + ref;
 
-    // Загружаем HTML текста
+    // Load text HTML
     var verseEl   = span.querySelector('.cite-verse-text');
     var htmlAttr  = isMsg ? 'data-para-html' : 'data-verse-html';
     var savedHtml = span.getAttribute(htmlAttr) || '';
@@ -76,7 +76,7 @@ function openChipEditor(span) {
     if (!savedHtml) savedHtml = span.getAttribute('data-verse-text') || span.getAttribute('data-para-text') || '';
     editArea.innerHTML = savedHtml;
 
-    // Загружаем комментарии
+    // Load comments
     var commJson = span.getAttribute('data-verse-comments') || '[]';
     try { _cemComments = JSON.parse(commJson); } catch(e) { _cemComments = []; }
     _cemCommentIdSeq = _cemComments.reduce(function(mx, c) {
@@ -85,7 +85,7 @@ function openChipEditor(span) {
     }, 0);
     _cemRenderComments();
 
-    // Сброс состояния
+    // Reset state
     if (commentInputWrap) commentInputWrap.classList.remove('open');
 
     overlay.classList.add('open');
@@ -93,17 +93,17 @@ function openChipEditor(span) {
 }
 
 // ════════════════════════════════════════════════════════════════════
-// ПОСТРОЕНИЕ МОДАЛЬНОГО ОКНА (создаётся в DOM программно)
+// BUILD MODAL WINDOW (created in DOM programmatically)
 // ════════════════════════════════════════════════════════════════════
 
 function _cemBuildModal() {
-    if (document.getElementById('chip-editor-overlay')) return; // уже есть
+    if (document.getElementById('chip-editor-overlay')) return; // already exists
 
     var div = document.createElement('div');
     div.innerHTML = _cemModalTemplate();
     document.body.appendChild(div.firstElementChild);
 
-    // Добавить CSS
+    // Add CSS
     var style = document.createElement('style');
     style.textContent = _cemModalCSS();
     document.head.appendChild(style);
@@ -124,7 +124,7 @@ function _cemModalTemplate() {
         '<button class="cem-btn" id="cem-underline" type="button"><u>П</u></button>' +
         '<div class="cem-sep"></div>' +
 
-        // Цвет текста
+         // Text color
         '<div class="cem-color-wrap" id="cem-tc-wrap">' +
           '<div class="cem-swatch-btn" id="cem-tc-btn" title="Цвет текста">' +
             '<span style="font-size:13px;font-weight:700;color:inherit;">A</span>' +
@@ -133,7 +133,7 @@ function _cemModalTemplate() {
           '<div class="cem-color-dd" id="cem-tc-dd"></div>' +
         '</div>' +
 
-        // Цвет выделения
+         // Highlight color
         '<div class="cem-color-wrap" id="cem-hl-wrap">' +
           '<div class="cem-swatch-btn" id="cem-hl-btn" title="Выделение фона">' +
             '<span style="font-size:12px;">🖊</span>' +
@@ -153,7 +153,7 @@ function _cemModalTemplate() {
         '<button class="cem-btn" id="cem-clear-fmt" type="button">✕ сброс</button>' +
       '</div>' +
 
-      // Строка ввода комментария (скрыта)
+       // Comment input row (hidden)
       '<div id="cem-comment-input-wrap">' +
         '<span class="cem-ci-label">Комментарий:</span>' +
         '<input id="cem-ci-text" type="text" placeholder="Введите комментарий к выделению…" maxlength="300" />' +
@@ -161,10 +161,10 @@ function _cemModalTemplate() {
         '<button class="cem-ci-can" id="cem-ci-cancel"  type="button">Отмена</button>' +
       '</div>' +
 
-      // Область редактирования
+       // Edit area
       '<div id="cem-edit-area" contenteditable="true" spellcheck="false"></div>' +
 
-      // Список комментариев
+       // Comments list
       '<div class="cem-comments">' +
         '<div class="cem-comments-hdr">' +
           '<span>💬 Комментарии к фразам</span>' +
@@ -185,7 +185,7 @@ function _cemModalTemplate() {
 }
 
 // ════════════════════════════════════════════════════════════════════
-// ПРИВЯЗКА СОБЫТИЙ
+// EVENT BINDING
 // ════════════════════════════════════════════════════════════════════
 
 function _cemBindAll() {
@@ -193,7 +193,7 @@ function _cemBindAll() {
     var editArea = document.getElementById('cem-edit-area');
     if (!overlay || !editArea) return;
 
-    // ── Закрыть по клику на фон / кнопки ──
+    // ── Close on backdrop / button click ──
     overlay.addEventListener('mousedown', function(e) {
         if (e.target === overlay) _cemClose(false);
     });
@@ -201,31 +201,31 @@ function _cemBindAll() {
     document.getElementById('cem-cancel-btn').addEventListener('click', function(){ _cemClose(false); });
     document.getElementById('cem-save-btn')  .addEventListener('click', function(){ _cemClose(true);  });
 
-    // ── ESC закрывает ──
+    // ── ESC closes ──
     document.addEventListener('keydown', function(e) {
         if (e.keyCode === 27 && overlay.classList.contains('open')) _cemClose(false);
     });
 
-    // ── БЛОКИРОВКА ввода в editArea (только форматирование) ──
+    // ── BLOCK keyboard input in editArea (formatting only) ──
     editArea.addEventListener('keydown', function(e) {
         var ctrl = e.ctrlKey || e.metaKey;
-        // Разрешаем: Ctrl+B/I/U, Ctrl+Z/Y/A/C, стрелки, Home/End/PgUp/PgDn, Shift, Esc
+        // Allow: Ctrl+B/I/U, Ctrl+Z/Y/A/C, arrows, Home/End/PgUp/PgDn, Shift, Esc
         if (ctrl && [66,73,85,90,89,65,67].indexOf(e.keyCode) >= 0) return;
         if (e.keyCode >= 33 && e.keyCode <= 40) return;
         if ([16,17,18,91,92,93].indexOf(e.keyCode) >= 0) return;
         if (e.keyCode === 27) return;
         if (e.keyCode >= 112 && e.keyCode <= 123) return;
-        // Блокируем всё остальное (Delete, Backspace, Enter, печатные символы)
+        // Block everything else (Delete, Backspace, Enter, printable keys)
         e.preventDefault();
     });
     editArea.addEventListener('paste', function(e) { e.preventDefault(); });
     editArea.addEventListener('drop',  function(e) { e.preventDefault(); });
 
-    // Обновление состояния тулбара
+    // Update toolbar state
     editArea.addEventListener('keyup',   _cemUpdateToolbar);
     editArea.addEventListener('mouseup', _cemUpdateToolbar);
 
-    // ── Кнопки Ж/К/П — mousedown + preventDefault, чтобы не потерять выделение ──
+    // ── B/I/U buttons — mousedown + preventDefault to preserve selection ──
     ['cem-bold','cem-italic','cem-underline'].forEach(function(id) {
         var btn = document.getElementById(id);
         if (!btn) return;
@@ -237,26 +237,26 @@ function _cemBindAll() {
         });
     });
 
-    // Сброс форматирования
+    // Clear formatting
     document.getElementById('cem-clear-fmt').addEventListener('mousedown', function(e) {
         e.preventDefault();
         document.execCommand('removeFormat', false, null);
         _cemUpdateToolbar();
     });
 
-    // ── ЦВЕТ ТЕКСТА ──
-    // Кнопка-переключатель дропдауна — mousedown + preventDefault
+    // ── TEXT COLOR ──
+    // Toggle button for dropdown — mousedown + preventDefault
     document.getElementById('cem-tc-btn').addEventListener('mousedown', function(e) {
-        e.preventDefault(); // ← не теряем выделение
+        e.preventDefault(); // ← preserve selection
         _cemToggleDd('tc');
     });
-    // Строим цветовой дропдаун
+    // Build color dropdown
     _cemBuildColorDd('cem-tc-dd', CEM_TEXT_COLORS, function(c) {
         document.execCommand('foreColor', false, c);
         document.getElementById('cem-tc-bar').style.background = c;
     });
 
-    // ── ЦВЕТ ВЫДЕЛЕНИЯ (highlight) ──
+    // ── HIGHLIGHT COLOR ──
     document.getElementById('cem-hl-btn').addEventListener('mousedown', function(e) {
         e.preventDefault();
         _cemToggleDd('hl');
@@ -267,31 +267,31 @@ function _cemBindAll() {
             c === 'transparent' ? 'linear-gradient(135deg,#fff 45%,#e53935 45%)' : c;
     });
 
-    // Закрыть дропдауны при клике вне
+    // Close dropdowns on outside click
     document.addEventListener('mousedown', function(e) {
         if (!e.target.closest('#cem-tc-wrap')) _cemHideDd('tc');
         if (!e.target.closest('#cem-hl-wrap')) _cemHideDd('hl');
     });
 
-    // ── РАЗМЕР ШРИФТА ──
-    // При клике на input — сохраняем выделение (до потери фокуса editArea)
+    // ── FONT SIZE ──
+    // On input click — save selection (before focus leaves editArea)
     document.getElementById('cem-fontsize').addEventListener('mousedown', function() {
         var sel = window.getSelection();
         if (sel && sel.rangeCount > 0 && editArea.contains(sel.anchorNode)) {
             _cemSavedRangeForFontSize = sel.getRangeAt(0).cloneRange();
         }
     });
-    // Кнопка "✓ применить" — тоже mousedown чтобы не терять выделение
+    // "✓ apply" button — also mousedown to preserve selection
     document.getElementById('cem-apply-size').addEventListener('mousedown', function(e) {
         e.preventDefault();
         _cemApplyFontSize();
     });
-    // Enter в поле размера
+    // Enter in the size field
     document.getElementById('cem-fontsize').addEventListener('keydown', function(e) {
         if (e.keyCode === 13) { e.preventDefault(); _cemApplyFontSize(); }
     });
 
-    // ── КОММЕНТАРИИ ──
+    // ── COMMENTS ──
     document.getElementById('cem-add-c-btn').addEventListener('mousedown', function(e) {
         e.preventDefault();
         var sel = window.getSelection();
@@ -320,7 +320,7 @@ function _cemBindAll() {
 }
 
 // ════════════════════════════════════════════════════════════════════
-// ВСПОМОГАТЕЛЬНЫЕ ФУНКЦИИ
+// HELPER FUNCTIONS
 // ════════════════════════════════════════════════════════════════════
 
 function _cemToggleDd(which) {
@@ -345,7 +345,7 @@ function _cemBuildColorDd(ddId, colors, applyFn) {
         dot.style.background = c === 'transparent'
             ? 'linear-gradient(135deg,#fff 45%,#e53935 45%)' : c;
         dot.title = c;
-        // mousedown + preventDefault — не теряем выделение!
+        // mousedown + preventDefault — preserves selection!
         dot.addEventListener('mousedown', function(e) {
             e.preventDefault();
             applyFn(c);
@@ -371,7 +371,7 @@ function _cemApplyHighlight(color) {
     try {
         range.surroundContents(span);
     } catch(ex) {
-        // Выделение пересекает несколько узлов — используем execCommand
+        // Selection spans multiple nodes — use execCommand
         document.execCommand('backColor', false, color);
     }
 }
@@ -384,7 +384,7 @@ function _cemApplyFontSize() {
     if (sz > 72) sz = 72;
     input.value = sz;
 
-    // Восстанавливаем сохранённое выделение
+    // Restore saved selection
     if (_cemSavedRangeForFontSize) {
         var sel = window.getSelection();
         sel.removeAllRanges();
@@ -393,7 +393,7 @@ function _cemApplyFontSize() {
     }
     editArea.focus();
 
-    // Применяем размер через маркер-шрифт-7
+    // Apply size via font-7 marker
     var sel2 = window.getSelection();
     if (!sel2 || sel2.isCollapsed) return;
     document.execCommand('fontSize', false, '7');
@@ -428,7 +428,7 @@ function _cemConfirmComment() {
     var hlTxt = _cemSavedSel.text.substring(0, 60);
     var hlBg  = CEM_HIGHLIGHT_COLORS[1];
 
-    // Восстанавливаем выделение и оборачиваем
+    // Restore selection and wrap
     var sel = window.getSelection();
     sel.removeAllRanges();
     sel.addRange(_cemSavedSel.range);
@@ -505,18 +505,18 @@ function _cemDeleteComment(cid) {
 function _cemToInlineHtml(html) {
     var tmp = document.createElement('div');
     tmp.innerHTML = html;
-    // Заменяем все блочные элементы (div, p) на их содержимое + пробел
+    // Replace all block elements (div, p) with their content + space
     tmp.querySelectorAll('div, p').forEach(function(el) {
         var space = document.createTextNode(' ');
         el.parentNode.insertBefore(space, el);
         while (el.firstChild) el.parentNode.insertBefore(el.firstChild, el);
         el.parentNode.removeChild(el);
     });
-    // Заменяем <br> на пробел
+    // Replace <br> with space
     tmp.querySelectorAll('br').forEach(function(el) {
         el.parentNode.replaceChild(document.createTextNode(' '), el);
     });
-    // Возвращаем чистый HTML без лишних пробелов
+    // Return clean HTML with no extra spaces
     return tmp.innerHTML.replace(/\s{2,}/g, ' ').trim();
 }
 
@@ -530,11 +530,11 @@ function _cemClose(save) {
         var commentsJson = JSON.stringify(_cemComments);
         var isMsg        = _cemCurrentSpan.classList.contains('message-cite');
 
-        // Сохраняем HTML и комментарии в data-атрибуты
+        // Save HTML and comments to data attributes
         _cemCurrentSpan.setAttribute(isMsg ? 'data-para-html' : 'data-verse-html', html);
         _cemCurrentSpan.setAttribute('data-verse-comments', commentsJson);
 
-        // Обновляем видимый текст внутри чипа
+        // Update visible chip text
         var verseEl = _cemCurrentSpan.querySelector('.cite-verse-text');
         if (verseEl) {
             verseEl.innerHTML = html;
@@ -556,7 +556,7 @@ function _cemClose(save) {
             if (removeBtn) _cemCurrentSpan.appendChild(removeBtn);
         }
 
-        // Сигнализируем AngularJS, что контент изменился (если доступен)
+        // Notify AngularJS that content changed (if available)
         if (window._sermonScheduleAutoSave) window._sermonScheduleAutoSave();
         else if (typeof scheduleAutoSave === 'function') scheduleAutoSave();
     }
@@ -573,7 +573,7 @@ function _cemEsc(s) {
 }
 
 // ════════════════════════════════════════════════════════════════════
-// CSS (вставляется программно в <head>)
+// CSS (inserted programmatically into <head>)
 // ════════════════════════════════════════════════════════════════════
 
 function _cemModalCSS() { return `
@@ -621,7 +621,7 @@ function _cemModalCSS() { return `
     font-size: 13px; height: 30px;
     display: flex; align-items: center; gap: 3px;
     color: #2c3e50; transition: all .12s;
-    /* ВАЖНО: нет outline при фокусе, т.к. кнопки используют mousedown */
+    /* IMPORTANT: no outline on focus — buttons use mousedown */
     outline: none;
 }
 .cem-btn:hover { background: #f0f4f8; border-color: #c8d0db; }
@@ -645,7 +645,7 @@ function _cemModalCSS() { return `
     border: 1.5px solid #dee2e6; border-radius: 6px;
     cursor: pointer; background: #fff;
     gap: 2px; transition: border-color .12s;
-    outline: none; /* убираем outline */
+    outline: none; /* remove outline */
 }
 .cem-swatch-btn:hover { border-color: #1a6db5; background: #f0f4f8; }
 .cem-swatch-bar { width: 20px; height: 4px; border-radius: 2px; flex-shrink: 0; }
@@ -699,7 +699,7 @@ function _cemModalCSS() { return `
     color: #1a2533; border-bottom: 1.5px solid #dee2e6;
     cursor: text;
 }
-/* Комментарий-спан внутри edit area */
+/* Comment span inside edit area */
 #cem-edit-area .verse-comment { border-radius: 3px; padding: 0 2px; }
 #cem-edit-area .verse-comment::after {
     content: attr(data-cnum); font-size: 9px; font-weight: 700;
@@ -770,6 +770,6 @@ function _cemModalCSS() { return `
 }
 .cem-save-btn:hover { background: #155a96; }
 
-/* verse-comment на дисплее (sermon_layout) */
+/* verse-comment on the display screen (sermon_layout) */
 .verse-comment { border-radius: 3px; padding: 0 2px; }
 `; }

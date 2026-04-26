@@ -7,7 +7,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 require_once __DIR__ . '/app/Info.php';
 require_once __DIR__ . '/app/Database.php';
 
-// 1. Порт 2345 для браузеров (WebSocket)
+// 1. Port 2345 for browsers (WebSocket)
 $ws_worker = new Worker("websocket://127.0.0.1:2345");  // [SECURITY] Bind to localhost only
 $ws_worker->name = 'WebWorker';
 $ws_worker->count = 1;

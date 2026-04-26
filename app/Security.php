@@ -11,14 +11,14 @@ class Security
     }
 
     // ============================================================
-    //  [SECURITY #1] AES-256-CBC шифрование/расшифровка паролей
-    //  Пароли хранятся в виде: "enc:" + base64(iv + ciphertext)
-    //  Ключ берётся из config_example.php → 'encryption_key'
+    //  [SECURITY #1] AES-256-CBC password encryption/decryption
+    //  Passwords are stored as: "enc:" + base64(iv + ciphertext)
+    //  Key is taken from config.php → 'encryption_key'
     // ============================================================
 
     /**
-     * Зашифровать пароль для хранения в базе данных.
-     * Возвращает строку вида "enc:<base64>"
+     * Encrypt a password for storage in the database.
+     * Returns a string of the form "enc:<base64>"
      */
     public static function encryptPassword(string $plaintext): string
     {
@@ -29,13 +29,13 @@ class Security
     }
 
     /**
-     * Расшифровать пароль из базы данных.
-     * Если пароль не зашифрован (миграция) — возвращает как есть.
+     * Decrypt a password from the database.
+     * If the password is not encrypted (pre-migration) — returns it as-is.
      */
     public static function decryptPassword(string $stored): string
     {
         if (strncmp($stored, 'enc:', 4) !== 0) {
-            // Старый plaintext — вернуть как есть (пока не прошла миграция)
+            // Legacy plaintext — return as-is until migration runs
             return $stored;
         }
         $key = self::getEncKey();
@@ -47,7 +47,7 @@ class Security
     }
 
     /**
-     * Проверить, зашифрован ли пароль в базе данных.
+     * Check whether a stored password is encrypted.
      */
     public static function isEncrypted(string $stored): bool
     {
@@ -59,17 +59,17 @@ class Security
         $conf = Info::get('config');
         $key = base64_decode($conf['encryption_key'] ?? '');
         if (strlen($key) < 16) {
-            throw new \RuntimeException('encryption_key в config_example.php не задан или слишком короткий.');
+            throw new \RuntimeException('encryption_key in config.php is not set or too short.');
         }
         return $key;
     }
 
     // ============================================================
-    //  [SECURITY #3] CSRF-защита
+    //  [SECURITY #3] CSRF protection
     // ============================================================
 
     /**
-     * Сгенерировать и сохранить CSRF-токен в сессии (вызывается при старте).
+     * Generate and store a CSRF token in the session (called on startup).
      */
     public static function initCsrfToken(): void
     {
@@ -79,7 +79,7 @@ class Security
     }
 
     /**
-     * Вернуть текущий CSRF-токен для вставки на страницу.
+     * Return the current CSRF token for embedding in the page.
      */
     public static function getCsrfToken(): string
     {
@@ -87,8 +87,8 @@ class Security
     }
 
     /**
-     * Проверить CSRF-токен из заголовка X-CSRF-Token или POST-поля _csrf_token.
-     * Возвращает false если токен неверен.
+     * Validate CSRF token from the X-CSRF-Token header or _csrf_token POST field.
+     * Returns false if the token is invalid.
      */
     public static function validateCsrf(): bool
     {
@@ -97,13 +97,13 @@ class Security
             return false;
         }
 
-        // Заголовок (для JSON-запросов AngularJS)
+        // Header token (used by AngularJS JSON requests)
         $headerToken = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
         if ($headerToken !== '' && hash_equals($sessionToken, $headerToken)) {
             return true;
         }
 
-        // POST-поле (для multipart file uploads)
+        // POST field (for multipart file uploads)
         $postToken = $_POST['_csrf_token'] ?? '';
         if ($postToken !== '' && hash_equals($sessionToken, $postToken)) {
             return true;
@@ -113,7 +113,7 @@ class Security
     }
 
     // ============================================================
-    //  Аутентификация
+    //  Authentication
     // ============================================================
 
     public static function isLoggedIn(): bool
@@ -127,9 +127,9 @@ class Security
     }
 
     /**
-     * Записать данные пользователя в сессию и обновить last_login.
-     * Единая точка входа — используется при любом способе авторизации
-     * (пароль, Google OAuth, Google One Tap).
+     * Write user data to the session and update last_login.
+     * Single entry point used by all authentication methods
+     * (password, Google OAuth, Google One Tap).
      */
     public static function startUserSession(array $user): void
     {
@@ -150,14 +150,14 @@ class Security
     }
 
     /**
-     * [SECURITY #1] Логин: сначала пробует зашифрованный пароль,
-     * при первом совпадении с plaintext — автоматически мигрирует в enc:.
+     * [SECURITY #1] Login: tries encrypted password first;
+     * on first plaintext match auto-migrates the stored value to enc: format.
      */
     public static function doLogin(): bool
     {
         $db = Info::get('db');
         $login = $db->db_handle()->real_escape_string($_POST['login']);
-        // Ищем пользователя только по логину (без сравнения пароля в SQL!)
+        // Look up user by login only — never compare passwords in SQL
         $user = $db->get("SELECT * FROM users WHERE login='{$login}' LIMIT 1");
 
         if (!$user) {
@@ -172,13 +172,13 @@ class Security
         $passwordOk = false;
 
         if (self::isEncrypted($storedPass)) {
-            // Новый формат: расшифровать и сравнить
+            // New format: decrypt and compare
             $passwordOk = hash_equals(self::decryptPassword($storedPass), $inputPass);
         } else {
-            // Старый plaintext формат — сравниваем и мигрируем автоматически
+            // Legacy plaintext format — compare and auto-migrate
             $passwordOk = hash_equals($storedPass, $inputPass);
             if ($passwordOk) {
-                // Мигрировать пароль в зашифрованный формат прямо сейчас
+                // Migrate the password to encrypted format now
                 $encrypted = self::encryptPassword($inputPass);
                 $escapedEnc = $db->db_handle()->real_escape_string($encrypted);
                 $id = (int)$user['ID'];
@@ -208,7 +208,7 @@ class Security
     }
 
     // ============================================================
-    //  Роли и маршруты
+    //  Roles and routes
     // ============================================================
 
     public static function getRole(): string
