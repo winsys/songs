@@ -150,7 +150,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
 
     $scope.clearFavorites = function(){
         if($scope.favorites.length > 0)
-            $scope.confirmationDialog("Список выбранных песен", function() {
+            $scope.confirmationDialog(window.t('leader.confirm.clearTitle'), function() {
                 $http({method: "POST", url: "/ajax", data: {command: 'clear_favorites'}}).then(
                     function success() {
                         $scope.reloadFavorites();
@@ -178,7 +178,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
     $scope.openList = function(callback) {
         $scope.listConfig = {
             buttons: [{
-                label: 'Выбрать',
+                label: window.t('leader.list.select'),
                 action: callback
             }]
         };
@@ -213,10 +213,10 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
     $scope.confirmationDialogConfig = {};
     $scope.confirmationDialog = function(msg, callback) {
         $scope.confirmationDialogConfig = {
-            title: 'УДАЛЕНИЕ',
-            message: 'Удалить [' + msg + ']?',
+            title: window.t('leader.confirm.deleteTitle'),
+            message: window.t('leader.confirm.deleteMessage', { name: msg }),
             buttons: [{
-                label: 'Да',
+                label: window.t('common.button.yes'),
                 action: callback
             }]
         };
@@ -234,11 +234,11 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
     $scope.addSong = function(callback) {
         $scope.addConfig = {
             image: null,
-            buttons: [{ label: 'Сделато фото',
+            buttons: [{ label: window.t('leader.addSong.takePhoto'),
                         action: callback
                       },
                       {
-                        label: 'Сохранить',
+                        label: window.t('leader.addSong.save'),
                         action: callback
                       }]
         };
