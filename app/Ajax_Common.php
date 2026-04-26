@@ -38,6 +38,42 @@ trait Ajax_Common
         return self::$cachedLanguages;
     }
 
+    /** Cached subset of getLanguages() limited to languages that have NAME{suffix} columns in bible_books. */
+    private static $cachedBibleLanguages = null;
+
+    /**
+     * Returns the subset of getLanguages() for which NAME{col_suffix} columns
+     * actually exist in bible_books (and TEXT{col_suffix} in bible_verses).
+     * The Bible tables are not auto-extended when add_language() runs, so a language
+     * may exist in the registry without corresponding Bible columns.
+     */
+    private static function getBibleLanguages(): array
+    {
+        if (self::$cachedBibleLanguages !== null) {
+            return self::$cachedBibleLanguages;
+        }
+        $rows = Info::get('db')->select(
+            "SELECT COLUMN_NAME FROM information_schema.COLUMNS
+             WHERE TABLE_SCHEMA = DATABASE()
+               AND TABLE_NAME   = 'bible_books'
+               AND COLUMN_NAME LIKE 'NAME%'"
+        );
+        $existingSuffixes = [''];
+        foreach ($rows as $r) {
+            $col = $r['COLUMN_NAME'];
+            if ($col === 'NAME') continue;
+            $existingSuffixes[] = substr($col, 4); // 'NAME_LT' → '_LT'
+        }
+        $filtered = [];
+        foreach (self::getLanguages() as $lang) {
+            if (in_array($lang['col_suffix'], $existingSuffixes, true)) {
+                $filtered[] = $lang;
+            }
+        }
+        self::$cachedBibleLanguages = $filtered;
+        return $filtered;
+    }
+
     private static function get_song_list()
     {
         $listId = (int)self::$args['list_id'];
