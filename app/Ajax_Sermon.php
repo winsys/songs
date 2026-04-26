@@ -55,17 +55,24 @@ trait Ajax_Sermon
                  ORDER BY SERMON_DATE DESC, UPDATED_AT DESC"
             );
         } elseif ($isPreacher) {
-            // Preacher WITHOUT Google account: sees all groups, cannot delete
+            // Preacher WITHOUT Google account: sees all groups, cannot delete.
+            // OWNER_NAME fallback ("Group #N") is applied in PHP so it can be localized via T::s().
             $list = Info::get('db')->select(
                 "SELECT s.ID, s.TITLE, s.SERMON_DATE, s.UPDATED_AT, s.USER_ID,
                         0 AS CAN_DELETE,
                         CASE WHEN s.USER_ID = {$userId} THEN NULL
-                             ELSE COALESCE(us.display_name, CONCAT('Группа #', s.USER_ID))
+                             ELSE us.display_name
                         END AS OWNER_NAME
                  FROM sermons s
                  LEFT JOIN user_settings us ON us.group_id = s.USER_ID
                  ORDER BY s.SERMON_DATE DESC, s.UPDATED_AT DESC"
             );
+            foreach ($list as &$row) {
+                if ((int)$row['USER_ID'] !== $userId && empty($row['OWNER_NAME'])) {
+                    $row['OWNER_NAME'] = T::s('sermon.display.groupN', ['id' => $row['USER_ID']]);
+                }
+            }
+            unset($row);
         } else {
             // Non-preacher (admin, leader, etc.): own group, can delete
             $list = Info::get('db')->select(
@@ -168,7 +175,7 @@ trait Ajax_Sermon
         $googleId   = $isPreacher ? self::getCurrentGoogleId() : null;
 
         if ($isPreacher && $googleId === null) {
-            return json_encode(['status' => 'error', 'message' => 'Удаление недоступно без привязанного Google аккаунта']);
+            return json_encode(['status' => 'error', 'message' => T::s('sermon.error.googleRequired')]);
         }
 
         $ownerCond = ($googleId !== null)
@@ -397,7 +404,7 @@ trait Ajax_Sermon
         if ($ownGroup) {
             $targets[] = [
                 'group_id' => $userId,
-                'display_name' => $ownGroup['display_name'] ?: 'Мой дисплей',
+                'display_name' => $ownGroup['display_name'] ?: T::s('sermon.display.myDisplay'),
                 'is_own' => true
             ];
         }
@@ -413,7 +420,7 @@ trait Ajax_Sermon
         foreach ($approved as $row) {
             $targets[] = [
                 'group_id' => (int)$row['target_group_id'],
-                'display_name' => $row['display_name'] ?: 'Группа #' . $row['target_group_id'],
+                'display_name' => $row['display_name'] ?: T::s('sermon.display.groupN', ['id' => $row['target_group_id']]),
                 'is_own' => false
             ];
         }
@@ -456,7 +463,7 @@ trait Ajax_Sermon
             if (!isset($requestedGroups[$gid])) {
                 $available[] = [
                     'group_id' => $gid,
-                    'display_name' => $group['display_name'] ?: 'Группа #' . $gid
+                    'display_name' => $group['display_name'] ?: T::s('sermon.display.groupN', ['id' => $gid])
                 ];
             }
         }
@@ -483,7 +490,7 @@ trait Ajax_Sermon
              WHERE us.group_id = {$userId}
              LIMIT 1"
         );
-        $requesterName = $requester ? ($requester['display_name'] ?: 'Группа #' . $userId) : 'Группа #' . $userId;
+        $requesterName = $requester ? ($requester['display_name'] ?: T::s('sermon.display.groupN', ['id' => $userId])) : T::s('sermon.display.groupN', ['id' => $userId]);
 
         // Check if request already exists
         $existing = Info::get('db')->get(
@@ -550,7 +557,7 @@ trait Ajax_Sermon
             $result[] = [
                 'id' => (int)$req['id'],
                 'requester_group_id' => (int)$req['requester_group_id'],
-                'requester_name' => $req['display_name'] ?: 'Группа #' . $req['requester_group_id'],
+                'requester_name' => $req['display_name'] ?: T::s('sermon.display.groupN', ['id' => $req['requester_group_id']]),
                 'requested_at' => $req['requested_at']
             ];
         }
@@ -592,7 +599,7 @@ trait Ajax_Sermon
         );
 
         // Broadcast response to requester group
-        $targetName = $request['target_name'] ?: 'Группа #' . $userId;
+        $targetName = $request['target_name'] ?: T::s('sermon.display.groupN', ['id' => $userId]);
         self::broadcastToGroup((int)$request['requester_group_id'], [
             'type' => 'access_response',
             'data' => [
@@ -660,7 +667,7 @@ trait Ajax_Sermon
         if (!$libreofficeBin) {
             self::_rmdir($tmpDir);
             return json_encode(['status' => 'error',
-                'message' => 'LibreOffice не установлен. Выполните: sudo apt install libreoffice ghostscript']);
+                'message' => T::s('ajax.error.libreOfficeMissing')]);
         }
 
         // Step 2: Convert to PDF with LibreOffice
@@ -696,7 +703,7 @@ trait Ajax_Sermon
         } else {
             self::_rmdir($tmpDir);
             return json_encode(['status' => 'error',
-                'message' => 'Ghostscript не установлен. Выполните: sudo apt install ghostscript']);
+                'message' => T::s('ajax.error.ghostscriptMissing')]);
         }
 
         $pngs = glob($pngDir . '/slide_*.png');

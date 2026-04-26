@@ -213,12 +213,12 @@ trait Ajax_Settings
         $groupName = $adminUser ? $adminUser['NAME'] : 'Group';
 
         $roleLabels = [
-            'admin'    => 'Администратор',
-            'leader'   => 'Ведущий',
-            'musician' => 'Музыкант',
-            'preacher' => 'Проповедник',
-            'tech'     => 'Техник',
-            'screen'   => 'Экраны',
+            'admin'    => T::s('role.admin'),
+            'leader'   => T::s('role.leader'),
+            'musician' => T::s('role.musician'),
+            'preacher' => T::s('role.preacher'),
+            'tech'     => T::s('role.tech'),
+            'screen'   => T::s('role.screen'),
         ];
         $defaultName  = $groupName . ' - ' . $roleLabels[$role];
         $defaultLogin = strtolower(preg_replace('/\s+/', '_', $groupName)) . '_' . $role;

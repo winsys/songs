@@ -311,7 +311,7 @@ trait Ajax_Tech
         }
         $id = (int)(self::$args['id'] ?? 0);
         if (!$id) {
-            return json_encode(['status' => 'error', 'message' => 'Не указан ID послания']);
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.noMessageId')]);
         }
         $timecodes    = self::$args['timecodes'] ?? '';
         $dbh          = Info::get('dbh');
