@@ -133,61 +133,61 @@
         <div class="home-church"><?php echo htmlspecialchars($_SESSION['userName']) ?></div>
 
         <?php if ($role === 'admin' || $role === 'leader' || $role === 'musician'): ?>
-        <div class="home-section-label">Служение</div>
+        <div class="home-section-label"><?php echo T::s('home.section.ministry'); ?></div>
         <?php endif; ?>
 
         <?php if ($role === 'admin' || $role === 'leader'): ?>
         <button class="btn-home btn-blue" onclick="window.location.href='/leader'">
-            <span class="btn-icon">🎤</span> Ведущий
+            <span class="btn-icon">🎤</span> <?php echo T::s('home.role.leader'); ?>
         </button>
         <?php endif; ?>
 
         <?php if ($role === 'admin' || $role === 'musician'): ?>
         <button class="btn-home btn-blue" onclick="window.location.href='/musician'">
-            <span class="btn-icon">🎸</span> Музыкант
+            <span class="btn-icon">🎸</span> <?php echo T::s('home.role.musician'); ?>
         </button>
         <?php endif; ?>
 
         <?php if ($role === 'admin' || $role === 'leader' || $role === 'tech'): ?>
         <button class="btn-home btn-blue" onclick="window.location.href='/tech'">
-            <span class="btn-icon">🖥️</span> Технический режим
+            <span class="btn-icon">🖥️</span> <?php echo T::s('home.role.tech'); ?>
         </button>
         <?php endif; ?>
 
         <?php if ($role === 'admin' || $role === 'preacher'): ?>
-        <div class="home-section-label">Проповедь</div>
+        <div class="home-section-label"><?php echo T::s('home.section.sermon'); ?></div>
         <button class="btn-home btn-green" onclick="window.location.href='/sermon'">
-            <span class="btn-icon">📖</span> Проповедь
+            <span class="btn-icon">📖</span> <?php echo T::s('home.role.preacher'); ?>
         </button>
         <button class="btn-home btn-green" onclick="window.location.href='/sermon_prep'">
-            <span class="btn-icon">✏️</span> Подготовка проповеди
+            <span class="btn-icon">✏️</span> <?php echo T::s('home.role.sermon_prep'); ?>
         </button>
         <?php endif; ?>
 
         <?php if ($role === 'admin' || $role === 'tech' || $role === 'screen'): ?>
-        <div class="home-section-label">Экраны</div>
+        <div class="home-section-label"><?php echo T::s('home.section.screens'); ?></div>
         <button class="btn-home btn-gray" onclick="window.location.href='/text'">
-            <span class="btn-icon">📝</span> Главный экран
+            <span class="btn-icon">📝</span> <?php echo T::s('home.screen.main'); ?>
         </button>
         <button class="btn-home btn-gray" onclick="window.location.href='/text_stream'">
-            <span class="btn-icon">📡</span> Слова для трансляции
+            <span class="btn-icon">📡</span> <?php echo T::s('home.screen.streaming'); ?>
         </button>
         <?php endif; ?>
 
-        <!-- Настройки доступны всем пользователям -->
-        <div class="home-section-label"><?php echo ($role === 'admin' ? 'Администрирование' : 'Настройки'); ?></div>
+        <!-- Settings available to all users -->
+        <div class="home-section-label"><?php echo T::s($role === 'admin' ? 'home.section.admin' : 'home.label.settings'); ?></div>
         <button class="btn-home btn-purple" onclick="window.location.href='/settings'">
-            <span class="btn-icon">⚙️</span> Настройки
+            <span class="btn-icon">⚙️</span> <?php echo T::s('home.label.settings'); ?>
         </button>
 
         <?php if ($role === 'admin'): ?>
         <button class="btn-home btn-red" onclick="window.location.href='/import'">
-            <span class="btn-icon">📥</span> Импорт данных
+            <span class="btn-icon">📥</span> <?php echo T::s('home.button.import'); ?>
         </button>
         <?php endif; ?>
 
         <button class="btn-logout" onclick="window.location.href='/logout'">
-            Выйти
+            <?php echo T::s('home.button.logout'); ?>
         </button>
 
     </div>

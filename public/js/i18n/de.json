@@ -1,1 +1,16 @@
-{}
+{
+  "home.button.import": "Datenimport",
+  "home.button.logout": "Abmelden",
+  "home.label.settings": "Einstellungen",
+  "home.role.leader": "Leiter",
+  "home.role.musician": "Musiker",
+  "home.role.preacher": "Predigt",
+  "home.role.sermon_prep": "Predigtvorbereitung",
+  "home.role.tech": "Technik-Modus",
+  "home.screen.main": "Hauptbildschirm",
+  "home.screen.streaming": "Streaming-Text",
+  "home.section.admin": "Verwaltung",
+  "home.section.ministry": "Gottesdienst",
+  "home.section.screens": "Bildschirme",
+  "home.section.sermon": "Predigt"
+}

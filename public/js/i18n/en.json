@@ -1,1 +1,16 @@
-{}
+{
+  "home.button.import": "Data import",
+  "home.button.logout": "Sign out",
+  "home.label.settings": "Settings",
+  "home.role.leader": "Leader",
+  "home.role.musician": "Musician",
+  "home.role.preacher": "Sermon",
+  "home.role.sermon_prep": "Sermon preparation",
+  "home.role.tech": "Technical mode",
+  "home.screen.main": "Main screen",
+  "home.screen.streaming": "Streaming text",
+  "home.section.admin": "Administration",
+  "home.section.ministry": "Service",
+  "home.section.screens": "Screens",
+  "home.section.sermon": "Sermon"
+}
