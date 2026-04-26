@@ -1565,8 +1565,10 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     };
     $scope.getBookName = function (book) {
         if (!book) return '';
-        // Prefer the column matching window.UI_LANG; fall back to base NAME (Russian)
-        // if that translation has no entry for the UI language.
+        // Resolution order:
+        //   1. NAME column for window.UI_LANG (e.g. NAME_DE for German UI).
+        //   2. Default NAME column (Russian for Synodal, German for Luther/Elberfelder).
+        //   3. Any other non-empty NAME_* column.
         var uiLang = window.UI_LANG || 'ru';
         for (var i = 0; i < $scope.prepLangList.length; i++) {
             if ($scope.prepLangList[i].code === uiLang) {
@@ -1575,7 +1577,15 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 break;
             }
         }
-        return book.NAME || '';
+        if (book.NAME) return book.NAME;
+        for (var j = 0; j < $scope.prepLangList.length; j++) {
+            var altCol = 'NAME' + $scope.prepLangList[j].col_suffix;
+            if (book[altCol]) return book[altCol];
+        }
+        for (var key in book) {
+            if (key.indexOf('NAME') === 0 && book[key]) return book[key];
+        }
+        return '';
     };
     $scope.selectBook = function (book) {
         $scope.selectedBook           = book;

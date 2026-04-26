@@ -1105,10 +1105,12 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     }
 
     /**
-     * Get a book display name. Prefer the column matching the UI language
-     * (window.UI_LANG); fall back to the default Russian NAME column when
-     * that translation has no entry for the UI language (e.g. NAME_DE
-     * was never added to bible_books).
+     * Get a book display name. Resolution order:
+     *   1. NAME column for window.UI_LANG (e.g. NAME_DE for German UI).
+     *   2. Default NAME column (typically Russian for Synodal, German for Luther).
+     *   3. Any other non-empty NAME_* column (last-ditch fallback if a
+     *      translation only populated alternate-language columns).
+     * Independent of the language toggle state — names always show.
      */
     $scope.getBibleBookName = function(book) {
         if (!book) return '';
@@ -1120,7 +1122,17 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 break;
             }
         }
-        return book.NAME || '';
+        if (book.NAME) return book.NAME;
+        for (var j = 0; j < $scope.langList.length; j++) {
+            var altCol = 'NAME' + $scope.langList[j].col_suffix;
+            if (book[altCol]) return book[altCol];
+        }
+        // Final fallback: scan any NAME_* property on the row (in case the
+        // server returned a column not in langList).
+        for (var key in book) {
+            if (key.indexOf('NAME') === 0 && book[key]) return book[key];
+        }
+        return '';
     };
 
     /**
