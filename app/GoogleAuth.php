@@ -18,7 +18,7 @@ class GoogleAuth
     {
         $clientId = Info::get('config')['GOOGLE_CLIENT_ID'] ?? '';
         if (!$clientId) {
-            self::renderError('Google OAuth не настроен.', '/login', 'Вернуться к входу');
+            self::renderError('Google OAuth is not configured.', '/login', 'Back to sign in');
             return;
         }
 
@@ -38,39 +38,39 @@ class GoogleAuth
     {
         $code = $_GET['code'] ?? '';
         if (!$code) {
-            self::renderError('Отсутствует код авторизации от Google.', '/login', 'Вернуться к входу');
+            self::renderError('No authorization code received from Google.', '/login', 'Back to sign in');
             return;
         }
 
         $clientId     = Info::get('config')['GOOGLE_CLIENT_ID']     ?? '';
         $clientSecret = Info::get('config')['GOOGLE_CLIENT_SECRET'] ?? '';
         if (!$clientId || !$clientSecret) {
-            self::renderError('Google OAuth не настроен.', '/login', 'Вернуться к входу');
+            self::renderError('Google OAuth is not configured.', '/login', 'Back to sign in');
             return;
         }
 
         // Exchange authorization code for access token
         $tokenJson = self::exchangeCodeForToken($code, $clientId, $clientSecret);
         if (!isset($tokenJson['access_token'])) {
-            self::renderError('Не удалось получить токен доступа от Google.', '/login', 'Вернуться к входу');
+            self::renderError('Failed to obtain an access token from Google.', '/login', 'Back to sign in');
             return;
         }
 
         // Fetch user profile from Google
         $userInfo = self::fetchGoogleUserInfo($tokenJson['access_token']);
         if (!isset($userInfo['id'])) {
-            self::renderError('Не удалось получить информацию о пользователе от Google.', '/login', 'Вернуться к входу');
+            self::renderError('Failed to fetch user information from Google.', '/login', 'Back to sign in');
             return;
         }
 
         $user = self::findUserByGoogleId($userInfo['id']);
         if (!$user) {
             self::renderError(
-                'Ваш Google аккаунт (<strong>' . htmlspecialchars($userInfo['email'] ?? '') . '</strong>) '
-                . 'не привязан ни к одному пользователю системы.<br>'
-                . 'Войдите с помощью логина и пароля, затем привяжите Google аккаунт в настройках.',
+                'Your Google account (<strong>' . htmlspecialchars($userInfo['email'] ?? '') . '</strong>) '
+                . 'is not linked to any user in this system.<br>'
+                . 'Sign in with username and password, then link your Google account in Settings.',
                 '/login',
-                'Вернуться к входу'
+                'Back to sign in'
             );
             return;
         }
@@ -125,11 +125,11 @@ class GoogleAuth
         $user = self::findUserByGoogleId($googleId);
         if (!$user) {
             self::renderError(
-                'Ваш Google аккаунт (<strong>' . htmlspecialchars($payload['email'] ?? '') . '</strong>) '
-                . 'не привязан ни к одному пользователю системы.<br>'
-                . 'Войдите с помощью логина и пароля, затем привяжите Google аккаунт в настройках.',
+                'Your Google account (<strong>' . htmlspecialchars($payload['email'] ?? '') . '</strong>) '
+                . 'is not linked to any user in this system.<br>'
+                . 'Sign in with username and password, then link your Google account in Settings.',
                 '/login',
-                'Вернуться к входу'
+                'Back to sign in'
             );
             return;
         }
@@ -142,16 +142,16 @@ class GoogleAuth
     {
         if (!Security::isLoggedIn()) {
             self::renderError(
-                'Вы должны быть авторизованы для привязки Google аккаунта.',
+                'You must be signed in to link a Google account.',
                 '/login',
-                'Войти в систему'
+                'Sign in'
             );
             return;
         }
 
         $code = $_GET['code'] ?? '';
         if (!$code) {
-            self::renderError('Отсутствует код авторизации от Google.', '/settings', 'Вернуться в настройки');
+            self::renderError('No authorization code received from Google.', '/settings', 'Back to settings');
             return;
         }
 
@@ -167,16 +167,16 @@ class GoogleAuth
     <meta http-equiv="refresh" content="3;url=/settings">
 </head>
 <body style="font-family: Arial; padding: 40px; text-align: center;">
-    <h2>✅ Успешно!</h2>
-    <p>Google аккаунт успешно привязан.</p>
+    <h2>✅ Success</h2>
+    <p>Your Google account has been linked.</p>
     <p>Email: <strong>' . $email . '</strong></p>
-    <p>Перенаправление в настройки через 3 секунды...</p>
-    <p><a href="/settings">Перейти сейчас</a></p>
+    <p>Redirecting to Settings in 3 seconds…</p>
+    <p><a href="/settings">Continue now</a></p>
 </body>
 </html>';
         } else {
             $errorMsg = htmlspecialchars($resultData['message'] ?? 'Unknown error');
-            self::renderError($errorMsg, '/settings', 'Вернуться в настройки');
+            self::renderError($errorMsg, '/settings', 'Back to settings');
         }
     }
 
@@ -267,9 +267,9 @@ class GoogleAuth
     {
         echo '<!DOCTYPE html>
 <html>
-<head><title>Ошибка авторизации</title></head>
+<head><title>Authentication error</title></head>
 <body style="font-family: Arial; padding: 40px; text-align: center;">
-    <h2>❌ Ошибка</h2>
+    <h2>❌ Error</h2>
     <p>' . $message . '</p>
     <p><a href="' . htmlspecialchars($backUrl) . '">' . htmlspecialchars($backLabel) . '</a></p>
 </body>
@@ -286,14 +286,14 @@ class GoogleAuth
         echo '<!DOCTYPE html>
 <html>
 <head>
-    <title>Успешный вход</title>
+    <title>Sign-in successful</title>
     <script>window.location.href = "' . $safeRedirectUrl . '";</script>
     <meta http-equiv="refresh" content="0;url=' . $safeRedirectUrl . '">
 </head>
 <body style="font-family: Arial; padding: 40px; text-align: center;">
-    <h2>✅ Успешный вход!</h2>
-    <p>Добро пожаловать, <strong>' . $safeName . '</strong>!</p>
-    <p>Перенаправление...</p>
+    <h2>✅ Signed in</h2>
+    <p>Welcome, <strong>' . $safeName . '</strong>!</p>
+    <p>Redirecting…</p>
 </body>
 </html>';
     }
