@@ -72,7 +72,7 @@ trait Ajax_Tech
         $translationId = (int)self::$args['translation_id'];
 
         $cols = 'ID, BOOK_NUM, NAME';
-        foreach (self::getLanguages() as $lang) {
+        foreach (self::getBibleLanguages() as $lang) {
             if ($lang['col_suffix'] !== '') {
                 $cols .= ', NAME' . $lang['col_suffix'];
             }
@@ -112,7 +112,7 @@ trait Ajax_Tech
     private static function get_bible_verses()
     {
         // Support both book_id (old) and book_num (new) for backwards compatibility
-        $langs = self::getLanguages();
+        $langs = self::getBibleLanguages();
 
         if (isset(self::$args['book_num'])) {
             $bookNum    = (int)self::$args['book_num'];
@@ -173,7 +173,7 @@ trait Ajax_Tech
             self::$args['query']
         );
 
-        $langs     = self::getLanguages();
+        $langs     = self::getBibleLanguages();
         $textCols  = 'v.TEXT';
         $nameCols  = 'b.NAME as BOOK_NAME';
         $whereOrs  = ["v.TEXT LIKE '%{$query}%'"];
