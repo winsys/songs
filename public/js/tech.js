@@ -16,6 +16,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // ── Bible mode state ──────────────────────────────────────
     $scope.bibleTranslations    = [];
     $scope.bibleTranslationId   = null;
+    $scope.bibleLang            = null;   // single active Bible content language (code)
     $scope.bibleBooks           = [];
     $scope.selectedBibleBook    = null;
     $scope.bibleChapters        = [];
@@ -183,27 +184,80 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     }
 
     /**
-     * Bible translations filtered by the active language toggles.
-     * A translation is included if its `supported_langs` (computed by the
-     * server from non-NULL TEXT* columns) overlaps the active toggles.
-     * E.g. Synodal supports {ru, lt, en} via its parallel TEXT_LT/TEXT_EN
-     * columns and shows up under the EN toggle alone, not just under RU.
-     * Falls back to the full list when nothing matches so the panel never
-     * goes empty. Backward-compatible: translations without supported_langs
-     * fall back to LANG-based matching.
+     * Bible translations filtered by the single active Bible language.
+     * A translation is included if its `supported_langs` (server-computed
+     * from non-NULL TEXT* columns) contains $scope.bibleLang. Falls back
+     * to LANG-based matching when supported_langs is missing, and to the
+     * full list when nothing matches so the panel never goes empty.
      */
     $scope.getFilteredBibleTranslations = function() {
         if (!$scope.bibleTranslations || $scope.bibleTranslations.length === 0) return [];
-        var activeCodes = getActiveLangs().map(function(l) { return l.code; });
-        if (activeCodes.length === 0) return $scope.bibleTranslations;
+        if (!$scope.bibleLang) return $scope.bibleTranslations;
         var filtered = $scope.bibleTranslations.filter(function(t) {
             var langs = t.supported_langs && t.supported_langs.length ? t.supported_langs : [t.LANG];
-            for (var i = 0; i < langs.length; i++) {
-                if (activeCodes.indexOf(langs[i]) !== -1) return true;
-            }
-            return false;
+            return langs.indexOf($scope.bibleLang) !== -1;
         });
         return filtered.length > 0 ? filtered : $scope.bibleTranslations;
+    };
+
+    /** Returns the langList entry for the currently selected Bible language. */
+    function getBibleLangObj() {
+        if (!$scope.bibleLang) return null;
+        for (var i = 0; i < $scope.langList.length; i++) {
+            if ($scope.langList[i].code === $scope.bibleLang) return $scope.langList[i];
+        }
+        return null;
+    }
+
+    /**
+     * Whether the given language has any data in the currently loaded Bible
+     * verses. Used to disable language buttons that would render nothing.
+     * If verses are not yet loaded, the language is considered available.
+     */
+    $scope.isBibleLangAvailable = function(lang) {
+        if (!lang) return false;
+        if (!$scope.bibleVerses || $scope.bibleVerses.length === 0) return true;
+        var col = 'TEXT' + lang.col_suffix;
+        for (var i = 0; i < $scope.bibleVerses.length; i++) {
+            if ($scope.bibleVerses[i][col]) return true;
+        }
+        return false;
+    };
+
+    /**
+     * Switch the single active Bible language. Re-prepares the visible
+     * verses, rebuilds the active-selection text, and auto-switches to a
+     * compatible translation if the current one has no data for the
+     * chosen language.
+     */
+    $scope.setBibleLang = function(code) {
+        if (!code || $scope.bibleLang === code) return;
+        $scope.bibleLang = code;
+
+        // Re-prepare visible verses in the new language.
+        if ($scope.bibleVerses && $scope.bibleVerses.length > 0) {
+            $scope.biblePreparedVerses = prepareBibleVerses($scope.bibleVerses);
+
+            // Rebuild current selection text (display strings carry indices).
+            if ($scope.selectedBibleVerses.length > 0) {
+                var bookName = $scope.getBibleBookName($scope.selectedBibleBook);
+                var refLabel = bookName + ' ' + $scope.selectedBibleChapter;
+                var combined = buildBibleCombinedText($scope.selectedBibleVerses);
+                $scope.showingBibleVerse = combined;
+                sendBibleText(combined, refLabel);
+            }
+        }
+
+        // If the current translation does not support the new language,
+        // switch to the first one that does. setBibleTranslation reloads
+        // books/chapters/verses and restores the position.
+        if ($scope.bibleTranslations && $scope.bibleTranslations.length > 0) {
+            var filtered  = $scope.getFilteredBibleTranslations();
+            var stillValid = filtered.some(function(t) { return t.ID == $scope.bibleTranslationId; });
+            if (!stillValid && filtered.length > 0) {
+                $scope.setBibleTranslation(filtered[0].ID);
+            }
+        }
     };
 
     /**
@@ -305,6 +359,14 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     }
                 }
                 $scope.languages = newLangs;
+
+                // Initialize the single active Bible language. Bible mode
+                // shows one language at a time; default to UI language if
+                // it is registered, otherwise the system default.
+                if (!$scope.bibleLang) {
+                    var hasUi = list.some(function(l) { return l.code === uiLang; });
+                    $scope.bibleLang = hasUi ? uiLang : (defaultCode || (list[0] && list[0].code) || null);
+                }
             },
             function () {
                 console.error('tech.js: failed to load language list');
@@ -978,12 +1040,14 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 // translation whose LANG matches window.UI_LANG; otherwise take
                 // the first translation visible under the current toggles.
                 if ($scope.bibleTranslations.length > 0 && !$scope.bibleTranslationId) {
+                    // Pick a translation that supports the active Bible
+                    // language; prefer one whose LANG matches it exactly.
                     var filtered = $scope.getFilteredBibleTranslations();
                     if (filtered.length === 0) filtered = $scope.bibleTranslations;
-                    var uiLang = window.UI_LANG || 'ru';
+                    var preferred = $scope.bibleLang || window.UI_LANG || 'ru';
                     var match = null;
                     for (var i = 0; i < filtered.length; i++) {
-                        if (filtered[i].LANG === uiLang) { match = filtered[i]; break; }
+                        if (filtered[i].LANG === preferred) { match = filtered[i]; break; }
                     }
                     $scope.setBibleTranslation((match || filtered[0]).ID);
                 }
@@ -1123,38 +1187,36 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     /**
-     * Build display strings for Bible verses (same pattern as song verses).
-     * Format: "visible text\n(verseIndex)" — index is used for selection tracking.
+     * Build display strings for Bible verses in the single active Bible
+     * language. Format: "visible text\n(verseIndex)" — the index is used
+     * for selection tracking and to recover raw data later.
      */
     function prepareBibleVerses(verses) {
         var result = [];
+        var lang = getBibleLangObj();
+        var field = lang ? textCol(lang) : 'TEXT';
         angular.forEach(verses, function(verse, idx) {
-            var parts    = [];
-            var verseNum = verse.VERSE_NUM;
-            getActiveLangs().forEach(function(lang) {
-                var field = textCol(lang);
-                if (verse[field]) parts.push(verseNum + '. ' + verse[field]);
-            });
-            if (parts.length === 0) return;
-            var combined = parts.join('\r\n- - - - - - - -\r\n');
-            result.push(combined + '\n(' + idx + ')');
+            var text = verse[field];
+            if (!text) return;
+            result.push(verse.VERSE_NUM + '. ' + text + '\n(' + idx + ')');
         });
         return result;
     }
 
     /**
      * Get a book display name. Resolution order:
-     *   1. NAME column for window.UI_LANG (e.g. NAME_DE for German UI).
-     *   2. Default NAME column (typically Russian for Synodal, German for Luther).
-     *   3. Any other non-empty NAME_* column (last-ditch fallback if a
-     *      translation only populated alternate-language columns).
-     * Independent of the language toggle state — names always show.
+     *   1. NAME column for the active Bible language ($scope.bibleLang).
+     *   2. NAME column for window.UI_LANG (fallback for early renders
+     *      before bibleLang is set).
+     *   3. Default NAME column (typically Russian for Synodal, German
+     *      for Luther).
+     *   4. Any other non-empty NAME_* column.
      */
     $scope.getBibleBookName = function(book) {
         if (!book) return '';
-        var uiLang = window.UI_LANG || 'ru';
+        var preferred = $scope.bibleLang || window.UI_LANG || 'ru';
         for (var i = 0; i < $scope.langList.length; i++) {
-            if ($scope.langList[i].code === uiLang) {
+            if ($scope.langList[i].code === preferred) {
                 var col = 'NAME' + $scope.langList[i].col_suffix;
                 if (book[col]) return book[col];
                 break;
@@ -1174,13 +1236,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     /**
-     * Get verse display text for search results.
+     * Get verse display text for search results in the active Bible
+     * language. Falls back to the default TEXT column.
      */
     $scope.getBibleVerseDisplay = function(verse) {
-        // Return text of first active language with a non-empty field.
-        var active = getActiveLangs();
-        for (var i = 0; i < active.length; i++) {
-            var v = verse[textCol(active[i])];
+        var lang = getBibleLangObj();
+        if (lang) {
+            var v = verse[textCol(lang)];
             if (v) return v;
         }
         return verse.TEXT || '';
@@ -1245,35 +1307,21 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     /**
-     * Build combined multi-verse text from selected verse display strings.
-     * Re-collects verse indices and looks up raw data to honour language toggles.
+     * Build combined multi-verse text from selected verse display strings
+     * in the single active Bible language. Re-collects verse indices and
+     * looks up raw data so the text always matches $scope.bibleLang.
      */
     function buildBibleCombinedText(selectedVerseStrings) {
-        var verseIndices = selectedVerseStrings.map(function(v) {
+        var lang = getBibleLangObj();
+        var field = lang ? textCol(lang) : 'TEXT';
+        var parts = [];
+        selectedVerseStrings.forEach(function(v) {
             var match = v.match(/\n\((\d+)\)$/);
-            return match ? parseInt(match[1]) : -1;
-        }).filter(function(idx) { return idx >= 0; });
-
-        var langBuckets = {};
-        getActiveLangs().forEach(function(lang) { langBuckets[lang.code] = []; });
-
-        verseIndices.forEach(function(idx) {
-            var verse = $scope.bibleVerses[idx];
-            if (!verse) return;
-            var num = verse.VERSE_NUM;
-            getActiveLangs().forEach(function(lang) {
-                var field = textCol(lang);
-                if (verse[field]) langBuckets[lang.code].push(num + '. ' + verse[field]);
-            });
+            if (!match) return;
+            var verse = $scope.bibleVerses[parseInt(match[1])];
+            if (verse && verse[field]) parts.push(verse.VERSE_NUM + '. ' + verse[field]);
         });
-
-        var languageParts = [];
-        getActiveLangs().forEach(function(lang) {
-            var parts = langBuckets[lang.code];
-            if (parts.length > 0) languageParts.push(parts.join('\r\n'));
-        });
-
-        return languageParts.join('\r\n- - - - - - - -\r\n');
+        return parts.join('\r\n');
     }
 
     /**
