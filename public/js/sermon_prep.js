@@ -1543,7 +1543,11 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     /**
      * After Angular has rendered the books / chapters / verses lists,
      * scroll each panel so the currently selected item is visible.
-     * Mirrors scrollBiblePanels() in tech.js.
+     *
+     * Uses getBoundingClientRect to compute the element's position
+     * relative to the panel — robust against offsetParent quirks
+     * (`.prep-panel` is `overflow:auto` but not positioned, so plain
+     * `el.offsetTop` measures from the document, not the panel).
      */
     function scrollPrepBiblePanels() {
         $timeout(function () {
@@ -1557,17 +1561,17 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 if (!panel) return;
                 var el = panel.querySelector(p.sel);
                 if (!el) return;
-                var panelTop    = panel.scrollTop;
-                var panelBottom = panelTop + panel.clientHeight;
-                var elTop       = el.offsetTop;
-                var elBottom    = elTop + el.offsetHeight;
-                if (elTop < panelTop) {
-                    panel.scrollTop = elTop - 8;
-                } else if (elBottom > panelBottom) {
-                    panel.scrollTop = elBottom - panel.clientHeight + 8;
+                var panelRect = panel.getBoundingClientRect();
+                var elRect    = el.getBoundingClientRect();
+                var relTop    = elRect.top - panelRect.top + panel.scrollTop;
+                var relBottom = relTop + el.offsetHeight;
+                if (relTop < panel.scrollTop) {
+                    panel.scrollTop = Math.max(0, relTop - 8);
+                } else if (relBottom > panel.scrollTop + panel.clientHeight) {
+                    panel.scrollTop = relBottom - panel.clientHeight + 8;
                 }
             });
-        }, 50);
+        }, 100);
     }
 
     $scope.loadBibleTranslations = function () {
