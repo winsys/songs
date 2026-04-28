@@ -1497,15 +1497,16 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     }
 
     /**
-     * Whether the given language has data in the currently loaded verses.
-     * If verses are not loaded yet, the language is considered available
-     * so its button stays clickable on entry.
+     * Whether at least one Bible translation supports the given language.
+     * Used to disable language buttons for which no translation exists.
      */
     $scope.isBibleLangAvailablePrep = function (lang) {
         if (!lang) return false;
-        if (!$scope.rawVerses || $scope.rawVerses.length === 0) return true;
-        var col = 'TEXT' + lang.col_suffix;
-        return $scope.rawVerses.some(function (v) { return v[col] && v[col].trim() !== ''; });
+        if (!$scope.bibleTranslations || $scope.bibleTranslations.length === 0) return true;
+        return $scope.bibleTranslations.some(function (t) {
+            var langs = t.supported_langs && t.supported_langs.length ? t.supported_langs : [t.LANG];
+            return langs.indexOf(lang.code) !== -1;
+        });
     };
 
     /**
@@ -1517,12 +1518,14 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         if (!code || $scope.bibleLangPrep === code) return;
         $scope.bibleLangPrep = code;
 
-        // Re-render verses in the new language using already-loaded raw data.
+        // Re-render verses in the new language using already-loaded raw
+        // data. Falls back to v.TEXT when the language-suffixed column
+        // is absent (post-migration each translation only has TEXT).
         if ($scope.rawVerses && $scope.rawVerses.length > 0) {
             var lang = getBibleLangPrepObj();
             var col = lang ? ('TEXT' + lang.col_suffix) : 'TEXT';
             $scope.preparedVerses = $scope.rawVerses.map(function (v) {
-                return { num: parseInt(v.VERSE_NUM), display: v.VERSE_NUM + '. ' + (v[col] || '') };
+                return { num: parseInt(v.VERSE_NUM), display: v.VERSE_NUM + '. ' + (v[col] || v.TEXT || '') };
             });
         }
 
@@ -1607,7 +1610,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             var rLang = getBibleLangPrepObj();
             var rCol = rLang ? ('TEXT' + rLang.col_suffix) : 'TEXT';
             $scope.preparedVerses = r.data.map(function (v) {
-                return { num: parseInt(v.VERSE_NUM), display: v.VERSE_NUM + '. ' + (v[rCol] || '') };
+                return { num: parseInt(v.VERSE_NUM), display: v.VERSE_NUM + '. ' + (v[rCol] || v.TEXT || '') };
             });
 
             // Restore verse selection — filter to verse nums that actually exist
@@ -1686,7 +1689,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 var lang = getBibleLangPrepObj();
                 var col = lang ? ('TEXT' + lang.col_suffix) : 'TEXT';
                 $scope.preparedVerses = r.data.map(function (v) {
-                    return { num: parseInt(v.VERSE_NUM), display: v.VERSE_NUM + '. ' + (v[col] || '') };
+                    return { num: parseInt(v.VERSE_NUM), display: v.VERSE_NUM + '. ' + (v[col] || v.TEXT || '') };
                 });
             }
         );
@@ -1726,12 +1729,14 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         var nameCol  = 'NAME' + colSuffix;
         var langCode = lang ? lang.code : (window.UI_LANG || 'ru');
 
-        // Collect verse text in the active language.
+        // Collect verse text in the active language. Falls back to the
+        // canonical TEXT column when the suffixed one is absent.
         var verseText = '';
         nums.forEach(function (n) {
             for (var i = 0; i < $scope.rawVerses.length; i++) {
                 if (parseInt($scope.rawVerses[i].VERSE_NUM) === n) {
-                    verseText += (verseText ? ' / ' : '') + ($scope.rawVerses[i][textCol] || '');
+                    var t = $scope.rawVerses[i][textCol] || $scope.rawVerses[i].TEXT || '';
+                    verseText += (verseText ? ' / ' : '') + t;
                     break;
                 }
             }

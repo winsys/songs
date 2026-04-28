@@ -210,18 +210,20 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     }
 
     /**
-     * Whether the given language has any data in the currently loaded Bible
-     * verses. Used to disable language buttons that would render nothing.
-     * If verses are not yet loaded, the language is considered available.
+     * Whether at least one Bible translation supports the given language.
+     * Used to disable language buttons for which no translation exists.
+     * Translations advertise their supported languages via `supported_langs`
+     * (server-computed from non-NULL TEXT* columns); after the parallel-
+     * column migration this collapses to just the translation's LANG, which
+     * is exactly what we want.
      */
     $scope.isBibleLangAvailable = function(lang) {
         if (!lang) return false;
-        if (!$scope.bibleVerses || $scope.bibleVerses.length === 0) return true;
-        var col = 'TEXT' + lang.col_suffix;
-        for (var i = 0; i < $scope.bibleVerses.length; i++) {
-            if ($scope.bibleVerses[i][col]) return true;
-        }
-        return false;
+        if (!$scope.bibleTranslations || $scope.bibleTranslations.length === 0) return true;
+        return $scope.bibleTranslations.some(function(t) {
+            var langs = t.supported_langs && t.supported_langs.length ? t.supported_langs : [t.LANG];
+            return langs.indexOf(lang.code) !== -1;
+        });
     };
 
     /**
@@ -1189,14 +1191,16 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     /**
      * Build display strings for Bible verses in the single active Bible
      * language. Format: "visible text\n(verseIndex)" — the index is used
-     * for selection tracking and to recover raw data later.
+     * for selection tracking and to recover raw data later. Falls back
+     * to verse.TEXT when the language-suffixed column is absent (e.g.
+     * after the parallel-column migration, verses only carry TEXT).
      */
     function prepareBibleVerses(verses) {
         var result = [];
         var lang = getBibleLangObj();
         var field = lang ? textCol(lang) : 'TEXT';
         angular.forEach(verses, function(verse, idx) {
-            var text = verse[field];
+            var text = verse[field] || verse.TEXT;
             if (!text) return;
             result.push(verse.VERSE_NUM + '. ' + text + '\n(' + idx + ')');
         });
@@ -1237,7 +1241,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
 
     /**
      * Get verse display text for search results in the active Bible
-     * language. Falls back to the default TEXT column.
+     * language. Falls back to the default TEXT column when the
+     * language-suffixed column is absent or empty.
      */
     $scope.getBibleVerseDisplay = function(verse) {
         var lang = getBibleLangObj();
@@ -1310,6 +1315,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
      * Build combined multi-verse text from selected verse display strings
      * in the single active Bible language. Re-collects verse indices and
      * looks up raw data so the text always matches $scope.bibleLang.
+     * Falls back to verse.TEXT when the language-suffixed column is gone.
      */
     function buildBibleCombinedText(selectedVerseStrings) {
         var lang = getBibleLangObj();
@@ -1319,7 +1325,9 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             var match = v.match(/\n\((\d+)\)$/);
             if (!match) return;
             var verse = $scope.bibleVerses[parseInt(match[1])];
-            if (verse && verse[field]) parts.push(verse.VERSE_NUM + '. ' + verse[field]);
+            if (!verse) return;
+            var text = verse[field] || verse.TEXT;
+            if (text) parts.push(verse.VERSE_NUM + '. ' + text);
         });
         return parts.join('\r\n');
     }
