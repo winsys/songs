@@ -1253,11 +1253,11 @@
                             <button ng-repeat="lang in prepLangList"
                                     class="lang-toggle-btn"
                                     ng-class="{
-                                        'lang-active':    prepLangs[lang.code] && langHasData(lang),
-                                        'lang-disabled':  !langHasData(lang)
+                                        'lang-active':    bibleLangPrep === lang.code,
+                                        'lang-disabled':  !isBibleLangAvailablePrep(lang)
                                     }"
-                                    ng-click="langHasData(lang) && togglePrepLang(lang.code)"
-                                    ng-disabled="!langHasData(lang)"
+                                    ng-click="isBibleLangAvailablePrep(lang) && setBibleLangPrep(lang.code)"
+                                    ng-disabled="!isBibleLangAvailablePrep(lang)"
                                     title="{{ lang.label }}">{{ lang.label }}</button>
                         </div>
                         </div>
@@ -1629,4 +1629,4 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.2.1/turndown.min.js" integrity="sha512-8Po+00YF9yNfZmNwpwzsqKsM1lbkTACbs/TueHeY4x9l6mjWiIu5ONZ8LJ1kbL1FTOqIV25Uyaq1d1+T9cNSmA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/js/sermon_chip_editor.min.js?v=15"></script>
-<script src="/js/sermon_prep.min.js?v=21" type="text/javascript"></script>
+<script src="/js/sermon_prep.min.js?v=22" type="text/javascript"></script>

@@ -1381,6 +1381,16 @@
                 </div>
             </div>
             <div ng-show="pageMode === 'bible'">
+                <div class="section-label"><?php echo T::s('tech.label.bibleLang'); ?></div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button class="btn-lang"
+                            ng-repeat="lang in langList"
+                            ng-disabled="!isBibleLangAvailable(lang)"
+                            ng-class="bibleLang === lang.code ? 'lang-active' : ''"
+                            ng-click="setBibleLang(lang.code)">{{lang.label}}</button>
+                </div>
+            </div>
+            <div ng-show="pageMode === 'bible'">
                 <div class="section-label"><?php echo T::s('tech.label.versesPerPage'); ?></div>
                 <div style="display: flex; gap: 6px;">
                     <button class="btn-lang"
@@ -2058,5 +2068,5 @@
 
 </div><!-- /ng-controller -->
 
-<script src="/js/tech.js?v=23" type="text/javascript"></script>
+<script src="/js/tech.min.js?v=24" type="text/javascript"></script>
 

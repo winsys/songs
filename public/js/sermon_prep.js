@@ -60,7 +60,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     var prepMsgSearchTimer     = null;
     $scope.prepMsgParaExpanded = false;
     $scope.prepLangList = [];   // [{code, label, col_suffix, is_default}, ...]
-    $scope.prepLangs    = {};   // code → bool
+    $scope.bibleLangPrep = null;   // single active Bible content language (code)
 
     // ── VIDEO state ──────────────────────────────────────────
     $scope.showVideoPanel  = false;   // toolbar dropdown open
@@ -200,16 +200,19 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             function (r) {
                 var list = r.data || [];
                 $scope.prepLangList = list;
-                // Default-enable both the default content language AND the language
-                // matching window.UI_LANG (so a German UI starts with German chips on).
-                var uiLang  = window.UI_LANG || 'ru';
-                var newLangs = {};
-                list.forEach(function (l) {
-                    newLangs[l.code] = ($scope.prepLangs[l.code] !== undefined)
-                        ? $scope.prepLangs[l.code]
-                        : (l.is_default == '1' || l.code === uiLang);
-                });
-                $scope.prepLangs = newLangs;
+
+                // Initialize the single active Bible language for the prep
+                // editor. Default to the UI language if registered, otherwise
+                // the system default, otherwise the first available.
+                if (!$scope.bibleLangPrep) {
+                    var uiLang = window.UI_LANG || 'ru';
+                    var defCode = null;
+                    for (var i = 0; i < list.length; i++) {
+                        if (list[i].is_default == '1') { defCode = list[i].code; break; }
+                    }
+                    var hasUi = list.some(function (l) { return l.code === uiLang; });
+                    $scope.bibleLangPrep = hasUi ? uiLang : (defCode || (list[0] && list[0].code) || null);
+                }
             }
         );
     }
@@ -1468,27 +1471,70 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     // ──────────────────────────────────────────────────────────
 
     /**
-     * Bible translations filtered by the active prepLangs toggles.
-     * Uses each translation's `supported_langs` (server-computed from which
-     * TEXT* columns are populated) so a translation that holds parallel
-     * texts in multiple languages — like Synodal with TEXT_EN = English KJV
-     * — also shows up under the EN toggle. Falls back to the full list if
-     * nothing matches so the panel is never empty.
+     * Bible translations filtered by the single active Bible language.
+     * A translation is included if its `supported_langs` (server-computed
+     * from non-NULL TEXT* columns) contains $scope.bibleLangPrep. Falls
+     * back to the full list when nothing matches so the panel never goes
+     * empty.
      */
     $scope.getFilteredBibleTranslations = function () {
         if (!$scope.bibleTranslations || $scope.bibleTranslations.length === 0) return [];
-        var activeCodes = $scope.prepLangList
-            .filter(function (l) { return $scope.prepLangs[l.code]; })
-            .map(function (l) { return l.code; });
-        if (activeCodes.length === 0) return $scope.bibleTranslations;
+        if (!$scope.bibleLangPrep) return $scope.bibleTranslations;
         var filtered = $scope.bibleTranslations.filter(function (t) {
             var langs = t.supported_langs && t.supported_langs.length ? t.supported_langs : [t.LANG];
-            for (var i = 0; i < langs.length; i++) {
-                if (activeCodes.indexOf(langs[i]) !== -1) return true;
-            }
-            return false;
+            return langs.indexOf($scope.bibleLangPrep) !== -1;
         });
         return filtered.length > 0 ? filtered : $scope.bibleTranslations;
+    };
+
+    /** Returns the prepLangList entry for the active Bible language. */
+    function getBibleLangPrepObj() {
+        if (!$scope.bibleLangPrep) return null;
+        for (var i = 0; i < $scope.prepLangList.length; i++) {
+            if ($scope.prepLangList[i].code === $scope.bibleLangPrep) return $scope.prepLangList[i];
+        }
+        return null;
+    }
+
+    /**
+     * Whether the given language has data in the currently loaded verses.
+     * If verses are not loaded yet, the language is considered available
+     * so its button stays clickable on entry.
+     */
+    $scope.isBibleLangAvailablePrep = function (lang) {
+        if (!lang) return false;
+        if (!$scope.rawVerses || $scope.rawVerses.length === 0) return true;
+        var col = 'TEXT' + lang.col_suffix;
+        return $scope.rawVerses.some(function (v) { return v[col] && v[col].trim() !== ''; });
+    };
+
+    /**
+     * Switch the single active Bible language for the prep editor.
+     * Re-prepares visible verses and auto-switches translation when the
+     * current one has no data for the chosen language.
+     */
+    $scope.setBibleLangPrep = function (code) {
+        if (!code || $scope.bibleLangPrep === code) return;
+        $scope.bibleLangPrep = code;
+
+        // Re-render verses in the new language using already-loaded raw data.
+        if ($scope.rawVerses && $scope.rawVerses.length > 0) {
+            var lang = getBibleLangPrepObj();
+            var col = lang ? ('TEXT' + lang.col_suffix) : 'TEXT';
+            $scope.preparedVerses = $scope.rawVerses.map(function (v) {
+                return { num: parseInt(v.VERSE_NUM), display: v.VERSE_NUM + '. ' + (v[col] || '') };
+            });
+        }
+
+        // Auto-switch the Bible translation if the current one no longer
+        // supports the active language.
+        if ($scope.bibleTranslations && $scope.bibleTranslations.length > 0) {
+            var filtered  = $scope.getFilteredBibleTranslations();
+            var stillValid = filtered.some(function (t) { return t.ID == $scope.bibleTranslationId; });
+            if (!stillValid && filtered.length > 0) {
+                $scope.setBibleTranslation(filtered[0].ID);
+            }
+        }
     };
 
     $scope.loadBibleTranslations = function () {
@@ -1496,15 +1542,15 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             function (r) {
                 $scope.bibleTranslations = r.data;
                 if (r.data.length > 0) {
-                    // Auto-select within the filtered list (toggle-aware). Prefer a
-                    // translation whose LANG matches window.UI_LANG; otherwise take
-                    // the first translation visible under the current toggles.
+                    // Auto-select within the filtered list (active-language-aware).
+                    // Prefer a translation whose LANG matches the active Bible
+                    // language; otherwise take the first translation visible.
                     var filtered = $scope.getFilteredBibleTranslations();
                     if (filtered.length === 0) filtered = r.data;
-                    var uiLang = window.UI_LANG || 'ru';
+                    var preferred = $scope.bibleLangPrep || window.UI_LANG || 'ru';
                     var match = null;
                     for (var i = 0; i < filtered.length; i++) {
-                        if (filtered[i].LANG === uiLang) { match = filtered[i]; break; }
+                        if (filtered[i].LANG === preferred) { match = filtered[i]; break; }
                     }
                     $scope.bibleTranslationId = (match || filtered[0]).ID;
                     $scope.loadBibleBooks();
@@ -1558,8 +1604,10 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         }).then(function (r) {
             if (!r) return;
             $scope.rawVerses      = r.data;
+            var rLang = getBibleLangPrepObj();
+            var rCol = rLang ? ('TEXT' + rLang.col_suffix) : 'TEXT';
             $scope.preparedVerses = r.data.map(function (v) {
-                return { num: parseInt(v.VERSE_NUM), display: v.VERSE_NUM + '. ' + (v.TEXT || '') };
+                return { num: parseInt(v.VERSE_NUM), display: v.VERSE_NUM + '. ' + (v[rCol] || '') };
             });
 
             // Restore verse selection — filter to verse nums that actually exist
@@ -1593,12 +1641,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.getBookName = function (book) {
         if (!book) return '';
         // Resolution order:
-        //   1. NAME column for window.UI_LANG (e.g. NAME_DE for German UI).
-        //   2. Default NAME column (Russian for Synodal, German for Luther/Elberfelder).
-        //   3. Any other non-empty NAME_* column.
-        var uiLang = window.UI_LANG || 'ru';
+        //   1. NAME column for the active Bible language ($scope.bibleLangPrep).
+        //   2. NAME column for window.UI_LANG (early-render fallback).
+        //   3. Default NAME column (Russian for Synodal, German for Luther/Elberfelder).
+        //   4. Any other non-empty NAME_* column.
+        var preferred = $scope.bibleLangPrep || window.UI_LANG || 'ru';
         for (var i = 0; i < $scope.prepLangList.length; i++) {
-            if ($scope.prepLangList[i].code === uiLang) {
+            if ($scope.prepLangList[i].code === preferred) {
                 var col = 'NAME' + $scope.prepLangList[i].col_suffix;
                 if (book[col]) return book[col];
                 break;
@@ -1634,18 +1683,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_verses', book_id: $scope.selectedBook.ID, chapter_num: ch } }).then(
             function (r) {
                 $scope.rawVerses      = r.data;
+                var lang = getBibleLangPrepObj();
+                var col = lang ? ('TEXT' + lang.col_suffix) : 'TEXT';
                 $scope.preparedVerses = r.data.map(function (v) {
-                    return { num: parseInt(v.VERSE_NUM), display: v.VERSE_NUM + '. ' + (v.TEXT || '') };
+                    return { num: parseInt(v.VERSE_NUM), display: v.VERSE_NUM + '. ' + (v[col] || '') };
                 });
             }
         );
-    };
-    // togglePrepLang lives below — this earlier no-op stub is removed.
-    $scope.langHasData = function (lang) {
-        if (lang.is_default == '1') return true;             // default language is always available
-        if (!$scope.rawVerses || $scope.rawVerses.length === 0) return true;  // verses not yet loaded — do not block
-        var col = 'TEXT' + lang.col_suffix;
-        return $scope.rawVerses.some(function (v) { return v[col] && v[col].trim() !== ''; });
     };
     $scope.toggleVerse = function (v, $event) {
         var idx     = $scope.selectedBibleVerseNums.indexOf(v.num);
@@ -1669,110 +1713,76 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         if (consecutive) return bookName+' '+$scope.selectedChapter+':'+nums[0]+'-'+nums[nums.length-1];
         return bookName+' '+$scope.selectedChapter+':'+nums.join(',');
     };
-    $scope.togglePrepLang = function (lang) {
-        $scope.prepLangs[lang] = !$scope.prepLangs[lang];
-        // at least one language must be enabled
-        var anyOn = $scope.prepLangList.some(function (l) { return $scope.prepLangs[l.code]; });
-        if (!anyOn) $scope.prepLangs[lang] = true;
-
-        // Auto-switch the Bible translation if the current one no longer
-        // matches any active toggle. Mirrors the tech.js behaviour.
-        if ($scope.bibleTranslations && $scope.bibleTranslations.length > 0) {
-            var filtered  = $scope.getFilteredBibleTranslations();
-            var stillValid = filtered.some(function (t) { return t.ID == $scope.bibleTranslationId; });
-            if (!stillValid && filtered.length > 0) {
-                $scope.bibleTranslationId = filtered[0].ID;
-                $scope.selectedBook       = null;
-                $scope.bibleChapters      = [];
-                $scope.selectedChapter    = null;
-                $scope.rawVerses          = [];
-                $scope.preparedVerses     = [];
-                $scope.loadBibleBooks();
-            }
-        }
-    };
     $scope.insertBibleCitation = function () {
         if ($scope.selectedBibleVerseNums.length === 0) return;
-        var nums     = $scope.selectedBibleVerseNums.slice().sort(function(a,b){return a-b;});
-        var refLabel = $scope.getRefLabel();
-        var book     = $scope.selectedBook;
+        var nums = $scope.selectedBibleVerseNums.slice().sort(function (a, b) { return a - b; });
+        var book = $scope.selectedBook;
 
-         // Only active and available languages
-        var activeLangs = $scope.prepLangList.filter(function (l) {
-            return $scope.prepLangs[l.code] && $scope.langHasData(l);
-        });
+        // Single active Bible language; fall back to default columns if
+        // the registry entry could not be found.
+        var lang     = getBibleLangPrepObj();
+        var colSuffix = lang ? (lang.col_suffix || '') : '';
+        var textCol  = 'TEXT' + colSuffix;
+        var nameCol  = 'NAME' + colSuffix;
+        var langCode = lang ? lang.code : (window.UI_LANG || 'ru');
 
-         // Collect verse texts for each language
-        var langTexts = {};
-        activeLangs.forEach(function (l) {
-            var col  = 'TEXT' + l.col_suffix;
-            var text = '';
-            nums.forEach(function (n) {
-                for (var i = 0; i < $scope.rawVerses.length; i++) {
-                    if (parseInt($scope.rawVerses[i].VERSE_NUM) === n) {
-                        text += (text ? ' / ' : '') + ($scope.rawVerses[i][col] || '');
-                        break;
-                    }
+        // Collect verse text in the active language.
+        var verseText = '';
+        nums.forEach(function (n) {
+            for (var i = 0; i < $scope.rawVerses.length; i++) {
+                if (parseInt($scope.rawVerses[i].VERSE_NUM) === n) {
+                    verseText += (verseText ? ' / ' : '') + ($scope.rawVerses[i][textCol] || '');
+                    break;
                 }
-            });
-            langTexts[l.code] = text;
+            }
         });
 
-        $http({ method:"POST", url:"/ajax", data:{ command:'get_bible_verses', book_id:book.ID, chapter_num:$scope.selectedChapter }}).then(
+        var langBookName = (book && book[nameCol] && book[nameCol].trim())
+            ? book[nameCol]
+            : (book && book.NAME) || '';
+
+        var refLabel = langBookName + ' ' + $scope.selectedChapter + ':' + nums[0];
+        if (nums.length > 1) {
+            var consecutive = true;
+            for (var ci = 1; ci < nums.length; ci++) {
+                if (nums[ci] !== nums[ci - 1] + 1) { consecutive = false; break; }
+            }
+            refLabel = consecutive
+                ? langBookName + ' ' + $scope.selectedChapter + ':' + nums[0] + '-' + nums[nums.length - 1]
+                : langBookName + ' ' + $scope.selectedChapter + ':' + nums.join(',');
+        }
+
+        // Refresh raw verses (no-op for already-loaded data) and insert.
+        $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_verses', book_id: book.ID, chapter_num: $scope.selectedChapter } }).then(
             function () {
-                activeLangs.forEach(function (l) {
-                    var verseText  = langTexts[l.code] || '';
-                    var langSuffix = activeLangs.length > 1 ? ' [' + l.label + ']' : '';
+                var span = document.createElement('span');
+                span.className       = 'bible-cite';
+                span.contentEditable = 'false';
+                span.setAttribute('data-translation-id', $scope.bibleTranslationId || 1);
+                span.setAttribute('data-col-suffix',     colSuffix);
+                span.setAttribute('data-book-id',        book ? book.ID : '');
+                span.setAttribute('data-book-num',       book ? book.BOOK_NUM : '');
+                span.setAttribute('data-book-name',      langBookName);
+                span.setAttribute('data-chapter',        $scope.selectedChapter || '');
+                span.setAttribute('data-verse-nums',     nums.join(','));
+                span.setAttribute('data-ref-label',      refLabel);
+                span.setAttribute('data-lang',           langCode);
+                span.setAttribute('data-verse-text',     verseText);
+                span.setAttribute('data-verse-html',     '');
+                span.setAttribute('data-verse-comments', '[]');
+                span.innerHTML =
+                    '<span class="cite-body">' +
+                        '<span class="cite-ref">📖 ' + refLabel + '</span>' +
+                        (verseText ? '<span class="cite-verse-text">' + verseText + '</span>' : '') +
+                    '</span>' +
+                    '<span class="cite-remove" title="' + window.t('common.button.delete') + '">×</span>';
 
-                    // Book name in the citation language
-                    var nameField   = 'NAME' + l.col_suffix;
-                    var langBookName = (book[nameField] && book[nameField].trim())
-                        ? book[nameField]
-                        : book.NAME || '';
-
-                    // Reference with the language-specific book name
-                    var langRefLabel = langBookName + ' ' + $scope.selectedChapter + ':' + nums[0];
-                    if (nums.length > 1) {
-                        var consecutive = true;
-                        for (var ci = 1; ci < nums.length; ci++) {
-                            if (nums[ci] !== nums[ci-1]+1) { consecutive = false; break; }
-                        }
-                        langRefLabel = consecutive
-                            ? langBookName + ' ' + $scope.selectedChapter + ':' + nums[0] + '-' + nums[nums.length-1]
-                            : langBookName + ' ' + $scope.selectedChapter + ':' + nums.join(',');
-                    }
-
-                    var span = document.createElement('span');
-                    span.className       = 'bible-cite';
-                    span.contentEditable = 'false';
-                    span.setAttribute('data-translation-id', $scope.bibleTranslationId || 1);
-                    span.setAttribute('data-col-suffix', l.col_suffix || '');
-                    span.setAttribute('data-book-id',    book ? book.ID : '');
-                    span.setAttribute('data-book-num',   book ? book.BOOK_NUM : '');
-                    span.setAttribute('data-book-name',   langBookName);
-                    span.setAttribute('data-chapter',     $scope.selectedChapter || '');
-                    span.setAttribute('data-verse-nums',  nums.join(','));
-                    span.setAttribute('data-ref-label',   langRefLabel);
-                    span.setAttribute('data-lang',        l.code);
-                    span.setAttribute('data-verse-text',  verseText);
-
-                    span.setAttribute('data-verse-html',      '');
-                    span.setAttribute('data-verse-comments',  '[]');
-                    span.innerHTML =
-                        '<span class="cite-body">' +
-                        '<span class="cite-ref">📖 ' + langRefLabel + langSuffix + '</span>' +
-                        (verseText ?
-                            '<span class="cite-verse-text">' + verseText + '</span>' : '') +
-                        '</span>' +
-                        '<span class="cite-remove" title="' + window.t('common.button.delete') + '">×</span>';
-
-                    span.querySelector('.cite-remove').onclick = function (e) {
-                        e.stopPropagation(); span.remove(); scheduleAutoSave();
-                    };
-                    span.ondblclick = function (e) { e.stopPropagation(); openChipEditor(span); };
-                    makeDraggable(span);
-                    insertNodeAtCursor(span);
-                });
+                span.querySelector('.cite-remove').onclick = function (e) {
+                    e.stopPropagation(); span.remove(); scheduleAutoSave();
+                };
+                span.ondblclick = function (e) { e.stopPropagation(); openChipEditor(span); };
+                makeDraggable(span);
+                insertNodeAtCursor(span);
                 $scope.selectedBibleVerseNums = [];
             }
         );
