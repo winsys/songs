@@ -1540,6 +1540,36 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         }
     };
 
+    /**
+     * After Angular has rendered the books / chapters / verses lists,
+     * scroll each panel so the currently selected item is visible.
+     * Mirrors scrollBiblePanels() in tech.js.
+     */
+    function scrollPrepBiblePanels() {
+        $timeout(function () {
+            var panels = [
+                { id: 'prep-books-panel',    sel: '.prep-list-item.selected' },
+                { id: 'prep-chapters-panel', sel: '.prep-chapter-btn.btn-success' },
+                { id: 'prep-verses-panel',   sel: '.prep-verse-item.verse-selected' }
+            ];
+            panels.forEach(function (p) {
+                var panel = document.getElementById(p.id);
+                if (!panel) return;
+                var el = panel.querySelector(p.sel);
+                if (!el) return;
+                var panelTop    = panel.scrollTop;
+                var panelBottom = panelTop + panel.clientHeight;
+                var elTop       = el.offsetTop;
+                var elBottom    = elTop + el.offsetHeight;
+                if (elTop < panelTop) {
+                    panel.scrollTop = elTop - 8;
+                } else if (elBottom > panelBottom) {
+                    panel.scrollTop = elBottom - panel.clientHeight + 8;
+                }
+            });
+        }, 50);
+    }
+
     $scope.loadBibleTranslations = function () {
         $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_translations' } }).then(
             function (r) {
@@ -1579,13 +1609,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             function (r) {
                 $scope.bibleBooks = r.data;
 
-                if (!prevBookNum) return null;
+                if (!prevBookNum) { scrollPrepBiblePanels(); return null; }
 
                 var matchBook = null;
                 angular.forEach($scope.bibleBooks, function (b) {
                     if (parseInt(b.BOOK_NUM) === prevBookNum) matchBook = b;
                 });
-                if (!matchBook) return null;
+                if (!matchBook) { scrollPrepBiblePanels(); return null; }
 
                 $scope.selectedBook = matchBook;
                 return $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_chapters', book_id: matchBook.ID } });
@@ -1594,11 +1624,11 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             if (!r) return null;
             $scope.bibleChapters = r.data;
 
-            if (!prevChapter) return null;
+            if (!prevChapter) { scrollPrepBiblePanels(); return null; }
 
             var chapterExists = false;
             angular.forEach($scope.bibleChapters, function (c) { if (c === prevChapter) chapterExists = true; });
-            if (!chapterExists) return null;
+            if (!chapterExists) { scrollPrepBiblePanels(); return null; }
 
             $scope.selectedChapter = prevChapter;
             return $http({ method: "POST", url: "/ajax",
@@ -1620,6 +1650,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     return existingNums.indexOf(n) >= 0;
                 });
             }
+            scrollPrepBiblePanels();
         });
     };
     $scope.loadBibleBooks = function () {
