@@ -6,6 +6,8 @@
 /nul
 /.claude/
 
-# Source Bible XMLs feeding database/translations/build.py — not tracked
-# (download URLs are in build.py; the generated .sql outputs are tracked).
+# Source Bible XMLs/JSONs feeding database/translations/build.py — not
+# tracked (download URLs are in build.py; the generated .sql outputs are
+# tracked).
 /database/translations/*.xml
+/database/translations/getbible_*.json
