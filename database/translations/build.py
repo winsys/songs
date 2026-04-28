@@ -3,15 +3,23 @@
 Convert Zefania XML Bible files to SQL inserts compatible with the
 worship-songs schema (bible_translations / bible_books / bible_verses).
 
-Run from this directory after placing the two source XML files alongside
+Run from this directory after placing the source XML files alongside
 this script (see README.md for download URLs):
 
   python build.py
 
-Outputs (overwrites):
+Each translation is emitted as a self-contained SQL file that creates
+its own bible_translations / bible_books / bible_verses rows. Verse
+text is written to bible_verses.TEXT and book names to bible_books.NAME
+only — the legacy parallel columns (TEXT_LT/TEXT_EN/TEXT_DE,
+NAME_LT/NAME_EN/NAME_DE) are unused by the per-translation model.
+
+Sources are skipped (with a notice) if the matching XML is not present.
+
+Outputs (overwrites if source available):
   luther1912.sql
   elberfelder1905.sql
-  ../migrations/add_bible_de_columns.sql
+  kjv.sql
 """
 import io, sys, os
 import xml.etree.ElementTree as ET
@@ -52,6 +60,33 @@ BOOK_NAMES_DE = {
     64: '3. Johannes',     65: 'Judas',           66: 'Offenbarung',
 }
 
+# Canonical English (KJV) book names. Used as a fallback when the
+# Zefania <BIBLEBOOK bname="..."> attribute is missing or empty.
+BOOK_NAMES_EN = {
+    1:  'Genesis',           2:  'Exodus',          3:  'Leviticus',
+    4:  'Numbers',           5:  'Deuteronomy',     6:  'Joshua',
+    7:  'Judges',            8:  'Ruth',            9:  '1 Samuel',
+    10: '2 Samuel',          11: '1 Kings',         12: '2 Kings',
+    13: '1 Chronicles',      14: '2 Chronicles',    15: 'Ezra',
+    16: 'Nehemiah',          17: 'Esther',          18: 'Job',
+    19: 'Psalms',            20: 'Proverbs',        21: 'Ecclesiastes',
+    22: 'Song of Solomon',   23: 'Isaiah',          24: 'Jeremiah',
+    25: 'Lamentations',      26: 'Ezekiel',         27: 'Daniel',
+    28: 'Hosea',             29: 'Joel',            30: 'Amos',
+    31: 'Obadiah',           32: 'Jonah',           33: 'Micah',
+    34: 'Nahum',             35: 'Habakkuk',        36: 'Zephaniah',
+    37: 'Haggai',            38: 'Zechariah',       39: 'Malachi',
+    40: 'Matthew',           41: 'Mark',            42: 'Luke',
+    43: 'John',              44: 'Acts',            45: 'Romans',
+    46: '1 Corinthians',     47: '2 Corinthians',   48: 'Galatians',
+    49: 'Ephesians',         50: 'Philippians',     51: 'Colossians',
+    52: '1 Thessalonians',   53: '2 Thessalonians', 54: '1 Timothy',
+    55: '2 Timothy',         56: 'Titus',           57: 'Philemon',
+    58: 'Hebrews',           59: 'James',           60: '1 Peter',
+    61: '2 Peter',           62: '1 John',          63: '2 John',
+    64: '3 John',            65: 'Jude',            66: 'Revelation',
+}
+
 
 def sql_escape(s):
     """Escape a Python string for embedding inside a single-quoted SQL string."""
@@ -82,15 +117,19 @@ def _verse_text(elem):
     return ''.join(parts)
 
 
-def load_zefania(path):
-    """Return list of (book_num, chapter_num, verse_num, text) tuples plus book names map."""
+def load_zefania(path, fallback_names):
+    """
+    Return list of (book_num, chapter_num, verse_num, text) tuples plus
+    book names map. fallback_names supplies a default name for books
+    whose <BIBLEBOOK bname="…"> attribute is missing or empty.
+    """
     tree = ET.parse(path)
     root = tree.getroot()
     verses = []
     book_names = {}
     for book in root.findall('BIBLEBOOK'):
         bn = int(book.get('bnumber'))
-        bname = book.get('bname') or BOOK_NAMES_DE.get(bn) or f'Book {bn}'
+        bname = book.get('bname') or fallback_names.get(bn) or f'Book {bn}'
         book_names[bn] = bname
         for ch in book.findall('CHAPTER'):
             cn = int(ch.get('cnumber'))
@@ -110,21 +149,29 @@ def load_zefania(path):
     return book_names, verses
 
 
-def emit_translation_sql(out_path, *, name, lang, sort_order, source_xml):
-    """Emit a self-contained SQL file that loads one translation."""
-    book_names, verses = load_zefania(source_xml)
-    # Override Luther's "Psalter" with the user's preferred form? No — Luther 1912 uses "Psalter".
-    # Override with the canonical map for any book whose XML name is missing/empty.
+def emit_translation_sql(out_path, *, name, lang, sort_order, source_xml, fallback_names):
+    """
+    Emit a self-contained SQL file that loads one translation. Skips
+    silently (with a notice) if source_xml is missing.
+    """
+    if not os.path.isfile(source_xml):
+        print(f'  {os.path.basename(out_path)}: SKIPPED (missing {os.path.basename(source_xml)})')
+        return
+
+    book_names, verses = load_zefania(source_xml, fallback_names)
+    # Fill any books whose XML name was missing/empty with the fallback.
     for bn in range(1, 67):
         if not book_names.get(bn):
-            book_names[bn] = BOOK_NAMES_DE[bn]
+            book_names[bn] = fallback_names[bn]
 
     total_verses = len(verses)
     print(f'  {os.path.basename(out_path)}: {len(book_names)} books, {total_verses} verses')
 
     parts = []
     parts.append(f"-- {name} — auto-generated from {os.path.basename(source_xml)}\n")
-    parts.append("-- Run AFTER add_bible_de_columns.sql.\n")
+    parts.append("-- Self-contained: writes its own bible_translations / bible_books /\n")
+    parts.append("-- bible_verses rows. Verse text goes to bible_verses.TEXT, book\n")
+    parts.append("-- names to bible_books.NAME — no parallel-language columns used.\n")
     parts.append("-- Idempotency: re-running deletes the existing translation with the same NAME first.\n\n")
     parts.append("START TRANSACTION;\n\n")
 
@@ -143,8 +190,8 @@ def emit_translation_sql(out_path, *, name, lang, sort_order, source_xml):
     for bn in range(1, 67):
         nm = sql_escape(book_names[bn])
         parts.append(
-            f"INSERT INTO bible_books (TRANSLATION_ID, BOOK_NUM, NAME, NAME_DE) "
-            f"VALUES (@tr, {bn}, '{nm}', '{nm}');\n"
+            f"INSERT INTO bible_books (TRANSLATION_ID, BOOK_NUM, NAME) "
+            f"VALUES (@tr, {bn}, '{nm}');\n"
         )
         parts.append(f"SET @b{bn} := LAST_INSERT_ID();\n")
     parts.append("\n")
@@ -166,32 +213,7 @@ def emit_translation_sql(out_path, *, name, lang, sort_order, source_xml):
         f.writelines(parts)
 
 
-def emit_migration():
-    path = os.path.join(OUT_MIG_DIR, 'add_bible_de_columns.sql')
-    content = """-- Migration: add German book/verse columns to the Bible tables
--- Required before importing Lutherbibel 1912 / Elberfelder 1905.
--- Safe to run multiple times: ALTER … ADD COLUMN IF NOT EXISTS not supported in MySQL 5.7,
--- so wrap in a stored procedure or check manually before re-running.
-
-ALTER TABLE `bible_books`
-    ADD COLUMN `NAME_DE` VARCHAR(255) DEFAULT NULL COMMENT 'Book name (DE)';
-
-ALTER TABLE `bible_verses`
-    ADD COLUMN `TEXT_DE` TEXT DEFAULT NULL COMMENT 'Verse text (DE)';
-
--- Rebuild the FULLTEXT index to include the new TEXT_DE column so search
--- in Bible mode finds German verses.
-ALTER TABLE `bible_verses` DROP KEY `ft_bible_text`;
-ALTER TABLE `bible_verses` ADD FULLTEXT KEY `ft_bible_text` (`TEXT`, `TEXT_LT`, `TEXT_EN`, `TEXT_DE`);
-"""
-    with open(path, 'w', encoding='utf-8', newline='\n') as f:
-        f.write(content)
-    print(f'  wrote {os.path.basename(path)}')
-
-
 def main():
-    print('Generating migration:')
-    emit_migration()
     print('Generating translation SQL:')
     emit_translation_sql(
         os.path.join(OUT_TR_DIR, 'luther1912.sql'),
@@ -199,6 +221,7 @@ def main():
         lang='de',
         sort_order=10,
         source_xml=os.path.join(ROOT, 'SF_2022-02-27_GER_LUTH1912_(LUTHER_1912).xml'),
+        fallback_names=BOOK_NAMES_DE,
     )
     emit_translation_sql(
         os.path.join(OUT_TR_DIR, 'elberfelder1905.sql'),
@@ -206,6 +229,15 @@ def main():
         lang='de',
         sort_order=11,
         source_xml=os.path.join(ROOT, 'SF_2009-01-20_GER_ELB1905_(ELBERFELDER 1905).xml'),
+        fallback_names=BOOK_NAMES_DE,
+    )
+    emit_translation_sql(
+        os.path.join(OUT_TR_DIR, 'kjv.sql'),
+        name='King James Version',
+        lang='en',
+        sort_order=20,
+        source_xml=os.path.join(ROOT, 'SF_2009-01-23_ENG_KJV_(KING JAMES VERSION).xml'),
+        fallback_names=BOOK_NAMES_EN,
     )
     print('Done.')
 
