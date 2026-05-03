@@ -54,6 +54,30 @@
         transform: translateX(-1px);
     }
 
+    .btn-disable-screen {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #fff;
+        background: #e74c3c;
+        border: none;
+        cursor: pointer;
+        flex-shrink: 0;
+        box-shadow: 0 2px 8px rgba(231, 76, 60, 0.35);
+        transition: background 0.15s, box-shadow 0.15s;
+    }
+    .btn-disable-screen:hover {
+        background: #c0392b;
+        box-shadow: 0 3px 10px rgba(192, 57, 43, 0.45);
+    }
+    .btn-disable-screen:active {
+        background: #a93226;
+    }
+
     .tech-title-block { flex: 1; }
     .tech-page-title {
         font-size: 18px;
@@ -1234,6 +1258,11 @@
                 <div class="tech-page-title"><?php echo T::s('tech.title'); ?></div>
                 <div class="tech-page-subtitle"><?php echo htmlspecialchars($_SESSION['userName']) ?></div>
             </div>
+            <button class="btn-disable-screen"
+                    ng-show="externalContentActive"
+                    ng-click="disableExternalDisplay()">
+                <?php echo T::s('tech.button.disableScreen'); ?>
+            </button>
         </div>
 
         <!-- ── Row 1: mode switch ─────────────────────────────────── -->
@@ -2068,5 +2097,5 @@
 
 </div><!-- /ng-controller -->
 
-<script src="/js/tech.min.js?v=26" type="text/javascript"></script>
+<script src="/js/tech.min.js?v=27" type="text/javascript"></script>
 

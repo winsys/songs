@@ -90,6 +90,12 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.techVideoPlaying   = false;
     var techVideoSrc          = '';
 
+    // ── External display override ─────────────────────────────
+    // True when the main display shows content that did not originate from
+    // this tech's UI (typically a preacher's sermon push). Drives a hidden
+    // override button that clears the screen and notifies the source.
+    $scope.externalContentActive = false;
+
     // ── Access Request state ──────────────────────────────────
     $scope.currentAccessRequest = null;  // Currently shown access request
     var accessRequestQueue = [];         // Queue of pending requests
@@ -2309,11 +2315,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 }
 
                 // Restore image if state.image is a media item (not a song image)
+                var mediaFromFavorites = false;
                 if (state.image && !state.image.match(/\/images\/\d+\/\d+\.jpg/)) {
                     // This is a media image, not a song image
                     for (var i = 0; i < $scope.favorites.length; i++) {
                         if ($scope.favorites[i].itemType === 'image' && $scope.favorites[i].src === state.image) {
                             $scope.activeMediaItem = $scope.favorites[i];
+                            mediaFromFavorites = true;
                             break;
                         }
                     }
@@ -2325,6 +2333,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     for (var i = 0; i < $scope.favorites.length; i++) {
                         if ($scope.favorites[i].itemType === 'video' && $scope.favorites[i].src === state.video_src) {
                             $scope.activeMediaItem = $scope.favorites[i];
+                            mediaFromFavorites = true;
                             break;
                         }
                     }
@@ -2333,9 +2342,53 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                         $scope.activeMediaItem = { src: state.video_src, itemType: 'video' };
                     }
                 }
+
+                // Detect content that didn't originate from this technician's UI
+                // (typical case: preacher pushed a sermon item to this display).
+                $scope.externalContentActive = computeExternalContent(state, mediaFromFavorites);
             }
         );
     }
+
+    // External = something is on the main display that this tech's UI did not
+    // produce. Sermon-only markers (__slide__, /sermon_images/, sermon_videos,
+    // YouTube videos) are unconditional. Bible/message/song/media count as
+    // external only when no local anchor matched during restoreCurrentState.
+    function computeExternalContent(state, mediaFromFavorites) {
+        var hasContent = !!(state.image || state.text || state.video_src);
+        if (!hasContent) return false;
+
+        if (state.image === '__slide__') return true;
+        if (state.image && state.image.indexOf('/sermon_images/') === 0) return true;
+        if (state.video_src && state.video_src.indexOf('/sermon_videos/') === 0) return true;
+        if (state.video_src && /youtube\.com|youtu\.be/.test(state.video_src)) return true;
+
+        if (state.text && state.song_name) {
+            if (state.song_name.match(/\d+:\d+/)) {
+                return !$scope.showingBibleVerse;
+            }
+            return !$scope.showingMessagePara;
+        }
+
+        if (state.image && state.image.match(/\/images\/\d+\/.+\.jpg/)) {
+            return !$scope.showingSong;
+        }
+
+        if (state.image || state.video_src) {
+            return !mediaFromFavorites;
+        }
+
+        return false;
+    }
+
+    // Tech-side override that clears whatever is currently shown on this
+    // group's main display (e.g. a sermon push) and notifies the preacher's
+    // sermon page (via a global WS broadcast) so its right panel and active
+    // chip reset, mirroring a second click on the displayed element.
+    $scope.disableExternalDisplay = function () {
+        $http({ method: 'POST', url: '/ajax', data: { command: 'disable_external_display' } });
+        $scope.externalContentActive = false;
+    };
 
     // Helper to restore chapters from chapter_indices like "0,2,4"
     // NOTE: preparedChapters must already be filled by splitText() before calling this
