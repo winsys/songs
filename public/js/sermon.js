@@ -1151,4 +1151,48 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                 }
             );
         };
+
+        // ==========================================================
+        // WEBSOCKET — react to tech-initiated display clear
+        // ==========================================================
+        // Tech's "Отключить экран" button broadcasts a global
+        // `sermon_display_cleared` event with the affected target group id.
+        // If we're currently displaying to that group, mirror a second click
+        // on the active element: deactivate locally, clear the right panel,
+        // stop any video.
+        if (typeof window.createAuthenticatedWebSocket === 'function') {
+            window.createAuthenticatedWebSocket(
+                null,
+                function (data) {
+                    if (data && data.type === 'sermon_display_cleared'
+                        && $scope.selectedDisplayTarget !== null
+                        && parseInt(data.targetGroupId) === parseInt($scope.selectedDisplayTarget)) {
+                        $scope.$apply(function () {
+                            if (activeEl) {
+                                activeEl.classList.remove('active-cite', 'active-img', 'active-video', 'active-slide');
+                                activeEl = null;
+                            }
+                            $scope.displayText      = '';
+                            $scope.displayTitle     = '';
+                            $scope.displayImageSrc  = '';
+                            $scope.displaySlideHtml = null;
+                            $scope.displayVideoSrc       = '';
+                            $scope.displayVideoIsYouTube = false;
+                            $scope.displayVideoEmbedSrc  = null;
+                            $scope.displayVideoSrcLocal  = null;
+                            $scope.videoActive           = false;
+                            $scope.videoPlaying          = false;
+                            $scope.videoProgress         = 0;
+                            $scope.videoCurrentTime      = '0:00';
+                            if (videoProgressTimer) {
+                                clearInterval(videoProgressTimer);
+                                videoProgressTimer = null;
+                            }
+                        });
+                    }
+                },
+                function () { /* ignore */ },
+                function () { /* ignore */ }
+            );
+        }
     });

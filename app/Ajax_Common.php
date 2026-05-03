@@ -350,6 +350,31 @@ trait Ajax_Common
         return '';
     }
 
+    // Tech-initiated clear of an external display (e.g. preacher's sermon push).
+    // Clears the current row for tech's own group, fires the usual per-group
+    // update_needed, and broadcasts a sermon_display_cleared event globally so
+    // any sermon page targeting this group can deactivate its local UI.
+    private static function disable_external_display()
+    {
+        $userId = (int)$_SESSION['curGroupId'];
+
+        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$userId}");
+        self::updateSocket($userId);
+
+        $err1 = '';
+        $err2 = '';
+        $instance = stream_socket_client("tcp://127.0.0.1:2346", $err1, $err2);
+        if ($instance) {
+            fwrite($instance, json_encode([
+                'type'          => 'sermon_display_cleared',
+                'targetGroupId' => $userId,
+            ]) . "\n");
+            fclose($instance);
+        }
+
+        return '';
+    }
+
     private static function update_song()
     {
         $dbh    = Info::get('dbh');
