@@ -1940,8 +1940,23 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             transformRequest: angular.identity,
             headers: {'Content-Type': undefined}
         }).then(
-            function success() { if (callback) callback(); },
-            function error(erespond) { console.log('Image upload error: ', erespond); }
+            function success(response) {
+                var data = response.data;
+                // Server returns HTTP 200 even on failure
+                // ({status:'error', message:...}). Don't treat that as
+                // success — surface it instead of silently closing.
+                if (!data || data.status !== 'success') {
+                    var msg = (data && data.message) ? data.message : '';
+                    console.log('Image upload failed: ', msg);
+                    alert(window.t('settings.alert.imageUploadError') + (msg ? '\n' + msg : ''));
+                    return;
+                }
+                if (callback) callback();
+            },
+            function error(erespond) {
+                console.log('Image upload error: ', erespond);
+                alert(window.t('settings.alert.imageUploadError'));
+            }
         );
     };
 
