@@ -10,6 +10,13 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
     $scope.modalImgSrc = '';    // path to modal image (deprecated)
     $scope.songPreview = { visible: false, song: null, imgError: false };
 
+    // Display target management (matches sermon presentation page)
+    $scope.displayTargets          = [];
+    $scope.selectedDisplayTarget   = null;
+    $scope.showAccessRequestModal  = false;
+    $scope.availableGroups         = [];
+    $scope.selectedGroupForRequest = '';
+
     $scope.loadSongLists = function () {
         SongsService.getVisibleSongLists().then(function (lists) {
             $scope.visibleSongLists = lists;
@@ -115,36 +122,44 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
             // Set fullScreen flag BEFORE sending set_image to prevent race condition with WebSocket
             $scope.fullScreen = true;
 
-            $http({ method: "POST",
-                    url: "/ajax",
-                    data: { command: 'set_image',
-                            image_num: img_num,
-                            list_id: list_id,
-                            song_id: song_id }
-            }).then(
-                function success(){
-                    var wrapElement = document.getElementById('wrap'+elemId);
-                    if (wrapElement && wrapElement.requestFullscreen) {
-                        wrapElement.requestFullscreen().catch(function(err) {
-                            $scope.$apply(function() {
-                                $scope.fullScreen = false;
-                            });
-                        });
-                    } else {
-                        $scope.fullScreen = false;
-                    }
-                },
-                function error(){
+            var openLocalFullscreen = function() {
+                var wrapElement = document.getElementById('wrap'+elemId);
+                if (wrapElement && wrapElement.requestFullscreen) {
+                    wrapElement.requestFullscreen().catch(function() {
+                        $scope.$apply(function() { $scope.fullScreen = false; });
+                    });
+                } else {
                     $scope.fullScreen = false;
-                });
+                }
+            };
+
+            // Broadcast to target display only if a target is selected
+            if ($scope.selectedDisplayTarget !== null) {
+                $http({ method: "POST",
+                        url: "/ajax",
+                        data: { command: 'set_image',
+                                image_num: img_num,
+                                list_id: list_id,
+                                song_id: song_id,
+                                target_group_id: $scope.selectedDisplayTarget }
+                }).then(openLocalFullscreen, function() { $scope.fullScreen = false; });
+            } else {
+                openLocalFullscreen();
+            }
         }else{
-            $http({ method: "POST", url: "/ajax", data: {command: 'clear_image' } }).then(
-                function success(){
-                    if (document.fullscreenElement) {
-                        document.exitFullscreen();
-                    }
-                    $scope.fullScreen = false;
-                });
+            var exitLocalFullscreen = function() {
+                if (document.fullscreenElement) { document.exitFullscreen(); }
+                $scope.fullScreen = false;
+            };
+
+            if ($scope.selectedDisplayTarget !== null) {
+                $http({ method: "POST", url: "/ajax", data: {
+                    command: 'clear_image',
+                    target_group_id: $scope.selectedDisplayTarget
+                }}).then(exitLocalFullscreen, exitLocalFullscreen);
+            } else {
+                exitLocalFullscreen();
+            }
         }
     }
 
@@ -256,6 +271,57 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
 
 
     // ==========================================================
+    // DISPLAY TARGET MANAGEMENT (mirrors sermon presentation page)
+    // ==========================================================
+
+    $scope.loadDisplayTargets = function() {
+        $http.post('/ajax', { command: 'get_display_targets' }).then(function(r) {
+            if (r.data && r.data.status === 'ok') {
+                // Prepend "do not broadcast" option (default)
+                $scope.displayTargets = [
+                    { group_id: null, display_name: window.t('sermon.broadcast.none') }
+                ].concat(r.data.targets || []);
+                if (!$scope.selectedDisplayTarget) {
+                    $scope.selectedDisplayTarget = null;
+                }
+            }
+        });
+    };
+
+    $scope.loadAvailableGroups = function() {
+        $http.post('/ajax', { command: 'get_available_groups' }).then(function(r) {
+            if (r.data && r.data.status === 'ok') {
+                $scope.availableGroups = r.data.groups || [];
+            }
+        });
+    };
+
+    $scope.sendAccessRequest = function() {
+        if (!$scope.selectedGroupForRequest) return;
+        $http.post('/ajax', {
+            command: 'request_display_access',
+            target_group_id: parseInt($scope.selectedGroupForRequest)
+        }).then(function(r) {
+            if (r.data && r.data.status === 'ok') {
+                alert(window.t('sermon.requestSent'));
+                $scope.showAccessRequestModal = false;
+                $scope.selectedGroupForRequest = '';
+            } else {
+                alert(window.t('sermon.errorPrefix', {
+                    message: (r.data && r.data.message) || window.t('common.unknownError')
+                }));
+            }
+        }, function() {
+            alert(window.t('sermon.errorPrefix', { message: window.t('common.unknownError') }));
+        });
+    };
+
+    $scope.$watch('showAccessRequestModal', function(newVal) {
+        if (newVal) { $scope.loadAvailableGroups(); }
+    });
+
+
+    // ==========================================================
     // WEBSOCKET
     // ==========================================================
 
@@ -305,5 +371,6 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
     $scope.loadSongLists();  // sets listId to first visible list, then calls reloadSongList
     SongsService.getLanguages().then(function (langs) { $scope.langList = langs; });
     $scope.reloadFavorites();
+    $scope.loadDisplayTargets();
 }]);
 

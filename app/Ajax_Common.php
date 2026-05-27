@@ -302,15 +302,16 @@ trait Ajax_Common
     private static function set_image()
     {
         $userId = (int)$_SESSION['curGroupId'];
+        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
         $listId = mysqli_escape_string(Info::get('dbh'), self::$args['list_id']);
         $imageNum = mysqli_escape_string(Info::get('dbh'), self::$args['image_num']);
 
-        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$userId}");
+        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
         Info::get('db')->exec(
             "INSERT INTO current (groupId, image, text, song_name)
-             VALUES ({$userId}, '/images/{$listId}/{$imageNum}.jpg', '', '')"
+             VALUES ({$targetGroupId}, '/images/{$listId}/{$imageNum}.jpg', '', '')"
         );
-        self::updateSocket();
+        self::updateSocket($targetGroupId);
         return '';
     }
 
