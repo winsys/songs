@@ -364,6 +364,40 @@
         margin-top: 28px;
     }
     .btn-save-all:hover { background: #155a99; box-shadow: 0 4px 16px rgba(26,109,181,0.3); transform: translateY(-1px); }
+
+    /* ── Collapsible card ─────────────────────────────────────── */
+    .settings-card-title.collapsible {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        user-select: none;
+    }
+    .collapse-caret {
+        font-size: 13px;
+        color: #b0b8c1;
+        margin-left: 8px;
+        flex-shrink: 0;
+    }
+
+    /* ── Collapsible user card ────────────────────────────────── */
+    .user-slot-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        cursor: pointer;
+        user-select: none;
+    }
+    .user-slot-summary {
+        flex: 1;
+        min-width: 0;
+        font-size: 12px;
+        color: #5a6272;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .user-slot-summary .login { color: #95a5a6; }
 </style>
 
 <script type="text/javascript">
@@ -421,7 +455,11 @@
 
         <!-- 3. Available song lists -->
         <div class="settings-card" ng-show="permissions.canEditSongLists">
-            <span class="settings-card-title">3. <?php echo T::s('settings.card.availableLists'); ?></span>
+            <span class="settings-card-title collapsible" ng-click="toggle('songlists')">
+                <span>3. <?php echo T::s('settings.card.availableLists'); ?></span>
+                <span class="collapse-caret">{{ collapsed.songlists ? '▸' : '▾' }}</span>
+            </span>
+            <div ng-show="!collapsed.songlists">
             <p style="margin:0 0 10px; font-size:12px; color:#666;">
                 <?php echo T::s('settings.hint.lists'); ?>
             </p>
@@ -447,11 +485,16 @@
                     </div>
                 </div>
             </div>
+            </div>
         </div>
 
         <!-- 4. Available languages -->
         <div class="settings-card" ng-show="permissions.canEditLanguages">
-            <span class="settings-card-title">4. <?php echo T::s('settings.card.availableLangs'); ?></span>
+            <span class="settings-card-title collapsible" ng-click="toggle('langs')">
+                <span>4. <?php echo T::s('settings.card.availableLangs'); ?></span>
+                <span class="collapse-caret">{{ collapsed.langs ? '▸' : '▾' }}</span>
+            </span>
+            <div ng-show="!collapsed.langs">
             <p style="margin:0 0 10px; font-size:13px; color:#555;">
                 <?php echo T::s('settings.hint.langs'); ?>
             </p>
@@ -465,11 +508,16 @@
                     {{lang.label}} <span style="color:#999; font-size:12px;">({{lang.code}})</span>
                 </label>
             </div>
+            </div>
         </div>
 
         <!-- 5. Background placeholder image -->
         <div class="settings-card" ng-show="permissions.canEditAllSettings">
-            <span class="settings-card-title">5. <?php echo T::s('settings.card.placeholder'); ?></span>
+            <span class="settings-card-title collapsible" ng-click="toggle('placeholder')">
+                <span>5. <?php echo T::s('settings.card.placeholder'); ?></span>
+                <span class="collapse-caret">{{ collapsed.placeholder ? '▸' : '▾' }}</span>
+            </span>
+            <div ng-show="!collapsed.placeholder">
             <div ng-if="settings.placeholder_image" style="margin-bottom:12px;">
                 <img ng-src="{{settings.placeholder_image}}" class="placeholder-preview">
             </div>
@@ -485,11 +533,16 @@
                        class="settings-input"
                        onchange="angular.element(this).scope().uploadPlaceholderImage()">
             </div>
+            </div>
         </div>
 
         <!-- 5-7. Main display -->
         <div class="settings-card" ng-show="permissions.canEditAllSettings">
-            <span class="settings-card-title"><?php echo T::s('settings.card.mainDisplay'); ?></span>
+            <span class="settings-card-title collapsible" ng-click="toggle('maindisplay')">
+                <span><?php echo T::s('settings.card.mainDisplay'); ?></span>
+                <span class="collapse-caret">{{ collapsed.maindisplay ? '▸' : '▾' }}</span>
+            </span>
+            <div ng-show="!collapsed.maindisplay">
 
             <div class="settings-field">
                 <label class="settings-label">5. <?php echo T::s('settings.field.bgColor'); ?></label>
@@ -532,11 +585,16 @@
                        class="settings-input" style="cursor:pointer;">
                 <span class="settings-hint"><?php echo T::s('settings.hint.maxFontSizeMain'); ?></span>
             </div>
+            </div>
         </div>
 
         <!-- 9-12. Streaming display -->
         <div class="settings-card" ng-show="permissions.canEditAllSettings">
-            <span class="settings-card-title"><?php echo T::s('settings.card.streamingDisplay'); ?></span>
+            <span class="settings-card-title collapsible" ng-click="toggle('streaming')">
+                <span><?php echo T::s('settings.card.streamingDisplay'); ?></span>
+                <span class="collapse-caret">{{ collapsed.streaming ? '▸' : '▾' }}</span>
+            </span>
+            <div ng-show="!collapsed.streaming">
 
             <div class="settings-field">
                 <label class="settings-label">9. <?php echo T::s('settings.field.bgColor'); ?></label>
@@ -579,11 +637,16 @@
                        class="settings-input" style="cursor:pointer;">
                 <span class="settings-hint"><?php echo T::s('settings.hint.streamingHeight'); ?></span>
             </div>
+            </div>
         </div>
 
         <!-- 13-19. Sermon mode -->
         <div class="settings-card" ng-show="permissions.canEditSermonSettings">
-            <span class="settings-card-title"><?php echo T::s('settings.card.sermonDisplay'); ?></span>
+            <span class="settings-card-title collapsible" ng-click="toggle('sermon')">
+                <span><?php echo T::s('settings.card.sermonDisplay'); ?></span>
+                <span class="collapse-caret">{{ collapsed.sermon ? '▸' : '▾' }}</span>
+            </span>
+            <div ng-show="!collapsed.sermon">
             <p class="settings-card-subtitle"><?php echo T::s('settings.section.sermonHeading'); ?></p>
 
             <div class="settings-field">
@@ -677,13 +740,14 @@
                        class="settings-input" style="cursor:pointer;">
                 <span class="settings-hint"><?php echo T::s('settings.hint.maxFontSizeSlide'); ?></span>
             </div>
+            </div>
         </div>
 
         <!-- Group users -->
         <div class="settings-card">
             <span class="settings-card-title"><?php echo T::s('settings.card.groupUsers'); ?></span>
 
-            <div ng-repeat="slot in userSlots" class="user-slot-card"
+            <div ng-repeat-start="slot in userSlots" class="user-slot-card"
                  ng-class="{'user-slot-readonly': !permissions.canManageUsers && slot.user.ID != getCurrentUserId()}">
 
                 <!-- User not created yet -->
@@ -698,8 +762,13 @@
 
                 <!-- User exists -->
                 <div ng-if="slot.user && canEditUser(slot.user)">
-                    <span class="role-badge" ng-style="getRoleBadgeStyle(slot.role)">{{ slot.roleLabel }}</span>
-                    <div class="user-slot-fields">
+                    <!-- Collapsible header: role badge + name/login summary + caret -->
+                    <div class="user-slot-header" ng-click="slot.collapsed = !slot.collapsed">
+                        <span class="role-badge" ng-style="getRoleBadgeStyle(slot.role)" style="margin-bottom:0;">{{ slot.roleLabel }}</span>
+                        <span class="user-slot-summary">{{ slot.user.NAME }} <span class="login">({{ slot.user.LOGIN }})</span></span>
+                        <span class="collapse-caret">{{ slot.collapsed ? '▸' : '▾' }}</span>
+                    </div>
+                    <div class="user-slot-fields" ng-show="!slot.collapsed" style="margin-top:12px;">
                         <div class="user-slot-inputs">
                             <div class="settings-field">
                                 <label class="user-mini-label"><?php echo T::s('settings.user.name'); ?></label>
@@ -721,7 +790,7 @@
                     </div>
 
                     <!-- Google Accounts Section -->
-                    <div style="margin-top:12px; padding-top:12px; border-top:1.5px solid #dee2e6;">
+                    <div ng-show="!slot.collapsed" style="margin-top:12px; padding-top:12px; border-top:1.5px solid #dee2e6;">
                         <label class="user-mini-label" style="margin-bottom:8px;">{{ ('<?php echo T::s('settings.user.googleAccountsLabel'); ?>').replace('{count}', slot.user.googleAccounts.length) }}</label>
 
                         <!-- List of linked accounts -->
@@ -761,9 +830,15 @@
                 </div>
 
             </div>
+            <!-- After the last preacher: button to add another (a group may have several preachers) -->
+            <button ng-repeat-end class="btn-create-user"
+                    ng-show="slot.isLastPreacher && permissions.canManageUsers"
+                    ng-click="addPreacher()" style="width:100%; margin-top:2px; margin-bottom:12px;">
+                <?php echo T::s('settings.button.addPreacher'); ?>
+            </button>
 
-            <!-- Add another preacher (a group may have several preachers) -->
-            <button class="btn-create-user" ng-show="permissions.canManageUsers"
+            <!-- Fallback when the group has no preachers yet -->
+            <button class="btn-create-user" ng-show="permissions.canManageUsers && !hasPreachers"
                     ng-click="addPreacher()" style="margin-top:6px;">
                 <?php echo T::s('settings.button.addPreacher'); ?>
             </button>
@@ -779,4 +854,4 @@
     </div>
 </div>
 
-<script src="/js/settings.js?v=14" type="text/javascript"></script>
+<script src="/js/settings.js?v=15" type="text/javascript"></script>
