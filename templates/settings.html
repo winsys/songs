@@ -747,7 +747,7 @@
         <div class="settings-card">
             <span class="settings-card-title"><?php echo T::s('settings.card.groupUsers'); ?></span>
 
-            <div ng-repeat-start="slot in userSlots" class="user-slot-card"
+            <div ng-repeat="slot in userSlots" class="user-slot-card"
                  ng-class="{'user-slot-readonly': !permissions.canManageUsers && slot.user.ID != getCurrentUserId()}">
 
                 <!-- User not created yet -->
@@ -826,29 +826,26 @@
                             <?php echo T::s('settings.button.linkGoogle'); ?>
                         </button>
                     </div>
-                    </div>
                 </div>
-
+                <!-- After the last preacher: button to add another (a group may have several preachers) -->
+                <button class="btn-create-user"
+                        ng-show="slot.isLastPreacher && permissions.canManageUsers"
+                        ng-click="addPreacher()" style="width:100%; margin-top:10px;">
+                    <?php echo T::s('settings.button.addPreacher'); ?>
+                </button>
             </div>
-            <!-- After the last preacher: button to add another (a group may have several preachers) -->
-            <button ng-repeat-end class="btn-create-user"
-                    ng-show="slot.isLastPreacher && permissions.canManageUsers"
-                    ng-click="addPreacher()" style="width:100%; margin-top:2px; margin-bottom:12px;">
-                <?php echo T::s('settings.button.addPreacher'); ?>
-            </button>
 
             <!-- Fallback when the group has no preachers yet -->
             <button class="btn-create-user" ng-show="permissions.canManageUsers && !hasPreachers"
                     ng-click="addPreacher()" style="margin-top:6px;">
                 <?php echo T::s('settings.button.addPreacher'); ?>
             </button>
+        </div>
 
         <!-- Save all -->
         <button class="btn-save-all" ng-click="saveSettings()">
             <?php echo T::s('settings.button.saveAll'); ?>
         </button>
-
-    </div>
 
         <div style="height:60px;"></div>
     </div>
