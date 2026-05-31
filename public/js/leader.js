@@ -269,6 +269,16 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
         $scope.reloadSongList();
     }
 
+    // Name of the currently selected song collection (for button labels).
+    $scope.currentListName = function() {
+        for (var i = 0; i < $scope.visibleSongLists.length; i++) {
+            if ($scope.visibleSongLists[i].LIST_ID == $scope.listId) {
+                return $scope.visibleSongLists[i].LIST_NAME;
+            }
+        }
+        return '';
+    };
+
 
     // ==========================================================
     // DISPLAY TARGET MANAGEMENT (mirrors sermon presentation page)
