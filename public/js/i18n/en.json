@@ -324,6 +324,7 @@
   "settings.alert.userSaveError": "❌ Save error!",
   "settings.alert.userSaveSuccess": "✅ User saved!",
   "settings.button.create": "➕ Create",
+  "settings.button.addPreacher": "➕ Add preacher",
   "settings.button.linkGoogle": "🔗 Link a Google account",
   "settings.button.saveAll": "💾 Save all settings",
   "settings.button.share": "📋 Share",

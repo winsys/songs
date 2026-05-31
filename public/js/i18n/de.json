@@ -324,6 +324,7 @@
   "settings.alert.userSaveError": "❌ Fehler beim Speichern!",
   "settings.alert.userSaveSuccess": "✅ Benutzer gespeichert!",
   "settings.button.create": "➕ Erstellen",
+  "settings.button.addPreacher": "➕ Prediger hinzufügen",
   "settings.button.linkGoogle": "🔗 Google-Konto verknüpfen",
   "settings.button.saveAll": "💾 Alle Einstellungen speichern",
   "settings.button.share": "📋 Teilen",

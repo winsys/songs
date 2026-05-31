@@ -324,6 +324,7 @@
   "settings.alert.userSaveError": "❌ Ошибка при сохранении!",
   "settings.alert.userSaveSuccess": "✅ Пользователь сохранён!",
   "settings.button.create": "➕ Создать",
+  "settings.button.addPreacher": "➕ Добавить проповедника",
   "settings.button.linkGoogle": "🔗 Привязать Google аккаунт",
   "settings.button.saveAll": "💾 Сохранить все настройки",
   "settings.button.share": "📋 Поделиться",
