@@ -1031,6 +1031,16 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $scope.reloadSongList();
     };
 
+    // Name of the currently selected song collection (for button labels).
+    $scope.currentListName = function() {
+        for (var i = 0; i < $scope.visibleSongLists.length; i++) {
+            if ($scope.visibleSongLists[i].LIST_ID == $scope.listId) {
+                return $scope.visibleSongLists[i].LIST_NAME;
+            }
+        }
+        return '';
+    };
+
     $scope.$watch('listId', function(newVal, oldVal) {
         if (newVal !== oldVal) $scope.reloadSongList();
     });
