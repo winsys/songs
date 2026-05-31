@@ -157,14 +157,16 @@ CREATE TABLE IF NOT EXISTS `piano_favorites` (
 CREATE TABLE IF NOT EXISTS `sermons` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `USER_ID` int(11) NOT NULL,
+  `OWNER_USER_ID` int(11) DEFAULT NULL COMMENT 'User account that owns this sermon',
   `TITLE` varchar(255) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `SERMON_DATE` date DEFAULT NULL,
   `CONTENT` longtext COLLATE utf8mb4_unicode_ci,
-  `AUTHOR_GOOGLE_ID` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Google ID of the preacher who created this sermon',
+  `AUTHOR_GOOGLE_ID` varchar(255) COLLATE utf8mb4_unicode_ci DEFAULT NULL COMMENT 'Legacy: Google ID of the preacher who created this sermon (history only, not used for access control)',
   `CREATED_AT` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `UPDATED_AT` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`ID`),
   KEY `idx_sermons_user` (`USER_ID`),
+  KEY `idx_sermons_owner` (`OWNER_USER_ID`),
   CONSTRAINT `fk_sermons_user` FOREIGN KEY (`USER_ID`) REFERENCES `users` (`ID`) ON DELETE CASCADE
 ) ENGINE=InnoDB AUTO_INCREMENT=46 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

@@ -6,20 +6,20 @@
  */
 trait Ajax_Sermon
 {
-    private static function preacherSeesAll(): bool
+    /**
+     * SQL WHERE fragment that scopes sermons to what the current user may access.
+     *   - admin:    every sermon of their group
+     *   - preacher: only sermons they own (OWNER_USER_ID = their user id)
+     * The group scope (USER_ID) is always applied.
+     */
+    private static function sermonScopeWhere(): string
     {
-        if (!Security::isPreacher()) return false;
-        $curUserId = isset($_SESSION['curUserId']) ? (int)$_SESSION['curUserId'] : 0;
-        if ($curUserId <= 0) return true;
-        $row = Info::get('db')->get(
-            "SELECT id FROM user_google_accounts WHERE user_id = {$curUserId} LIMIT 1"
-        );
-        if ($row) return false;
-        // Legacy GOOGLE_ID field fallback
-        $row2 = Info::get('db')->get(
-            "SELECT ID FROM users WHERE ID = {$curUserId} AND GOOGLE_ID IS NOT NULL AND GOOGLE_ID != '' LIMIT 1"
-        );
-        return !$row2;
+        $group = (int)$_SESSION['curGroupId'];
+        if (Security::isAdmin()) {
+            return "USER_ID = {$group}";
+        }
+        $uid = Security::getCurrentUserId();
+        return "USER_ID = {$group} AND OWNER_USER_ID = {$uid}";
     }
 
     private static function getCurrentGoogleId(): ?string
@@ -39,46 +39,26 @@ trait Ajax_Sermon
 
     private static function get_sermon_list()
     {
-        $userId     = (int)$_SESSION['curGroupId'];
-        $isPreacher = Security::isPreacher();
-        $googleId   = $isPreacher ? self::getCurrentGoogleId() : null;
+        $group = (int)$_SESSION['curGroupId'];
 
-        if ($isPreacher && $googleId !== null) {
-            // Preacher WITH Google account: own sermons only, can delete authored ones
-            $esc  = mysqli_real_escape_string(Info::get('dbh'), $googleId);
+        if (Security::isAdmin()) {
+            // Admin: all sermons of the group, annotated with the owning preacher's name.
             $list = Info::get('db')->select(
-                "SELECT ID, TITLE, SERMON_DATE, UPDATED_AT,
-                        CASE WHEN AUTHOR_GOOGLE_ID = '{$esc}' THEN 1 ELSE 0 END AS CAN_DELETE
-                 FROM sermons
-                 WHERE USER_ID = {$userId}
-                   AND (AUTHOR_GOOGLE_ID = '{$esc}' OR AUTHOR_GOOGLE_ID IS NULL)
-                 ORDER BY SERMON_DATE DESC, UPDATED_AT DESC"
-            );
-        } elseif ($isPreacher) {
-            // Preacher WITHOUT Google account: sees all groups, cannot delete.
-            // OWNER_NAME fallback ("Group #N") is applied in PHP so it can be localized via T::s().
-            $list = Info::get('db')->select(
-                "SELECT s.ID, s.TITLE, s.SERMON_DATE, s.UPDATED_AT, s.USER_ID,
-                        0 AS CAN_DELETE,
-                        CASE WHEN s.USER_ID = {$userId} THEN NULL
-                             ELSE us.display_name
-                        END AS OWNER_NAME
+                "SELECT s.ID, s.TITLE, s.SERMON_DATE, s.UPDATED_AT, s.OWNER_USER_ID,
+                        u.NAME AS OWNER_NAME,
+                        1 AS CAN_DELETE
                  FROM sermons s
-                 LEFT JOIN user_settings us ON us.group_id = s.USER_ID
+                 LEFT JOIN users u ON u.ID = s.OWNER_USER_ID
+                 WHERE s.USER_ID = {$group}
                  ORDER BY s.SERMON_DATE DESC, s.UPDATED_AT DESC"
             );
-            foreach ($list as &$row) {
-                if ((int)$row['USER_ID'] !== $userId && empty($row['OWNER_NAME'])) {
-                    $row['OWNER_NAME'] = T::s('sermon.display.groupN', ['id' => $row['USER_ID']]);
-                }
-            }
-            unset($row);
         } else {
-            // Non-preacher (admin, leader, etc.): own group, can delete
+            // Preacher: only the sermons they own.
+            $where = self::sermonScopeWhere();
             $list = Info::get('db')->select(
                 "SELECT ID, TITLE, SERMON_DATE, UPDATED_AT, 1 AS CAN_DELETE
                  FROM sermons
-                 WHERE USER_ID = {$userId}
+                 WHERE {$where}
                  ORDER BY SERMON_DATE DESC, UPDATED_AT DESC"
             );
         }
@@ -87,33 +67,12 @@ trait Ajax_Sermon
 
     private static function get_sermon()
     {
-        $userId     = (int)$_SESSION['curGroupId'];
-        $sermonId   = (int)self::$args['id'];
-        $isPreacher = Security::isPreacher();
-        $googleId   = $isPreacher ? self::getCurrentGoogleId() : null;
-
-        if ($isPreacher && $googleId !== null) {
-            // Preacher with Google: own sermons in group only
-            $esc = mysqli_real_escape_string(Info::get('dbh'), $googleId);
-            $row = Info::get('db')->get(
-                "SELECT ID, TITLE, SERMON_DATE, CONTENT FROM sermons
-                 WHERE ID = {$sermonId} AND USER_ID = {$userId}
-                   AND (AUTHOR_GOOGLE_ID = '{$esc}' OR AUTHOR_GOOGLE_ID IS NULL)
-                 LIMIT 1"
-            );
-        } elseif ($isPreacher) {
-            // Preacher without Google: sees all
-            $row = Info::get('db')->get(
-                "SELECT ID, TITLE, SERMON_DATE, CONTENT FROM sermons
-                 WHERE ID = {$sermonId} LIMIT 1"
-            );
-        } else {
-            // Non-preacher: own group only
-            $row = Info::get('db')->get(
-                "SELECT ID, TITLE, SERMON_DATE, CONTENT FROM sermons
-                 WHERE ID = {$sermonId} AND USER_ID = {$userId} LIMIT 1"
-            );
-        }
+        $sermonId = (int)self::$args['id'];
+        $where    = self::sermonScopeWhere();
+        $row = Info::get('db')->get(
+            "SELECT ID, TITLE, SERMON_DATE, CONTENT FROM sermons
+             WHERE ID = {$sermonId} AND {$where} LIMIT 1"
+        );
         return json_encode($row ?: null);
     }
 
@@ -130,14 +89,16 @@ trait Ajax_Sermon
         $dateVal = ($date !== '') ? "'{$date}'" : 'NULL';
 
         if ($sermonId > 0) {
+            // Update is allowed only within the caller's scope (own sermon, or any in group for admin).
+            $where    = self::sermonScopeWhere();
             $existing = Info::get('db')->select(
-                "SELECT ID FROM sermons WHERE ID = {$sermonId} AND USER_ID = {$userId} LIMIT 1"
+                "SELECT ID FROM sermons WHERE ID = {$sermonId} AND {$where} LIMIT 1"
             );
             if (count($existing) > 0) {
                 $dbh->query(
                     "UPDATE sermons
                      SET TITLE = '{$title}', SERMON_DATE = {$dateVal}, CONTENT = '{$content}'
-                     WHERE ID = {$sermonId} AND USER_ID = {$userId}"
+                     WHERE ID = {$sermonId} AND {$where}"
                 );
                 $err = $dbh->error;
                 if ($err) {
@@ -148,15 +109,16 @@ trait Ajax_Sermon
             }
         }
 
-        $isPreacher        = Security::isPreacher();
-        $authorGoogleId    = $isPreacher ? self::getCurrentGoogleId() : null;
+        // New sermon: owned by the current user. AUTHOR_GOOGLE_ID kept for history only.
+        $ownerId           = Security::getCurrentUserId();
+        $authorGoogleId    = self::getCurrentGoogleId();
         $authorGoogleIdVal = ($authorGoogleId !== null)
             ? "'" . mysqli_real_escape_string($dbh, $authorGoogleId) . "'"
             : 'NULL';
 
         $dbh->query(
-            "INSERT INTO sermons (USER_ID, TITLE, SERMON_DATE, CONTENT, AUTHOR_GOOGLE_ID)
-             VALUES ({$userId}, '{$title}', {$dateVal}, '{$content}', {$authorGoogleIdVal})"
+            "INSERT INTO sermons (USER_ID, OWNER_USER_ID, TITLE, SERMON_DATE, CONTENT, AUTHOR_GOOGLE_ID)
+             VALUES ({$userId}, {$ownerId}, '{$title}', {$dateVal}, '{$content}', {$authorGoogleIdVal})"
         );
         $err = $dbh->error;
         if ($err) {
@@ -169,18 +131,11 @@ trait Ajax_Sermon
 
     private static function delete_sermon()
     {
-        $userId     = (int)$_SESSION['curGroupId'];
-        $sermonId   = (int)self::$args['id'];
-        $isPreacher = Security::isPreacher();
-        $googleId   = $isPreacher ? self::getCurrentGoogleId() : null;
+        $userId   = (int)$_SESSION['curGroupId'];
+        $sermonId = (int)self::$args['id'];
 
-        if ($isPreacher && $googleId === null) {
-            return json_encode(['status' => 'error', 'message' => T::s('sermon.error.googleRequired')]);
-        }
-
-        $ownerCond = ($googleId !== null)
-            ? "AND USER_ID = {$userId} AND AUTHOR_GOOGLE_ID = '" . mysqli_real_escape_string(Info::get('dbh'), $googleId) . "'"
-            : "AND USER_ID = {$userId}";
+        // Scope: preacher deletes only own sermons; admin deletes any in the group.
+        $ownerCond = "AND " . self::sermonScopeWhere();
 
         // Delete uploaded media files referenced in the sermon content
         $row = Info::get('db')->get(
