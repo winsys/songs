@@ -229,6 +229,34 @@ app.controller('Settings', function ($scope, $http)
         return { role: r.role, roleLabel: r.roleLabel, user: null };
     });
 
+    // Collapsible settings cards (4th block onward), collapsed by default.
+    $scope.collapsed = {
+        songlists:   true,
+        langs:       true,
+        placeholder: true,
+        maindisplay: true,
+        streaming:   true,
+        sermon:      true
+    };
+    $scope.toggle = function(key) {
+        $scope.collapsed[key] = !$scope.collapsed[key];
+    };
+
+    // Set true until the user list loads, to avoid flashing the fallback button.
+    $scope.hasPreachers = true;
+
+    // Marks the last preacher slot (where the "Add preacher" button is shown)
+    // and whether the group has any preacher at all.
+    function recomputePreacherFlags() {
+        var last = -1;
+        for (var i = 0; i < $scope.userSlots.length; i++) {
+            $scope.userSlots[i].isLastPreacher = false;
+            if ($scope.userSlots[i].role === 'preacher') last = i;
+        }
+        if (last >= 0) $scope.userSlots[last].isLastPreacher = true;
+        $scope.hasPreachers = last >= 0;
+    }
+
     $scope.getCurrentUserId = function() {
         // Get current user ID from session (passed via PHP)
         return parseInt(window.currentUserId) || 0;
@@ -266,7 +294,7 @@ app.controller('Settings', function ($scope, $http)
                         users.forEach(function(u) {
                             if (u.ROLE === 'preacher') {
                                 u.googleAccounts = [];
-                                slots.push({ role: 'preacher', roleLabel: r.roleLabel, user: u });
+                                slots.push({ role: 'preacher', roleLabel: r.roleLabel, user: u, collapsed: true });
                             }
                         });
                     } else {
@@ -278,10 +306,11 @@ app.controller('Settings', function ($scope, $http)
                                 break;
                             }
                         }
-                        slots.push({ role: r.role, roleLabel: r.roleLabel, user: found });
+                        slots.push({ role: r.role, roleLabel: r.roleLabel, user: found, collapsed: true });
                     }
                 });
                 $scope.userSlots = slots;
+                recomputePreacherFlags();
 
                 // Load Google accounts for each user
                 $scope.userSlots.forEach(function(slot) {
@@ -320,17 +349,25 @@ app.controller('Settings', function ($scope, $http)
                 if (r.data && r.data.status === 'success') {
                     var u = r.data.user;
                     u.googleAccounts = [];
-                    var slot = { role: 'preacher', roleLabel: window.t('role.preacher'), user: u };
-                    // Insert right after the last existing preacher slot to keep role order.
-                    var lastPreacher = -1;
+                    // New preacher starts expanded so the admin can see/share the password.
+                    var slot = { role: 'preacher', roleLabel: window.t('role.preacher'), user: u, collapsed: false };
+                    // Insert after the last preacher; if none, before the first tech/screen
+                    // slot to keep role order; otherwise append.
+                    var lastPreacher = -1, firstAfter = -1;
                     for (var i = 0; i < $scope.userSlots.length; i++) {
                         if ($scope.userSlots[i].role === 'preacher') lastPreacher = i;
+                        if (firstAfter === -1 && (($scope.userSlots[i].role === 'tech') || ($scope.userSlots[i].role === 'screen'))) {
+                            firstAfter = i;
+                        }
                     }
                     if (lastPreacher >= 0) {
                         $scope.userSlots.splice(lastPreacher + 1, 0, slot);
+                    } else if (firstAfter >= 0) {
+                        $scope.userSlots.splice(firstAfter, 0, slot);
                     } else {
                         $scope.userSlots.push(slot);
                     }
+                    recomputePreacherFlags();
                 } else {
                     alert(window.t('settings.alert.userCreateError', { message: r.data.message || '' }));
                 }
