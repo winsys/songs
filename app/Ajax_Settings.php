@@ -255,6 +255,75 @@ trait Ajax_Settings
         ]);
     }
 
+    /**
+     * Create an ADDITIONAL preacher account in the current group.
+     * Unlike create_group_user, a group may hold several preachers — each gets
+     * their own user account (and thus their own private sermon space).
+     */
+    private static function add_preacher()
+    {
+        if (!Security::canManageUsers()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+
+        $groupId       = (int)$_SESSION['curGroupId'];
+        $currentUserId = (int)$_SESSION['curUserId'];
+        $dbh           = Info::get('dbh');
+
+        $adminUser = Info::get('db')->get("SELECT NAME FROM users WHERE ID = {$currentUserId}");
+        $groupName = $adminUser ? $adminUser['NAME'] : 'Group';
+        $label     = T::s('role.preacher');
+
+        // Index for default name/login = (existing preachers in group) + 1.
+        $count = (int)Info::get('db')->getValue(
+            "SELECT COUNT(*) FROM users WHERE ROLE = 'preacher' AND GROUP_ID = {$groupId}"
+        );
+        $idx = $count + 1;
+
+        $defaultName = $groupName . ' - ' . $label . ' ' . $idx;
+        $slug        = strtolower(preg_replace('/\s+/', '_', $groupName));
+
+        // Ensure the generated login is unique across all users.
+        $login = $slug . '_preacher' . $idx;
+        while (Info::get('db')->get(
+            "SELECT ID FROM users WHERE LOGIN = '" . mysqli_real_escape_string($dbh, $login) . "' LIMIT 1"
+        )) {
+            $idx++;
+            $login = $slug . '_preacher' . $idx;
+        }
+
+        // Generate an 8-character random password
+        $chars    = 'abcdefghjkmnpqrstuvwxyz23456789';
+        $password = '';
+        for ($i = 0; $i < 8; $i++) {
+            $password .= $chars[random_int(0, strlen($chars) - 1)];
+        }
+
+        // [SECURITY #1] Encrypt password before storing
+        $encryptedPass = Security::encryptPassword($password);
+
+        $escapedName  = mysqli_real_escape_string($dbh, $defaultName);
+        $escapedLogin = mysqli_real_escape_string($dbh, $login);
+        $escapedPass  = mysqli_real_escape_string($dbh, $encryptedPass);
+
+        Info::get('db')->exec(
+            "INSERT INTO users (NAME, LOGIN, PASS, ROLE, GROUP_ID)
+             VALUES ('{$escapedName}', '{$escapedLogin}', '{$escapedPass}', 'preacher', {$groupId})"
+        );
+
+        $newId = Info::get('dbh')->insert_id;
+        return json_encode([
+            'status' => 'success',
+            'user'   => [
+                'ID'    => $newId,
+                'NAME'  => $defaultName,
+                'LOGIN' => $login,
+                'PASS'  => $password,   // plaintext returned only once at creation time
+                'ROLE'  => 'preacher',
+            ],
+        ]);
+    }
+
     private static function upload_placeholder_image()
     {
         if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {

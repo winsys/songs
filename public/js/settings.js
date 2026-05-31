@@ -257,18 +257,31 @@ app.controller('Settings', function ($scope, $http)
             function success(r) {
                 var users = r.data || [];
 
-                // Reset slots
-                $scope.userSlots = ALL_ROLES.map(function(slot) {
-                    var found = null;
-                    for (var i = 0; i < users.length; i++) {
-                        if (users[i].ROLE === slot.role) {
-                            found = users[i];
-                            found.googleAccounts = [];
-                            break;
+                // Build slots in role order. Single-instance roles get one slot
+                // (the matching user or null); 'preacher' expands to one slot per
+                // preacher account, since a group may have several preachers.
+                var slots = [];
+                ALL_ROLES.forEach(function(r) {
+                    if (r.role === 'preacher') {
+                        users.forEach(function(u) {
+                            if (u.ROLE === 'preacher') {
+                                u.googleAccounts = [];
+                                slots.push({ role: 'preacher', roleLabel: r.roleLabel, user: u });
+                            }
+                        });
+                    } else {
+                        var found = null;
+                        for (var i = 0; i < users.length; i++) {
+                            if (users[i].ROLE === r.role) {
+                                found = users[i];
+                                found.googleAccounts = [];
+                                break;
+                            }
                         }
+                        slots.push({ role: r.role, roleLabel: r.roleLabel, user: found });
                     }
-                    return { role: slot.role, roleLabel: slot.roleLabel, user: found };
                 });
+                $scope.userSlots = slots;
 
                 // Load Google accounts for each user
                 $scope.userSlots.forEach(function(slot) {
@@ -291,6 +304,32 @@ app.controller('Settings', function ($scope, $http)
                             $scope.userSlots[i].user = r.data.user;
                             break;
                         }
+                    }
+                } else {
+                    alert(window.t('settings.alert.userCreateError', { message: r.data.message || '' }));
+                }
+            },
+            function error(e) { alert(window.t('settings.alert.userCreateFailed')); }
+        );
+    };
+
+    // Create an additional preacher account (a group may have several preachers).
+    $scope.addPreacher = function() {
+        $http({ method: 'POST', url: '/ajax', data: { command: 'add_preacher' } }).then(
+            function success(r) {
+                if (r.data && r.data.status === 'success') {
+                    var u = r.data.user;
+                    u.googleAccounts = [];
+                    var slot = { role: 'preacher', roleLabel: window.t('role.preacher'), user: u };
+                    // Insert right after the last existing preacher slot to keep role order.
+                    var lastPreacher = -1;
+                    for (var i = 0; i < $scope.userSlots.length; i++) {
+                        if ($scope.userSlots[i].role === 'preacher') lastPreacher = i;
+                    }
+                    if (lastPreacher >= 0) {
+                        $scope.userSlots.splice(lastPreacher + 1, 0, slot);
+                    } else {
+                        $scope.userSlots.push(slot);
                     }
                 } else {
                     alert(window.t('settings.alert.userCreateError', { message: r.data.message || '' }));
