@@ -37,7 +37,7 @@ app.controller('Settings', function ($scope, $http)
     $scope.selectedLists = {};
     $scope.sortedLists = [];    // ordered list of {LIST_ID, LIST_NAME, selected}
     $scope.allLanguages = [];
-    $scope.selectedLanguages = {};
+    $scope.sortedLangs = [];    // ordered list of {code, label, selected}; first selected = default
     $scope.placeholderImages = [
         { path: '/field_small.jpg', name: window.t('settings.placeholder.default') }
     ];
@@ -54,7 +54,7 @@ app.controller('Settings', function ($scope, $http)
     };
 
     // Flags to detect when both lists and settings have loaded, then build sortedLists
-    var _listsLoaded = false, _settingsLoaded = false;
+    var _listsLoaded = false, _settingsLoaded = false, _langsLoaded = false;
 
     function _buildSortedLists() {
         if (!_listsLoaded || !_settingsLoaded) return;
@@ -90,6 +90,41 @@ app.controller('Settings', function ($scope, $http)
         $scope.sortedLists[target] = temp;
     };
 
+    // Build the ordered language list the same way as song lists: selected
+    // languages first (in the order saved in available_languages), then the
+    // remaining ones. The first selected entry is the display default.
+    function _buildSortedLangs() {
+        if (!_langsLoaded || !_settingsLoaded) return;
+        var result = [];
+        if ($scope.settings.available_languages) {
+            var codes = $scope.settings.available_languages.split(',').map(function(c) { return c.trim(); });
+            codes.forEach(function(code) {
+                for (var i = 0; i < $scope.allLanguages.length; i++) {
+                    if ($scope.allLanguages[i].code === code) {
+                        result.push({ code: $scope.allLanguages[i].code, label: $scope.allLanguages[i].label, selected: true });
+                        break;
+                    }
+                }
+            });
+        }
+        $scope.allLanguages.forEach(function(lang) {
+            var alreadyIn = result.some(function(r) { return r.code === lang.code; });
+            if (!alreadyIn) {
+                result.push({ code: lang.code, label: lang.label, selected: false });
+            }
+        });
+        $scope.sortedLangs = result;
+    }
+
+    $scope.moveLang = function(index, direction) {
+        var target = index + direction;
+        if (target < 0 || target >= $scope.sortedLangs.length) return;
+        if (!$scope.sortedLangs[target].selected) return; // don't move past unselected items
+        var temp = $scope.sortedLangs[index];
+        $scope.sortedLangs[index] = $scope.sortedLangs[target];
+        $scope.sortedLangs[target] = temp;
+    };
+
     $scope.loadAvailableLists = function() {
         $http({ method: "POST", url: "/ajax", data: {command: 'get_all_song_lists' } }).then(
             function success(r){
@@ -102,7 +137,11 @@ app.controller('Settings', function ($scope, $http)
 
     $scope.loadAllLanguages = function() {
         $http({ method: "POST", url: "/ajax", data: {command: 'get_all_languages' } }).then(
-            function success(r){ $scope.allLanguages = r.data || []; },
+            function success(r){
+                $scope.allLanguages = r.data || [];
+                _langsLoaded = true;
+                _buildSortedLangs();
+            },
             function error(e){ console.log('Ajax call error: ', e); });
     };
 
@@ -111,11 +150,6 @@ app.controller('Settings', function ($scope, $http)
             function success(r){
                 if (r.data && r.data.group_id) {
                     angular.extend($scope.settings, r.data);
-                    $scope.selectedLanguages = {};
-                    if ($scope.settings.available_languages) {
-                        var codes = $scope.settings.available_languages.split(',');
-                        angular.forEach(codes, function(c){ $scope.selectedLanguages[c.trim()] = true; });
-                    }
                     if ($scope.settings.streaming_height_percent)
                         $scope.settings.streaming_height_percent = parseInt($scope.settings.streaming_height_percent, 10);
                     if (!$scope.settings.sermon_notes_bg_color)   $scope.settings.sermon_notes_bg_color   = '#2b2b2b';
@@ -128,6 +162,7 @@ app.controller('Settings', function ($scope, $http)
                     _initialUiLang = $scope.settings.ui_lang;
                     _settingsLoaded = true;
                     _buildSortedLists();
+                    _buildSortedLangs();
                 }
             },
             function error(e){ console.log('Ajax call error: ', e); });
@@ -165,9 +200,10 @@ app.controller('Settings', function ($scope, $http)
         $scope.sortedLists.forEach(function(item) { if (item.selected) ids.push(String(item.LIST_ID)); });
         $scope.settings.available_lists = ids.join(',');
 
+        // Selected languages in display order; the first one is the default.
+        // Empty string means "all languages" — backwards-compatible default.
         var langCodes = [];
-        angular.forEach($scope.selectedLanguages, function(v, k){ if (v) langCodes.push(k); });
-        // null (empty string) means "all languages" — backwards-compatible default
+        $scope.sortedLangs.forEach(function(item) { if (item.selected) langCodes.push(item.code); });
         $scope.settings.available_languages = langCodes.length > 0 ? langCodes.join(',') : '';
         $http({ method: "POST", url: "/ajax", data: { command: 'save_user_settings', settings: $scope.settings } }).then(
             function success(r){

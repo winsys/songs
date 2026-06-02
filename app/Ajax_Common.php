@@ -599,6 +599,11 @@ trait Ajax_Common
         $sql = "SELECT l.code, l.label, l.col_suffix, l.sort_order, l.is_default
                 FROM languages l";
 
+        // Default ordering — global sort_order. Overridden below by the
+        // group's own language order when available_languages is set, so the
+        // first entry there becomes the display default.
+        $orderBy = " ORDER BY l.sort_order ASC";
+
         if ($setting) {
             $codes = array_values(array_filter(array_map('trim', explode(',', $setting))));
             if (!empty($codes)) {
@@ -606,10 +611,12 @@ trait Ajax_Common
                     return "'" . mysqli_escape_string(Info::get('dbh'), $c) . "'";
                 }, $codes));
                 $sql .= " WHERE l.code IN ({$placeholders})";
+                // Preserve the exact order the group arranged in settings.
+                $orderBy = " ORDER BY FIELD(l.code, {$placeholders})";
             }
         }
 
-        $sql .= " ORDER BY l.sort_order ASC";
+        $sql .= $orderBy;
         $langs = Info::get('db')->select($sql);
         return json_encode($langs);
     }

@@ -143,18 +143,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $scope.languages[lang] = !$scope.languages[lang];
 
         // At least one language must be enabled.
-        // Fallback — language with is_default=1, otherwise first in list.
+        // Fallback — the first language in the (group-ordered) list, i.e. the default.
         var anyActive = false;
         for (var k in $scope.languages) {
             if ($scope.languages[k]) { anyActive = true; break; }
         }
-        if (!anyActive) {
-            var fallback = null;
-            for (var i = 0; i < $scope.langList.length; i++) {
-                if ($scope.langList[i].is_default == '1') { fallback = $scope.langList[i].code; break; }
-            }
-            if (!fallback && $scope.langList.length > 0) fallback = $scope.langList[0].code;
-            if (fallback) $scope.languages[fallback] = true;
+        if (!anyActive && $scope.langList.length > 0) {
+            $scope.languages[$scope.langList[0].code] = true;
         }
 
         // Update display (these lines remain unchanged)
@@ -344,12 +339,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             function (list) {
                 $scope.langList = list;
 
-                // Find default language
-                var defaultCode = null;
-                for (var i = 0; i < list.length; i++) {
-                    if (list[i].is_default == '1') { defaultCode = list[i].code; break; }
-                }
-                if (!defaultCode && list.length > 0) defaultCode = list[0].code;
+                // Default language = first in the (group-ordered) list.
+                var defaultCode = list.length > 0 ? list[0].code : null;
 
                 // Initialize $scope.languages:
                 //   - default language enabled,
@@ -427,12 +418,9 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $scope.preparedChapters = [];
         if (!song) return;
 
-        // Default language defines the verse "skeleton" (count and order).
-        var defaultLang = null;
-        for (var i = 0; i < $scope.langList.length; i++) {
-            if ($scope.langList[i].is_default == '1') { defaultLang = $scope.langList[i]; break; }
-        }
-        if (!defaultLang && $scope.langList.length > 0) defaultLang = $scope.langList[0];
+        // The first language in the (group-ordered) list is the default and
+        // defines the verse "skeleton" (count and order).
+        var defaultLang = $scope.langList.length > 0 ? $scope.langList[0] : null;
         if (!defaultLang) return;
 
         var baseField  = textCol(defaultLang);

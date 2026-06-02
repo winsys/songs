@@ -346,7 +346,7 @@
   "settings.field.streamingHeightPct": "Anteil der Bildschirmhöhe für Text ({pct}%)",
   "settings.googleLinked": "Verknüpft: {date}",
   "settings.googleUsed": "Zuletzt verwendet: {date}",
-  "settings.hint.langs": "Wählen Sie die für diese Gruppe verfügbaren Sprachen. Ohne Auswahl sind alle Sprachen verfügbar.",
+  "settings.hint.langs": "Wählen Sie die für diese Gruppe verfügbaren Sprachen und ordnen Sie sie mit den Pfeilen in der gewünschten Reihenfolge. Die erste Sprache in der Liste ist die Standardsprache. Ohne Auswahl sind alle Sprachen verfügbar.",
   "settings.hint.lists": "Die ausgewählten Sammlungen sind im Leiter- und Techniker-Modus verfügbar. Reihenfolge mit ↑↓ — die erste wird als Standard geöffnet.",
   "settings.hint.maxFontSizeMain": "Obergrenze der automatischen Textgrößenanpassung auf dem Hauptbildschirm.",
   "settings.hint.maxFontSizeSlide": "Obergrenze der automatischen Textgrößenanpassung der Folien auf dem Hauptbildschirm.",
