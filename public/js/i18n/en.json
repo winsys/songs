@@ -346,7 +346,7 @@
   "settings.field.streamingHeightPct": "Screen-height percent used by text ({pct}%)",
   "settings.googleLinked": "Linked: {date}",
   "settings.googleUsed": "Last used: {date}",
-  "settings.hint.langs": "Select languages available to this group. If nothing is selected, all languages are available.",
+  "settings.hint.langs": "Select the languages available to this group and arrange them in order with the arrows. The first language in the list is the default. If nothing is selected, all languages are available.",
   "settings.hint.lists": "Selected collections will be available in Leader and Tech modes. Set the order with ↑↓ — the first one opens by default.",
   "settings.hint.maxFontSizeMain": "Upper bound for the auto-fit text on the main display.",
   "settings.hint.maxFontSizeSlide": "Upper bound for the auto-fit slide text on the main display.",

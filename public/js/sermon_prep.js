@@ -206,12 +206,10 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 // the system default, otherwise the first available.
                 if (!$scope.bibleLangPrep) {
                     var uiLang = window.UI_LANG || 'ru';
-                    var defCode = null;
-                    for (var i = 0; i < list.length; i++) {
-                        if (list[i].is_default == '1') { defCode = list[i].code; break; }
-                    }
+                    // Default = first in the (group-ordered) list.
+                    var defCode = (list[0] && list[0].code) || null;
                     var hasUi = list.some(function (l) { return l.code === uiLang; });
-                    $scope.bibleLangPrep = hasUi ? uiLang : (defCode || (list[0] && list[0].code) || null);
+                    $scope.bibleLangPrep = hasUi ? uiLang : defCode;
                 }
             }
         );

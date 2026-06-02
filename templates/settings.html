@@ -498,15 +498,27 @@
             <p style="margin:0 0 10px; font-size:13px; color:#555;">
                 <?php echo T::s('settings.hint.langs'); ?>
             </p>
-            <div class="checkbox-list">
-                <label class="checkbox-item"
-                       ng-repeat="lang in allLanguages"
-                       for="lang_{{lang.code}}">
-                    <input type="checkbox"
-                           id="lang_{{lang.code}}"
-                           ng-model="selectedLanguages[lang.code]">
-                    {{lang.label}} <span style="color:#999; font-size:12px;">({{lang.code}})</span>
-                </label>
+            <div style="display:flex; flex-direction:column; gap:4px;">
+                <div class="songlist-sort-row"
+                     ng-repeat="item in sortedLangs"
+                     ng-class="{'is-selected': item.selected}">
+                    <label for="lang_{{item.code}}">
+                        <input type="checkbox"
+                               id="lang_{{item.code}}"
+                               ng-model="item.selected">
+                        {{item.label}} <span style="color:#999; font-size:12px;">({{item.code}})</span>
+                    </label>
+                    <div class="songlist-sort-btns" ng-show="item.selected">
+                        <button class="btn-sort"
+                                ng-click="moveLang($index, -1)"
+                                ng-disabled="$index === 0 || !sortedLangs[$index-1].selected"
+                                title="<?php echo T::s('settings.list.moveUp'); ?>">▲</button>
+                        <button class="btn-sort"
+                                ng-click="moveLang($index, 1)"
+                                ng-disabled="$index >= sortedLangs.length-1 || !sortedLangs[$index+1].selected"
+                                title="<?php echo T::s('settings.list.moveDown'); ?>">▼</button>
+                    </div>
+                </div>
             </div>
             </div>
         </div>
@@ -851,4 +863,4 @@
     </div>
 </div>
 
-<script src="/js/settings.js?v=15" type="text/javascript"></script>
+<script src="/js/settings.js?v=16" type="text/javascript"></script>
