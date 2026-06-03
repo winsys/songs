@@ -17,12 +17,10 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
         $scope.displaySlideHtml = null;
         $scope.displaySlideBg   = '#1a237e';
 
-        // Display target management
-        $scope.displayTargets           = [];
+        // Display target is set by the technician (shared, channel = 'sermon')
+        // and pushed here over WebSocket; this page no longer selects it locally.
+        // null = "do not broadcast".
         $scope.selectedDisplayTarget    = null;
-        $scope.showAccessRequestModal   = false;
-        $scope.availableGroups          = [];
-        $scope.selectedGroupForRequest  = '';
 
          $scope.displayVideoSrc       = '';   // non-empty = show video overlay
          $scope.displayVideoIsYouTube = false;
@@ -1055,29 +1053,13 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
         // DISPLAY TARGET MANAGEMENT
         // ==========================================================
 
+        // Load the technician-set target for the 'sermon' channel on page load.
         function loadDisplayTargets() {
-            $http.post('/ajax', { command: 'get_display_targets' }).then(
+            $http.post('/ajax', { command: 'get_display_targets', channel: 'sermon' }).then(
                 function (r) {
                     if (r.data && r.data.status === 'ok') {
-                        // Add "do not broadcast" option as first item
-                        $scope.displayTargets = [
-                            { group_id: null, display_name: window.t('sermon.broadcast.none') }
-                        ].concat(r.data.targets || []);
-
-                        // Default to "do not broadcast" (null)
-                        if (!$scope.selectedDisplayTarget) {
-                            $scope.selectedDisplayTarget = null;
-                        }
-                    }
-                }
-            );
-        }
-
-        function loadAvailableGroups() {
-            $http.post('/ajax', { command: 'get_available_groups' }).then(
-                function (r) {
-                    if (r.data && r.data.status === 'ok') {
-                        $scope.availableGroups = r.data.groups || [];
+                        $scope.selectedDisplayTarget =
+                            (r.data.current_target != null) ? r.data.current_target : null;
                     }
                 }
             );
@@ -1124,33 +1106,6 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
             }, 50);
         });
 
-        $scope.$watch('showAccessRequestModal', function(newVal) {
-            if (newVal) {
-                loadAvailableGroups();
-            }
-        });
-
-        $scope.sendAccessRequest = function() {
-            if (!$scope.selectedGroupForRequest) return;
-
-            $http.post('/ajax', {
-                command: 'request_display_access',
-                target_group_id: parseInt($scope.selectedGroupForRequest)
-            }).then(
-                function(r) {
-                    if (r.data && r.data.status === 'ok') {
-                        alert(window.t('sermon.requestSent'));
-                        $scope.showAccessRequestModal = false;
-                        $scope.selectedGroupForRequest = '';
-                    } else {
-                        alert(window.t('sermon.errorPrefix', { message: r.data.message || window.t('common.unknownError') }));
-                    }
-                },
-                function(err) {
-                    alert(window.t('sermon.error.requestSendFailed'));
-                }
-            );
-        };
 
         // ==========================================================
         // WEBSOCKET — react to tech-initiated display clear
@@ -1188,6 +1143,13 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                                 clearInterval(videoProgressTimer);
                                 videoProgressTimer = null;
                             }
+                        });
+                    } else if (data && data.type === 'display_target_changed'
+                               && data.data && data.data.channel === 'sermon') {
+                        // Technician changed where the sermon page broadcasts.
+                        $scope.$apply(function () {
+                            $scope.selectedDisplayTarget =
+                                (data.data.display_target != null) ? data.data.display_target : null;
                         });
                     }
                 },

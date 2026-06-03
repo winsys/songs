@@ -78,6 +78,124 @@
         background: #a93226;
     }
 
+    /* ── Shared display targets (technician-controlled) ───────── */
+    .display-targets-box {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        position: relative;
+        flex-shrink: 0;
+        padding: 8px 10px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        background: #fafbfc;
+    }
+    .dt-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .dt-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        width: 76px;
+        flex-shrink: 0;
+    }
+    .dt-select {
+        flex: 1;
+        background: #fff;
+        color: #2c3e50;
+        border: 1.5px solid #dee2e6;
+        border-radius: 8px;
+        padding: 5px 8px;
+        font-size: 12px;
+        cursor: pointer;
+        max-width: 200px;
+        height: 32px;
+        transition: all 0.15s;
+    }
+    .dt-select:hover  { border-color: #1a6db5; }
+    .dt-select:focus  { border-color: #1a6db5; outline: none; }
+    /* Highlighted state when a target is actually selected (broadcasting) */
+    .dt-select.dt-active {
+        background: #1a6db5;
+        color: #fff;
+        border-color: #155a99;
+        font-weight: 700;
+        box-shadow: 0 2px 10px rgba(26,109,181,0.4);
+    }
+    .display-targets-box .btn-request-access {
+        position: absolute;
+        top: -10px;
+        right: -10px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border-radius: 50%;
+        font-size: 16px;
+        line-height: 1;
+        border: 1.5px solid #dee2e6;
+        background: #f8f9fa;
+        color: #1a6db5;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .display-targets-box .btn-request-access:hover {
+        border-color: #1a6db5;
+        background: #ebf3fb;
+    }
+
+    /* ── Request-access modal ─────────────────────────────────── */
+    .dt-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 10000;
+    }
+    .dt-modal-content {
+        background: #fff;
+        border-radius: 12px;
+        padding: 22px 24px;
+        width: 90%;
+        max-width: 380px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+    }
+    .dt-modal-title { font-size: 16px; font-weight: 700; color: #2c3e50; margin-bottom: 8px; }
+    .dt-modal-text  { font-size: 13px; color: #5a6272; margin-bottom: 14px; }
+    .dt-modal-select {
+        width: 100%;
+        padding: 9px 12px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 8px;
+        font-size: 13px;
+        color: #2c3e50;
+        margin-bottom: 18px;
+        box-sizing: border-box;
+    }
+    .dt-modal-buttons { display: flex; gap: 10px; justify-content: flex-end; }
+    .dt-modal-btn {
+        padding: 8px 18px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: none;
+        cursor: pointer;
+    }
+    .dt-modal-btn-secondary { background: #f4f5f7; color: #5a6272; }
+    .dt-modal-btn-secondary:hover { background: #e8eaed; }
+    .dt-modal-btn-primary { background: #1a6db5; color: #fff; }
+    .dt-modal-btn-primary:hover { background: #155a99; }
+    .dt-modal-btn-primary:disabled { opacity: 0.5; cursor: default; }
+
     .tech-title-block { flex: 1; }
     .tech-page-title {
         font-size: 18px;
@@ -1258,6 +1376,32 @@
                 <div class="tech-page-title"><?php echo T::s('tech.title'); ?></div>
                 <div class="tech-page-subtitle"><?php echo htmlspecialchars($_SESSION['userName']) ?></div>
             </div>
+
+            <!-- Shared display targets controlled by the technician (leader + sermon channels) -->
+            <div class="display-targets-box">
+                <div class="dt-row">
+                    <span class="dt-label"><?php echo T::s('tech.dt.leader'); ?></span>
+                    <select class="dt-select"
+                            ng-class="{ 'dt-active': leaderDisplayTarget !== null }"
+                            ng-model="leaderDisplayTarget"
+                            ng-change="setDisplayTarget('leader')"
+                            ng-options="t.group_id as t.display_name for t in displayTargets">
+                    </select>
+                </div>
+                <div class="dt-row">
+                    <span class="dt-label"><?php echo T::s('tech.dt.sermon'); ?></span>
+                    <select class="dt-select"
+                            ng-class="{ 'dt-active': sermonDisplayTarget !== null }"
+                            ng-model="sermonDisplayTarget"
+                            ng-change="setDisplayTarget('sermon')"
+                            ng-options="t.group_id as t.display_name for t in displayTargets">
+                    </select>
+                </div>
+                <button class="btn-request-access"
+                        ng-click="showAccessRequestModal = true"
+                        title="<?php echo T::s('sermon.requestAccessTitle'); ?>">+</button>
+            </div>
+
             <button class="btn-disable-screen"
                     ng-show="externalContentActive"
                     ng-click="disableExternalDisplay()">
@@ -2095,7 +2239,27 @@
         </div>
     </div>
 
+    <!-- Request display access modal (mirror of leader/sermon) -->
+    <div class="dt-modal-overlay" ng-show="showAccessRequestModal" ng-click="showAccessRequestModal = false">
+        <div class="dt-modal-content" ng-click="$event.stopPropagation()">
+            <div class="dt-modal-title"><?php echo T::s('sermon.requestAccessModalTitle'); ?></div>
+            <div class="dt-modal-text"><?php echo T::s('sermon.requestGroupPrompt'); ?></div>
+            <select class="dt-modal-select" ng-model="selectedGroupForRequest">
+                <option value=""><?php echo T::s('sermon.chooseGroup'); ?></option>
+                <option ng-repeat="g in availableGroups" value="{{ g.group_id }}">{{ g.display_name }}</option>
+            </select>
+            <div class="dt-modal-buttons">
+                <button class="dt-modal-btn dt-modal-btn-secondary" ng-click="showAccessRequestModal = false">
+                    <?php echo T::s('common.button.cancel'); ?>
+                </button>
+                <button class="dt-modal-btn dt-modal-btn-primary" ng-click="sendAccessRequest()" ng-disabled="!selectedGroupForRequest">
+                    <?php echo T::s('common.button.send'); ?>
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div><!-- /ng-controller -->
 
-<script src="/js/tech.min.js?v=30" type="text/javascript"></script>
+<script src="/js/tech.min.js?v=31" type="text/javascript"></script>
 

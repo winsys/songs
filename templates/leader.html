@@ -166,140 +166,6 @@
         box-shadow: 0 4px 12px rgba(26, 109, 181, 0.30);
     }
 
-    /* ---- Display target dropdown (header) -------------------- */
-    .display-target-wrap {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        flex-shrink: 0;
-    }
-
-    .display-target-select {
-        background: #fff;
-        color: #2c3e50;
-        border: 1.5px solid #dee2e6;
-        border-radius: 8px;
-        padding: 6px 8px;
-        font-size: 12px;
-        cursor: pointer;
-        max-width: 180px;
-        height: 34px;
-        transition: border-color 0.15s;
-    }
-    .display-target-select:hover  { border-color: #1a6db5; }
-    .display-target-select:focus  { border-color: #1a6db5; outline: none; }
-
-    .btn-request-access {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 34px;
-        height: 34px;
-        padding: 0;
-        border-radius: 8px;
-        font-size: 18px;
-        line-height: 1;
-        border: 1.5px solid #dee2e6;
-        background: #f8f9fa;
-        color: #1a6db5;
-        cursor: pointer;
-        transition: all 0.15s;
-        flex-shrink: 0;
-    }
-    .btn-request-access:hover {
-        border-color: #1a6db5;
-        background: #ebf3fb;
-    }
-
-    @media (max-width: 480px) {
-        .display-target-select { max-width: 130px; font-size: 11px; }
-    }
-
-    /* ---- Access request modal (light theme) ------------------ */
-    .leader-modal-overlay {
-        position: fixed;
-        inset: 0;
-        background: rgba(0,0,0,0.45);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        backdrop-filter: blur(2px);
-    }
-    .leader-modal-content {
-        background: #fff;
-        border-radius: 14px;
-        padding: 20px 22px 18px;
-        max-width: 400px;
-        width: 90%;
-        color: #2c3e50;
-        box-shadow: 0 12px 40px rgba(0,0,0,0.25);
-        display: flex;
-        flex-direction: column;
-        gap: 14px;
-    }
-    .leader-modal-title {
-        font-size: 16px;
-        font-weight: 600;
-        color: #2c3e50;
-        padding-bottom: 10px;
-        border-bottom: 1px solid #f0f2f5;
-    }
-    .leader-modal-text {
-        font-size: 13px;
-        color: #5a6272;
-        line-height: 1.5;
-    }
-    .leader-modal-select {
-        width: 100%;
-        background: #fff;
-        color: #2c3e50;
-        border: 1.5px solid #dee2e6;
-        border-radius: 8px;
-        padding: 9px 10px;
-        font-size: 14px;
-        cursor: pointer;
-        outline: none;
-        transition: border-color 0.15s;
-    }
-    .leader-modal-select:focus { border-color: #1a6db5; }
-    .leader-modal-buttons {
-        display: flex;
-        gap: 10px;
-        justify-content: flex-end;
-        padding-top: 4px;
-    }
-    .leader-modal-btn {
-        padding: 8px 18px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        cursor: pointer;
-        border: 1.5px solid transparent;
-        transition: all 0.15s;
-        min-width: 90px;
-    }
-    .leader-modal-btn-secondary {
-        background: #f4f5f7;
-        border-color: #dee2e6;
-        color: #5a6272;
-    }
-    .leader-modal-btn-secondary:hover {
-        background: #e8eaed;
-        color: #2c3e50;
-    }
-    .leader-modal-btn-primary {
-        background: #1a6db5;
-        border-color: #1a6db5;
-        color: #fff;
-    }
-    .leader-modal-btn-primary:hover { background: #155a99; }
-    .leader-modal-btn-primary[disabled] {
-        opacity: 0.4;
-        cursor: not-allowed;
-        pointer-events: none;
-    }
-
     /* ---- Search input / angucomplete override ----------------- */
     #ccf6 .angucomplete-holder {
         width: 100%;
@@ -856,16 +722,6 @@
                 <div class="leader-page-title"><?php echo T::s('leader.title'); ?></div>
                 <div class="leader-page-subtitle"><?php echo T::s('leader.subtitle'); ?></div>
             </div>
-            <div class="display-target-wrap">
-                <select class="display-target-select"
-                        ng-model="selectedDisplayTarget"
-                        ng-options="t.group_id as t.display_name for t in displayTargets"
-                        title="<?php echo T::s('sermon.selectDisplayTitle'); ?>">
-                </select>
-                <button class="btn-request-access"
-                        ng-click="showAccessRequestModal = true"
-                        title="<?php echo T::s('sermon.requestAccessTitle'); ?>">+</button>
-            </div>
         </div>
 
         <!-- Song list selector -->
@@ -1138,36 +994,9 @@
         </div>
     </div>
 
-    <!-- ============================================================
-         Modal: request access to another display
-         ============================================================ -->
-    <div class="leader-modal-overlay"
-         ng-show="showAccessRequestModal"
-         ng-click="showAccessRequestModal = false">
-        <div class="leader-modal-content" ng-click="$event.stopPropagation()">
-            <div class="leader-modal-title"><?php echo T::s('sermon.requestAccessModalTitle'); ?></div>
-            <div class="leader-modal-text"><?php echo T::s('sermon.requestGroupPrompt'); ?></div>
-            <select class="leader-modal-select" ng-model="selectedGroupForRequest">
-                <option value=""><?php echo T::s('sermon.chooseGroup'); ?></option>
-                <option ng-repeat="g in availableGroups" value="{{ g.group_id }}">{{ g.display_name }}</option>
-            </select>
-            <div class="leader-modal-buttons">
-                <button class="leader-modal-btn leader-modal-btn-secondary"
-                        ng-click="showAccessRequestModal = false">
-                    <?php echo T::s('common.button.cancel'); ?>
-                </button>
-                <button class="leader-modal-btn leader-modal-btn-primary"
-                        ng-click="sendAccessRequest()"
-                        ng-disabled="!selectedGroupForRequest">
-                    <?php echo T::s('common.button.send'); ?>
-                </button>
-            </div>
-        </div>
-    </div>
-
     </div><!-- /ng-controller -->
 
-<script src="/js/leader.min.js?v=13" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=14" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}

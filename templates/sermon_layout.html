@@ -149,27 +149,6 @@
             flex-shrink: 0;
         }
 
-        #display-target-wrap {
-            display: flex;
-            align-items: center;
-            gap: 0;
-            flex-shrink: 0;
-        }
-
-        #display-target-label { display: none; }
-
-        #display-target-select {
-            background: var(--sn-notes-header);
-            color: var(--sn-notes-text);
-            border: 1px solid var(--sn-notes-border);
-            border-radius: 6px;
-            padding: 4px 6px;
-            font-size: 9pt;
-            cursor: pointer;
-            max-width: 180px;
-            height: 34px;
-        }
-
         /* ── "⋮" menu button ── */
         #header-menu-btn {
             width: 36px;
@@ -257,22 +236,6 @@
         }
         .font-size-btn:hover { background: rgba(255,255,255,0.18); }
         .font-size-btn:active { background: rgba(255,255,255,0.28); }
-
-        .request-access-btn {
-            background: rgba(21, 101, 192, 0.15);
-            border: 1px solid #1565c0;
-            color: #90b8e8;
-            border-radius: 6px;
-            padding: 5px 10px;
-            font-size: 10pt;
-            font-weight: bold;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: background 0.15s;
-            height: 32px;
-            width: 100%;
-        }
-        .request-access-btn:hover { background: rgba(21, 101, 192, 0.28); }
 
         /* ===== Notes body ===== */
         #notes-body {
@@ -623,104 +586,6 @@
             object-fit: contain;
         }
 
-        /* ===== Access Request Modal ===== */
-        .modal-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0,0,0,0.72);
-            z-index: 1000;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(3px);
-        }
-
-        .modal-content {
-            background: #252525;
-            border: 1px solid #505050;
-            border-radius: 14px;
-            padding: 24px 24px 20px;
-            max-width: 400px;
-            width: 90%;
-            color: var(--sn-notes-text);
-            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-            display: flex;
-            flex-direction: column;
-            gap: 14px;
-        }
-
-        .modal-title {
-            font-size: 15pt;
-            font-weight: 700;
-            color: #e8e8e8;
-            line-height: 1.2;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #3a3a3a;
-        }
-
-        .modal-text {
-            font-size: 10.5pt;
-            color: #aaa;
-            line-height: 1.55;
-        }
-
-        .modal-select {
-            width: 100%;
-            background: #1e1e1e;
-            color: #e0e0e0;
-            border: 1px solid #555;
-            border-radius: 8px;
-            padding: 9px 10px;
-            font-size: 10.5pt;
-            cursor: pointer;
-            outline: none;
-            transition: border-color 0.15s;
-        }
-        .modal-select:focus { border-color: #1e88e5; }
-
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            padding-top: 4px;
-        }
-
-        .modal-btn {
-            padding: 8px 20px;
-            border-radius: 8px;
-            font-size: 10.5pt;
-            font-weight: 600;
-            cursor: pointer;
-            border: 1px solid transparent;
-            transition: background 0.15s, border-color 0.15s;
-            min-width: 90px;
-        }
-
-        .modal-btn-secondary {
-            background: rgba(255,255,255,0.07);
-            border-color: #555;
-            color: #bbb;
-        }
-        .modal-btn-secondary:hover {
-            background: rgba(255,255,255,0.13);
-            color: #e0e0e0;
-        }
-
-        .modal-btn-primary {
-            background: rgba(30, 136, 229, 0.25);
-            border-color: #1e88e5;
-            color: #90caff;
-        }
-        .modal-btn-primary:hover {
-            background: rgba(30, 136, 229, 0.40);
-            color: #c8e6ff;
-        }
-        .modal-btn-primary[disabled] {
-            opacity: 0.4;
-            cursor: not-allowed;
-            pointer-events: none;
-        }
-
         /* ===== Mobile: stack panels vertically ===== */
         @media (max-width: 640px) {
             #sermon-layout {
@@ -786,13 +651,6 @@
             </div>
 
             <div id="header-right">
-                <div id="display-target-wrap">
-                    <select id="display-target-select"
-                            ng-model="selectedDisplayTarget"
-                            ng-options="t.group_id as t.display_name for t in displayTargets"
-                            title="<?php echo T::s('sermon.selectDisplayTitle'); ?>">
-                    </select>
-                </div>
                 <button id="header-menu-btn" onclick="toggleHeaderMenu(event)" title="<?php echo T::s('common.menu'); ?>">⋮</button>
             </div>
 
@@ -813,14 +671,6 @@
                         <button class="font-size-btn" ng-click="changeNotesFontSize(-1)" title="<?php echo T::s('common.button.decrease'); ?>">−</button>
                         <button class="font-size-btn" ng-click="changeNotesFontSize(+1)" title="<?php echo T::s('common.button.increase'); ?>">+</button>
                     </div>
-                </div>
-                <div class="hd-row">
-                    <button class="request-access-btn"
-                            ng-click="showAccessRequestModal = true"
-                            title="<?php echo T::s('sermon.requestAccessTitle'); ?>"
-                            style="width:100%">
-                        <?php echo T::s('sermon.requestAccessButton'); ?>
-                    </button>
                 </div>
             </div>
         </div>
@@ -912,24 +762,8 @@
 
 <button id="fullscreen-btn" ng-click="toggleFullscreen()"><?php echo T::s('sermon.fullscreen'); ?></button>
 
-<!-- Access Request Modal -->
-<div class="modal-overlay" ng-show="showAccessRequestModal" ng-click="showAccessRequestModal = false">
-    <div class="modal-content" ng-click="$event.stopPropagation()">
-        <div class="modal-title"><?php echo T::s('sermon.requestAccessModalTitle'); ?></div>
-        <div class="modal-text"><?php echo T::s('sermon.requestGroupPrompt'); ?></div>
-        <select class="modal-select" ng-model="selectedGroupForRequest">
-            <option value=""><?php echo T::s('sermon.chooseGroup'); ?></option>
-            <option ng-repeat="g in availableGroups" value="{{ g.group_id }}">{{ g.display_name }}</option>
-        </select>
-        <div class="modal-buttons">
-            <button class="modal-btn modal-btn-secondary" ng-click="showAccessRequestModal = false"><?php echo T::s('common.button.cancel'); ?></button>
-            <button class="modal-btn modal-btn-primary" ng-click="sendAccessRequest()" ng-disabled="!selectedGroupForRequest"><?php echo T::s('common.button.send'); ?></button>
-        </div>
-    </div>
-</div>
-
 <script src="/js/websocket_auth.min.js"></script>
-<script src="/js/sermon.min.js?v=11" type="text/javascript"></script>
+<script src="/js/sermon.min.js?v=12" type="text/javascript"></script>
 <script>
     function toggleHeaderMenu(e) {
         e.stopPropagation();

@@ -18,6 +18,70 @@ trait Ajax_Tech
         return json_encode($row);
     }
 
+    /**
+     * Return the technician's two shared display-target selections
+     * (leader channel + sermon channel) together with the list of available
+     * targets (own group + approved groups). Used to populate the two selects
+     * in the tech header.
+     */
+    private static function get_display_target_settings()
+    {
+        $userId = (int)$_SESSION['curGroupId'];
+
+        $row = Info::get('db')->get(
+            "SELECT leader_display_target, sermon_display_target
+             FROM user_settings WHERE group_id = {$userId} LIMIT 1"
+        );
+
+        $leader = ($row && $row['leader_display_target'] !== null) ? (int)$row['leader_display_target'] : null;
+        $sermon = ($row && $row['sermon_display_target'] !== null) ? (int)$row['sermon_display_target'] : null;
+
+        return json_encode([
+            'status'  => 'ok',
+            'leader_display_target' => $leader,
+            'sermon_display_target' => $sermon,
+        ]);
+    }
+
+    /**
+     * Set one of the two shared display targets (channel = 'leader'|'sermon'),
+     * persist it, and notify the group over WebSocket so the leader / sermon
+     * pages pick up the new target.
+     */
+    private static function set_display_target()
+    {
+        $userId  = (int)$_SESSION['curGroupId'];
+        $channel = isset(self::$args['channel']) ? (string)self::$args['channel'] : '';
+        if ($channel !== 'leader' && $channel !== 'sermon') {
+            return json_encode(['status' => 'error', 'message' => 'Invalid channel']);
+        }
+
+        // null/0/'' => "do not broadcast"
+        $raw    = isset(self::$args['target_group_id']) ? self::$args['target_group_id'] : null;
+        $target = ($raw === null || $raw === '' || (int)$raw <= 0) ? null : (int)$raw;
+
+        // Ensure a settings row exists, then update the chosen column.
+        Info::get('db')->exec(
+            "INSERT IGNORE INTO user_settings (group_id) VALUES ({$userId})"
+        );
+        $col    = $channel === 'leader' ? 'leader_display_target' : 'sermon_display_target';
+        $valSql = $target === null ? 'NULL' : (int)$target;
+        Info::get('db')->exec(
+            "UPDATE user_settings SET {$col} = {$valSql} WHERE group_id = {$userId}"
+        );
+
+        // Notify the group: leader / sermon pages update their selectedDisplayTarget.
+        self::broadcastToGroup($userId, [
+            'type' => 'display_target_changed',
+            'data' => [
+                'channel'        => $channel,
+                'display_target' => $target,
+            ],
+        ]);
+
+        return json_encode(['status' => 'ok', 'channel' => $channel, 'display_target' => $target]);
+    }
+
     private static function set_tech_image()
     {
         $dbh        = Info::get('dbh');
