@@ -81,19 +81,20 @@
     /* ── Shared display targets (technician-controlled) ───────── */
     .display-targets-box {
         display: flex;
-        flex-direction: column;
-        gap: 6px;
-        position: relative;
+        flex-direction: row;
+        align-items: flex-end;
+        gap: 10px;
         flex-shrink: 0;
-        padding: 8px 10px;
+        padding: 8px 12px;
         border: 1.5px solid #dee2e6;
         border-radius: 10px;
         background: #fafbfc;
     }
-    .dt-row {
+    /* One channel = label on top, dropdown below */
+    .dt-channel {
         display: flex;
-        align-items: center;
-        gap: 8px;
+        flex-direction: column;
+        gap: 4px;
     }
     .dt-label {
         font-size: 11px;
@@ -101,11 +102,9 @@
         color: #7f8c8d;
         text-transform: uppercase;
         letter-spacing: 0.4px;
-        width: 76px;
-        flex-shrink: 0;
+        white-space: nowrap;
     }
     .dt-select {
-        flex: 1;
         background: #fff;
         color: #2c3e50;
         border: 1.5px solid #dee2e6;
@@ -113,8 +112,8 @@
         padding: 5px 8px;
         font-size: 12px;
         cursor: pointer;
-        max-width: 200px;
-        height: 32px;
+        min-width: 160px;
+        height: 34px;
         transition: all 0.15s;
     }
     .dt-select:hover  { border-color: #1a6db5; }
@@ -128,23 +127,21 @@
         box-shadow: 0 2px 10px rgba(26,109,181,0.4);
     }
     .display-targets-box .btn-request-access {
-        position: absolute;
-        top: -10px;
-        right: -10px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        width: 28px;
-        height: 28px;
+        width: 34px;
+        height: 34px;
         padding: 0;
-        border-radius: 50%;
-        font-size: 16px;
+        border-radius: 8px;
+        font-size: 18px;
         line-height: 1;
         border: 1.5px solid #dee2e6;
         background: #f8f9fa;
         color: #1a6db5;
         cursor: pointer;
         transition: all 0.15s;
+        flex-shrink: 0;
     }
     .display-targets-box .btn-request-access:hover {
         border-color: #1a6db5;
@@ -1379,7 +1376,7 @@
 
             <!-- Shared display targets controlled by the technician (leader + sermon channels) -->
             <div class="display-targets-box">
-                <div class="dt-row">
+                <div class="dt-channel">
                     <span class="dt-label"><?php echo T::s('tech.dt.leader'); ?></span>
                     <select class="dt-select"
                             ng-class="{ 'dt-active': leaderDisplayTarget !== null }"
@@ -1388,7 +1385,7 @@
                             ng-options="t.group_id as t.display_name for t in displayTargets">
                     </select>
                 </div>
-                <div class="dt-row">
+                <div class="dt-channel">
                     <span class="dt-label"><?php echo T::s('tech.dt.sermon'); ?></span>
                     <select class="dt-select"
                             ng-class="{ 'dt-active': sermonDisplayTarget !== null }"
