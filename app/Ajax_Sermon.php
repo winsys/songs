@@ -380,7 +380,19 @@ trait Ajax_Sermon
             ];
         }
 
-        return json_encode(['status' => 'ok', 'targets' => $targets]);
+        // Current technician-set target for the requested channel ('leader'|'sermon'),
+        // so leader/sermon pages can initialise selectedDisplayTarget on load.
+        $channel = isset(self::$args['channel']) ? (string)self::$args['channel'] : '';
+        $current = null;
+        if ($channel === 'leader' || $channel === 'sermon') {
+            $col = $channel === 'leader' ? 'leader_display_target' : 'sermon_display_target';
+            $row = Info::get('db')->get(
+                "SELECT {$col} AS t FROM user_settings WHERE group_id = {$userId} LIMIT 1"
+            );
+            $current = ($row && $row['t'] !== null) ? (int)$row['t'] : null;
+        }
+
+        return json_encode(['status' => 'ok', 'targets' => $targets, 'current_target' => $current]);
     }
 
     /**

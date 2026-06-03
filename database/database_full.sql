@@ -259,6 +259,8 @@ CREATE TABLE IF NOT EXISTS `user_settings` (
   `main_font_max_size` tinyint(3) unsigned NOT NULL DEFAULT '64' COMMENT 'Max auto-fit font size px for main text display (20-200)',
   `slide_font_max_size` tinyint(3) unsigned NOT NULL DEFAULT '64' COMMENT 'Max auto-fit font size px for sermon slides (20-200)',
   `ui_lang` varchar(5) NOT NULL DEFAULT 'ru' COMMENT 'UI language code (ru/de/en). Independent from content languages.',
+  `leader_display_target` int(11) DEFAULT NULL COMMENT 'Leader/songs broadcast target group_id (NULL = none), set by technician',
+  `sermon_display_target` int(11) DEFAULT NULL COMMENT 'Sermon broadcast target group_id (NULL = none), set by technician',
   PRIMARY KEY (`group_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

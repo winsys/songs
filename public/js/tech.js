@@ -100,6 +100,14 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.currentAccessRequest = null;  // Currently shown access request
     var accessRequestQueue = [];         // Queue of pending requests
 
+    // ── Shared display targets (technician sets where leader/sermon broadcast) ──
+    $scope.displayTargets        = [];    // own group + approved groups
+    $scope.leaderDisplayTarget   = null;  // group_id or null ("do not broadcast")
+    $scope.sermonDisplayTarget   = null;
+    $scope.showAccessRequestModal  = false;
+    $scope.availableGroups         = [];
+    $scope.selectedGroupForRequest = '';
+
     // ── Page mode ─────────────────────────────────────────────
     $scope.pageMode = 'songs';  // 'songs' | 'bible' | 'messages'
 
@@ -2112,6 +2120,69 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     }
 
     // ==========================================================
+    // DISPLAY TARGETS (technician-controlled, shared with leader/sermon pages)
+    // ==========================================================
+
+    // Load available targets (own group + approved) and the saved selections.
+    function loadDisplayTargetSettings() {
+        $http.post('/ajax', { command: 'get_display_targets' }).then(function (r) {
+            if (r.data && r.data.status === 'ok') {
+                $scope.displayTargets = [
+                    { group_id: null, display_name: window.t('sermon.broadcast.none') }
+                ].concat(r.data.targets || []);
+            }
+        });
+        $http.post('/ajax', { command: 'get_display_target_settings' }).then(function (r) {
+            if (r.data && r.data.status === 'ok') {
+                $scope.leaderDisplayTarget = (r.data.leader_display_target != null) ? r.data.leader_display_target : null;
+                $scope.sermonDisplayTarget = (r.data.sermon_display_target != null) ? r.data.sermon_display_target : null;
+            }
+        });
+    }
+
+    // Persist a channel's target and broadcast it to the group (server-side WS).
+    $scope.setDisplayTarget = function (channel) {
+        var value = channel === 'leader' ? $scope.leaderDisplayTarget : $scope.sermonDisplayTarget;
+        $http.post('/ajax', {
+            command: 'set_display_target',
+            channel: channel,
+            target_group_id: (value == null ? null : value)
+        });
+    };
+
+    $scope.loadAvailableGroups = function () {
+        $http.post('/ajax', { command: 'get_available_groups' }).then(function (r) {
+            if (r.data && r.data.status === 'ok') {
+                $scope.availableGroups = r.data.groups || [];
+            }
+        });
+    };
+
+    $scope.$watch('showAccessRequestModal', function (newVal) {
+        if (newVal) { $scope.loadAvailableGroups(); }
+    });
+
+    $scope.sendAccessRequest = function () {
+        if (!$scope.selectedGroupForRequest) return;
+        $http.post('/ajax', {
+            command: 'request_display_access',
+            target_group_id: parseInt($scope.selectedGroupForRequest)
+        }).then(function (r) {
+            if (r.data && r.data.status === 'ok') {
+                alert(window.t('sermon.requestSent'));
+                $scope.showAccessRequestModal = false;
+                $scope.selectedGroupForRequest = '';
+            } else {
+                alert(window.t('sermon.errorPrefix', {
+                    message: (r.data && r.data.message) || window.t('common.unknownError')
+                }));
+            }
+        }, function () {
+            alert(window.t('sermon.errorPrefix', { message: window.t('common.unknownError') }));
+        });
+    };
+
+    // ==========================================================
     // ACCESS REQUEST MANAGEMENT (WebSocket-based)
     // ==========================================================
 
@@ -2181,6 +2252,9 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     }
                 }
             });
+        } else if (message.type === 'access_response') {
+            // Another group approved/rejected our request: refresh the target list.
+            loadDisplayTargetSettings();
         }
     });
 
@@ -2433,6 +2507,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     loadLanguages();   // initializes langList + $scope.languages (toggles)
     $scope.reloadSongList();
     loadPendingAccessRequests();  // Load any existing pending requests on page load
+    loadDisplayTargetSettings();  // Load shared display targets (leader/sermon channels)
 
     // Restore state immediately after favorites are loaded
     $scope.reloadFavorites(function() {

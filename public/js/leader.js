@@ -10,12 +10,10 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
     $scope.modalImgSrc = '';    // path to modal image (deprecated)
     $scope.songPreview = { visible: false, song: null, imgError: false };
 
-    // Display target management (matches sermon presentation page)
-    $scope.displayTargets          = [];
+    // Display target is set by the technician (shared, channel = 'leader') and
+    // pushed here over WebSocket; this page no longer selects it locally.
+    // null = "do not broadcast".
     $scope.selectedDisplayTarget   = null;
-    $scope.showAccessRequestModal  = false;
-    $scope.availableGroups         = [];
-    $scope.selectedGroupForRequest = '';
 
     $scope.loadSongLists = function () {
         SongsService.getVisibleSongLists().then(function (lists) {
@@ -284,51 +282,15 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
     // DISPLAY TARGET MANAGEMENT (mirrors sermon presentation page)
     // ==========================================================
 
+    // Load the technician-set target for the 'leader' channel on page load.
     $scope.loadDisplayTargets = function() {
-        $http.post('/ajax', { command: 'get_display_targets' }).then(function(r) {
+        $http.post('/ajax', { command: 'get_display_targets', channel: 'leader' }).then(function(r) {
             if (r.data && r.data.status === 'ok') {
-                // Prepend "do not broadcast" option (default)
-                $scope.displayTargets = [
-                    { group_id: null, display_name: window.t('sermon.broadcast.none') }
-                ].concat(r.data.targets || []);
-                if (!$scope.selectedDisplayTarget) {
-                    $scope.selectedDisplayTarget = null;
-                }
+                $scope.selectedDisplayTarget =
+                    (r.data.current_target != null) ? r.data.current_target : null;
             }
         });
     };
-
-    $scope.loadAvailableGroups = function() {
-        $http.post('/ajax', { command: 'get_available_groups' }).then(function(r) {
-            if (r.data && r.data.status === 'ok') {
-                $scope.availableGroups = r.data.groups || [];
-            }
-        });
-    };
-
-    $scope.sendAccessRequest = function() {
-        if (!$scope.selectedGroupForRequest) return;
-        $http.post('/ajax', {
-            command: 'request_display_access',
-            target_group_id: parseInt($scope.selectedGroupForRequest)
-        }).then(function(r) {
-            if (r.data && r.data.status === 'ok') {
-                alert(window.t('sermon.requestSent'));
-                $scope.showAccessRequestModal = false;
-                $scope.selectedGroupForRequest = '';
-            } else {
-                alert(window.t('sermon.errorPrefix', {
-                    message: (r.data && r.data.message) || window.t('common.unknownError')
-                }));
-            }
-        }, function() {
-            alert(window.t('sermon.errorPrefix', { message: window.t('common.unknownError') }));
-        });
-    };
-
-    $scope.$watch('showAccessRequestModal', function(newVal) {
-        if (newVal) { $scope.loadAvailableGroups(); }
-    });
 
 
     // ==========================================================
@@ -350,6 +312,13 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
                         $scope.reloadFavorites();
                     });
                 }
+            } else if (data.type === 'display_target_changed'
+                       && data.data && data.data.channel === 'leader') {
+                // Technician changed where the leader page broadcasts.
+                $scope.$apply(function() {
+                    $scope.selectedDisplayTarget =
+                        (data.data.display_target != null) ? data.data.display_target : null;
+                });
             }
         },
         function(error) {
