@@ -456,6 +456,7 @@
   "tech.title": "🖥️ Технический режим",
   "tech.tooltip.addToWallpapers": "Добавить в стандартные заставки",
   "tech.tooltip.calibration": "Режим калибровки: клик по абзацу фиксирует таймкод; Стоп сохраняет в БД",
+  "tech.tooltip.rewind": "Отмотать воспроизведение на 2 секунды назад",
   "tech.tooltip.removeFromPlaylist": "Удалить из плейлиста",
   "tech.tooltip.removeFromWallpapers": "Удалить из стандартных заставок",
   "tech.video.stop": "⏹ Стоп"

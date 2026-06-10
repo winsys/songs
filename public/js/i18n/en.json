@@ -456,6 +456,7 @@
   "tech.title": "🖥️ Technical mode",
   "tech.tooltip.addToWallpapers": "Add to standard wallpapers",
   "tech.tooltip.calibration": "Calibration mode: clicking a paragraph records the timecode; Stop saves to the DB",
+  "tech.tooltip.rewind": "Rewind playback by 2 seconds",
   "tech.tooltip.removeFromPlaylist": "Remove from playlist",
   "tech.tooltip.removeFromWallpapers": "Remove from standard wallpapers",
   "tech.video.stop": "⏹ Stop"

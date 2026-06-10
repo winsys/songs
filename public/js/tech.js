@@ -1600,6 +1600,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         }
     };
 
+    // Rewind audio by a fixed step (calibration mode); clamps at 0
+    $scope.rewindMsgAudio = function() {
+        if (!msgAudio || !$scope.msgAudioLoaded) return;
+        msgAudio.currentTime = Math.max(0, msgAudio.currentTime - 2);
+        $scope.msgCurrentTime = msgAudio.currentTime;
+    };
+
     $scope.stopMsgAudio = function() {
         if (!msgAudio) return;
         msgAudio.pause();

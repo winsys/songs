@@ -455,6 +455,7 @@
   "tech.title": "🖥️ Technik-Modus",
   "tech.tooltip.addToWallpapers": "Zu den Standard-Hintergründen hinzufügen",
   "tech.tooltip.calibration": "Kalibrierungsmodus: Klick auf Absatz speichert Zeitcode; Stopp sichert in der DB",
+  "tech.tooltip.rewind": "Wiedergabe um 2 Sekunden zurückspulen",
   "tech.tooltip.removeFromPlaylist": "Aus der Playlist entfernen",
   "tech.tooltip.removeFromWallpapers": "Aus den Standard-Hintergründen entfernen",
   "tech.video.stop": "⏹ Stopp"

@@ -1846,6 +1846,13 @@
                                         style="padding:3px 8px;border-radius:6px;font-size:12px;border:1.5px solid #ccc;background:#f4f5f7;color:#666;cursor:pointer;line-height:1.4;">
                                     ⏹
                                 </button>
+                                <!-- Rewind 2s (calibration mode only) -->
+                                <button ng-show="msgCalibrating && msgAudioLoaded"
+                                        ng-click="rewindMsgAudio()"
+                                        title="<?php echo T::s('tech.tooltip.rewind'); ?>"
+                                        style="padding:3px 8px;border-radius:6px;font-size:12px;border:1.5px solid #e67e22;background:#fef3e2;color:#c0580a;cursor:pointer;line-height:1.4;font-family:monospace;">
+                                    «&nbsp;2s
+                                </button>
                                 <!-- Calibration mode toggle -->
                                 <button ng-show="msgAudioLoaded"
                                         ng-click="msgCalibrating = !msgCalibrating"
@@ -2258,5 +2265,5 @@
 
 </div><!-- /ng-controller -->
 
-<script src="/js/tech.min.js?v=31" type="text/javascript"></script>
+<script src="/js/tech.min.js?v=32" type="text/javascript"></script>
 
