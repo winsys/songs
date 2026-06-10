@@ -1558,11 +1558,10 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // Paragraph click: show/hide text on display + jump to timecode if audio is playing
     // Repeated click on active playing paragraph = Stop
     $scope.onMsgParaClick = function(idx, para) {
-        if ($scope.msgAudioPlaying && $scope.showingMessagePara === para && !$scope.msgCalibrating) {
-            $scope.stopMsgAudio();
-            return;
-        }
-        // Calibration mode: capture timecode, activate paragraph, save to DB
+        // Calibration mode: a mouse click always (re)captures the timecode for
+        // this paragraph from the current audio position — including a click on
+        // the paragraph that is already active. Checked first so the "repeated
+        // click = Stop" rule below never intercepts a calibration capture.
         if ($scope.msgCalibrating && msgAudio && $scope.msgAudioLoaded) {
             $scope.msgTimecodes[idx] = Math.round(msgAudio.currentTime * 10) / 10;
             $scope.showingMessagePara = para;
@@ -1571,6 +1570,10 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 command: 'set_message_text', text: para, song_name: title
             }});
             saveMsgTimecodesToDb();
+            return;
+        }
+        if ($scope.msgAudioPlaying && $scope.showingMessagePara === para) {
+            $scope.stopMsgAudio();
             return;
         }
         if (msgAudio && $scope.msgAudioPlaying && $scope.msgTimecodes.length > idx) {
@@ -2053,7 +2056,23 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         }
 
         var nextPara = list[nextIdx];
-        $scope.toggleMessageParagraph(nextPara);
+
+        if ($scope.msgCalibrating && msgAudio && $scope.msgAudioLoaded) {
+            // Calibration mode: arrow keys move to the adjacent paragraph and
+            // seek the audio to its stored timecode. They do NOT record a new
+            // timecode — capturing happens only on a mouse click.
+            $scope.showingMessagePara = nextPara;
+            var title = $scope.selectedMessage ? $scope.selectedMessage.TITLE : '';
+            $http({ method: 'POST', url: '/ajax', data: {
+                command: 'set_message_text', text: nextPara, song_name: title
+            }});
+            if ($scope.msgTimecodes[nextIdx] !== undefined) {
+                msgAudio.currentTime  = $scope.msgTimecodes[nextIdx];
+                $scope.msgCurrentTime = msgAudio.currentTime;
+            }
+        } else {
+            $scope.toggleMessageParagraph(nextPara);
+        }
 
         $timeout(function() {
             var panel = document.getElementById('messages-para-panel');
