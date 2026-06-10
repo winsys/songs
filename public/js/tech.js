@@ -46,6 +46,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.msgCalibrating   = false;   // calibration mode
     $scope.msgTimecodes     = [];      // array of seconds (floats)
     $scope.msgCurrentTime   = 0;      // current audio position (seconds) for display
+    $scope.msgStopMarkerIdx = null;   // ephemeral end-of-playback marker (paragraph index); not persisted
     var msgAudio            = null;    // HTMLAudioElement (lazy init)
     var msgTimerInterval    = null;    // $interval handle for timer display
 
@@ -1428,6 +1429,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $scope.msgAudioPlaying = false;
         $scope.msgAudioLoaded  = false;
         $scope.msgCalibrating  = false;
+        $scope.msgStopMarkerIdx = null;
         if (msgAudio) { msgAudio.pause(); msgAudio.src = ''; }
 
         $http({ method: "POST", url: "/ajax", data: {
@@ -1493,6 +1495,19 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                             if (nextIdx < $scope.messageParagraphs.length &&
                                 nextIdx < $scope.msgTimecodes.length &&
                                 ct >= $scope.msgTimecodes[nextIdx]) {
+                                // Stop marker: the marked paragraph has just finished
+                                // playing (playback is about to leave it) — stop here
+                                // instead of advancing.
+                                if ($scope.msgStopMarkerIdx !== null &&
+                                    curIdx === $scope.msgStopMarkerIdx) {
+                                    $scope.$apply(function() {
+                                        msgAudio.pause();
+                                        $scope.msgAudioPlaying = false;
+                                        $scope.msgCurrentTime  = msgAudio.currentTime;
+                                        if (msgTimerInterval) { $interval.cancel(msgTimerInterval); msgTimerInterval = null; }
+                                    });
+                                    return;
+                                }
                                 $scope.$apply(function() {
                                     var nextPara = $scope.messageParagraphs[nextIdx];
                                     $scope.showingMessagePara = nextPara;
@@ -1580,6 +1595,14 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             msgAudio.currentTime = $scope.msgTimecodes[idx];
         }
         $scope.toggleMessageParagraph(para);
+    };
+
+    // Toggle an ephemeral "stop here" marker on a paragraph. During playback the
+    // sermon plays continuously up to and including the marked paragraph, then
+    // stops. Not persisted — lives only while the page is open.
+    $scope.toggleMsgStopMarker = function(idx, $event) {
+        if ($event) { $event.stopPropagation(); $event.preventDefault(); }
+        $scope.msgStopMarkerIdx = ($scope.msgStopMarkerIdx === idx) ? null : idx;
     };
 
     $scope.toggleMsgAudio = function() {
