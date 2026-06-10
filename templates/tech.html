@@ -613,6 +613,10 @@
         font-weight: 600;
         color: #1e7e34;
     }
+    /* End-of-playback stop marker: red accent on the right edge */
+    .bible-verse-item.msg-stop-marker {
+        border-right: 4px solid #c0392b;
+    }
     mark.search-hl {
         background: #fff176;
         color: inherit;
@@ -1866,8 +1870,13 @@
                         <audio id="msgAudioEl" style="display:none;"></audio>
                         <div class="bible-verse-item"
                              ng-repeat="(msgParaIdx, para) in messageParagraphs"
-                             ng-class="{'chapter-selected': showingMessagePara === para}"
-                             ng-click="onMsgParaClick(msgParaIdx, para)"><span ng-show="msgTimecodes.length > msgParaIdx"
+                             ng-class="{'chapter-selected': showingMessagePara === para, 'msg-stop-marker': msgStopMarkerIdx === msgParaIdx}"
+                             ng-click="onMsgParaClick(msgParaIdx, para)"><button
+                                              ng-show="msgTimecodes.length > 0"
+                                              ng-click="toggleMsgStopMarker(msgParaIdx, $event)"
+                                              title="<?php echo T::s('tech.tooltip.stopMarker'); ?>"
+                                              ng-style="msgStopMarkerIdx === msgParaIdx ? {'border-color':'#c0392b','background':'#fdecea','opacity':'1'} : {'border-color':'#dfe3e8','background':'#fff','opacity':'0.4'}"
+                                              style="float:right;margin-left:6px;padding:0 6px;border-radius:5px;font-size:13px;line-height:1.6;cursor:pointer;border:1.5px solid;">🏁</button><span ng-show="msgTimecodes.length > msgParaIdx"
                                               ng-style="msgTimecodes[msgParaIdx] === 0 ? {'color':'#c0392b','font-weight':'bold','opacity':'1'} : {'color':'#1a6db5','opacity':'0.6'}"
                                               style="font-size:10px;font-family:monospace;margin-right:5px;display:inline-block;min-width:7ch;text-align:right;">{{formatMsgTimecode(msgTimecodes[msgParaIdx])}}</span><span ng-bind-html="highlightMsg(para)"></span></div>
                         <div ng-show="messageParagraphs.length === 0 && selectedMessage"
@@ -2265,5 +2274,5 @@
 
 </div><!-- /ng-controller -->
 
-<script src="/js/tech.min.js?v=33" type="text/javascript"></script>
+<script src="/js/tech.min.js?v=34" type="text/javascript"></script>
 
