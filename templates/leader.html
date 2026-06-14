@@ -351,17 +351,14 @@
     }
     .leader-text-fs-inner {
         width: 100%;
-        height: 100%;
+        max-height: 100%;
         display: flex;
         flex-direction: column;
         align-items: center;
-        /* Spread the verse lines over the full height so the text fills the
-           screen vertically (on tall/narrow phones the font is width-limited,
-           which would otherwise leave the block centered with empty space). */
-        justify-content: space-evenly;
-        /* Minimum gap between source-line paragraphs — clearly larger than the
-           tight line spacing of auto-wrapped text within a line. */
-        gap: 1em;
+        justify-content: center;
+        /* Small gap between source-line paragraphs — a touch larger than the
+           tight line spacing of auto-wrapped text, without bloating height. */
+        gap: 0.4em;
         color: #fff;
         font-family: Arial, sans-serif;
         font-weight: 600;
@@ -1076,7 +1073,7 @@
 
     </div><!-- /ng-controller -->
 
-<script src="/js/leader.min.js?v=18" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=19" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}
