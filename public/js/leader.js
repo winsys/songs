@@ -279,9 +279,17 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
         leaderLeaveFullscreen();
     };
 
-    // Re-fit the text if the viewport size changes while it is shown.
+    // Re-fit the text if the viewport size changes while it is shown. Debounced
+    // so the mobile address-bar show/hide (which fires many resize events) does
+    // not cause flicker or a mid-transition tiny measurement.
+    var leaderResizeTimer = null;
     window.addEventListener('resize', function() {
-        if ($scope.fullScreen && $scope.fullScreenText != null) { fitLeaderText(); }
+        if (!($scope.fullScreen && $scope.fullScreenText != null)) return;
+        if (leaderResizeTimer) clearTimeout(leaderResizeTimer);
+        leaderResizeTimer = setTimeout(function() {
+            leaderResizeTimer = null;
+            fitLeaderText();
+        }, 200);
     });
 
     $scope.clearFavorites = function(){
