@@ -209,8 +209,10 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
         text = text.replace('$ $', '\r\n-----\r\n');
         text = text.replace(/\$(\*{5,})\$/g, function(m, stars) { return '·'.repeat(stars.length); });
         text = text.replace('$', '');
-        // Split on one or more blank lines into paragraphs.
-        var paras = text.split(/\r?\n[ \t]*\r?\n+/);
+        // Each source line is its own paragraph (song verses are separated by a
+        // single line break). Soft-wrapping inside a long line stays tight at the
+        // line-height; the gap between these blocks is the larger paragraph gap.
+        var paras = text.split(/\r?\n/);
         inner.innerHTML = '';
         inner.style.fontSize = '';
         paras.forEach(function(p) {
