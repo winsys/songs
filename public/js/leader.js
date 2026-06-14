@@ -199,9 +199,8 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
         return listItem.TEXT || '';
     }
 
-    // Render the song text as paragraph blocks (blank-line separated). Inside a
-    // paragraph, line breaks wrap at the normal line-height; the gap between
-    // paragraphs is larger (CSS gap). Mirrors the main screen's text transforms.
+    // Put the whole song text in a single pre-wrap block (same as the main
+    // display screen). The fit below scales the font to fill the screen.
     function buildLeaderText(raw) {
         var inner = document.getElementById('leaderTextFsInner');
         if (!inner) return;
@@ -209,20 +208,8 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
         text = text.replace('$ $', '\r\n-----\r\n');
         text = text.replace(/\$(\*{5,})\$/g, function(m, stars) { return '·'.repeat(stars.length); });
         text = text.replace('$', '');
-        // Each source line is its own paragraph (song verses are separated by a
-        // single line break). Soft-wrapping inside a long line stays tight at the
-        // line-height; the gap between these blocks is the larger paragraph gap.
-        var paras = text.split(/\r?\n/);
-        inner.innerHTML = '';
         inner.style.fontSize = '';
-        paras.forEach(function(p) {
-            p = p.replace(/^[\r\n]+|[\r\n]+$/g, '');
-            if (!p.trim().length) return;
-            var div = document.createElement('div');
-            div.className = 'leader-text-para';
-            div.textContent = p;          // text-only: no HTML injection
-            inner.appendChild(div);
-        });
+        inner.textContent = text;   // text-only: no HTML injection; \n preserved by pre-wrap
     }
 
     // Scale the text to the largest font size that fills the screen (grow until

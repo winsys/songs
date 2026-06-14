@@ -349,30 +349,19 @@
         box-sizing: border-box;
         overflow: hidden;
     }
+    /* Single text block sized to fill the screen — same principle as the main
+       display (#text in text_layout.html). */
     .leader-text-fs-inner {
         width: 100%;
-        max-height: 100%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        /* Small gap between source-line paragraphs — a touch larger than the
-           tight line spacing of auto-wrapped text, without bloating height. */
-        gap: 0.4em;
         color: #fff;
         font-family: Arial, sans-serif;
         font-weight: 600;
-        line-height: 1.2;
+        line-height: 1.25;
         text-align: center;
-        overflow: hidden;
-    }
-    .leader-text-para {
-        margin: 0;
-        width: 100%;
-        flex: 0 0 auto;
         white-space: pre-wrap;
         word-wrap: break-word;
         overflow-wrap: break-word;
+        overflow: hidden;
     }
 
     /* Reset all styles when wrapper goes fullscreen */
@@ -1073,7 +1062,7 @@
 
     </div><!-- /ng-controller -->
 
-<script src="/js/leader.min.js?v=19" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=20" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}
