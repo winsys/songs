@@ -28,8 +28,16 @@
         display: flex;
         align-items: center;
         gap: 12px;
-        padding-top: 4px;
+        padding-top: 8px;
+        padding-bottom: 10px;
         margin-bottom: 20px;
+        /* Keep the header (and the display-target panel) pinned at the top
+           of the viewport while the page scrolls. */
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: #fff;
+        box-shadow: 0 4px 10px -4px rgba(0,0,0,0.12);
     }
 
     .btn-back {
@@ -57,8 +65,10 @@
     .btn-disable-screen {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
-        padding: 9px 16px;
+        height: 34px;
+        padding: 0 16px;
         border-radius: 8px;
         font-size: 13px;
         font-weight: 600;
@@ -1401,13 +1411,12 @@
                 <button class="btn-request-access"
                         ng-click="showAccessRequestModal = true"
                         title="<?php echo T::s('sermon.requestAccessTitle'); ?>">+</button>
+                <button class="btn-disable-screen"
+                        ng-show="externalContentActive"
+                        ng-click="disableExternalDisplay()">
+                    <?php echo T::s('tech.button.disableScreen'); ?>
+                </button>
             </div>
-
-            <button class="btn-disable-screen"
-                    ng-show="externalContentActive"
-                    ng-click="disableExternalDisplay()">
-                <?php echo T::s('tech.button.disableScreen'); ?>
-            </button>
         </div>
 
         <!-- ── Row 1: mode switch ─────────────────────────────────── -->
