@@ -214,15 +214,22 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
         text = text.replace('$ $', '\r\n-----\r\n');
         text = text.replace(/\$(\*{5,})\$/g, function(m, stars) { return '·'.repeat(stars.length); });
         text = text.replace('$', '');
-        // Single block of text (like the main display). Verses are joined with a
-        // blank line so they are visually separated; one block measures/wraps
-        // cleanly (separate paragraph divs broke the fit).
+        // One block per verse so the inter-verse gap can be controlled (about
+        // half a blank line via margin), while the fit still fills the screen.
         var verses = text.split(/\r?\n/).filter(function(l) { return l.trim().length; });
+        inner.innerHTML = '';
         inner.style.fontSize = '';
         inner.style.display = 'block';
-        inner.style.whiteSpace = 'pre-wrap';
-        inner.style.overflowWrap = 'anywhere';
-        inner.textContent = verses.join('\n\n');   // blank line between verses
+        var first = true;
+        verses.forEach(function(v) {
+            var div = document.createElement('div');
+            div.style.whiteSpace   = 'pre-wrap';
+            div.style.overflowWrap = 'anywhere';
+            div.style.margin       = first ? '0' : '0.6em 0 0';   // ~half-line verse gap
+            div.textContent = v;   // text-only: no HTML injection
+            inner.appendChild(div);
+            first = false;
+        });
     }
 
     // Scale the text to the largest font size that fills the screen (grow until
@@ -260,18 +267,6 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
                 }
             }
             inner.style.fontSize = best + 'px';
-
-            // TEMP DEBUG: show the measured numbers on the black screen.
-            var dbg = document.getElementById('leaderTextFsDbg');
-            if (dbg) {
-                dbg.textContent =
-                    'v29 single-block\n' +
-                    'win ' + Math.round(window.innerWidth) + 'x' + Math.round(window.innerHeight) +
-                    '  fs ' + (document.fullscreenElement ? 'Y' : 'N') + '\n' +
-                    'avail ' + Math.round(availW) + 'x' + Math.round(availH) +
-                    '  font ' + best.toFixed(1) + '\n' +
-                    'innerW ' + inner.offsetWidth + ' content ' + inner.scrollWidth + 'x' + inner.scrollHeight;
-            }
         }, 50);
     }
 
