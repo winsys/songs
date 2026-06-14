@@ -131,6 +131,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
             if (textContent != null) {
                 // Wait for ng-show to reveal the overlay before going fullscreen.
                 $timeout(function() {
+                    buildLeaderText(textContent);
                     var el = document.getElementById('leaderTextFs');
                     if (el && el.requestFullscreen) {
                         el.requestFullscreen().then(fitLeaderText, fitLeaderText);
@@ -198,20 +199,46 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
         return listItem.TEXT || '';
     }
 
-    // Scale the song text to the largest font size that still fits the screen.
+    // Render the song text as paragraph blocks (blank-line separated). Inside a
+    // paragraph, line breaks wrap at the normal line-height; the gap between
+    // paragraphs is larger (CSS gap). Mirrors the main screen's text transforms.
+    function buildLeaderText(raw) {
+        var inner = document.getElementById('leaderTextFsInner');
+        if (!inner) return;
+        var text = (raw || '');
+        text = text.replace('$ $', '\r\n-----\r\n');
+        text = text.replace(/\$(\*{5,})\$/g, function(m, stars) { return '·'.repeat(stars.length); });
+        text = text.replace('$', '');
+        // Split on one or more blank lines into paragraphs.
+        var paras = text.split(/\r?\n[ \t]*\r?\n+/);
+        inner.innerHTML = '';
+        inner.style.fontSize = '';
+        paras.forEach(function(p) {
+            p = p.replace(/^[\r\n]+|[\r\n]+$/g, '');
+            if (!p.trim().length) return;
+            var div = document.createElement('div');
+            div.className = 'leader-text-para';
+            div.textContent = p;          // text-only: no HTML injection
+            inner.appendChild(div);
+        });
+    }
+
+    // Scale the text to the largest font size that fills the screen (grow until
+    // it would overflow the available area, like the main display screen).
     function fitLeaderText() {
         $timeout(function() {
             var box   = document.getElementById('leaderTextFs');
             var inner = document.getElementById('leaderTextFsInner');
             if (!box || !inner) return;
-            var maxH = box.clientHeight - 48;
-            var maxW = box.clientWidth  - 48;
-            if (maxH <= 0 || maxW <= 0) return;
-            var lo = 10, hi = 500, best = 10;
-            for (var i = 0; i < 18; i++) {
+            var cs    = window.getComputedStyle(box);
+            var availH = box.clientHeight - parseFloat(cs.paddingTop)  - parseFloat(cs.paddingBottom);
+            var availW = box.clientWidth  - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+            if (availH <= 0 || availW <= 0) return;
+            var lo = 10, hi = 600, best = 10;
+            for (var i = 0; i < 20; i++) {
                 var mid = (lo + hi) / 2;
                 inner.style.fontSize = mid + 'px';
-                if (inner.scrollHeight <= maxH && inner.scrollWidth <= maxW) {
+                if (inner.scrollHeight <= availH && inner.scrollWidth <= availW) {
                     best = mid; lo = mid;
                 } else {
                     hi = mid;

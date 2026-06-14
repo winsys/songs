@@ -345,21 +345,33 @@
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        padding: 24px;
+        padding: 4vh 4vw;
         box-sizing: border-box;
         overflow: hidden;
     }
     .leader-text-fs-inner {
-        margin: 0;
-        padding: 0;
-        border: none;
-        background: transparent;
+        width: 100%;
+        max-height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        /* Paragraph (blank-line) gap = ~0.5 line larger than the line spacing
+           of auto-wrapped text within a paragraph. */
+        gap: 0.5em;
         color: #fff;
-        font-family: inherit;
+        font-family: Arial, sans-serif;
         font-weight: 600;
-        line-height: 1.22;
-        white-space: pre;
+        line-height: 1.2;
         text-align: center;
+        overflow: hidden;
+    }
+    .leader-text-para {
+        margin: 0;
+        width: 100%;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
     }
 
     /* Reset all styles when wrapper goes fullscreen */
@@ -1055,12 +1067,12 @@
     <div id="leaderTextFs" class="leader-text-fs"
          ng-show="fullScreenText !== null"
          ng-click="exitFullscreenText()">
-        <pre id="leaderTextFsInner" class="leader-text-fs-inner">{{ fullScreenText }}</pre>
+        <div id="leaderTextFsInner" class="leader-text-fs-inner"></div>
     </div>
 
     </div><!-- /ng-controller -->
 
-<script src="/js/leader.min.js?v=15" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=16" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}
