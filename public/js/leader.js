@@ -142,6 +142,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
                         } catch (e) { /* ignore */ }
                     }
                     fitLeaderText();
+                    $timeout(fitLeaderText, 400);   // re-fit after layout settles
                 }, 0);
             } else {
                 var wrapElement = document.getElementById('wrap' + elemId);
@@ -228,17 +229,20 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
     // it would overflow the available area, like the main display screen).
     function fitLeaderText(_retry) {
         $timeout(function() {
-            var box   = document.getElementById('leaderTextFs');
             var inner = document.getElementById('leaderTextFsInner');
-            if (!box || !inner) return;
-            // Available area = the inner's 92vw x 92vh box.
-            var availH = box.clientHeight * 0.92;
-            var availW = box.clientWidth  * 0.92;
+            if (!inner) return;
+            // Use the real viewport; force the wrap width in px so wrapping and
+            // the height measurement are consistent (avoids portrait under-fill).
+            var vw = Math.max(document.documentElement.clientWidth  || 0, window.innerWidth  || 0);
+            var vh = Math.max(document.documentElement.clientHeight || 0, window.innerHeight || 0);
+            var availW = vw * 0.92;
+            var availH = vh * 0.92;
             if (availH <= 20 || availW <= 20) {
                 // Overlay not laid out yet — retry a few times.
                 if ((_retry || 0) < 10) fitLeaderText((_retry || 0) + 1);
                 return;
             }
+            inner.style.width = availW + 'px';   // exact wrap width = measured width
             // Grow the font to the largest size that still fits the screen in
             // both dimensions, so the lyrics fill the screen regardless of length.
             var lo = 10, hi = 1000, best = 10;
@@ -283,14 +287,16 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
     // so the mobile address-bar show/hide (which fires many resize events) does
     // not cause flicker or a mid-transition tiny measurement.
     var leaderResizeTimer = null;
-    window.addEventListener('resize', function() {
+    function leaderScheduleRefit() {
         if (!($scope.fullScreen && $scope.fullScreenText != null)) return;
         if (leaderResizeTimer) clearTimeout(leaderResizeTimer);
         leaderResizeTimer = setTimeout(function() {
             leaderResizeTimer = null;
             fitLeaderText();
         }, 200);
-    });
+    }
+    window.addEventListener('resize', leaderScheduleRefit);
+    window.addEventListener('orientationchange', leaderScheduleRefit);
 
     $scope.clearFavorites = function(){
         if($scope.favorites.length > 0)
