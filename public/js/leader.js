@@ -231,9 +231,9 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
             var box   = document.getElementById('leaderTextFs');
             var inner = document.getElementById('leaderTextFsInner');
             if (!box || !inner) return;
-            var cs    = window.getComputedStyle(box);
-            var availH = box.clientHeight - parseFloat(cs.paddingTop)  - parseFloat(cs.paddingBottom);
-            var availW = box.clientWidth  - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+            // Available area = the inner's 92vw x 92vh box.
+            var availH = box.clientHeight * 0.92;
+            var availW = box.clientWidth  * 0.92;
             if (availH <= 20 || availW <= 20) {
                 // Overlay not laid out yet — retry a few times.
                 if ((_retry || 0) < 10) fitLeaderText((_retry || 0) + 1);
