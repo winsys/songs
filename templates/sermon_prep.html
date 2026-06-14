@@ -166,7 +166,25 @@
         border-radius: 0 0 10px 10px;
         padding: 10px 8px 10px;
         background: #fff;
+        /* Bound the citation column to the viewport so its tall list panel
+           (verses / message paragraphs) ends at the bottom edge instead of
+           running off-screen. */
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - 240px);
+        overflow: hidden;
     }
+    /* Active tab body fills the bounded tab content; its tall panel flexes. */
+    .prep-bible-inner,
+    .prep-msg-inner {
+        flex: 1 1 auto;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    /* Everything except the tall list panel keeps its size; the panel flexes. */
+    .prep-bible-inner > *:not(#prep-verses-panel),
+    .prep-msg-inner   > *:not(#prep-msg-para-panel) { flex-shrink: 0; }
 
     #sermon-editor blockquote {
         border-left: 4px solid #ccc;
@@ -1269,7 +1287,7 @@
                                ng-model="bookSearchQuery" />
 
                         <!-- Books panel -->
-                        <div class="prep-panel" id="prep-books-panel" style="height:20vh;">
+                        <div class="prep-panel" id="prep-books-panel" style="height:20vh; flex-shrink:0;">
                             <div class="prep-panel-title"><?php echo T::s('prep.panel.books'); ?></div>
                             <div class="prep-list-item"
                                  ng-repeat="book in getFilteredBooks()"
@@ -1281,7 +1299,7 @@
                         </div>
 
                         <!-- Chapters panel -->
-                        <div class="prep-panel" id="prep-chapters-panel" style="height:14vh; margin-top:6px;" ng-show="selectedBook">
+                        <div class="prep-panel" id="prep-chapters-panel" style="height:14vh; margin-top:6px; flex-shrink:0;" ng-show="selectedBook">
                             <div class="prep-panel-title"><?php echo T::s('prep.panel.chapters'); ?></div>
                             <div style="display:flex; flex-wrap:wrap; gap:4px; padding:8px;">
                                 <button class="prep-chapter-btn btn btn-xs"
@@ -1292,7 +1310,7 @@
                         </div>
 
                         <!-- Verses panel -->
-                        <div class="prep-panel" id="prep-verses-panel" style="height:46vh; margin-top:6px;" ng-show="selectedChapter">
+                        <div class="prep-panel" id="prep-verses-panel" style="flex:1 1 auto; min-height:120px; margin-top:6px;" ng-show="selectedChapter">
                             <div class="prep-panel-title">
                                 <?php echo T::s('prep.panel.verses'); ?>
                                 <span ng-show="selectedBibleVerseNums.length > 0"
@@ -1321,10 +1339,10 @@
                     </div><!-- /bible tab -->
 
                     <!-- ── MESSAGES TAB ── -->
-                    <div ng-show="leftPanelTab === 'messages'">
+                    <div ng-show="leftPanelTab === 'messages'" class="prep-msg-inner">
 
                         <!-- Search inputs + hints + results: hidden when expanded -->
-                        <div ng-hide="prepMsgParaExpanded">
+                        <div ng-hide="prepMsgParaExpanded" style="flex-shrink:0;">
                             <input type="text"
                                    class="prep-bible-search"
                                    placeholder="<?php echo T::s('prep.placeholder.msgSearchTitle'); ?>"
@@ -1344,7 +1362,7 @@
 
                             <!-- Search results panel -->
                             <div class="prep-panel"
-                                 style="height:24vh; margin-top:4px;"
+                                 style="height:24vh; margin-top:4px; flex-shrink:0;"
                                  ng-show="prepMsgTitleQuery.length >= 2 || prepMsgTextQuery.length >= 2">
                                 <div class="prep-panel-title">{{ ('<?php echo T::s('prep.label.results'); ?>').replace('{count}', prepMsgResults.length) }}</div>
                                 <div class="prep-list-item"
@@ -1365,8 +1383,7 @@
                         <!-- Paragraphs panel -->
                         <div class="prep-panel"
                              id="prep-msg-para-panel"
-                             ng-style="{'height': prepMsgParaExpanded ? 'calc(100vh - 290px)' : '50vh'}"
-                             style="margin-top:6px; transition: height 0.2s ease;"
+                             style="flex:1 1 auto; min-height:140px; margin-top:6px;"
                              ng-show="prepSelectedMessage">
                             <div class="prep-panel-title" style="color:#6a1b9a; text-transform:none; font-size:12px; display:flex; align-items:center; gap:6px;">
                                 <!-- "Back" button — visible when the panel is expanded -->
