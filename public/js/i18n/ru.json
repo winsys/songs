@@ -193,6 +193,7 @@
   "leader.section.selected": "Выбранные песни",
   "leader.subtitle": "Управление списком песен службы",
   "leader.thumb.openNotes": "Открыть ноты",
+  "leader.thumb.openText": "Открыть текст песни на весь экран",
   "leader.title": "🎤 Ведущий пения",
   "prep.access.approvedPrefix": "✓ Доступ одобрен: {name}",
   "prep.access.deniedPrefix": "✗ Доступ отклонен: {name}",

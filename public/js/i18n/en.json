@@ -193,6 +193,7 @@
   "leader.section.selected": "Selected songs",
   "leader.subtitle": "Manage the service song list",
   "leader.thumb.openNotes": "Open sheet music",
+  "leader.thumb.openText": "Open full song text fullscreen",
   "leader.title": "🎤 Worship leader",
   "prep.access.approvedPrefix": "✓ Access granted: {name}",
   "prep.access.deniedPrefix": "✗ Access denied: {name}",
