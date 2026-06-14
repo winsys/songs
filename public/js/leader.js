@@ -236,6 +236,9 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
             var availH = box.clientHeight - parseFloat(cs.paddingTop)  - parseFloat(cs.paddingBottom);
             var availW = box.clientWidth  - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
             if (availH <= 0 || availW <= 0) return;
+            // Measure against natural content height (override the CSS height:100%
+            // used for vertical distribution, else scrollHeight clamps to availH).
+            inner.style.height = 'auto';
             var lo = 10, hi = 600, best = 10;
             for (var i = 0; i < 20; i++) {
                 var mid = (lo + hi) / 2;
@@ -247,6 +250,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
                 }
             }
             inner.style.fontSize = best + 'px';
+            inner.style.height = '';   // restore height:100% so lines fill the screen
         }, 50);
     }
 
