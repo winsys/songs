@@ -256,6 +256,20 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
                 }
             }
             inner.style.fontSize = best + 'px';
+
+            // TEMP DEBUG: show the measured numbers on the black screen.
+            var dbg = document.getElementById('leaderTextFsDbg');
+            if (dbg) {
+                var box = document.getElementById('leaderTextFs');
+                dbg.textContent =
+                    'win ' + Math.round(window.innerWidth) + 'x' + Math.round(window.innerHeight) +
+                    '  doc ' + document.documentElement.clientWidth + 'x' + document.documentElement.clientHeight + '\n' +
+                    'box ' + (box ? box.clientWidth + 'x' + box.clientHeight : '?') +
+                    '  fs ' + (document.fullscreenElement ? 'Y' : 'N') + '\n' +
+                    'avail ' + Math.round(availW) + 'x' + Math.round(availH) +
+                    '  font ' + best.toFixed(1) + '\n' +
+                    'content ' + inner.scrollWidth + 'x' + inner.scrollHeight;
+            }
         }, 50);
     }
 
