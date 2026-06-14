@@ -214,22 +214,15 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
         text = text.replace('$ $', '\r\n-----\r\n');
         text = text.replace(/\$(\*{5,})\$/g, function(m, stars) { return '·'.repeat(stars.length); });
         text = text.replace('$', '');
-        inner.innerHTML = '';
+        // Single block of text (like the main display). Verses are joined with a
+        // blank line so they are visually separated; one block measures/wraps
+        // cleanly (separate paragraph divs broke the fit).
+        var verses = text.split(/\r?\n/).filter(function(l) { return l.trim().length; });
         inner.style.fontSize = '';
-        inner.style.display = 'block';   // force block (not flex) so lines wrap
-        var first = true;
-        text.split(/\r?\n/).forEach(function(line) {
-            if (!line.trim().length) return;
-            var div = document.createElement('div');
-            // Critical layout set inline so it cannot be overridden by stale CSS.
-            div.style.whiteSpace   = 'pre-wrap';
-            div.style.overflowWrap = 'break-word';
-            div.style.wordBreak    = 'break-word';
-            div.style.margin       = first ? '0' : '0.6em 0 0';   // verse gap
-            div.textContent = line;   // text-only: no HTML injection
-            inner.appendChild(div);
-            first = false;
-        });
+        inner.style.display = 'block';
+        inner.style.whiteSpace = 'pre-wrap';
+        inner.style.overflowWrap = 'anywhere';
+        inner.textContent = verses.join('\n\n');   // blank line between verses
     }
 
     // Scale the text to the largest font size that fills the screen (grow until
@@ -267,19 +260,13 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
             // TEMP DEBUG: show the measured numbers on the black screen.
             var dbg = document.getElementById('leaderTextFsDbg');
             if (dbg) {
-                var box = document.getElementById('leaderTextFs');
-                var p0  = inner.firstElementChild;
-                var p0ws = p0 ? window.getComputedStyle(p0).whiteSpace : '?';
-                var p0w  = p0 ? p0.offsetWidth : '?';
-                var p0sw = p0 ? p0.scrollWidth : '?';
                 dbg.textContent =
-                    'v28 paras=' + inner.childElementCount + '\n' +
+                    'v29 single-block\n' +
                     'win ' + Math.round(window.innerWidth) + 'x' + Math.round(window.innerHeight) +
                     '  fs ' + (document.fullscreenElement ? 'Y' : 'N') + '\n' +
                     'avail ' + Math.round(availW) + 'x' + Math.round(availH) +
                     '  font ' + best.toFixed(1) + '\n' +
-                    'innerW ' + inner.offsetWidth + ' content ' + inner.scrollWidth + 'x' + inner.scrollHeight + '\n' +
-                    'p0 ws=' + p0ws + ' w=' + p0w + ' sw=' + p0sw;
+                    'innerW ' + inner.offsetWidth + ' content ' + inner.scrollWidth + 'x' + inner.scrollHeight;
             }
         }, 50);
     }
