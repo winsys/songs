@@ -242,14 +242,18 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
                 if ((_retry || 0) < 10) fitLeaderText((_retry || 0) + 1);
                 return;
             }
-            inner.style.width = availW + 'px';   // exact wrap width = measured width
+            // Floor the wrap width; scrollWidth is rounded to an integer, so an
+            // exact float compare ("380 <= 379.96") would always fail and pin the
+            // font at the floor. Compare with a small tolerance.
+            var wrapW = Math.floor(availW);
+            inner.style.width = wrapW + 'px';
             // Grow the font to the largest size that still fits the screen in
             // both dimensions, so the lyrics fill the screen regardless of length.
             var lo = 10, hi = 1000, best = 10;
             for (var i = 0; i < 22; i++) {
                 var mid = (lo + hi) / 2;
                 inner.style.fontSize = mid + 'px';
-                if (inner.scrollHeight <= availH && inner.scrollWidth <= availW) {
+                if (inner.scrollHeight <= availH + 1 && inner.scrollWidth <= wrapW + 2) {
                     best = mid; lo = mid;
                 } else {
                     hi = mid;
