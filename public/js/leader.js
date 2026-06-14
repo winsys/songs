@@ -216,12 +216,19 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
         text = text.replace('$', '');
         inner.innerHTML = '';
         inner.style.fontSize = '';
+        inner.style.display = 'block';   // force block (not flex) so lines wrap
+        var first = true;
         text.split(/\r?\n/).forEach(function(line) {
             if (!line.trim().length) return;
             var div = document.createElement('div');
-            div.className = 'leader-text-para';
+            // Critical layout set inline so it cannot be overridden by stale CSS.
+            div.style.whiteSpace   = 'pre-wrap';
+            div.style.overflowWrap = 'break-word';
+            div.style.wordBreak    = 'break-word';
+            div.style.margin       = first ? '0' : '0.6em 0 0';   // verse gap
             div.textContent = line;   // text-only: no HTML injection
             inner.appendChild(div);
+            first = false;
         });
     }
 
