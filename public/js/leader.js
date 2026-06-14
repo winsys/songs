@@ -129,15 +129,19 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
 
         var openLocal = function() {
             if (textContent != null) {
-                // Wait for ng-show to reveal the overlay before going fullscreen.
+                // Wait for ng-show to reveal the overlay, then build + fit. The
+                // fixed overlay already covers the viewport, so the fit does not
+                // depend on the fullscreen request succeeding (best-effort only).
                 $timeout(function() {
                     buildLeaderText(textContent);
                     var el = document.getElementById('leaderTextFs');
                     if (el && el.requestFullscreen) {
-                        el.requestFullscreen().then(fitLeaderText, fitLeaderText);
-                    } else {
-                        fitLeaderText(); // CSS overlay already covers the viewport
+                        try {
+                            var p = el.requestFullscreen();
+                            if (p && p.catch) p.catch(function() {});
+                        } catch (e) { /* ignore */ }
                     }
+                    fitLeaderText();
                 }, 0);
             } else {
                 var wrapElement = document.getElementById('wrap' + elemId);
@@ -199,8 +203,9 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
         return listItem.TEXT || '';
     }
 
-    // Put the whole song text in a single pre-wrap block (same as the main
-    // display screen). The fit below scales the font to fill the screen.
+    // Render the song as verse blocks (one per source line). Auto-wrapped lines
+    // inside a verse stay tight; the CSS gap separates verses. The fit below
+    // scales the font so the whole thing fills the screen.
     function buildLeaderText(raw) {
         var inner = document.getElementById('leaderTextFsInner');
         if (!inner) return;
@@ -208,13 +213,20 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
         text = text.replace('$ $', '\r\n-----\r\n');
         text = text.replace(/\$(\*{5,})\$/g, function(m, stars) { return '·'.repeat(stars.length); });
         text = text.replace('$', '');
+        inner.innerHTML = '';
         inner.style.fontSize = '';
-        inner.textContent = text;   // text-only: no HTML injection; \n preserved by pre-wrap
+        text.split(/\r?\n/).forEach(function(line) {
+            if (!line.trim().length) return;
+            var div = document.createElement('div');
+            div.className = 'leader-text-para';
+            div.textContent = line;   // text-only: no HTML injection
+            inner.appendChild(div);
+        });
     }
 
     // Scale the text to the largest font size that fills the screen (grow until
     // it would overflow the available area, like the main display screen).
-    function fitLeaderText() {
+    function fitLeaderText(_retry) {
         $timeout(function() {
             var box   = document.getElementById('leaderTextFs');
             var inner = document.getElementById('leaderTextFsInner');
@@ -222,11 +234,15 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
             var cs    = window.getComputedStyle(box);
             var availH = box.clientHeight - parseFloat(cs.paddingTop)  - parseFloat(cs.paddingBottom);
             var availW = box.clientWidth  - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
-            if (availH <= 0 || availW <= 0) return;
+            if (availH <= 20 || availW <= 20) {
+                // Overlay not laid out yet — retry a few times.
+                if ((_retry || 0) < 10) fitLeaderText((_retry || 0) + 1);
+                return;
+            }
             // Grow the font to the largest size that still fits the screen in
             // both dimensions, so the lyrics fill the screen regardless of length.
-            var lo = 10, hi = 800, best = 10;
-            for (var i = 0; i < 20; i++) {
+            var lo = 10, hi = 1000, best = 10;
+            for (var i = 0; i < 22; i++) {
                 var mid = (lo + hi) / 2;
                 inner.style.fontSize = mid + 'px';
                 if (inner.scrollHeight <= availH && inner.scrollWidth <= availW) {
@@ -451,6 +467,9 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
                 $scope.fullScreen = false;
                 $scope.fullScreenText = null;
                 $scope.reloadFavorites();
+            } else if ($scope.fullScreenText != null) {
+                // Entered real fullscreen with text — re-fit to the new size.
+                fitLeaderText();
             }
         });
     });

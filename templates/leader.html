@@ -349,19 +349,32 @@
         box-sizing: border-box;
         overflow: hidden;
     }
-    /* Single text block sized to fill the screen — same principle as the main
-       display (#text in text_layout.html). */
+    /* Verse blocks, centered and sized (by JS) to fill the screen — same fill
+       principle as the main display (#text in text_layout.html). */
     .leader-text-fs-inner {
         width: 100%;
+        max-height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        /* Gap between verses (each source line). Within a verse, auto-wrapped
+           lines stay at the tighter line-height. */
+        gap: 0.6em;
         color: #fff;
         font-family: Arial, sans-serif;
         font-weight: 600;
-        line-height: 1.25;
+        line-height: 1.2;
         text-align: center;
+        overflow: hidden;
+    }
+    .leader-text-para {
+        margin: 0;
+        width: 100%;
+        flex: 0 0 auto;
         white-space: pre-wrap;
         word-wrap: break-word;
         overflow-wrap: break-word;
-        overflow: hidden;
     }
 
     /* Reset all styles when wrapper goes fullscreen */
@@ -1062,7 +1075,7 @@
 
     </div><!-- /ng-controller -->
 
-<script src="/js/leader.min.js?v=20" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=21" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}
