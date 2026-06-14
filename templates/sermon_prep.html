@@ -40,6 +40,44 @@
         gap: 12px;
         margin-bottom: 20px;
     }
+    /* Auto-hiding header: a thin trigger strip pinned to the top edge; the
+       header itself is tucked just above the viewport and slides down while
+       the pointer is over the strip (or the header), freeing working space. */
+    .prep-hover-header {
+        position: fixed;
+        top: 0; left: 0; right: 0;
+        height: 8px;
+        z-index: 300;
+    }
+    /* Small handle hint so the hover zone is discoverable; fades out while
+       the header is shown. */
+    .prep-hover-header::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 50%;
+        transform: translateX(-50%);
+        width: 90px; height: 4px;
+        border-radius: 0 0 5px 5px;
+        background: #cbd2da;
+        opacity: 0.7;
+        transition: opacity 0.2s;
+        pointer-events: none;
+    }
+    .prep-hover-header:hover::before { opacity: 0; }
+    .prep-hover-header .prep-header {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        margin-bottom: 0;
+        padding: 8px 24px;
+        background: #fff;
+        box-shadow: 0 4px 14px -4px rgba(0,0,0,0.20);
+        transform: translateY(-100%);
+        transition: transform 0.22s ease;
+    }
+    .prep-hover-header:hover .prep-header,
+    .prep-hover-header:focus-within .prep-header {
+        transform: translateY(0);
+    }
     .btn-back {
         display: inline-flex;
         align-items: center;
@@ -171,7 +209,7 @@
            running off-screen. */
         display: flex;
         flex-direction: column;
-        max-height: calc(100vh - 240px);
+        max-height: calc(100vh - 165px);
         overflow: hidden;
     }
     /* Active tab body fills the bounded tab content; its tall panel flexes. */
@@ -483,7 +521,7 @@
     /* ── Contenteditable editor ──────────────────────────────────── */
     #sermon-editor {
         min-height: 68vh;
-        max-height: calc(100vh - 200px);
+        max-height: calc(100vh - 140px);
         overflow-y: auto;
         border: 1.5px solid #dee2e6;
         border-top: none;
@@ -756,6 +794,17 @@
         .prep-bible-col { width: 100%; min-width: 0; }
         .bible-toggle-btn { display: inline-block; }
         .prep-bible-col.collapsed .prep-bible-inner { display: none; }
+        /* No hover on touch — keep the header in normal flow, always visible. */
+        .prep-hover-header { position: static; height: auto; }
+        .prep-hover-header::before { display: none; }
+        .prep-hover-header .prep-header {
+            position: static;
+            transform: none;
+            box-shadow: none;
+            background: transparent;
+            padding: 0;
+            margin-bottom: 14px;
+        }
     }
 
     /* ── Fullscreen modal ────────────────────────────────────────── */
@@ -1147,18 +1196,20 @@
 
     <div class="prep-page-wrapper">
 
-        <!-- ── Header ─────────────────────────────────────────────── -->
-        <div class="prep-header">
-            <button class="btn-back" onclick="window.location.href='/index'">
-                <?php echo T::s('common.button.back'); ?>
-            </button>
-            <div class="prep-title-block">
-                <div class="prep-page-title"><?php echo T::s('prep.title'); ?></div>
-                <div class="prep-page-subtitle"><?php echo htmlspecialchars($_SESSION['userName']) ?></div>
+        <!-- ── Header (auto-hidden; slides down on hover at the top edge) ── -->
+        <div class="prep-hover-header">
+            <div class="prep-header">
+                <button class="btn-back" onclick="window.location.href='/index'">
+                    <?php echo T::s('common.button.back'); ?>
+                </button>
+                <div class="prep-title-block">
+                    <div class="prep-page-title"><?php echo T::s('prep.title'); ?></div>
+                    <div class="prep-page-subtitle"><?php echo htmlspecialchars($_SESSION['userName']) ?></div>
+                </div>
+                <button class="bible-toggle-btn btn btn-default btn-sm" ng-click="biblePanelCollapsed = !biblePanelCollapsed">
+                    📖
+                </button>
             </div>
-            <button class="bible-toggle-btn btn btn-default btn-sm" ng-click="biblePanelCollapsed = !biblePanelCollapsed">
-                📖
-            </button>
         </div>
 
         <!-- ── Title + Date + Save + List ─────────────────────────── -->
