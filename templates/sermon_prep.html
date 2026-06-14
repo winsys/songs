@@ -159,7 +159,16 @@
         min-width: 320px;
         flex-shrink: 0;
     }
-    .prep-editor-col { flex: 1; min-width: 0; }
+    .prep-editor-col {
+        flex: 1;
+        min-width: 0;
+        /* Fill down to the bottom edge so the editor box always reaches it,
+           regardless of how much text it holds. */
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 130px);
+        min-height: 0;
+    }
 
     /* ── Left panel tabs (Bible / Messages) ──────────────────────── */
     .left-panel-tabs {
@@ -436,6 +445,7 @@
         border: 1.5px solid #dee2e6;
         border-radius: 10px 10px 0 0;
         align-items: center;
+        flex-shrink: 0;
     }
     .toolbar-btn {
         padding: 5px 12px;
@@ -520,8 +530,8 @@
 
     /* ── Contenteditable editor ──────────────────────────────────── */
     #sermon-editor {
-        min-height: 68vh;
-        max-height: calc(100vh - 140px);
+        flex: 1 1 auto;
+        min-height: 0;
         overflow-y: auto;
         border: 1.5px solid #dee2e6;
         border-top: none;
@@ -794,6 +804,9 @@
         .prep-bible-col { width: 100%; min-width: 0; }
         .bible-toggle-btn { display: inline-block; }
         .prep-bible-col.collapsed .prep-bible-inner { display: none; }
+        /* Stacked layout: don't force the editor column to full viewport height. */
+        .prep-editor-col { height: auto; }
+        #sermon-editor { flex: 0 0 auto; height: 60vh; }
         /* No hover on touch — keep the header in normal flow, always visible. */
         .prep-hover-header { position: static; height: auto; }
         .prep-hover-header::before { display: none; }
