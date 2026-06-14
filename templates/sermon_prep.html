@@ -26,9 +26,9 @@
 
     /* ── Page wrapper ─────────────────────────────────────────── */
     .prep-page-wrapper {
-        max-width: 1100px;
+        max-width: none;
         margin: 0 auto;
-        padding: 20px 15px 64px;
+        padding: 20px 24px 64px;
     }
     @media (max-width: 768px) { .prep-page-wrapper { padding: 14px 10px 48px; } }
     @media (max-width: 480px) { .prep-page-wrapper { padding: 10px 8px 40px; } }
@@ -117,8 +117,8 @@
         align-items: flex-start;
     }
     .prep-bible-col {
-        width: 320px;
-        min-width: 220px;
+        width: 420px;
+        min-width: 320px;
         flex-shrink: 0;
     }
     .prep-editor-col { flex: 1; min-width: 0; }
@@ -464,8 +464,8 @@
 
     /* ── Contenteditable editor ──────────────────────────────────── */
     #sermon-editor {
-        min-height: 62vh;
-        max-height: 72vh;
+        min-height: 68vh;
+        max-height: calc(100vh - 200px);
         overflow-y: auto;
         border: 1.5px solid #dee2e6;
         border-top: none;
@@ -1269,7 +1269,7 @@
                                ng-model="bookSearchQuery" />
 
                         <!-- Books panel -->
-                        <div class="prep-panel" id="prep-books-panel" style="height:17vh;">
+                        <div class="prep-panel" id="prep-books-panel" style="height:20vh;">
                             <div class="prep-panel-title"><?php echo T::s('prep.panel.books'); ?></div>
                             <div class="prep-list-item"
                                  ng-repeat="book in getFilteredBooks()"
@@ -1292,7 +1292,7 @@
                         </div>
 
                         <!-- Verses panel -->
-                        <div class="prep-panel" id="prep-verses-panel" style="height:39vh; margin-top:6px;" ng-show="selectedChapter">
+                        <div class="prep-panel" id="prep-verses-panel" style="height:46vh; margin-top:6px;" ng-show="selectedChapter">
                             <div class="prep-panel-title">
                                 <?php echo T::s('prep.panel.verses'); ?>
                                 <span ng-show="selectedBibleVerseNums.length > 0"
