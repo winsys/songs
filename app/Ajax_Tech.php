@@ -353,6 +353,10 @@ trait Ajax_Tech
             return json_encode(array());
         }
 
+        // Dependent search: when both queries are present the text search is
+        // scoped to sermons that also match the title (AND), so the text field
+        // searches only within the title-matched list. A single query applies
+        // on its own.
         $conditions = array();
         if ($titleQuery !== '') {
             $conditions[] = "(TITLE LIKE '%{$titleQuery}%' OR CODE LIKE '%{$titleQuery}%')";
@@ -360,7 +364,7 @@ trait Ajax_Tech
         if ($textQuery !== '') {
             $conditions[] = "TEXT LIKE '%{$textQuery}%'";
         }
-        $where = implode(' OR ', $conditions);
+        $where = implode(' AND ', $conditions);
 
         $list = Info::get('db')->select(
             "SELECT ID, CODE, TITLE, CITY
