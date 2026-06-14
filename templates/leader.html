@@ -311,6 +311,57 @@
         display: block;
     }
 
+    /* Text icon: same size as the notes thumbnail, opens full lyrics on the
+       leader's own screen. */
+    .song-text-btn {
+        width: 52px;
+        height: 52px;
+        flex-shrink: 0;
+        border-radius: 8px;
+        border: 1.5px solid #8fa3b8;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 700;
+        color: #1a6db5;
+        background: #f4f8fc;
+        transition: transform 0.15s, box-shadow 0.15s;
+        user-select: none;
+    }
+    .song-text-btn:hover {
+        transform: scale(1.06);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.14);
+    }
+
+    /* Leader's black full-text screen */
+    .leader-text-fs {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: #000;
+        z-index: 100000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        padding: 24px;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+    .leader-text-fs-inner {
+        margin: 0;
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: #fff;
+        font-family: inherit;
+        font-weight: 600;
+        line-height: 1.22;
+        white-space: pre;
+        text-align: center;
+    }
+
     /* Reset all styles when wrapper goes fullscreen */
     .song-thumb-wrap:-webkit-full-screen {
         width: 100vw !important;
@@ -590,6 +641,7 @@
         .item-text { font-size: 14px; }
         .song-thumb { width: 44px; height: 44px; }
         .song-thumb-wrap { width: 44px; height: 44px; }
+        .song-text-btn { width: 44px; height: 44px; font-size: 18px; }
         .btn-show-all { width: 100%; margin-top: 4px; }
         .songlist-row { flex-direction: column; }
         .btn-list { min-width: unset; }
@@ -837,6 +889,11 @@
                     </span>
                 </span>
 
+                <!-- Full song text on the leader's screen (also turns on notes for musicians) -->
+                <div class="song-text-btn"
+                     ng-click="openFullscreenText(listItem)"
+                     title="<?php echo T::s('leader.thumb.openText'); ?>">Аа</div>
+
                 <!-- Song image thumbnail -->
                 <div class="song-thumb-wrap"
                      ng-attr-id="{{ 'wrap' + listItem.ID }}"
@@ -994,9 +1051,16 @@
         </div>
     </div>
 
+    <!-- Leader's black full-text screen (song lyrics, maximized to fit) -->
+    <div id="leaderTextFs" class="leader-text-fs"
+         ng-show="fullScreenText !== null"
+         ng-click="exitFullscreenText()">
+        <pre id="leaderTextFsInner" class="leader-text-fs-inner">{{ fullScreenText }}</pre>
+    </div>
+
     </div><!-- /ng-controller -->
 
-<script src="/js/leader.min.js?v=14" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=15" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}

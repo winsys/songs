@@ -1,4 +1,4 @@
-app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $http, SongsService)
+app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', function ($scope, $http, SongsService, $timeout)
 {
     $scope.listId = 1;
     $scope.songList = [];
@@ -115,13 +115,31 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
             });
     };
 
-    $scope.openFullscreen = function(elemId, img_num, list_id, song_id) {
-        if(!$scope.fullScreen){
-            // Set fullScreen flag BEFORE sending set_image to prevent race condition with WebSocket
-            $scope.fullScreen = true;
+    // The leader's black text-fullscreen content (null = image mode / off).
+    $scope.fullScreenText = null;
 
-            var openLocalFullscreen = function() {
-                var wrapElement = document.getElementById('wrap'+elemId);
+    // Broadcast notes to the musician/display target, then put the LEADER's own
+    // screen into fullscreen. When textContent is provided, the leader sees the
+    // full song text on a black screen instead of the notes image; the
+    // broadcast to musicians is identical in both cases.
+    function leaderEnterFullscreen(elemId, img_num, list_id, song_id, textContent) {
+        // Set fullScreen flag BEFORE sending set_image to prevent a race with WS.
+        $scope.fullScreen = true;
+        $scope.fullScreenText = (textContent != null) ? textContent : null;
+
+        var openLocal = function() {
+            if (textContent != null) {
+                // Wait for ng-show to reveal the overlay before going fullscreen.
+                $timeout(function() {
+                    var el = document.getElementById('leaderTextFs');
+                    if (el && el.requestFullscreen) {
+                        el.requestFullscreen().then(fitLeaderText, fitLeaderText);
+                    } else {
+                        fitLeaderText(); // CSS overlay already covers the viewport
+                    }
+                }, 0);
+            } else {
+                var wrapElement = document.getElementById('wrap' + elemId);
                 if (wrapElement && wrapElement.requestFullscreen) {
                     wrapElement.requestFullscreen().catch(function() {
                         $scope.$apply(function() { $scope.fullScreen = false; });
@@ -129,37 +147,108 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
                 } else {
                     $scope.fullScreen = false;
                 }
-            };
-
-            // Broadcast to target display only if a target is selected
-            if ($scope.selectedDisplayTarget !== null) {
-                $http({ method: "POST",
-                        url: "/ajax",
-                        data: { command: 'set_image',
-                                image_num: img_num,
-                                list_id: list_id,
-                                song_id: song_id,
-                                target_group_id: $scope.selectedDisplayTarget }
-                }).then(openLocalFullscreen, function() { $scope.fullScreen = false; });
-            } else {
-                openLocalFullscreen();
             }
-        }else{
-            var exitLocalFullscreen = function() {
-                if (document.fullscreenElement) { document.exitFullscreen(); }
-                $scope.fullScreen = false;
-            };
+        };
 
-            if ($scope.selectedDisplayTarget !== null) {
-                $http({ method: "POST", url: "/ajax", data: {
-                    command: 'clear_image',
-                    target_group_id: $scope.selectedDisplayTarget
-                }}).then(exitLocalFullscreen, exitLocalFullscreen);
-            } else {
-                exitLocalFullscreen();
-            }
+        // Broadcast to target display only if a target is selected
+        if ($scope.selectedDisplayTarget !== null) {
+            $http({ method: "POST",
+                    url: "/ajax",
+                    data: { command: 'set_image',
+                            image_num: img_num,
+                            list_id: list_id,
+                            song_id: song_id,
+                            target_group_id: $scope.selectedDisplayTarget }
+            }).then(openLocal, function() {
+                $scope.fullScreen = false; $scope.fullScreenText = null;
+            });
+        } else {
+            openLocal();
         }
     }
+
+    function leaderLeaveFullscreen() {
+        var exitLocal = function() {
+            if (document.fullscreenElement) { document.exitFullscreen(); }
+            $scope.fullScreen = false;
+            $scope.fullScreenText = null;
+        };
+
+        if ($scope.selectedDisplayTarget !== null) {
+            $http({ method: "POST", url: "/ajax", data: {
+                command: 'clear_image',
+                target_group_id: $scope.selectedDisplayTarget
+            }}).then(exitLocal, exitLocal);
+        } else {
+            exitLocal();
+        }
+    }
+
+    // Pick the best song text: default language first, else first lang with text.
+    function leaderPickSongText(listItem) {
+        var langs = ($scope.langList || []).slice().sort(function(a, b) {
+            return (b.is_default ? 1 : 0) - (a.is_default ? 1 : 0);
+        });
+        for (var i = 0; i < langs.length; i++) {
+            if (listItem['hasText_' + langs[i].code] === '1') {
+                var col = 'TEXT' + (langs[i].col_suffix || '');
+                if (listItem[col]) return listItem[col];
+            }
+        }
+        return listItem.TEXT || '';
+    }
+
+    // Scale the song text to the largest font size that still fits the screen.
+    function fitLeaderText() {
+        $timeout(function() {
+            var box   = document.getElementById('leaderTextFs');
+            var inner = document.getElementById('leaderTextFsInner');
+            if (!box || !inner) return;
+            var maxH = box.clientHeight - 48;
+            var maxW = box.clientWidth  - 48;
+            if (maxH <= 0 || maxW <= 0) return;
+            var lo = 10, hi = 500, best = 10;
+            for (var i = 0; i < 18; i++) {
+                var mid = (lo + hi) / 2;
+                inner.style.fontSize = mid + 'px';
+                if (inner.scrollHeight <= maxH && inner.scrollWidth <= maxW) {
+                    best = mid; lo = mid;
+                } else {
+                    hi = mid;
+                }
+            }
+            inner.style.fontSize = best + 'px';
+        }, 50);
+    }
+
+    $scope.openFullscreen = function(elemId, img_num, list_id, song_id) {
+        if (!$scope.fullScreen) {
+            leaderEnterFullscreen(elemId, img_num, list_id, song_id, null);
+        } else {
+            leaderLeaveFullscreen();
+        }
+    };
+
+    // Same broadcast as openFullscreen, but the leader sees the full song text
+    // (maximized to fit a black screen) instead of the notes image.
+    $scope.openFullscreenText = function(listItem) {
+        if (!$scope.fullScreen) {
+            var text = leaderPickSongText(listItem);
+            leaderEnterFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID, text || ' ');
+        } else {
+            leaderLeaveFullscreen();
+        }
+    };
+
+    // Click on the black text screen exits, mirroring a click on the notes.
+    $scope.exitFullscreenText = function() {
+        leaderLeaveFullscreen();
+    };
+
+    // Re-fit the text if the viewport size changes while it is shown.
+    window.addEventListener('resize', function() {
+        if ($scope.fullScreen && $scope.fullScreenText != null) { fitLeaderText(); }
+    });
 
     $scope.clearFavorites = function(){
         if($scope.favorites.length > 0)
@@ -342,6 +431,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', function ($scope, $
         $scope.$apply(function() {
             if (!document.fullscreenElement) {
                 $scope.fullScreen = false;
+                $scope.fullScreenText = null;
                 $scope.reloadFavorites();
             }
         });

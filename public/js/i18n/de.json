@@ -193,6 +193,7 @@
   "leader.section.selected": "Ausgewählte Lieder",
   "leader.subtitle": "Liederliste des Gottesdienstes verwalten",
   "leader.thumb.openNotes": "Noten öffnen",
+  "leader.thumb.openText": "Liedtext im Vollbild öffnen",
   "leader.title": "🎤 Lobpreisleitung",
   "prep.access.approvedPrefix": "✓ Zugriff gewährt: {name}",
   "prep.access.deniedPrefix": "✗ Zugriff abgelehnt: {name}",
