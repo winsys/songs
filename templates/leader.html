@@ -354,20 +354,11 @@
     }
     /* Verse blocks, centered and sized (by JS) to fill the screen — same fill
        principle as the main display (#text in text_layout.html). */
+    /* Plain block (NOT flex) so verse lines wrap to the width. The JS sets an
+       explicit px width; the outer flex container centers this block. */
     .leader-text-fs-inner {
-        /* Explicit viewport width (with min-width:0) so the text always wraps to
-           the screen — avoids the flex min-width:auto trap that left portrait
-           phones width-limited, small and centered. */
         width: 92vw;
         max-height: 92vh;
-        min-width: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        /* Gap between verses (each source line). Within a verse, auto-wrapped
-           lines stay at the tighter line-height. */
-        gap: 0.6em;
         color: #fff;
         font-family: Arial, sans-serif;
         font-weight: 600;
@@ -377,12 +368,13 @@
     }
     .leader-text-para {
         margin: 0;
-        width: 100%;
-        min-width: 0;
-        flex: 0 0 auto;
         white-space: pre-wrap;
         word-wrap: break-word;
         overflow-wrap: break-word;
+    }
+    /* Gap between verses (each source line). */
+    .leader-text-para + .leader-text-para {
+        margin-top: 0.6em;
     }
 
     /* Reset all styles when wrapper goes fullscreen */
@@ -1085,7 +1077,7 @@
 
     </div><!-- /ng-controller -->
 
-<script src="/js/leader.min.js?v=25" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=26" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}
