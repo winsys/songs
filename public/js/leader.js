@@ -268,14 +268,18 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
             var dbg = document.getElementById('leaderTextFsDbg');
             if (dbg) {
                 var box = document.getElementById('leaderTextFs');
+                var p0  = inner.firstElementChild;
+                var p0ws = p0 ? window.getComputedStyle(p0).whiteSpace : '?';
+                var p0w  = p0 ? p0.offsetWidth : '?';
+                var p0sw = p0 ? p0.scrollWidth : '?';
                 dbg.textContent =
+                    'v28 paras=' + inner.childElementCount + '\n' +
                     'win ' + Math.round(window.innerWidth) + 'x' + Math.round(window.innerHeight) +
-                    '  doc ' + document.documentElement.clientWidth + 'x' + document.documentElement.clientHeight + '\n' +
-                    'box ' + (box ? box.clientWidth + 'x' + box.clientHeight : '?') +
                     '  fs ' + (document.fullscreenElement ? 'Y' : 'N') + '\n' +
                     'avail ' + Math.round(availW) + 'x' + Math.round(availH) +
                     '  font ' + best.toFixed(1) + '\n' +
-                    'content ' + inner.scrollWidth + 'x' + inner.scrollHeight;
+                    'innerW ' + inner.offsetWidth + ' content ' + inner.scrollWidth + 'x' + inner.scrollHeight + '\n' +
+                    'p0 ws=' + p0ws + ' w=' + p0w + ' sw=' + p0sw;
             }
         }, 50);
     }
