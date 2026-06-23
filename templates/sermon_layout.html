@@ -643,7 +643,7 @@
     <!-- LEFT: Notes panel -->
     <div id="notes-panel">
         <div id="notes-header">
-            <button class="btn-back" ng-click="clearAndGoHome()"><?php echo T::s('common.button.back'); ?></button>
+            <button class="btn-back" ng-click="goHome()"><?php echo T::s('common.button.back'); ?></button>
 
             <div id="notes-title-wrap">
                 <div id="notes-title">{{ currentSermon ? currentSermon.TITLE || ('<?php echo T::s('sermon.untitled'); ?>') : ('<?php echo T::s('sermon.selectSermon'); ?>') }}</div>
@@ -763,7 +763,7 @@
 <button id="fullscreen-btn" ng-click="toggleFullscreen()"><?php echo T::s('sermon.fullscreen'); ?></button>
 
 <script src="/js/websocket_auth.min.js"></script>
-<script src="/js/sermon.min.js?v=12" type="text/javascript"></script>
+<script src="/js/sermon.min.js?v=13" type="text/javascript"></script>
 <script>
     function toggleHeaderMenu(e) {
         e.stopPropagation();
