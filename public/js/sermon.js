@@ -712,15 +712,10 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
             $scope.displaySlideHtml = null;
         }
 
-        $scope.clearAndGoHome = function() {
-            var data = { command: 'clear_image' };
-            if ($scope.selectedDisplayTarget !== null) {
-                data.target_group_id = $scope.selectedDisplayTarget;
-            }
-            $http({ method: 'POST', url: '/ajax', data: data }).then(
-                function() { window.location.href = '/index'; },
-                function() { window.location.href = '/index'; }
-            );
+        // Leave the presentation without touching the display — whatever is on
+        // the main screen stays as-is.
+        $scope.goHome = function() {
+            window.location.href = '/index';
         };
 
         // ==========================================================
