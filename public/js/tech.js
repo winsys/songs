@@ -73,6 +73,19 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         return m + ':' + (s < 10 ? '0' : '') + s;
     };
 
+    // Like formatMsgTimecode but keeps 0.05 s precision (two decimals) — used
+    // for SAVING so the calibrated sub-second value is not truncated.
+    function formatMsgTimecodePrecise(secs) {
+        if (secs === undefined || secs === null) return '';
+        secs = Math.round(secs * 20) / 20;             // snap to 0.05 s
+        var h = Math.floor(secs / 3600);
+        var m = Math.floor((secs - h * 3600) / 60);
+        var s = secs - h * 3600 - m * 60;              // 0..59.95
+        var sStr = (s < 10 ? '0' : '') + s.toFixed(2);
+        if (h > 0) return h + ':' + (m < 10 ? '0' : '') + m + ':' + sStr;
+        return m + ':' + sStr;
+    }
+
     // ── Tech Media state ──────────────────────────────────────
     $scope.showMediaAddPanel  = false;   // media add panel
     $scope.mediaUrlInput      = '';      // URL input field
@@ -1557,7 +1570,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     function saveMsgTimecodesToDb() {
         if (!$scope.selectedMessage || $scope.msgTimecodes.length === 0) return;
         var tcStr = $scope.msgTimecodes.map(function(s) {
-            return $scope.formatMsgTimecode(s);
+            return formatMsgTimecodePrecise(s);
         }).join('\r\n');
         $http({ method: 'POST', url: '/ajax', data: {
             command:   'save_message_timecodes',
@@ -1578,7 +1591,9 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         // the paragraph that is already active. Checked first so the "repeated
         // click = Stop" rule below never intercepts a calibration capture.
         if ($scope.msgCalibrating && msgAudio && $scope.msgAudioLoaded) {
-            $scope.msgTimecodes[idx] = Math.round(msgAudio.currentTime * 10) / 10;
+            // Snap to 0.05 s — fine enough that calibration is not off by a
+            // perceptible amount, and preserved through save (see formatMsgTimecodePrecise).
+            $scope.msgTimecodes[idx] = Math.round(msgAudio.currentTime * 20) / 20;
             $scope.showingMessagePara = para;
             var title = $scope.selectedMessage ? $scope.selectedMessage.TITLE : '';
             $http({ method: 'POST', url: '/ajax', data: {
