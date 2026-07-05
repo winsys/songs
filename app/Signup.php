@@ -19,7 +19,7 @@
  */
 class Signup
 {
-    private const ADMIN_EMAIL = 'pavel@winsys.lv';
+    private const ADMIN_EMAIL = 'pavelpetsevitch@gmail.com';
     private const MAIL_FROM   = 'Worship Songs <no-reply@winsys.lv>';
     private const UI_LANGS    = ['ru', 'de', 'en', 'lt'];
 
