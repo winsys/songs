@@ -377,6 +377,68 @@ trait Ajax_Tech
         return json_encode($list);
     }
 
+    // Quick paragraph results for the epistle text search: returns individual
+    // matching paragraphs (as context snippets) across the messages matched by
+    // the same dependent title+text scoping as search_messages. PARA_IDX is the
+    // index among non-empty lines of TEXT and must stay in sync with how the
+    // client builds messageParagraphs (split by newline, drop empty lines).
+    private static function search_message_paragraphs()
+    {
+        $dbh = Info::get('dbh');
+
+        $titleQuery = isset(self::$args['title_query'])
+            ? mysqli_real_escape_string($dbh, self::$args['title_query'])
+            : '';
+        $rawText = isset(self::$args['text_query']) ? trim((string)self::$args['text_query']) : '';
+
+        if (mb_strlen($rawText, 'UTF-8') < 2) {
+            return json_encode(array());
+        }
+        $textQuery = mysqli_real_escape_string($dbh, $rawText);
+
+        $conditions = array("TEXT LIKE '%{$textQuery}%'");
+        if ($titleQuery !== '') {
+            $conditions[] = "(TITLE LIKE '%{$titleQuery}%' OR CODE LIKE '%{$titleQuery}%')";
+        }
+        $where = implode(' AND ', $conditions);
+
+        $list = Info::get('db')->select(
+            "SELECT ID, CODE, TITLE, CITY, TEXT
+             FROM messages
+             WHERE {$where}
+             ORDER BY TITLE
+             LIMIT 20"
+        );
+
+        $results = array();
+        foreach ($list as $msg) {
+            $paraIdx = 0;
+            foreach (preg_split('/\r?\n/', (string)$msg['TEXT']) as $para) {
+                if (trim($para) === '') continue;
+                $pos = mb_stripos($para, $rawText, 0, 'UTF-8');
+                if ($pos !== false) {
+                    // Context snippet around the first match
+                    $start   = max(0, $pos - 40);
+                    $snippet = mb_substr($para, $start, 180, 'UTF-8');
+                    if ($start > 0) $snippet = '…' . $snippet;
+                    if ($start + 180 < mb_strlen($para, 'UTF-8')) $snippet .= '…';
+                    $results[] = array(
+                        'ID'       => $msg['ID'],
+                        'CODE'     => $msg['CODE'],
+                        'TITLE'    => $msg['TITLE'],
+                        'CITY'     => isset($msg['CITY']) ? $msg['CITY'] : '',
+                        'PARA_IDX' => $paraIdx,
+                        'SNIPPET'  => $snippet,
+                    );
+                    if (count($results) >= 50) break 2;
+                }
+                $paraIdx++;
+            }
+        }
+
+        return json_encode($results);
+    }
+
     // Get paragraphs of a single message
     private static function get_message()
     {
