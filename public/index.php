@@ -20,6 +20,7 @@ include "../app/Ajax_Import.php";
 include "../app/Ajax.php";
 include "../app/Security.php";
 include "../app/GoogleAuth.php";
+include "../app/Mailer.php";
 include "../app/Signup.php";
 include "../app/T.php";
 include "../app/App.php";

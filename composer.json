@@ -6,7 +6,8 @@
       "workerman/workerman": "^4.1",
       "ext-mysqli": "*",
       "ext-openssl": "*",
-      "ext-json": "*"
+      "ext-json": "*",
+        "phpmailer/phpmailer": "6.9"
     },
     "license": "GPL",
     "autoload": {
@@ -19,6 +20,10 @@
             "name": "pavel",
             "email": "pavelpetsevitch@gmail.com"
         }
-    ]
+    ],
+    "config": {
+        "platform": {
+            "php": "7.2.24"
+        }
+    }
 }
-
