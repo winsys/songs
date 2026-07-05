@@ -178,6 +178,63 @@
         width: 18px;
         height: 18px;
     }
+
+    .signup-link-wrap {
+        text-align: center;
+        margin-top: 18px;
+    }
+
+    .signup-link-wrap a {
+        color: #3498db;
+        font-size: 13px;
+        text-decoration: none;
+    }
+
+    .signup-link-wrap a:hover {
+        text-decoration: underline;
+    }
+
+    .signup-form-wrap {
+        margin-top: 20px;
+        border-top: 1px solid #dee2e6;
+        padding-top: 20px;
+    }
+
+    .signup-form-title {
+        font-size: 15px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-bottom: 14px;
+        text-align: center;
+    }
+
+    .signup-form-wrap .form-control {
+        border-left: 1.5px solid #dee2e6;
+    }
+
+    .signup-form-wrap textarea.form-control {
+        height: auto;
+        resize: vertical;
+    }
+
+    .signup-msg {
+        border-radius: 8px;
+        padding: 10px 14px;
+        font-size: 13px;
+        margin-top: 16px;
+    }
+
+    .signup-msg.ok {
+        background: #eaf6ec;
+        border: 1px solid #4caf50;
+        color: #1e7e34;
+    }
+
+    .signup-msg.err {
+        background: #fdecea;
+        border: 1px solid #e74c3c;
+        color: #c0392b;
+    }
 </style>
 
 <div class="login-wrapper">
@@ -232,9 +289,84 @@
             Sign in with Google
         </a>
 
+        <div class="signup-link-wrap">
+            <a href="#" id="signup-toggle">Request access for your church →</a>
+        </div>
+
+        <?php $signupStatus = $_GET['signup'] ?? ''; ?>
+        <?php if ($signupStatus === 'sent'): ?>
+            <div class="signup-msg ok">Your request has been sent. We will contact you by e-mail after review.</div>
+        <?php elseif ($signupStatus === 'invalid'): ?>
+            <div class="signup-msg err">Please fill in all required fields correctly.</div>
+        <?php elseif ($signupStatus === 'throttled'): ?>
+            <div class="signup-msg err">Please wait a minute before sending another request.</div>
+        <?php elseif ($signupStatus === 'error'): ?>
+            <div class="signup-msg err">Could not send your request. Please try again later.</div>
+        <?php endif; ?>
+
+        <div class="signup-form-wrap" id="signup-form-wrap" style="display:none;">
+            <div class="signup-form-title">Connection request</div>
+            <form action="/signup-request" method="post">
+                <input type="hidden" name="_csrf_token"
+                       value="<?php echo htmlspecialchars(Security::getCsrfToken(), ENT_QUOTES); ?>" />
+                <!-- Honeypot field: must stay empty -->
+                <input type="text" name="website" value="" tabindex="-1" autocomplete="off"
+                       style="position:absolute;left:-9999px;" aria-hidden="true" />
+
+                <div class="form-group">
+                    <label>City *</label>
+                    <input type="text" class="form-control" name="city" required maxlength="255" />
+                </div>
+                <div class="form-group">
+                    <label>E-mail *</label>
+                    <input type="email" class="form-control" name="email" required maxlength="255"
+                           autocomplete="email" />
+                </div>
+                <div class="form-group">
+                    <label>Administrator first and last name *</label>
+                    <input type="text" class="form-control" name="admin_name" required maxlength="64" />
+                </div>
+                <div class="form-group">
+                    <label>Administrator password *</label>
+                    <input type="password" class="form-control" name="admin_pass" required
+                           minlength="6" maxlength="64" autocomplete="new-password" />
+                </div>
+                <div class="form-group">
+                    <label>Language *</label>
+                    <select class="form-control" name="ui_lang" required>
+                        <option value="en" selected>English</option>
+                        <option value="ru">Русский</option>
+                        <option value="de">Deutsch</option>
+                        <option value="lt">Lietuvių</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Comments</label>
+                    <textarea class="form-control" name="comments" rows="3" maxlength="2000"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-login">Send request</button>
+            </form>
+        </div>
+
         <div class="login-footer">
             Worship Songs Management System
         </div>
 
     </div>
 </div>
+
+<script>
+    (function () {
+        var toggle = document.getElementById('signup-toggle');
+        var wrap   = document.getElementById('signup-form-wrap');
+        toggle.addEventListener('click', function (e) {
+            e.preventDefault();
+            wrap.style.display = (wrap.style.display === 'none') ? 'block' : 'none';
+        });
+        // Re-open the form when the server reported a validation problem
+        if (/[?&]signup=(invalid|throttled|error)/.test(window.location.search)) {
+            wrap.style.display = 'block';
+        }
+    })();
+</script>

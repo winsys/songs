@@ -41,6 +41,16 @@ class App
             exit;
         }
 
+        // Public signup-request endpoints (before login check)
+        if ($route[0] == 'signup-request') {
+            Signup::handleRequestForm();
+            exit;
+        }
+        if ($route[0] == 'signup-confirm') {
+            Signup::handleConfirm();
+            exit;
+        }
+
         // Google login callback (for authentication)
         if ($route[0] == 'google-login-callback') {
             // Check if this is a One Tap POST request with credential
