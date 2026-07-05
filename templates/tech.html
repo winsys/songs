@@ -633,14 +633,23 @@
         border-radius: 2px;
         padding: 0 1px;
     }
-    /* Quick paragraph results under the epistle text-search input */
+    /* Quick paragraph results under the epistle text-search input.
+       Absolutely positioned overlay (parent .col-* is position:relative in
+       Bootstrap 3), so it floats above the panels without shifting layout.
+       left/right match the column's inner padding (5px inline / 15px default). */
     .msg-quick-results {
-        margin-top: 6px;
-        max-height: 240px;
+        position: absolute;
+        z-index: 1000;
+        top: 100%;
+        left: 5px;
+        right: 15px;
+        margin-top: 2px;
+        max-height: 300px;
         overflow-y: auto;
         background: #fff;
         border: 1.5px solid #dee2e6;
         border-radius: 8px;
+        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
     }
     .msg-quick-item {
         padding: 8px 12px;
