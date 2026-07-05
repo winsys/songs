@@ -38,6 +38,17 @@ trait Ajax_Common
         return self::$cachedLanguages;
     }
 
+    /** Comma-separated list of all message text columns ("TEXT, TEXT_LT, …") built from the languages registry. */
+    private static function textColumnList(): string
+    {
+        $cols = ['TEXT'];
+        foreach (self::getLanguages() as $lang) {
+            if ($lang['col_suffix'] === '') continue;
+            $cols[] = 'TEXT' . $lang['col_suffix'];
+        }
+        return implode(', ', $cols);
+    }
+
     /** Cached subset of getLanguages() limited to languages that have NAME{suffix} columns in bible_books. */
     private static $cachedBibleLanguages = null;
 

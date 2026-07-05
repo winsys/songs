@@ -366,14 +366,18 @@ trait Ajax_Import
                 $log[] = ['type' => 'ok', 'msg' => T::s('import.success.msgUpdated', ['code' => $code, 'title' => $title])];
                 $updated++;
             } else {
-                // New record
-                $textRu = $lang === 'ru' ? "'{$textEsc}'" : "''";
-                $textLt = $lang === 'lt' ? "'{$textEsc}'" : "''";
-                $textEn = $lang === 'en' ? "'{$textEsc}'" : "''";
-
+                // New record: the imported text goes into the selected language
+                // column, all other language columns start empty.
+                $insCols = [];
+                $insVals = [];
+                foreach (self::getLanguages() as $lg) {
+                    $col       = 'TEXT' . $lg['col_suffix'];
+                    $insCols[] = $col;
+                    $insVals[] = ($col === $textField) ? "'{$textEsc}'" : "''";
+                }
                 $db->exec(
-                    "INSERT INTO messages (USER_ID, CODE, TITLE, CITY, TEXT, TEXT_LT, TEXT_EN)
-                     VALUES ({$userId}, '{$codeEsc}', '{$titleEsc}', '{$cityEsc}', {$textRu}, {$textLt}, {$textEn})"
+                    "INSERT INTO messages (USER_ID, CODE, TITLE, CITY, " . implode(', ', $insCols) . ")
+                     VALUES ({$userId}, '{$codeEsc}', '{$titleEsc}', '{$cityEsc}', " . implode(', ', $insVals) . ")"
                 );
                 $log[] = ['type' => 'ok', 'msg' => T::s('import.success.msgInsertedCity', ['code' => $code, 'title' => $title, 'city' => $city])];
                 $inserted++;
@@ -522,14 +526,18 @@ trait Ajax_Import
             ]);
         }
 
-        // New record
-        $textRu = $lang === 'ru' ? "'{$textEsc}'" : "''";
-        $textLt = $lang === 'lt' ? "'{$textEsc}'" : "''";
-        $textEn = $lang === 'en' ? "'{$textEsc}'" : "''";
-
+        // New record: the text goes into the selected language column,
+        // all other language columns start empty.
+        $insCols = [];
+        $insVals = [];
+        foreach (self::getLanguages() as $lg) {
+            $col       = 'TEXT' . $lg['col_suffix'];
+            $insCols[] = $col;
+            $insVals[] = ($col === $textField) ? "'{$textEsc}'" : "''";
+        }
         $db->exec(
-            "INSERT INTO messages (USER_ID, CODE, TITLE, CITY, TEXT, TEXT_LT, TEXT_EN, AUDIO_SRC, TIMECODES)
-             VALUES ({$userId}, '{$codeEsc}', '{$titleEsc}', '{$cityEsc}', {$textRu}, {$textLt}, {$textEn},
+            "INSERT INTO messages (USER_ID, CODE, TITLE, CITY, " . implode(', ', $insCols) . ", AUDIO_SRC, TIMECODES)
+             VALUES ({$userId}, '{$codeEsc}', '{$titleEsc}', '{$cityEsc}', " . implode(', ', $insVals) . ",
                      '{$audioSrcEsc}', " . ($timecodesEsc !== '' ? "'{$timecodesEsc}'" : "NULL") . ")"
         );
 
@@ -556,7 +564,7 @@ trait Ajax_Import
             return json_encode(null);
         }
         $row = Info::get('db')->get(
-            "SELECT ID, CODE, TITLE, CITY, TEXT, TEXT_LT, TEXT_EN, TEXT_DE, AUDIO_SRC, TIMECODES
+            "SELECT ID, CODE, TITLE, CITY, " . self::textColumnList() . ", AUDIO_SRC, TIMECODES
              FROM messages WHERE CODE='{$code}' LIMIT 1"
         );
         return json_encode($row ?: null);
