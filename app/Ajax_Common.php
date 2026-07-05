@@ -572,7 +572,7 @@ trait Ajax_Common
             ];
         }
 
-        if (empty($settings['ui_lang']) || !in_array($settings['ui_lang'], ['ru', 'de', 'en'], true)) {
+        if (empty($settings['ui_lang']) || !in_array($settings['ui_lang'], ['ru', 'de', 'en', 'lt'], true)) {
             $settings['ui_lang'] = 'ru';
         }
         if (empty($settings['sermon_notes_bg_color']))   $settings['sermon_notes_bg_color']   = '#2b2b2b';
