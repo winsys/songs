@@ -35,10 +35,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.messageTitleQuery    = '';
     $scope.messageTextQuery     = '';
     $scope.messageSearchResults = [];
+    $scope.messageParaResults   = [];   // quick paragraph results for the text search
+    $scope.quickParaActive      = null; // last clicked quick result (list highlight)
     $scope.selectedMessage      = null;
     $scope.messageParagraphs    = [];
     $scope.showingMessagePara   = null;
     var messageSearchTimer      = null;
+    var pendingQuickPara        = null; // {id, idx} — set by selectParaResult, consumed after get_message loads
 
     // ── Messages audio ────────────────────────────────────────
     $scope.msgAudioPlaying  = false;
@@ -1419,7 +1422,12 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
 
         if (titleQ.length < 2 && textQ.length < 2) {
             $scope.messageSearchResults = [];
+            $scope.messageParaResults   = [];
             return;
+        }
+        if (textQ.trim().length < 2) {
+            $scope.messageParaResults = [];
+            $scope.quickParaActive    = null;
         }
 
         messageSearchTimer = $timeout(function() {
@@ -1430,8 +1438,51 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 }}).then(function(r) {
                 $scope.messageSearchResults = r.data;
             });
+            // Quick paragraph results (only when searching by text)
+            if (textQ.trim().length >= 2) {
+                $http({ method: "POST", url: "/ajax", data: {
+                        command: 'search_message_paragraphs',
+                        title_query: titleQ,
+                        text_query:  textQ
+                    }}).then(function(r) {
+                    $scope.messageParaResults = r.data;
+                    $scope.quickParaActive    = null;
+                });
+            }
         }, 400);
     };
+
+    // Quick result click: load the message if needed, then scroll the paragraph
+    // panel to the matched paragraph and show it on the display.
+    $scope.selectParaResult = function(item) {
+        $scope.quickParaActive = item;
+        if ($scope.selectedMessage && String($scope.selectedMessage.ID) === String(item.ID) &&
+            $scope.messageParagraphs.length > 0) {
+            activateMsgParaByIdx(item.PARA_IDX);
+        } else {
+            pendingQuickPara = { id: item.ID, idx: item.PARA_IDX };
+            $scope.selectMessage({ ID: item.ID, CODE: item.CODE, TITLE: item.TITLE, CITY: item.CITY });
+        }
+    };
+
+    // Show paragraph #idx on the display (no-op if already showing) and scroll
+    // the paragraph panel to it. Mirrors the audio-seek part of onMsgParaClick.
+    function activateMsgParaByIdx(idx) {
+        var para = $scope.messageParagraphs[idx];
+        if (para === undefined) return;
+        if (msgAudio && $scope.msgAudioPlaying && $scope.msgTimecodes.length > idx) {
+            msgAudio.currentTime = $scope.msgTimecodes[idx];
+        }
+        if ($scope.showingMessagePara !== para) {
+            $scope.toggleMessageParagraph(para);
+        }
+        $timeout(function() {
+            var panel = document.getElementById('messages-para-panel');
+            if (!panel) return;
+            var el = panel.querySelectorAll('.bible-verse-item')[idx];
+            if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        }, 80);
+    }
 
     $scope.selectMessage = function(msg) {
         $scope.selectedMessage    = msg;   // preliminary (for list highlight)
@@ -1480,13 +1531,21 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 $scope.messageParagraphs = lines.filter(function(l) {
                     return l.trim().length > 0;
                 });
-                var q = ($scope.messageTextQuery || '').trim();
-                if (q.length >= 2) {
-                    $timeout(function() {
-                        var panel = document.getElementById('messages-para-panel');
-                        var hl = panel && panel.querySelector('.search-hl');
-                        if (hl) hl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
-                    }, 80);
+                if (pendingQuickPara && String(pendingQuickPara.id) === String(r.data.ID)) {
+                    // Arrived here from a quick paragraph result — activate it
+                    var quickIdx = pendingQuickPara.idx;
+                    pendingQuickPara = null;
+                    activateMsgParaByIdx(quickIdx);
+                } else {
+                    pendingQuickPara = null; // stale (another message was opened meanwhile)
+                    var q = ($scope.messageTextQuery || '').trim();
+                    if (q.length >= 2) {
+                        $timeout(function() {
+                            var panel = document.getElementById('messages-para-panel');
+                            var hl = panel && panel.querySelector('.search-hl');
+                            if (hl) hl.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+                        }, 80);
+                    }
                 }
             }
 
