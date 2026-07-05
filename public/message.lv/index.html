@@ -1,0 +1,866 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Worship Songs — Система управления богослужением</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   THEMES
+═══════════════════════════════════════════ */
+:root, [data-theme="light"] {
+  --bg:         #f4f6fb;
+  --bg2:        #ffffff;
+  --bg3:        #edf0f8;
+  --surface:    #ffffff;
+  --border:     #e2e6f3;
+  --text:       #131620;
+  --text2:      #434960;
+  --muted:      #8990b0;
+  --accent:     #5060d0;
+  --accent2:    #7b68ee;
+  --accent-bg:  #eef0fd;
+  --hero-grad:  linear-gradient(135deg, #eef0fd 0%, #f4f6fb 60%, #e8f4ff 100%);
+  --nav-bg:     rgba(244,246,251,0.92);
+  --shadow:     0 2px 16px rgba(50,60,140,0.08);
+  --shadow-lg:  0 8px 40px rgba(50,60,140,0.13);
+  --tag-bg:     #eef0fd;
+  --num-bg:     #eef0fd;
+}
+
+
+
+/* ═══════════════════════════════════════════
+   RESET & BASE
+═══════════════════════════════════════════ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.65;
+  font-size: 15px;
+  transition: background .3s, color .3s;
+}
+
+img { display: block; max-width: 100%; }
+a   { color: var(--accent); text-decoration: none; }
+
+
+
+
+
+/* ═══════════════════════════════════════════
+   HERO
+═══════════════════════════════════════════ */
+.hero {
+  position: relative;
+  background: var(--bg);
+  padding: 64px 24px 68px;
+  text-align: center;
+  border-bottom: 1px solid var(--border);
+}
+
+.hero-logo {
+  display: inline-flex; flex-direction: column; align-items: center; gap: 14px;
+  margin-bottom: 32px;
+}
+
+.hero-icon {
+  font-size: 72px;
+  line-height: 1;
+  filter: drop-shadow(0 6px 18px rgba(80,96,208,0.18));
+}
+
+.hero-brand {
+  font-family: 'Manrope', sans-serif;
+  font-size: 28px; font-weight: 800;
+  color: var(--text); letter-spacing: .3px;
+}
+
+.hero h1 {
+  font-family: 'Manrope', sans-serif;
+  font-size: clamp(28px, 5vw, 52px);
+  font-weight: 800; line-height: 1.1;
+  color: var(--text);
+  max-width: 700px; margin: 0 auto 18px;
+}
+
+.hero h1 span { color: var(--accent); }
+
+.hero-sub {
+  font-size: clamp(15px, 2vw, 18px);
+  color: var(--text2); max-width: 560px;
+  margin: 0 auto 36px; font-weight: 400;
+}
+
+.hero-url {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 8px 20px; border-radius: 24px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  font-size: 13px; font-weight: 600;
+  color: var(--accent);
+  box-shadow: var(--shadow);
+  transition: box-shadow .2s;
+}
+.hero-url:hover { box-shadow: var(--shadow-lg); }
+.hero-url span { color: var(--muted); font-weight: 400; margin-right: 2px; }
+
+/* ═══════════════════════════════════════════
+   LANGUAGE SWITCHER
+═══════════════════════════════════════════ */
+.lang-switch { display: inline-flex; gap: 5px; }
+.lang-switch button {
+  font-family: 'Inter', sans-serif;
+  font-size: 11px; font-weight: 700; letter-spacing: .5px;
+  padding: 4px 11px; border-radius: 16px;
+  border: 1.5px solid var(--border);
+  background: var(--surface); color: var(--text2);
+  cursor: pointer; transition: all .15s;
+}
+.lang-switch button:hover { border-color: var(--accent); color: var(--accent); }
+.lang-switch button.active {
+  background: var(--accent); border-color: var(--accent); color: #fff;
+}
+.lang-top { position: absolute; top: 16px; right: 20px; }
+.footer .lang-switch { margin-bottom: 14px; }
+
+/* ═══════════════════════════════════════════
+   SECTION WRAPPER
+═══════════════════════════════════════════ */
+.sections { max-width: 1100px; margin: 0 auto; padding: 0 24px 80px; }
+
+/* ═══════════════════════════════════════════
+   SECTION BLOCK
+═══════════════════════════════════════════ */
+.section {
+  padding: 64px 0;
+  border-bottom: 1px solid var(--border);
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 56px;
+  align-items: start;
+}
+.section:last-child { border-bottom: none; }
+.section.flip { direction: rtl; }
+.section.flip > * { direction: ltr; }
+.section.wide {
+  grid-template-columns: 1fr;
+  gap: 32px;
+}
+
+/* ─── Section label ─── */
+.sec-label {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 11px; font-weight: 700; letter-spacing: 2px;
+  text-transform: uppercase;
+  color: var(--accent);
+  background: var(--accent-bg);
+  border: 1px solid var(--border);
+  padding: 4px 14px; border-radius: 20px;
+  margin-bottom: 14px;
+}
+
+.sec-num {
+  width: 22px; height: 22px; border-radius: 6px;
+  background: var(--accent);
+  color: #fff; font-size: 11px; font-weight: 800;
+  display: inline-flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ─── Section heading ─── */
+.sec-title {
+  font-family: 'Manrope', sans-serif;
+  font-size: clamp(22px, 3vw, 30px);
+  font-weight: 800; line-height: 1.2;
+  color: var(--text); margin-bottom: 16px;
+}
+
+.sec-title .icon { margin-right: 8px; }
+
+/* ─── Body text ─── */
+.sec-body p {
+  color: var(--text2); margin-bottom: 10px;
+  font-size: 15px; line-height: 1.7;
+}
+.sec-body p:last-child { margin-bottom: 0; }
+
+.hl { color: var(--accent); font-weight: 600; }
+
+/* ─── Feature list ─── */
+.fl { list-style: none; margin-top: 4px; }
+.fl li {
+  display: flex; gap: 12px; align-items: flex-start;
+  padding: 8px 0; border-bottom: 1px solid var(--border);
+  font-size: 14px; color: var(--text2); line-height: 1.6;
+}
+.fl li:last-child { border-bottom: none; padding-bottom: 0; }
+.fl-ico { flex-shrink: 0; font-size: 15px; margin-top: 1px; }
+.fl li strong { color: var(--text); }
+
+/* ─── Tags ─── */
+.tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 18px; }
+.tag {
+  font-size: 11px; font-weight: 700; padding: 4px 12px;
+  border-radius: 20px; border: 1.5px solid var(--border);
+  background: var(--tag-bg); color: var(--accent);
+  letter-spacing: .3px;
+}
+
+/* ─── Role badges ─── */
+.roles { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 18px; }
+.rb {
+  font-size: 10.5px; font-weight: 700; padding: 4px 12px;
+  border-radius: 6px; color: #fff; letter-spacing: .5px; text-transform: uppercase;
+}
+.rb-admin    { background: #c62828; }
+.rb-leader   { background: #1565c0; }
+.rb-musician { background: #2e7d32; }
+.rb-preacher { background: #6a1b9a; }
+.rb-tech     { background: #e65100; }
+.rb-screen   { background: #00838f; }
+
+/* ═══════════════════════════════════════════
+   SCREENSHOTS AREA
+═══════════════════════════════════════════ */
+.shots-col { display: flex; flex-direction: column; gap: 14px; }
+.shots-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+.shots-row3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-top: 28px;
+}
+
+.shot { text-align: center; }
+.shot img {
+  width: 100%; border-radius: 10px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  cursor: zoom-in; transition: transform .2s, box-shadow .2s;
+}
+.shot img:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.shot-cap {
+  font-size: 11px; color: var(--muted); font-weight: 500;
+  margin-top: 6px;
+}
+
+/* ═══════════════════════════════════════════
+   HERO MENUS ROW (block 1 special layout)
+═══════════════════════════════════════════ */
+.menus-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+  margin-top: 0;
+}
+.menu-shot { text-align: center; }
+.menu-shot img {
+  width: 100%; border-radius: 12px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  cursor: zoom-in; transition: transform .2s, box-shadow .2s;
+}
+.menu-shot img:hover { transform: translateY(-3px); box-shadow: var(--shadow-lg); }
+.menu-shot .shot-cap {
+  font-size: 11px; color: var(--muted); font-weight: 500; margin-top: 6px;
+}
+
+/* ═══════════════════════════════════════════
+   LIGHTBOX
+═══════════════════════════════════════════ */
+#lb {
+  display: none; position: fixed; inset: 0; z-index: 999;
+  background: rgba(5,8,20,.90); backdrop-filter: blur(8px);
+  align-items: center; justify-content: center; cursor: zoom-out;
+}
+#lb.on { display: flex; animation: lbIn .18s ease; }
+#lb img {
+  max-width: 94vw; max-height: 90vh; border-radius: 12px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.6);
+  cursor: default; animation: lbScale .18s ease;
+}
+#lb-cap {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: rgba(5,8,20,.8); color: #c8d0f0;
+  font-size: 12px; padding: 6px 20px; border-radius: 20px;
+  white-space: nowrap; font-family: 'Inter', sans-serif; font-weight: 500;
+}
+#lb-x {
+  position: fixed; top: 18px; right: 24px;
+  font-size: 26px; color: #8890c0; cursor: pointer;
+  line-height: 1; user-select: none;
+}
+#lb-x:hover { color: #fff; }
+
+/* ═══════════════════════════════════════════
+   FOOTER
+═══════════════════════════════════════════ */
+.footer {
+  border-top: 1px solid var(--border);
+  padding: 28px 24px;
+  text-align: center;
+  font-size: 12px; color: var(--muted); letter-spacing: .5px;
+  background: var(--bg2);
+}
+.footer a { color: var(--accent); }
+
+/* ═══════════════════════════════════════════
+   ANIMATIONS
+═══════════════════════════════════════════ */
+@keyframes lbIn    { from{opacity:0} to{opacity:1} }
+@keyframes lbScale { from{transform:scale(.93)} to{transform:scale(1)} }
+
+/* ═══════════════════════════════════════════
+   RESPONSIVE
+═══════════════════════════════════════════ */
+@media (max-width: 820px) {
+  .section, .section.flip {
+    grid-template-columns: 1fr;
+    direction: ltr;
+    gap: 28px;
+  }
+  .shots-row3, .menus-row { grid-template-columns: repeat(3,1fr); }
+  .nav-links .theme-btn { padding: 4px 10px; font-size: 11px; }
+}
+@media (max-width: 540px) {
+  .shots-row3, .menus-row { grid-template-columns: 1fr 1fr; }
+  .shots-grid { grid-template-columns: 1fr; }
+  .hero { padding: 56px 16px 52px; }
+  .sections { padding: 0 16px 56px; }
+  .section { padding: 48px 0; }
+  .nav-links { gap: 4px; }
+  .theme-btn { padding: 4px 8px !important; font-size: 10.5px !important; }
+  .lang-top { top: 12px; right: 12px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Lightbox ── -->
+<div id="lb" onclick="lbClose(event)">
+  <div id="lb-x" onclick="lbClose()">✕</div>
+  <img id="lb-img" src="" alt="">
+  <div id="lb-cap"></div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<section class="hero">
+  <div class="lang-switch lang-top">
+    <button data-lang="ru" onclick="setLang('ru')">RU</button>
+    <button data-lang="en" onclick="setLang('en')">EN</button>
+    <button data-lang="de" onclick="setLang('de')">DE</button>
+    <button data-lang="lt" onclick="setLang('lt')">LT</button>
+  </div>
+  <div class="hero-logo">
+    <div class="hero-icon">🎵</div>
+    <div class="hero-brand">Worship Songs</div>
+  </div>
+  <h1 data-i18n="hero.h1">Система управления<br><span>богослужением</span></h1>
+  <p class="hero-sub" data-i18n="hero.sub">Единая платформа для всей команды служения — с любого устройства, без установки</p>
+  <a class="hero-url" href="https://songs.winsys.lv" target="_blank">
+    <span>🌐</span> songs.winsys.lv
+  </a>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SECTIONS
+══════════════════════════════════════════ -->
+<div class="sections">
+
+  <!-- ── 1. Для кого ── -->
+  <div class="section wide">
+    <div class="sec-body">
+      <div class="sec-label"><div class="sec-num">1</div> <span data-i18n="s1.label">Аудитория</span></div>
+      <h2 class="sec-title"><span class="icon">🏛️</span> <span data-i18n="s1.title">Для любого устройства</span></h2>
+      <p data-i18n="s1.p1">Система создана для <span class="hl">церковных общин</span> — всех, кто участвует в организации и проведении богослужения. Каждый участник работает в своём интерфейсе с нужными именно ему инструментами.</p>
+      <p data-i18n="s1.p2">Поскольку это <span class="hl">веб-приложение</span>, никакой установки не требуется — достаточно открыть браузер на смартфоне, планшете или компьютере.</p>
+      <div class="roles">
+        <span class="rb rb-admin" data-i18n="role.admin">Администратор</span>
+        <span class="rb rb-leader" data-i18n="role.leader">Ведущий</span>
+        <span class="rb rb-musician" data-i18n="role.musician">Музыкант</span>
+        <span class="rb rb-preacher" data-i18n="role.preacher">Проповедник</span>
+        <span class="rb rb-tech" data-i18n="role.tech">Техник</span>
+        <span class="rb rb-screen" data-i18n="role.screen">Экраны</span>
+      </div>
+    </div>
+    <div class="menus-row">
+      <div class="menu-shot">
+        <img src="main_menu_admin.png" alt="Меню администратора" onclick="lbOpen(this)">
+        <div class="shot-cap" data-i18n="cap.menuAdmin">Меню администратора</div>
+      </div>
+      <div class="menu-shot">
+        <img src="main_menu_preacher.png" alt="Меню проповедника" onclick="lbOpen(this)">
+        <div class="shot-cap" data-i18n="cap.menuPreacher">Меню проповедника</div>
+      </div>
+      <div class="menu-shot">
+        <img src="main_menu_tech.png" alt="Меню техника" onclick="lbOpen(this)">
+        <div class="shot-cap" data-i18n="cap.menuTech">Меню техника</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 2. Единая база ── -->
+  <div class="section">
+    <div class="sec-body">
+      <div class="sec-label"><div class="sec-num">2</div> <span data-i18n="s2.label">База данных</span></div>
+      <h2 class="sec-title"><span class="icon">🗄️</span> <span data-i18n="s2.title">Единая база</span></h2>
+      <p data-i18n="s2.p1">Все общины, использующие систему, работают с <span class="hl">общей базой данных</span>: песни, переводы Библии, послания с таймкодами, проповеди — всё в одном месте.</p>
+      <p data-i18n="s2.p2">Стоит добавить или изменить материал — и это <span class="hl">мгновенно становится доступно всем общинам</span>. Никаких пересылок файлов и дублирования работы.</p>
+      <p data-i18n="s2.p3">Поиск песен ведётся одновременно <span class="hl">по названию и по тексту</span> — достаточно вспомнить любую строчку.</p>
+      <div class="tags">
+        <span class="tag" data-i18n="s2.tag1">⚡ Синхронизация в реальном времени</span>
+        <span class="tag" data-i18n="s2.tag2">📚 Общая библиотека</span>
+        <span class="tag" data-i18n="s2.tag3">🔍 Поиск по тексту</span>
+      </div>
+    </div>
+    <div class="shots-col">
+      <div class="shot">
+        <img src="songleader_mode_main.png" alt="Ведущий пения" onclick="lbOpen(this)">
+        <div class="shot-cap" data-i18n="cap.leaderList">Ведущий пения — список</div>
+      </div>
+      <div class="shot">
+        <img src="songleader_mode_search.png" alt="Поиск по тексту" onclick="lbOpen(this)">
+        <div class="shot-cap" data-i18n="cap.textSearch">Поиск по тексту песни</div>
+      </div>
+      <div class="shots-grid">
+        <div class="shot">
+          <img src="songleader_mode_all_songs_of_songlist.png" alt="Список песен сборника" onclick="lbOpen(this)">
+          <div class="shot-cap" data-i18n="cap.songbook">Список сборника</div>
+        </div>
+        <div class="shot">
+          <img src="songleader_mode_all_songs_of_songlist_with_notes.png" alt="Ноты к песне" onclick="lbOpen(this)">
+          <div class="shot-cap" data-i18n="cap.notes">Ноты</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 3. Настройка ── -->
+  <div class="section flip">
+    <div class="sec-body">
+      <div class="sec-label"><div class="sec-num">3</div> <span data-i18n="s3.label">Администрирование</span></div>
+      <h2 class="sec-title"><span class="icon">⚙️</span> <span data-i18n="s3.title">Настройка и участники процесса</span></h2>
+      <p data-i18n="s3.p1">Администратор создаёт учётные записи для каждой роли прямо в настройках — задаёт имя, логин и пароль. Можно подключить <span class="hl">Google-аккаунт</span> для интеграции с облачными сервисами.</p>
+      <p data-i18n="s3.p2">Каждый пользователь видит только свои функции. Настройки позволяют выбрать доступные сборники песен, шрифты, <span class="hl">цвета фона и текста</span> для каждого типа экрана — основного и трансляционного.</p>
+      <div class="tags">
+        <span class="tag" data-i18n="s3.tag1">🔐 Ролевая система прав</span>
+        <span class="tag" data-i18n="s3.tag2">🎨 Кастомизация экранов</span>
+        <span class="tag" data-i18n="s3.tag3">🔗 Google OAuth</span>
+        <span class="tag" data-i18n="s3.tag4">🖼️ Фоновое изображение</span>
+      </div>
+    </div>
+    <div class="shots-col">
+      <div class="shot">
+        <img src="admin_mode_settings_1.png" alt="Настройки — сборники и фон" onclick="lbOpen(this)">
+        <div class="shot-cap" data-i18n="cap.settings1">Сборники и фоновое изображение</div>
+      </div>
+      <div class="shots-grid">
+        <div class="shot">
+          <img src="admin_mode_settings_2.png" alt="Настройки дисплеев" onclick="lbOpen(this)">
+          <div class="shot-cap" data-i18n="cap.settings2">Параметры дисплеев</div>
+        </div>
+        <div class="shot">
+          <img src="admin_mode_settings_3.png" alt="Пользователи группы" onclick="lbOpen(this)">
+          <div class="shot-cap" data-i18n="cap.settings3">Пользователи группы</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 4. Технический режим ── -->
+  <div class="section">
+    <div class="sec-body">
+      <div class="sec-label"><div class="sec-num">4</div> <span data-i18n="s4.label">Технический режим</span></div>
+      <h2 class="sec-title"><span class="icon">🖥️</span> <span data-i18n="s4.title">Технический режим</span></h2>
+      <ul class="fl">
+        <li><span class="fl-ico">🎵</span><span data-i18n="s4.li1"><strong>Песни</strong> — поиск по названию и тексту, выбор сборника и языка, вывод куплетов по одному. Ведущий может просматривать ноты.</span></li>
+        <li><span class="fl-ico">📖</span><span data-i18n="s4.li2"><strong>Библия</strong> — несколько переводов, поиск по книгам и главам, многоязычный показ.</span></li>
+        <li><span class="fl-ico">✉️</span><span data-i18n="s4.li3"><strong>Послание</strong> — поиск по кодам, названиям и тексту; прослушивание аудио с отображением текста на экране.</span></li>
+        <li><span class="fl-ico">🖼️</span><span data-i18n="s4.li4"><strong>Медиа и заставки</strong> — изображения, видео, YouTube, стандартные заставки.</span></li>
+        <li><span class="fl-ico">📝</span><span data-i18n="s4.li5"><strong>Слайды</strong> — произвольный текст на экран зала и трансляции.</span></li>
+      </ul>
+      <div class="tags">
+        <span class="tag" data-i18n="s4.tag1">📡 Экран трансляции</span>
+        <span class="tag" data-i18n="s4.tag2">🌐 Многоязычность</span>
+        <span class="tag" data-i18n="s4.tag3">▶️ Видео и аудио</span>
+        <span class="tag" data-i18n="s4.tag4">🎼 Ноты к песням</span>
+      </div>
+    </div>
+    <div class="shots-col">
+      <div class="shot">
+        <img src="tech_mode_and_main_screen.png" alt="Тех. режим и экран зала" onclick="lbOpen(this)">
+        <div class="shot-cap" data-i18n="cap.techMain">Тех. режим + экран зала</div>
+      </div>
+      <div class="shot">
+        <img src="tech_mode_and_main_screen_with_image.png" alt="Показ заставки" onclick="lbOpen(this)">
+        <div class="shot-cap" data-i18n="cap.techWallpaper">Показ заставки</div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ── 5. Подготовка проповеди ── -->
+  <div class="section flip">
+    <div class="sec-body">
+      <div class="sec-label"><div class="sec-num">5</div> <span data-i18n="s5.label">Подготовка</span></div>
+      <h2 class="sec-title"><span class="icon">✏️</span> <span data-i18n="s5.title">Подготовка проповеди</span></h2>
+      <ul class="fl">
+        <li><span class="fl-ico">🔒</span><span data-i18n="s5.li1"><strong>Личные заметки</strong> — всё, что пишет проповедник, остаётся доступным только ему и никому другому не видно.</span></li>
+        <li><span class="fl-ico">📝</span><span data-i18n="s5.li2"><strong>Форматирование</strong> — жирный, курсив, цвет текста, маркеры, заголовки.</span></li>
+        <li><span class="fl-ico">📖</span><span data-i18n="s5.li3"><strong>Цитаты Библии и посланий</strong> — вставляются как интерактивные чипы; двойной клик открывает редактор чипа.</span></li>
+        <li><span class="fl-ico">🖼️</span><span data-i18n="s5.li4"><strong>Медиа в заметках</strong> — изображения, видео (локальные или YouTube), слайды, PPT-слайды с настраиваемым фоном.</span></li>
+        <li><span class="fl-ico">💾</span><span data-i18n="s5.li5"><strong>Автосохранение</strong> — проповеди хранятся по названию и дате; экспорт в Markdown.</span></li>
+      </ul>
+      <div class="tags">
+        <span class="tag" data-i18n="s5.tag1">🔐 Только для проповедника</span>
+        <span class="tag" data-i18n="s5.tag2">💡 Чипы-цитаты</span>
+        <span class="tag" data-i18n="s5.tag3">⬇️ Экспорт .md</span>
+        <span class="tag" data-i18n="s5.tag4">📊 PPT-слайды</span>
+      </div>
+    </div>
+    <div class="shots-col">
+      <div class="shot">
+        <img src="sermon_prep_preacher.png" alt="Редактор проповеди" onclick="lbOpen(this)">
+        <div class="shot-cap" data-i18n="cap.sermonPrep">Редактор проповеди</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── 6. Режим проповеди ── -->
+  <div class="section">
+    <div class="sec-body">
+      <div class="sec-label"><div class="sec-num">6</div> <span data-i18n="s6.label">Во время служения</span></div>
+      <h2 class="sec-title"><span class="icon">🎤</span> <span data-i18n="s6.title">Режим проповеди</span></h2>
+      <ul class="fl">
+        <li><span class="fl-ico">⬅️➡️</span><span data-i18n="s6.li1"><strong>Разделённый экран</strong> — слева личные заметки проповедника, справа то, что видит зал.</span></li>
+        <li><span class="fl-ico">👆</span><span data-i18n="s6.li2"><strong>Управление одним касанием</strong> — клик на цитату Библии мгновенно выводит текст на экран; клик на изображение — показывает его.</span></li>
+        <li><span class="fl-ico">↕️</span><span data-i18n="s6.li3"><strong>Свайпы и жесты</strong> — прокрутка стихов свайпами, увеличение и уменьшение текста щипком на тач-экране.</span></li>
+        <li><span class="fl-ico">🏛️</span><span data-i18n="s6.li4"><strong>Визит в другую общину</strong> — если принимающая община использует систему, достаточно выбрать её экран: ничего перенастраивать не нужно.</span></li>
+        <li><span class="fl-ico">🎬</span><span data-i18n="s6.li5"><strong>Видео</strong> — видеочип открывает видео с нужного момента прямо во время проповеди.</span></li>
+      </ul>
+      <div class="tags">
+        <span class="tag" data-i18n="s6.tag1">🤝 Взаимодействие между общинами</span>
+        <span class="tag" data-i18n="s6.tag2">📱 Touch-управление</span>
+        <span class="tag" data-i18n="s6.tag3">⚡ Мгновенный отклик</span>
+      </div>
+    </div>
+    <div class="shots-col">
+      <div class="shot">
+        <img src="sermon_preacher.png" alt="Экран проповедника" onclick="lbOpen(this)">
+        <div class="shot-cap" data-i18n="cap.sermonScreen">Экран проповедника</div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /sections -->
+
+<!-- ══════════════════════════════════════════
+     FOOTER
+══════════════════════════════════════════ -->
+<footer class="footer">
+  <div class="lang-switch">
+    <button data-lang="ru" onclick="setLang('ru')">RU</button>
+    <button data-lang="en" onclick="setLang('en')">EN</button>
+    <button data-lang="de" onclick="setLang('de')">DE</button>
+    <button data-lang="lt" onclick="setLang('lt')">LT</button>
+  </div>
+  <div>
+    <a href="https://songs.winsys.lv" target="_blank">songs.winsys.lv</a>
+    &nbsp;·&nbsp; <span data-i18n="footer.tagline">Система управления богослужением</span>
+  </div>
+</footer>
+
+<script>
+  /* ═══════════════════════════════════════════
+     I18N — ru / en / de / lt (the system's UI languages)
+  ═══════════════════════════════════════════ */
+  var I18N = {
+    ru: {
+      'doc.title': 'Worship Songs — Система управления богослужением',
+      'hero.h1': 'Система управления<br><span>богослужением</span>',
+      'hero.sub': 'Единая платформа для всей команды служения — с любого устройства, без установки',
+      's1.label': 'Аудитория',
+      's1.title': 'Для любого устройства',
+      's1.p1': 'Система создана для <span class="hl">церковных общин</span> — всех, кто участвует в организации и проведении богослужения. Каждый участник работает в своём интерфейсе с нужными именно ему инструментами.',
+      's1.p2': 'Поскольку это <span class="hl">веб-приложение</span>, никакой установки не требуется — достаточно открыть браузер на смартфоне, планшете или компьютере.',
+      'role.admin': 'Администратор', 'role.leader': 'Ведущий', 'role.musician': 'Музыкант',
+      'role.preacher': 'Проповедник', 'role.tech': 'Техник', 'role.screen': 'Экраны',
+      'cap.menuAdmin': 'Меню администратора', 'cap.menuPreacher': 'Меню проповедника', 'cap.menuTech': 'Меню техника',
+      's2.label': 'База данных',
+      's2.title': 'Единая база',
+      's2.p1': 'Все общины, использующие систему, работают с <span class="hl">общей базой данных</span>: песни, переводы Библии, послания с таймкодами, проповеди — всё в одном месте.',
+      's2.p2': 'Стоит добавить или изменить материал — и это <span class="hl">мгновенно становится доступно всем общинам</span>. Никаких пересылок файлов и дублирования работы.',
+      's2.p3': 'Поиск песен ведётся одновременно <span class="hl">по названию и по тексту</span> — достаточно вспомнить любую строчку.',
+      's2.tag1': '⚡ Синхронизация в реальном времени', 's2.tag2': '📚 Общая библиотека', 's2.tag3': '🔍 Поиск по тексту',
+      'cap.leaderList': 'Ведущий пения — список', 'cap.textSearch': 'Поиск по тексту песни',
+      'cap.songbook': 'Список сборника', 'cap.notes': 'Ноты',
+      's3.label': 'Администрирование',
+      's3.title': 'Настройка и участники процесса',
+      's3.p1': 'Администратор создаёт учётные записи для каждой роли прямо в настройках — задаёт имя, логин и пароль. Можно подключить <span class="hl">Google-аккаунт</span> для интеграции с облачными сервисами.',
+      's3.p2': 'Каждый пользователь видит только свои функции. Настройки позволяют выбрать доступные сборники песен, шрифты, <span class="hl">цвета фона и текста</span> для каждого типа экрана — основного и трансляционного.',
+      's3.tag1': '🔐 Ролевая система прав', 's3.tag2': '🎨 Кастомизация экранов', 's3.tag3': '🔗 Google OAuth', 's3.tag4': '🖼️ Фоновое изображение',
+      'cap.settings1': 'Сборники и фоновое изображение', 'cap.settings2': 'Параметры дисплеев', 'cap.settings3': 'Пользователи группы',
+      's4.label': 'Технический режим',
+      's4.title': 'Технический режим',
+      's4.li1': '<strong>Песни</strong> — поиск по названию и тексту, выбор сборника и языка, вывод куплетов по одному. Ведущий может просматривать ноты.',
+      's4.li2': '<strong>Библия</strong> — несколько переводов, поиск по книгам и главам, многоязычный показ.',
+      's4.li3': '<strong>Послание</strong> — поиск по кодам, названиям и тексту; прослушивание аудио с отображением текста на экране.',
+      's4.li4': '<strong>Медиа и заставки</strong> — изображения, видео, YouTube, стандартные заставки.',
+      's4.li5': '<strong>Слайды</strong> — произвольный текст на экран зала и трансляции.',
+      's4.tag1': '📡 Экран трансляции', 's4.tag2': '🌐 Многоязычность', 's4.tag3': '▶️ Видео и аудио', 's4.tag4': '🎼 Ноты к песням',
+      'cap.techMain': 'Тех. режим + экран зала', 'cap.techWallpaper': 'Показ заставки',
+      's5.label': 'Подготовка',
+      's5.title': 'Подготовка проповеди',
+      's5.li1': '<strong>Личные заметки</strong> — всё, что пишет проповедник, остаётся доступным только ему и никому другому не видно.',
+      's5.li2': '<strong>Форматирование</strong> — жирный, курсив, цвет текста, маркеры, заголовки.',
+      's5.li3': '<strong>Цитаты Библии и посланий</strong> — вставляются как интерактивные чипы; двойной клик открывает редактор чипа.',
+      's5.li4': '<strong>Медиа в заметках</strong> — изображения, видео (локальные или YouTube), слайды, PPT-слайды с настраиваемым фоном.',
+      's5.li5': '<strong>Автосохранение</strong> — проповеди хранятся по названию и дате; экспорт в Markdown.',
+      's5.tag1': '🔐 Только для проповедника', 's5.tag2': '💡 Чипы-цитаты', 's5.tag3': '⬇️ Экспорт .md', 's5.tag4': '📊 PPT-слайды',
+      'cap.sermonPrep': 'Редактор проповеди',
+      's6.label': 'Во время служения',
+      's6.title': 'Режим проповеди',
+      's6.li1': '<strong>Разделённый экран</strong> — слева личные заметки проповедника, справа то, что видит зал.',
+      's6.li2': '<strong>Управление одним касанием</strong> — клик на цитату Библии мгновенно выводит текст на экран; клик на изображение — показывает его.',
+      's6.li3': '<strong>Свайпы и жесты</strong> — прокрутка стихов свайпами, увеличение и уменьшение текста щипком на тач-экране.',
+      's6.li4': '<strong>Визит в другую общину</strong> — если принимающая община использует систему, достаточно выбрать её экран: ничего перенастраивать не нужно.',
+      's6.li5': '<strong>Видео</strong> — видеочип открывает видео с нужного момента прямо во время проповеди.',
+      's6.tag1': '🤝 Взаимодействие между общинами', 's6.tag2': '📱 Touch-управление', 's6.tag3': '⚡ Мгновенный отклик',
+      'cap.sermonScreen': 'Экран проповедника',
+      'footer.tagline': 'Система управления богослужением'
+    },
+
+    en: {
+      'doc.title': 'Worship Songs — Worship Service Management System',
+      'hero.h1': 'Worship service<br><span>management system</span>',
+      'hero.sub': 'One platform for the whole ministry team — from any device, no installation required',
+      's1.label': 'Audience',
+      's1.title': 'For any device',
+      's1.p1': 'The system is built for <span class="hl">church communities</span> — everyone involved in organizing and holding a worship service. Each participant works in their own interface with exactly the tools they need.',
+      's1.p2': 'Since it is a <span class="hl">web application</span>, no installation is needed — just open the browser on a smartphone, tablet, or computer.',
+      'role.admin': 'Administrator', 'role.leader': 'Leader', 'role.musician': 'Musician',
+      'role.preacher': 'Preacher', 'role.tech': 'Technician', 'role.screen': 'Screens',
+      'cap.menuAdmin': 'Administrator menu', 'cap.menuPreacher': 'Preacher menu', 'cap.menuTech': 'Technician menu',
+      's2.label': 'Database',
+      's2.title': 'Shared database',
+      's2.p1': 'All communities using the system work with a <span class="hl">shared database</span>: songs, Bible translations, epistles with timecodes, sermons — everything in one place.',
+      's2.p2': 'Add or edit any material — and it <span class="hl">instantly becomes available to every community</span>. No file sharing and no duplicated work.',
+      's2.p3': 'Song search works <span class="hl">by title and by lyrics</span> at the same time — remembering any single line is enough.',
+      's2.tag1': '⚡ Real-time synchronization', 's2.tag2': '📚 Shared library', 's2.tag3': '🔍 Full-text search',
+      'cap.leaderList': 'Worship leader — song list', 'cap.textSearch': 'Search by lyrics',
+      'cap.songbook': 'Collection list', 'cap.notes': 'Sheet music',
+      's3.label': 'Administration',
+      's3.title': 'Setup and participants',
+      's3.p1': 'The administrator creates accounts for every role right in the settings — sets the name, login, and password. A <span class="hl">Google account</span> can be linked for cloud-service integration.',
+      's3.p2': 'Each user sees only their own functions. The settings let you choose the available song collections, fonts, and <span class="hl">background and text colors</span> for each screen type — main and streaming.',
+      's3.tag1': '🔐 Role-based permissions', 's3.tag2': '🎨 Screen customization', 's3.tag3': '🔗 Google OAuth', 's3.tag4': '🖼️ Background image',
+      'cap.settings1': 'Collections and background image', 'cap.settings2': 'Display settings', 'cap.settings3': 'Group users',
+      's4.label': 'Technical mode',
+      's4.title': 'Technical mode',
+      's4.li1': '<strong>Songs</strong> — search by title and lyrics, collection and language selection, verse-by-verse display. The leader can view sheet music.',
+      's4.li2': '<strong>Bible</strong> — multiple translations, search by books and chapters, multilingual display.',
+      's4.li3': '<strong>Epistle</strong> — search by codes, titles, and text; audio playback with the text shown on screen.',
+      's4.li4': '<strong>Media and wallpapers</strong> — images, videos, YouTube, standard wallpapers.',
+      's4.li5': '<strong>Slides</strong> — arbitrary text on the main and streaming screens.',
+      's4.tag1': '📡 Streaming screen', 's4.tag2': '🌐 Multilingual', 's4.tag3': '▶️ Video and audio', 's4.tag4': '🎼 Sheet music',
+      'cap.techMain': 'Tech mode + main screen', 'cap.techWallpaper': 'Wallpaper display',
+      's5.label': 'Preparation',
+      's5.title': 'Sermon preparation',
+      's5.li1': '<strong>Private notes</strong> — everything the preacher writes stays visible to them alone and to no one else.',
+      's5.li2': '<strong>Formatting</strong> — bold, italic, text color, lists, headings.',
+      's5.li3': '<strong>Bible and epistle citations</strong> — inserted as interactive chips; a double click opens the chip editor.',
+      's5.li4': '<strong>Media in notes</strong> — images, videos (local or YouTube), slides, PPT slides with a customizable background.',
+      's5.li5': '<strong>Autosave</strong> — sermons are stored by title and date; Markdown export.',
+      's5.tag1': '🔐 Preacher-only', 's5.tag2': '💡 Citation chips', 's5.tag3': '⬇️ .md export', 's5.tag4': '📊 PPT slides',
+      'cap.sermonPrep': 'Sermon editor',
+      's6.label': 'During the service',
+      's6.title': 'Sermon mode',
+      's6.li1': '<strong>Split screen</strong> — the preacher\'s private notes on the left, what the congregation sees on the right.',
+      's6.li2': '<strong>One-tap control</strong> — clicking a Bible citation instantly puts the text on screen; clicking an image shows it.',
+      's6.li3': '<strong>Swipes and gestures</strong> — scroll verses with swipes, pinch to zoom the text on a touch screen.',
+      's6.li4': '<strong>Visiting another community</strong> — if the hosting community uses the system, just pick its screen: nothing needs to be reconfigured.',
+      's6.li5': '<strong>Video</strong> — a video chip opens the video from the right moment during the sermon.',
+      's6.tag1': '🤝 Inter-community collaboration', 's6.tag2': '📱 Touch control', 's6.tag3': '⚡ Instant response',
+      'cap.sermonScreen': 'Preacher\'s screen',
+      'footer.tagline': 'Worship service management system'
+    },
+
+    de: {
+      'doc.title': 'Worship Songs — System zur Gottesdienstverwaltung',
+      'hero.h1': 'System zur Verwaltung<br><span>des Gottesdienstes</span>',
+      'hero.sub': 'Eine Plattform für das ganze Dienstteam — von jedem Gerät, ohne Installation',
+      's1.label': 'Zielgruppe',
+      's1.title': 'Für jedes Gerät',
+      's1.p1': 'Das System wurde für <span class="hl">Kirchengemeinden</span> geschaffen — für alle, die an der Organisation und Durchführung des Gottesdienstes beteiligt sind. Jeder Teilnehmer arbeitet in seiner eigenen Oberfläche mit genau den Werkzeugen, die er braucht.',
+      's1.p2': 'Da es eine <span class="hl">Web-Anwendung</span> ist, ist keine Installation nötig — einfach den Browser auf Smartphone, Tablet oder Computer öffnen.',
+      'role.admin': 'Administrator', 'role.leader': 'Leiter', 'role.musician': 'Musiker',
+      'role.preacher': 'Prediger', 'role.tech': 'Techniker', 'role.screen': 'Bildschirme',
+      'cap.menuAdmin': 'Menü des Administrators', 'cap.menuPreacher': 'Menü des Predigers', 'cap.menuTech': 'Menü des Technikers',
+      's2.label': 'Datenbank',
+      's2.title': 'Gemeinsame Datenbank',
+      's2.p1': 'Alle Gemeinden, die das System nutzen, arbeiten mit einer <span class="hl">gemeinsamen Datenbank</span>: Lieder, Bibelübersetzungen, Briefe mit Zeitmarken, Predigten — alles an einem Ort.',
+      's2.p2': 'Wird Material hinzugefügt oder geändert, ist es <span class="hl">sofort für alle Gemeinden verfügbar</span>. Kein Verschicken von Dateien, keine doppelte Arbeit.',
+      's2.p3': 'Die Liedsuche läuft gleichzeitig <span class="hl">über Titel und Text</span> — es genügt, sich an eine beliebige Zeile zu erinnern.',
+      's2.tag1': '⚡ Synchronisierung in Echtzeit', 's2.tag2': '📚 Gemeinsame Bibliothek', 's2.tag3': '🔍 Volltextsuche',
+      'cap.leaderList': 'Lobpreisleiter — Liste', 'cap.textSearch': 'Suche im Liedtext',
+      'cap.songbook': 'Liste der Sammlung', 'cap.notes': 'Noten',
+      's3.label': 'Administration',
+      's3.title': 'Einrichtung und Teilnehmer',
+      's3.p1': 'Der Administrator erstellt Konten für jede Rolle direkt in den Einstellungen — legt Name, Login und Passwort fest. Ein <span class="hl">Google-Konto</span> kann für die Integration mit Cloud-Diensten verknüpft werden.',
+      's3.p2': 'Jeder Benutzer sieht nur seine eigenen Funktionen. In den Einstellungen lassen sich verfügbare Liedersammlungen, Schriftarten sowie <span class="hl">Hintergrund- und Textfarben</span> für jeden Bildschirmtyp festlegen — Haupt- und Streaming-Bildschirm.',
+      's3.tag1': '🔐 Rollenbasierte Rechte', 's3.tag2': '🎨 Bildschirm-Anpassung', 's3.tag3': '🔗 Google OAuth', 's3.tag4': '🖼️ Hintergrundbild',
+      'cap.settings1': 'Sammlungen und Hintergrundbild', 'cap.settings2': 'Bildschirm-Parameter', 'cap.settings3': 'Benutzer der Gruppe',
+      's4.label': 'Technik-Modus',
+      's4.title': 'Technik-Modus',
+      's4.li1': '<strong>Lieder</strong> — Suche nach Titel und Text, Auswahl von Sammlung und Sprache, Anzeige Strophe für Strophe. Der Leiter kann die Noten ansehen.',
+      's4.li2': '<strong>Bibel</strong> — mehrere Übersetzungen, Suche nach Büchern und Kapiteln, mehrsprachige Anzeige.',
+      's4.li3': '<strong>Brief</strong> — Suche nach Codes, Titeln und Text; Audio-Wiedergabe mit Textanzeige auf dem Bildschirm.',
+      's4.li4': '<strong>Medien und Hintergründe</strong> — Bilder, Videos, YouTube, Standard-Hintergründe.',
+      's4.li5': '<strong>Folien</strong> — beliebiger Text auf dem Saal- und Streaming-Bildschirm.',
+      's4.tag1': '📡 Streaming-Bildschirm', 's4.tag2': '🌐 Mehrsprachigkeit', 's4.tag3': '▶️ Video und Audio', 's4.tag4': '🎼 Noten zu den Liedern',
+      'cap.techMain': 'Technik-Modus + Saalbildschirm', 'cap.techWallpaper': 'Anzeige eines Hintergrunds',
+      's5.label': 'Vorbereitung',
+      's5.title': 'Predigtvorbereitung',
+      's5.li1': '<strong>Persönliche Notizen</strong> — alles, was der Prediger schreibt, bleibt nur für ihn zugänglich und ist für niemanden sonst sichtbar.',
+      's5.li2': '<strong>Formatierung</strong> — fett, kursiv, Textfarbe, Listen, Überschriften.',
+      's5.li3': '<strong>Zitate aus Bibel und Briefen</strong> — werden als interaktive Chips eingefügt; ein Doppelklick öffnet den Chip-Editor.',
+      's5.li4': '<strong>Medien in Notizen</strong> — Bilder, Videos (lokal oder YouTube), Folien, PPT-Folien mit anpassbarem Hintergrund.',
+      's5.li5': '<strong>Automatisches Speichern</strong> — Predigten werden nach Titel und Datum gespeichert; Export nach Markdown.',
+      's5.tag1': '🔐 Nur für den Prediger', 's5.tag2': '💡 Zitat-Chips', 's5.tag3': '⬇️ .md-Export', 's5.tag4': '📊 PPT-Folien',
+      'cap.sermonPrep': 'Predigt-Editor',
+      's6.label': 'Während des Gottesdienstes',
+      's6.title': 'Predigt-Modus',
+      's6.li1': '<strong>Geteilter Bildschirm</strong> — links die persönlichen Notizen des Predigers, rechts das, was der Saal sieht.',
+      's6.li2': '<strong>Steuerung mit einem Fingertipp</strong> — ein Klick auf ein Bibelzitat bringt den Text sofort auf den Bildschirm; ein Klick auf ein Bild zeigt es an.',
+      's6.li3': '<strong>Wischgesten</strong> — Verse per Wischen durchblättern, Text auf dem Touchscreen mit zwei Fingern vergrößern und verkleinern.',
+      's6.li4': '<strong>Besuch in einer anderen Gemeinde</strong> — nutzt die gastgebende Gemeinde das System, genügt es, ihren Bildschirm auszuwählen: nichts muss umkonfiguriert werden.',
+      's6.li5': '<strong>Video</strong> — ein Video-Chip öffnet das Video ab der gewünschten Stelle direkt während der Predigt.',
+      's6.tag1': '🤝 Zusammenarbeit zwischen Gemeinden', 's6.tag2': '📱 Touch-Bedienung', 's6.tag3': '⚡ Sofortige Reaktion',
+      'cap.sermonScreen': 'Bildschirm des Predigers',
+      'footer.tagline': 'System zur Gottesdienstverwaltung'
+    },
+
+    lt: {
+      'doc.title': 'Worship Songs — Pamaldų valdymo sistema',
+      'hero.h1': 'Pamaldų<br><span>valdymo sistema</span>',
+      'hero.sub': 'Viena platforma visai tarnavimo komandai — iš bet kurio įrenginio, be diegimo',
+      's1.label': 'Auditorija',
+      's1.title': 'Bet kuriam įrenginiui',
+      's1.p1': 'Sistema sukurta <span class="hl">bažnyčios bendruomenėms</span> — visiems, kurie dalyvauja organizuojant ir vedant pamaldas. Kiekvienas dalyvis dirba savo sąsajoje su būtent jam reikalingais įrankiais.',
+      's1.p2': 'Kadangi tai <span class="hl">interneto programa</span>, jokio diegimo nereikia — užtenka atidaryti naršyklę išmaniajame telefone, planšetėje ar kompiuteryje.',
+      'role.admin': 'Administratorius', 'role.leader': 'Vedėjas', 'role.musician': 'Muzikantas',
+      'role.preacher': 'Pamokslininkas', 'role.tech': 'Technikas', 'role.screen': 'Ekranai',
+      'cap.menuAdmin': 'Administratoriaus meniu', 'cap.menuPreacher': 'Pamokslininko meniu', 'cap.menuTech': 'Techniko meniu',
+      's2.label': 'Duomenų bazė',
+      's2.title': 'Bendra bazė',
+      's2.p1': 'Visos sistemą naudojančios bendruomenės dirba su <span class="hl">bendra duomenų baze</span>: giesmės, Biblijos vertimai, laiškai su laiko žymomis, pamokslai — viskas vienoje vietoje.',
+      's2.p2': 'Užtenka pridėti ar pakeisti medžiagą — ir ji <span class="hl">akimirksniu tampa prieinama visoms bendruomenėms</span>. Jokio failų siuntinėjimo ir dvigubo darbo.',
+      's2.p3': 'Giesmių paieška vyksta kartu <span class="hl">pagal pavadinimą ir tekstą</span> — užtenka prisiminti bet kurią eilutę.',
+      's2.tag1': '⚡ Sinchronizacija realiu laiku', 's2.tag2': '📚 Bendra biblioteka', 's2.tag3': '🔍 Paieška pagal tekstą',
+      'cap.leaderList': 'Šlovinimo vedėjas — sąrašas', 'cap.textSearch': 'Paieška giesmės tekste',
+      'cap.songbook': 'Rinkinio sąrašas', 'cap.notes': 'Natos',
+      's3.label': 'Administravimas',
+      's3.title': 'Nustatymai ir dalyviai',
+      's3.p1': 'Administratorius kuria paskyras kiekvienai rolei tiesiog nustatymuose — nurodo vardą, prisijungimo vardą ir slaptažodį. Galima susieti <span class="hl">Google paskyrą</span> integracijai su debesijos paslaugomis.',
+      's3.p2': 'Kiekvienas naudotojas mato tik savo funkcijas. Nustatymuose galima pasirinkti prieinamus giesmių rinkinius, šriftus, <span class="hl">fono ir teksto spalvas</span> kiekvienam ekrano tipui — pagrindiniam ir transliacijos.',
+      's3.tag1': '🔐 Rolėmis pagrįstos teisės', 's3.tag2': '🎨 Ekranų pritaikymas', 's3.tag3': '🔗 Google OAuth', 's3.tag4': '🖼️ Fono paveikslėlis',
+      'cap.settings1': 'Rinkiniai ir fono paveikslėlis', 'cap.settings2': 'Ekranų parametrai', 'cap.settings3': 'Grupės naudotojai',
+      's4.label': 'Techninis režimas',
+      's4.title': 'Techninis režimas',
+      's4.li1': '<strong>Giesmės</strong> — paieška pagal pavadinimą ir tekstą, rinkinio ir kalbos pasirinkimas, posmų rodymas po vieną. Vedėjas gali peržiūrėti natas.',
+      's4.li2': '<strong>Biblija</strong> — keli vertimai, paieška pagal knygas ir skyrius, daugiakalbis rodymas.',
+      's4.li3': '<strong>Laiškas</strong> — paieška pagal kodus, pavadinimus ir tekstą; garso klausymas su tekstu ekrane.',
+      's4.li4': '<strong>Medija ir fonai</strong> — paveikslėliai, vaizdo įrašai, YouTube, standartiniai fonai.',
+      's4.li5': '<strong>Skaidrės</strong> — laisvas tekstas salės ir transliacijos ekrane.',
+      's4.tag1': '📡 Transliacijos ekranas', 's4.tag2': '🌐 Daugiakalbystė', 's4.tag3': '▶️ Vaizdas ir garsas', 's4.tag4': '🎼 Giesmių natos',
+      'cap.techMain': 'Techninis režimas + salės ekranas', 'cap.techWallpaper': 'Fono rodymas',
+      's5.label': 'Ruošimas',
+      's5.title': 'Pamokslo ruošimas',
+      's5.li1': '<strong>Asmeniniai užrašai</strong> — viskas, ką rašo pamokslininkas, prieinama tik jam ir niekam kitam nematoma.',
+      's5.li2': '<strong>Formatavimas</strong> — paryškinimas, kursyvas, teksto spalva, sąrašai, antraštės.',
+      's5.li3': '<strong>Biblijos ir laiškų citatos</strong> — įterpiamos kaip interaktyvios kortelės; dvigubas spustelėjimas atidaro kortelės redaktorių.',
+      's5.li4': '<strong>Medija užrašuose</strong> — paveikslėliai, vaizdo įrašai (vietiniai ar YouTube), skaidrės, PPT skaidrės su pritaikomu fonu.',
+      's5.li5': '<strong>Automatinis išsaugojimas</strong> — pamokslai saugomi pagal pavadinimą ir datą; eksportas į Markdown.',
+      's5.tag1': '🔐 Tik pamokslininkui', 's5.tag2': '💡 Citatų kortelės', 's5.tag3': '⬇️ .md eksportas', 's5.tag4': '📊 PPT skaidrės',
+      'cap.sermonPrep': 'Pamokslo redaktorius',
+      's6.label': 'Pamaldų metu',
+      's6.title': 'Pamokslo režimas',
+      's6.li1': '<strong>Padalytas ekranas</strong> — kairėje asmeniniai pamokslininko užrašai, dešinėje tai, ką mato salė.',
+      's6.li2': '<strong>Valdymas vienu palietimu</strong> — spustelėjus Biblijos citatą tekstas akimirksniu parodomas ekrane; spustelėjus paveikslėlį — parodomas jis.',
+      's6.li3': '<strong>Braukimai ir gestai</strong> — eilučių slinkimas braukiant, teksto didinimas ir mažinimas suspaudimu jutikliniame ekrane.',
+      's6.li4': '<strong>Apsilankymas kitoje bendruomenėje</strong> — jei priimančioji bendruomenė naudoja sistemą, užtenka pasirinkti jos ekraną: nieko perkonfigūruoti nereikia.',
+      's6.li5': '<strong>Vaizdo įrašai</strong> — vaizdo kortelė atidaro įrašą nuo reikiamos vietos tiesiog pamokslo metu.',
+      's6.tag1': '🤝 Bendruomenių bendradarbiavimas', 's6.tag2': '📱 Jutiklinis valdymas', 's6.tag3': '⚡ Momentinis atsakas',
+      'cap.sermonScreen': 'Pamokslininko ekranas',
+      'footer.tagline': 'Pamaldų valdymo sistema'
+    }
+  };
+
+  function setLang(lang) {
+    if (!I18N[lang]) lang = 'ru';
+    var dict = I18N[lang];
+
+    document.documentElement.lang = lang;
+    document.title = dict['doc.title'];
+
+    document.querySelectorAll('[data-i18n]').forEach(function (el) {
+      var key = el.getAttribute('data-i18n');
+      if (dict[key] !== undefined) el.innerHTML = dict[key];
+    });
+
+    // Keep image alt texts in sync with the (translated) captions
+    document.querySelectorAll('.shot, .menu-shot').forEach(function (wrap) {
+      var img = wrap.querySelector('img');
+      var cap = wrap.querySelector('.shot-cap');
+      if (img && cap) img.alt = cap.textContent;
+    });
+
+    // Highlight the active buttons in both switchers
+    document.querySelectorAll('.lang-switch button').forEach(function (btn) {
+      btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+    });
+
+    try { localStorage.setItem('ws_promo_lang', lang); } catch (e) {}
+  }
+
+  // Initial language: saved choice → browser language → Russian
+  (function () {
+    var lang = null;
+    try { lang = localStorage.getItem('ws_promo_lang'); } catch (e) {}
+    if (!lang || !I18N[lang]) {
+      var nav = (navigator.language || '').slice(0, 2).toLowerCase();
+      lang = I18N[nav] ? nav : 'ru';
+    }
+    setLang(lang);
+  })();
+
+  function lbOpen(img) {
+    document.getElementById('lb-img').src = img.src;
+    var cap = img.closest('.shot, .menu-shot');
+    var capEl = cap ? cap.querySelector('.shot-cap') : null;
+    document.getElementById('lb-cap').textContent = capEl ? capEl.textContent : '';
+    document.getElementById('lb').classList.add('on');
+    document.body.style.overflow = 'hidden';
+  }
+  function lbClose(e) {
+    if (e && e.target === document.getElementById('lb-img')) return;
+    document.getElementById('lb').classList.remove('on');
+    document.body.style.overflow = '';
+  }
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') lbClose(); });
+</script>
+</body>
+</html>
