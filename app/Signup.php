@@ -20,7 +20,6 @@
 class Signup
 {
     private const ADMIN_EMAIL = 'pavelpetsevitch@gmail.com';
-    private const MAIL_FROM   = 'Worship Songs <no-reply@winsys.lv>';
     private const UI_LANGS    = ['ru', 'de', 'en', 'lt'];
 
     /** Handle POST /signup-request from the login page form. */
@@ -219,15 +218,10 @@ class Signup
         return $login;
     }
 
-    /** Plain-text UTF-8 email via PHP mail(). */
+    /** Plain-text UTF-8 email via the shared SMTP transport. */
     private static function sendMail(string $to, string $subject, string $body): bool
     {
-        $headers = "MIME-Version: 1.0\r\n"
-                 . "Content-Type: text/plain; charset=UTF-8\r\n"
-                 . "Content-Transfer-Encoding: 8bit\r\n"
-                 . "From: " . self::MAIL_FROM . "\r\n";
-        $encSubject = '=?UTF-8?B?' . base64_encode($subject) . '?=';
-        return @mail($to, $encSubject, $body, $headers);
+        return Mailer::send($to, $subject, $body);
     }
 
     /** Minimal standalone result page (seen only by the site owner). */
