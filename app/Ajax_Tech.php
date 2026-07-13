@@ -87,7 +87,10 @@ trait Ajax_Tech
         $dbh        = Info::get('dbh');
         $userId     = (int)$_SESSION['curGroupId'];
         $image_name = mysqli_real_escape_string($dbh, self::$args['image_name'] ?? '');
-        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
+        $targetGroupId = self::resolveDisplayTarget($userId);
+        if ($targetGroupId === null) {
+            return ''; // broadcast disabled for this channel — leave screens alone
+        }
 
         Info::get('db')->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
         Info::get('db')->exec(
@@ -457,7 +460,10 @@ trait Ajax_Tech
         $dbh = Info::get('dbh');
         $text = mysqli_real_escape_string($dbh, self::$args['text']);
         $song_name = mysqli_real_escape_string($dbh, self::$args['song_name']);
-        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
+        $targetGroupId = self::resolveDisplayTarget($userId);
+        if ($targetGroupId === null) {
+            return ''; // broadcast disabled for this channel — leave screens alone
+        }
 
         Info::get('db')->exec("DELETE FROM current WHERE groupId={$targetGroupId}");
 
@@ -686,7 +692,10 @@ trait Ajax_Tech
         $userId     = (int)$_SESSION['curGroupId'];
         $videoSrc   = mysqli_real_escape_string($dbh, self::$args['video_src']   ?? '');
         $videoState = mysqli_real_escape_string($dbh, self::$args['video_state'] ?? 'playing');
-        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
+        $targetGroupId = self::resolveDisplayTarget($userId);
+        if ($targetGroupId === null) {
+            return json_encode(['status' => 'ok']); // broadcast disabled — no-op
+        }
 
         Info::get('db')->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
         Info::get('db')->exec(
@@ -706,7 +715,10 @@ trait Ajax_Tech
         $dbh        = Info::get('dbh');
         $userId     = (int)$_SESSION['curGroupId'];
         $videoState = mysqli_real_escape_string($dbh, self::$args['video_state'] ?? 'stopped');
-        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
+        $targetGroupId = self::resolveDisplayTarget($userId);
+        if ($targetGroupId === null) {
+            return json_encode(['status' => 'ok']); // broadcast disabled — no-op
+        }
 
         $row = Info::get('db')->get("SELECT groupId FROM current WHERE groupId = {$targetGroupId}");
         if ($row) {
@@ -726,7 +738,10 @@ trait Ajax_Tech
     {
         $dbh           = Info::get('dbh');
         $userId        = (int)$_SESSION['curGroupId'];
-        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
+        $targetGroupId = self::resolveDisplayTarget($userId);
+        if ($targetGroupId === null) {
+            return json_encode(['status' => 'ok']); // broadcast disabled — no-op
+        }
 
         // Basic sanitization: strip script/iframe tags and potentially dangerous attributes
         $html = self::$args['html'] ?? '';

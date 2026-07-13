@@ -17,9 +17,10 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
         $scope.displaySlideHtml = null;
         $scope.displaySlideBg   = '#1a237e';
 
-        // Display target is set by the technician (shared, channel = 'sermon')
-        // and pushed here over WebSocket; this page no longer selects it locally.
-        // null = "do not broadcast".
+        // The display target for the sermon channel is set by the technician and
+        // resolved SERVER-side on every broadcast command (channel: 'sermon');
+        // this local copy (synced over WebSocket) is used ONLY to react to the
+        // tech's sermon_display_cleared event, never to gate sending.
         $scope.selectedDisplayTarget    = null;
 
          $scope.displayVideoSrc       = '';   // non-empty = show video overlay
@@ -560,15 +561,14 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                     var msgTitle = el.getAttribute('data-msg-title') || '';
                     $timeout(function () {
                         showText(paraText, msgTitle);
-                        // Only send to display if a monitor is selected
-                        if ($scope.selectedDisplayTarget !== null) {
-                            $http({ method: "POST", url: "/ajax", data: {
-                                command: 'set_message_text',
-                                text: paraText,
-                                song_name: msgTitle,
-                                target_group_id: $scope.selectedDisplayTarget
-                            }});
-                        }
+                        // The server resolves the sermon-channel target itself
+                        // (NULL = do not broadcast, screens stay untouched).
+                        $http({ method: "POST", url: "/ajax", data: {
+                            command: 'set_message_text',
+                            channel: 'sermon',
+                            text: paraText,
+                            song_name: msgTitle
+                        }});
                     });
                 };
             });
@@ -622,7 +622,7 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                     if (activeEl === el) {
                         el.classList.remove('active-slide');
                         activeEl = null;
-                        $timeout(function () { clearDisplayScope(); if ($scope.selectedDisplayTarget !== null) { sendImageToDisplay(''); } });
+                        $timeout(function () { clearDisplayScope(); sendImageToDisplay(''); });
                         return;
                     }
                     if (activeEl) activeEl.classList.remove('active-cite', 'active-img', 'active-video', 'active-slide');
@@ -642,15 +642,13 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                         $scope.displaySlideHtml = $sce.trustAsHtml(html);
                         $scope.displaySlideBg   = bg;
 
-                        if ($scope.selectedDisplayTarget !== null) {
-                            $http({ method: 'POST', url: '/ajax', data: {
-                                command: 'set_slide',
-                                html:     html,
-                                title:    title,
-                                bg_color: bg,
-                                target_group_id: $scope.selectedDisplayTarget
-                            }});
-                        }
+                        $http({ method: 'POST', url: '/ajax', data: {
+                            command: 'set_slide',
+                            channel: 'sermon',
+                            html:     html,
+                            title:    title,
+                            bg_color: bg
+                        }});
                     });
                 };
             });
@@ -745,15 +743,13 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
 
                         var text = verseNum + '. ' + verseText;
                         showText(text, refLabel);
-                        // Only send to display if a monitor is selected
-                        if ($scope.selectedDisplayTarget !== null) {
-                            $http({ method: "POST", url: "/ajax", data: {
-                                command: 'set_message_text',
-                                text: text,
-                                song_name: refLabel,
-                                target_group_id: $scope.selectedDisplayTarget
-                            }});
-                        }
+                        // Server resolves the sermon-channel target (NULL = no-op).
+                        $http({ method: "POST", url: "/ajax", data: {
+                            command: 'set_message_text',
+                            channel: 'sermon',
+                            text: text,
+                            song_name: refLabel
+                        }});
                     }
                 });
         }
@@ -783,14 +779,12 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
         }
 
         function sendImageToDisplay(path) {
-            // Only send to display if a monitor is selected
-            if ($scope.selectedDisplayTarget !== null) {
-                $http({ method: "POST", url: "/ajax", data: {
-                    command: path ? 'set_tech_image' : 'clear_image',
-                    image_name: path,
-                    target_group_id: $scope.selectedDisplayTarget
-                }});
-            }
+            // Server resolves the sermon-channel target (NULL = no-op).
+            $http({ method: "POST", url: "/ajax", data: {
+                command: path ? 'set_tech_image' : 'clear_image',
+                channel: 'sermon',
+                image_name: path
+            }});
         }
 
         // ---------- helpers ----------
@@ -848,36 +842,30 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
         }
 
         function sendVideoToDisplay(src) {
-            // Only send to display if a monitor is selected
-            if ($scope.selectedDisplayTarget !== null) {
-                $http({ method: 'POST', url: '/ajax', data: {
-                        command:     'set_video',
-                        video_src:   src || '',
-                        video_state: 'playing',
-                        target_group_id: $scope.selectedDisplayTarget
-                    }});
-            }
+            // Server resolves the sermon-channel target (NULL = no-op).
+            $http({ method: 'POST', url: '/ajax', data: {
+                    command:     'set_video',
+                    channel:     'sermon',
+                    video_src:   src || '',
+                    video_state: 'playing'
+                }});
         }
 
         function sendVideoClear() {
-            // Only send to display if a monitor is selected
-            if ($scope.selectedDisplayTarget !== null) {
-                $http({ method: 'POST', url: '/ajax', data: {
-                    command: 'clear_image',
-                    target_group_id: $scope.selectedDisplayTarget
-                }});
-            }
+            // Server resolves the sermon-channel target (NULL = no-op).
+            $http({ method: 'POST', url: '/ajax', data: {
+                command: 'clear_image',
+                channel: 'sermon'
+            }});
         }
 
         function _sendVideoControl(state) {
-            // Only send to display if a monitor is selected
-            if ($scope.selectedDisplayTarget !== null) {
-                $http({ method: 'POST', url: '/ajax', data: {
-                    command: 'video_control',
-                    video_state: state,
-                    target_group_id: $scope.selectedDisplayTarget
-                }});
-            }
+            // Server resolves the sermon-channel target (NULL = no-op).
+            $http({ method: 'POST', url: '/ajax', data: {
+                command: 'video_control',
+                channel: 'sermon',
+                video_state: state
+            }});
         }
 
         // ---------- progress bar for local files ----------
