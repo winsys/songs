@@ -311,7 +311,7 @@ trait Ajax_Common
     }
 
     /**
-     * Resolve which group's screen an image command should touch.
+     * Resolve which group's screen a display command should touch.
      * When the client identifies its channel ('leader'|'sermon'), the
      * technician-set *_display_target column is authoritative: NULL means
      * "do not broadcast" and the command must not touch any screen, even
@@ -320,7 +320,7 @@ trait Ajax_Common
      * legacy clients) the old behavior is kept: explicit target_group_id
      * or the caller's own group.
      */
-    private static function resolveImageTarget($groupId)
+    private static function resolveDisplayTarget($groupId)
     {
         $channel = isset(self::$args['channel']) ? (string)self::$args['channel'] : '';
         if ($channel === 'leader' || $channel === 'sermon') {
@@ -336,7 +336,7 @@ trait Ajax_Common
     private static function set_image()
     {
         $userId = (int)$_SESSION['curGroupId'];
-        $targetGroupId = self::resolveImageTarget($userId);
+        $targetGroupId = self::resolveDisplayTarget($userId);
         if ($targetGroupId === null) {
             return ''; // broadcast disabled for this channel — leave screens alone
         }
@@ -381,7 +381,7 @@ trait Ajax_Common
     private static function clear_image()
     {
         $userId = (int)$_SESSION['curGroupId'];
-        $targetGroupId = self::resolveImageTarget($userId);
+        $targetGroupId = self::resolveDisplayTarget($userId);
         if ($targetGroupId === null) {
             return ''; // broadcast disabled for this channel — leave screens alone
         }
