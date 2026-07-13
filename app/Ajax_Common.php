@@ -310,10 +310,36 @@ trait Ajax_Common
         return '';
     }
 
+    /**
+     * Resolve which group's screen an image command should touch.
+     * When the client identifies its channel ('leader'|'sermon'), the
+     * technician-set *_display_target column is authoritative: NULL means
+     * "do not broadcast" and the command must not touch any screen, even
+     * if the client believes a target is selected (its copy may be stale,
+     * e.g. after a missed WebSocket message). Without a channel (tech page,
+     * legacy clients) the old behavior is kept: explicit target_group_id
+     * or the caller's own group.
+     */
+    private static function resolveImageTarget($groupId)
+    {
+        $channel = isset(self::$args['channel']) ? (string)self::$args['channel'] : '';
+        if ($channel === 'leader' || $channel === 'sermon') {
+            $col = $channel === 'leader' ? 'leader_display_target' : 'sermon_display_target';
+            $row = Info::get('db')->get(
+                "SELECT {$col} AS t FROM user_settings WHERE group_id = {$groupId} LIMIT 1"
+            );
+            return ($row && $row['t'] !== null) ? (int)$row['t'] : null;
+        }
+        return isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $groupId;
+    }
+
     private static function set_image()
     {
         $userId = (int)$_SESSION['curGroupId'];
-        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
+        $targetGroupId = self::resolveImageTarget($userId);
+        if ($targetGroupId === null) {
+            return ''; // broadcast disabled for this channel — leave screens alone
+        }
         $listId = mysqli_escape_string(Info::get('dbh'), self::$args['list_id']);
         $imageNum = mysqli_escape_string(Info::get('dbh'), self::$args['image_num']);
 
@@ -355,7 +381,10 @@ trait Ajax_Common
     private static function clear_image()
     {
         $userId = (int)$_SESSION['curGroupId'];
-        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
+        $targetGroupId = self::resolveImageTarget($userId);
+        if ($targetGroupId === null) {
+            return ''; // broadcast disabled for this channel — leave screens alone
+        }
 
         Info::get('db')->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
         self::updateSocket($targetGroupId);

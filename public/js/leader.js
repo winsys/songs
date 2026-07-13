@@ -10,10 +10,9 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
     $scope.modalImgSrc = '';    // path to modal image (deprecated)
     $scope.songPreview = { visible: false, song: null, imgError: false };
 
-    // Display target is set by the technician (shared, channel = 'leader') and
-    // pushed here over WebSocket; this page no longer selects it locally.
-    // null = "do not broadcast".
-    $scope.selectedDisplayTarget   = null;
+    // The display target for the leader channel is set by the technician and
+    // resolved SERVER-side on every set_image/clear_image (channel: 'leader');
+    // this page keeps no local copy of it.
 
     $scope.loadSongLists = function () {
         SongsService.getVisibleSongLists().then(function (lists) {
@@ -156,21 +155,20 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
             }
         };
 
-        // Broadcast to target display only if a target is selected
-        if ($scope.selectedDisplayTarget !== null) {
-            $http({ method: "POST",
-                    url: "/ajax",
-                    data: { command: 'set_image',
-                            image_num: img_num,
-                            list_id: list_id,
-                            song_id: song_id,
-                            target_group_id: $scope.selectedDisplayTarget }
-            }).then(openLocal, function() {
-                $scope.fullScreen = false; $scope.fullScreenText = null;
-            });
-        } else {
-            openLocal();
-        }
+        // Always send: the server resolves the technician-set leader-channel
+        // target itself (NULL = do not broadcast, screens stay untouched), so
+        // a stale local copy of the target can never overwrite what the
+        // technician put on the screens.
+        $http({ method: "POST",
+                url: "/ajax",
+                data: { command: 'set_image',
+                        channel: 'leader',
+                        image_num: img_num,
+                        list_id: list_id,
+                        song_id: song_id }
+        }).then(openLocal, function() {
+            $scope.fullScreen = false; $scope.fullScreenText = null;
+        });
     }
 
     function leaderLeaveFullscreen() {
@@ -180,14 +178,11 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
             $scope.fullScreenText = null;
         };
 
-        if ($scope.selectedDisplayTarget !== null) {
-            $http({ method: "POST", url: "/ajax", data: {
-                command: 'clear_image',
-                target_group_id: $scope.selectedDisplayTarget
-            }}).then(exitLocal, exitLocal);
-        } else {
-            exitLocal();
-        }
+        // Same as above: the server decides whether any screen is cleared.
+        $http({ method: "POST", url: "/ajax", data: {
+            command: 'clear_image',
+            channel: 'leader'
+        }}).then(exitLocal, exitLocal);
     }
 
     // Pick the best song text: default language first, else first lang with text.
@@ -427,21 +422,6 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
 
 
     // ==========================================================
-    // DISPLAY TARGET MANAGEMENT (mirrors sermon presentation page)
-    // ==========================================================
-
-    // Load the technician-set target for the 'leader' channel on page load.
-    $scope.loadDisplayTargets = function() {
-        $http.post('/ajax', { command: 'get_display_targets', channel: 'leader' }).then(function(r) {
-            if (r.data && r.data.status === 'ok') {
-                $scope.selectedDisplayTarget =
-                    (r.data.current_target != null) ? r.data.current_target : null;
-            }
-        });
-    };
-
-
-    // ==========================================================
     // WEBSOCKET
     // ==========================================================
 
@@ -460,13 +440,6 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
                         $scope.reloadFavorites();
                     });
                 }
-            } else if (data.type === 'display_target_changed'
-                       && data.data && data.data.channel === 'leader') {
-                // Technician changed where the leader page broadcasts.
-                $scope.$apply(function() {
-                    $scope.selectedDisplayTarget =
-                        (data.data.display_target != null) ? data.data.display_target : null;
-                });
             }
         },
         function(error) {
@@ -502,6 +475,5 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
     $scope.loadSongLists();  // sets listId to first visible list, then calls reloadSongList
     SongsService.getLanguages().then(function (langs) { $scope.langList = langs; });
     $scope.reloadFavorites();
-    $scope.loadDisplayTargets();
 }]);
 
