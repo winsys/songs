@@ -73,7 +73,7 @@ class Signup
 
         $base = self::baseUrl();
         $body = "Новая заявка на подключение Worship Songs\n\n"
-              . "Город: {$city}\n"
+              . "Церковь или город: {$city}\n"
               . "E-mail: {$email}\n"
               . "Администратор: {$name}\n"
               . "Язык интерфейса: {$lang}\n"
