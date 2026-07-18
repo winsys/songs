@@ -374,6 +374,124 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 }, 0);
             });
 
+            // ── Exit styled block on ArrowLeft / ArrowUp when at start ───────
+            // Mirror of the handler above: without it the caret cannot leave a
+            // slide upward, and there is no way to type text above a slide
+            // that is the first element of the document.
+            editorEl.addEventListener('keydown', function (e) {
+                if (e.key !== 'ArrowLeft' && e.key !== 'ArrowUp') return;
+
+                var sel = window.getSelection();
+                if (!sel || !sel.isCollapsed || sel.rangeCount === 0) return;
+
+                var node = sel.anchorNode;
+                var slideInner = null;
+                while (node && node !== editorEl) {
+                    if (node.nodeType === 1 &&
+                        node.classList.contains('sermon-slide-inner')) {
+                        slideInner = node;
+                        break;
+                    }
+                    node = node.parentNode;
+                }
+                if (!slideInner) return;
+                if (!_isCursorAtStartOf(slideInner)) return;
+
+                e.preventDefault();
+
+                var slideBlock = slideInner.parentNode;
+                while (slideBlock && slideBlock !== editorEl) {
+                    if (slideBlock.classList &&
+                        slideBlock.classList.contains('sermon-slide')) break;
+                    slideBlock = slideBlock.parentNode;
+                }
+                if (!slideBlock || slideBlock === editorEl) return;
+
+                // Skip browser-injected text nodes between blocks
+                var prev = slideBlock.previousSibling;
+                while (prev && prev.nodeType === 3) {
+                    prev = prev.previousSibling;
+                }
+
+                var skipClasses = ['sermon-slide', 'sermon-img-wrap',
+                    'sermon-ppt-slide', 'sermon-video-wrap'];
+                var targetPara, placeAtEnd;
+                if (prev && prev.nodeType === 1 &&
+                    !skipClasses.some(function (c) {
+                        return prev.classList.contains(c);
+                    })) {
+                    targetPara = prev;
+                    placeAtEnd = true;
+                } else {
+                    targetPara = document.createElement('p');
+                    targetPara.innerHTML = '<br>';
+                    slideBlock.parentNode.insertBefore(targetPara, slideBlock);
+                    placeAtEnd = false;
+                    scheduleAutoSave();
+                }
+
+                // Move focus out of the nested contenteditable, then set cursor
+                var capturedPara = targetPara;
+                setTimeout(function () {
+                    editorEl.focus();
+                    var r = document.createRange();
+                    if (placeAtEnd) {
+                        r.selectNodeContents(capturedPara);
+                        r.collapse(false);
+                    } else {
+                        r.setStart(capturedPara, 0);
+                        r.collapse(true);
+                    }
+                    var s = window.getSelection();
+                    s.removeAllRanges();
+                    s.addRange(r);
+                    lastRange = r.cloneRange();
+                }, 0);
+            });
+
+            // ── Click in the gap above a slide-like block ────────────────────
+            // When a slide (or image/video block) is the first element, the
+            // browser cannot place the caret before it. A click on the editor
+            // itself above such a block inserts an empty paragraph there.
+            editorEl.addEventListener('mousedown', function (e) {
+                if (e.target !== editorEl) return;
+                var blockClasses = ['sermon-slide', 'sermon-img-wrap',
+                    'sermon-ppt-slide', 'sermon-video-wrap'];
+                function isBlock(el) {
+                    return el && el.nodeType === 1 && el.classList &&
+                        blockClasses.some(function (c) {
+                            return el.classList.contains(c);
+                        });
+                }
+                // First top-level element whose top edge is below the click
+                var target = null;
+                for (var el = editorEl.firstElementChild; el; el = el.nextElementSibling) {
+                    if (el.getBoundingClientRect().top >= e.clientY) {
+                        if (isBlock(el)) target = el;
+                        break;
+                    }
+                }
+                if (!target) return;
+                // If an editable block sits right above, native click handling
+                // will place the caret there — do not interfere
+                var above = target.previousElementSibling;
+                if (above && !isBlock(above)) return;
+
+                e.preventDefault();
+                editorEl.focus(); // preventDefault also suppressed focus
+                var p = document.createElement('p');
+                p.innerHTML = '<br>';
+                editorEl.insertBefore(p, target);
+                var r = document.createRange();
+                r.setStart(p, 0);
+                r.collapse(true);
+                var s = window.getSelection();
+                s.removeAllRanges();
+                s.addRange(r);
+                lastRange = r.cloneRange();
+                scheduleAutoSave();
+            });
+
             var fileInput = document.getElementById('sermon-image-input');
             if (fileInput) {
                 fileInput.addEventListener('change', function () {
@@ -501,6 +619,30 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             // >= 0 means cursor is at or past the container's end boundary
             return cur.compareBoundaryPoints(Range.START_TO_START, endRange) >= 0;
         } catch (e) { return false; }
+    }
+
+    /**
+     * True when the collapsed cursor sits at the very start of container
+     * (offset 0 all the way down the first-child chain). Offset-based walk —
+     * immune to the NBSP artifacts that break Range.toString() checks.
+     */
+    function _isCursorAtStartOf(container) {
+        var sel = window.getSelection();
+        if (!sel || !sel.isCollapsed || sel.rangeCount === 0) return false;
+        var cur = sel.getRangeAt(0);
+        var node = cur.startContainer;
+        if (!container.contains(node)) return false;
+        if (cur.startOffset !== 0) return false;
+        while (node && node !== container) {
+            var prev = node.previousSibling;
+            // Ignore browser-injected empty text nodes
+            while (prev && prev.nodeType === 3 && prev.textContent === '') {
+                prev = prev.previousSibling;
+            }
+            if (prev) return false;
+            node = node.parentNode;
+        }
+        return true;
     }
 
     // ──────────────────────────────────────────────────────────
@@ -1322,6 +1464,10 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         var header = wrap.querySelector('.sermon-slide-header');
         var inner  = wrap.querySelector('.sermon-slide-inner');
         var pick   = wrap.querySelector('.slide-color-input');
+        // Border must stay visible on the light editor page: the static CSS
+        // rgba(255,255,255,.25) frame disappears around light slides (drawio)
+        wrap.style.borderColor = (textColor === '#1a1a1a')
+            ? 'rgba(0,0,0,0.25)' : 'rgba(255,255,255,0.25)';
         if (header) header.style.background = color;
         if (inner) {
             inner.style.background = color;

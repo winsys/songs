@@ -601,7 +601,10 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                 var textColor = getContrastColor(bg);
                 var header    = el.querySelector('.sermon-slide-header');
                 var inner     = el.querySelector('.sermon-slide-inner');
-                el.style.borderColor = hexWithAlpha(bg, 0.4);
+                // Light slide backgrounds (drawio pages) need a grey border —
+                // a bg-derived translucent border is invisible on light panels
+                el.style.borderColor = (textColor === '#000000')
+                    ? 'rgba(0,0,0,0.3)' : hexWithAlpha(bg, 0.4);
                 el.style.background  = bg;
                 if (header) header.style.background = shadeHex(bg, -30);
                 if (inner) {
