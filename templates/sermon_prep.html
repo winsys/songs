@@ -1638,6 +1638,21 @@
                     <!-- Hidden input for PPTX -->
                     <input type="file" id="sermon-pptx-input" accept=".pptx,.ppt,.odp" style="display:none"
                            onchange="angular.element(this).scope().onPptxSelected(this)" />
+
+                    <!-- draw.io import -->
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.importDrawio'); ?>"
+                            ng-mousedown="$event.preventDefault()"
+                            ng-click="triggerDrawioImport()"
+                            ng-disabled="importingDrawio"
+                            style="padding:5px 10px; display:inline-flex; align-items:center; gap:5px;">
+                        <span style="font-size:15px; line-height:1;">📐</span>
+                        <span style="font-size:12px; font-weight:600;" ng-if="!importingDrawio">drawio</span>
+                        <span style="font-size:12px; font-weight:600;" ng-if="importingDrawio">...</span>
+                    </button>
+
+                    <!-- Hidden input for .drawio -->
+                    <input type="file" id="sermon-drawio-input" accept=".drawio,.xml" style="display:none"
+                           onchange="angular.element(this).scope().onDrawioSelected(this)" />
                 </div>
 
                 <!-- Contenteditable editor -->
@@ -1710,4 +1725,5 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/turndown/7.2.1/turndown.min.js" integrity="sha512-8Po+00YF9yNfZmNwpwzsqKsM1lbkTACbs/TueHeY4x9l6mjWiIu5ONZ8LJ1kbL1FTOqIV25Uyaq1d1+T9cNSmA==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
 <script src="/js/sermon_chip_editor.min.js?v=15"></script>
-<script src="/js/sermon_prep.min.js?v=26" type="text/javascript"></script>
+<script src="/js/drawio_import.min.js?v=1"></script>
+<script src="/js/sermon_prep.min.js?v=27" type="text/javascript"></script>
