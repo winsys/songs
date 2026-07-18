@@ -1031,6 +1031,71 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     }
 
     // ──────────────────────────────────────────────────────────
+    // DRAW.IO IMPORT (each diagram page → one slide)
+    // ──────────────────────────────────────────────────────────
+
+    $scope.importingDrawio = false;
+
+    $scope.triggerDrawioImport = function () {
+        document.getElementById('sermon-drawio-input').click();
+    };
+
+    $scope.onDrawioSelected = function (input) {
+        if (!input.files || input.files.length === 0) return;
+        var file = input.files[0];
+        input.value = '';
+        $scope.$applyAsync(function () { $scope.importingDrawio = true; });
+
+        var reader = new FileReader();
+        reader.onload = function () {
+            window.DrawioImport.parse(String(reader.result)).then(function (pages) {
+                $scope.$applyAsync(function () { $scope.importingDrawio = false; });
+                if (!pages.length) {
+                    alert(window.t('prep.drawio.empty'));
+                    return;
+                }
+                pages.forEach(function (p) { _appendDrawioSlide(p); });
+                scheduleAutoSave();
+                // current.text (display column) is 64 KB — warn about pages
+                // whose SVG may not fit when the slide is shown on screen
+                var big = pages.filter(function (p) { return p.oversize; })
+                               .map(function (p) { return p.name; });
+                if (big.length) {
+                    alert(window.t('prep.drawio.tooBig', { pages: big.join(', ') }));
+                }
+            }).catch(function (err) {
+                $scope.$applyAsync(function () { $scope.importingDrawio = false; });
+                var msg = (err && err.message) ? err.message : String(err);
+                alert(window.t('prep.error.importPrefix', { message: msg }));
+            });
+        };
+        reader.onerror = function () {
+            $scope.$applyAsync(function () { $scope.importingDrawio = false; });
+            alert(window.t('prep.error.importPrefix', { message: 'file read error' }));
+        };
+        reader.readAsText(file);
+    };
+
+    /**
+     * Append one imported draw.io page as a slide at the end of the editor.
+     * The SVG sits in a non-editable wrapper so the caret cannot enter it,
+     * while the slide itself keeps the standard header (color, delete).
+     */
+    function _appendDrawioSlide(page) {
+        var editor = document.getElementById('sermon-editor');
+        if (!editor) return;
+        var slide = _buildSlideNode(
+            '<div class="drawio-diagram" contenteditable="false">' + page.svg + '</div>',
+            page.background || '#ffffff'
+        );
+        _attachSlideHandlers(slide);
+        editor.appendChild(slide);
+        var p = document.createElement('p');
+        p.innerHTML = '<br>';
+        editor.appendChild(p);
+    }
+
+    // ──────────────────────────────────────────────────────────
     // VIDEO INSERT  ◄── NEW BLOCK
     // ──────────────────────────────────────────────────────────
 
