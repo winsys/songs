@@ -222,32 +222,49 @@
                 }
             }
 
-            function adjustTextSize() {
+            function adjustTextSize(_retry) {
                 $timeout(function() {
                     const container = document.getElementById("text-container");
                     const textElement = document.getElementById("text");
 
                     if (!container || !textElement) return;
 
+                    // The ng-if subtree may have just been inserted and not laid
+                    // out yet — retry until the container has real dimensions.
+                    if (container.clientHeight <= 0 || container.clientWidth <= 0) {
+                        if ((_retry || 0) < 10) adjustTextSize((_retry || 0) + 1);
+                        return;
+                    }
+
+                    // +2px width tolerance: the 90vw-derived width is fractional
+                    // while scrollWidth is an integer, so an exact comparison can
+                    // be false from the very first iteration and pin the font at
+                    // the floor (see the leader-page sub-pixel fit fix).
+                    const maxW = container.clientWidth + 2;
                     let maxSize = 100, currentSize = 10;
                     textElement.style.fontSize = currentSize + "px";
 
                     while (currentSize < maxSize &&
                     textElement.scrollHeight <= container.clientHeight &&
-                    textElement.scrollWidth <= container.clientWidth) {
+                    textElement.scrollWidth <= maxW) {
                         currentSize++;
                         textElement.style.fontSize = currentSize + "px";
                     }
 
-                    while (textElement.scrollHeight > container.clientHeight || textElement.scrollWidth > container.clientWidth) {
+                    while (currentSize > 8 &&
+                    (textElement.scrollHeight > container.clientHeight || textElement.scrollWidth > maxW)) {
                         currentSize--;
                         textElement.style.fontSize = currentSize + "px";
                     }
 
                     if (currentSize > $scope.fontMaxSize) currentSize = $scope.fontMaxSize;
                     $scope.fontSize = currentSize;
-                    $scope.$apply();
-                }, 0);
+                    // $applyAsync instead of $apply: this runs inside $timeout's
+                    // digest (where $apply throws "inprog") but is also called
+                    // raw from the window resize handler (where a digest IS
+                    // needed) — $applyAsync is safe in both contexts.
+                    $scope.$applyAsync();
+                }, 50);
             }
 
             function _ytId(url) {
@@ -574,6 +591,9 @@
                                 $scope.overlayImageSrc = '';
                                 $scope.text            = '';
                                 $scope.songName        = '';
+                                // Reset srcText so the SAME text renders again after
+                                // the video — the text branch deduplicates by it.
+                                $scope.srcText         = '';
                                 applyDisplayTransform(null); // video is never zoomed
                                 return;
                             } else if (videoState === 'paused') {
@@ -597,6 +617,10 @@
                                 : ((row.user_settings && row.user_settings.slide_bg_color) || '#1a237e');
                             showSlide(row.text || '', slideBg);
                             applyDisplayTransform(_parseTransform(row.transform));
+                            // Reset srcText: without this, returning to the SAME
+                            // citation after a slide matched the stale value and
+                            // the text branch skipped rendering — blank screen.
+                            $scope.srcText = '';
                             return;
                         }
                         hideSlide();
@@ -611,6 +635,7 @@
                             $scope.overlayImageSrc = imagePath;
                             $scope.text            = '';
                             $scope.songName        = '';
+                            $scope.srcText         = ''; // same-text-after-image must re-render
                             applyDisplayTransform(_parseTransform(row.transform));
                             return;
                         }
