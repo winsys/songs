@@ -23,7 +23,14 @@ client messages.
   - `#display-slide-wrap` — absolute `inset:0`, padding `4% 5% 5%`, holds
     `#display-slide-content` (100%×100%, base font 32px) (~520);
   - video overlay (z 11) and text (`#display-text-wrap`) — **out of scope**.
-- The pane has **no pointer handlers today** — gestures will not conflict.
+- ~~The pane has **no pointer handlers today** — gestures will not conflict.~~
+  **Wrong (found in production 2026-07-19):** the pane has a TOUCH-event
+  vertical swipe navigator (`navigateSermonContent`, sermon.js ~line 192) that
+  read a finished pinch as a swipe and flipped the slide. Fixed by making the
+  swipe handler gesture-aware: it now waits for the last finger, skips any
+  gesture that ever had two fingers (`touchMulti`), and yields single-finger
+  drags to panning while zoomed (`dzZoom.s > 1`). Lesson: audit `touch*`
+  listeners too, not only pointer handlers.
 - `public/js/sermon.js`: slide click → local preview + `set_slide` (channel
   `'sermon'`, line ~648); image chip → `showImage(path)` + `set_tech_image`
   (channel `'sermon'`, ~787). Local state: `displaySlideHtml`, `displayImageSrc`.
