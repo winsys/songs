@@ -791,6 +791,54 @@ trait Ajax_Tech
     }
 
     /**
+     * Live zoom/pan of the current slide/image on the main display, driven by
+     * pinch gestures on the sermon page's right pane.
+     * Args: channel ('sermon'), s (scale), x, y (translation as a fraction of
+     * the content element's own box), persist (0|1 — gesture end writes the
+     * state into current.transform so reloads/reconnects restore it).
+     * Broadcasts a group-scoped `display_transform` WS event to the resolved
+     * display-target group; NULL target = muted channel, nothing happens.
+     */
+    private static function set_display_transform()
+    {
+        $userId        = (int)$_SESSION['curGroupId'];
+        $targetGroupId = self::resolveDisplayTarget($userId);
+        if ($targetGroupId === null) {
+            return json_encode(['status' => 'ok']); // broadcast disabled — no-op
+        }
+
+        $s = isset(self::$args['s']) ? (float)self::$args['s'] : 1.0;
+        $x = isset(self::$args['x']) ? (float)self::$args['x'] : 0.0;
+        $y = isset(self::$args['y']) ? (float)self::$args['y'] : 0.0;
+
+        // Hard server-side clamps; the client additionally caps scale at 6x
+        // and pans within content bounds (|t| <= (s-1)/2).
+        $s = max(1.0, min(10.0, $s));
+        $x = max(-2.5, min(2.5, $x));
+        $y = max(-2.5, min(2.5, $y));
+        if ($s <= 1.001) { // identity: normalize so screens fully reset
+            $s = 1.0;
+            $x = 0.0;
+            $y = 0.0;
+        }
+
+        self::broadcastToGroup($targetGroupId, [
+            'type' => 'display_transform',
+            'data' => ['s' => round($s, 3), 'x' => round($x, 4), 'y' => round($y, 4)],
+        ]);
+
+        if (!empty(self::$args['persist'])) {
+            $json = ($s === 1.0)
+                ? ''
+                : json_encode(['s' => round($s, 3), 'x' => round($x, 4), 'y' => round($y, 4)]);
+            $esc = mysqli_real_escape_string(Info::get('dbh'), $json);
+            Info::get('db')->exec("UPDATE current SET transform='{$esc}' WHERE groupId={$targetGroupId}");
+        }
+
+        return json_encode(['status' => 'ok']);
+    }
+
+    /**
      * Get the list of standard wallpapers.
      * Returns: {status, wallpapers: [{id, name, src}], is_admin}
      */

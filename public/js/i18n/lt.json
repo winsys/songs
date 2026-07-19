@@ -316,6 +316,7 @@
   "sermon.video.pause": "⏸ Pauzė",
   "sermon.video.play": "▶ Leisti",
   "sermon.video.youtubeNote": "YouTube — valdymas grotuve",
+  "sermon.zoom.reset": "Atstatyti mastelį",
   "settings.alert.googleLinkError": "❌ Klaida: {message}",
   "settings.alert.googleLinkUrlError": "❌ Klaida gaunant OAuth URL!",
   "settings.alert.googleUnlinkError": "❌ Klaida atsiejant Google paskyrą!",

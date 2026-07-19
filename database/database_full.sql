@@ -66,7 +66,8 @@ CREATE TABLE IF NOT EXISTS `current` (
   `song_name` varchar(255) DEFAULT NULL,
   `chapter_indices` varchar(255) DEFAULT '',
   `video_src` varchar(2000) NOT NULL DEFAULT '',
-  `video_state` varchar(20) NOT NULL DEFAULT 'stopped'
+  `video_state` varchar(20) NOT NULL DEFAULT 'stopped',
+  `transform` varchar(255) NOT NULL DEFAULT ''
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.
