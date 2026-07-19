@@ -211,7 +211,7 @@ templates/
 
 ### PHP deployment quirks
 - A 500 error mid-render with no log entry is the classic symptom of `error_reporting(0)` hiding a fatal after partial output.
-- Nullable return types (`?array`) require **PHP 7.1+**. Confirm the deploy target before using.
+- Nullable return types (`?array`) require **PHP 7.1+**. Production runs **PHP 7.2** — stay within 7.2 language limits.
 
 ### Dynamic language columns in SQL
 - Never hardcode language column names (`TEXT_LT`, `NAME_EN`, etc.) in PHP queries — use `self::getLanguages()` from `Ajax_Common` to build SELECT/WHERE clauses dynamically.
@@ -240,7 +240,7 @@ templates/
 - Pavel provides **precise bug-reproduction steps**, and clearly reports when a fix did not work. Iterative diagnosis is expected until the bug is actually resolved — do not declare victory prematurely.
 - **Minimal dependencies** — do not add new libraries unless essential.
 - Prefer concise, mechanical descriptions of behavior over framing/marketing copy.
-- **Commit/push workflow:** After completing any set of changes, ask: "Нужно ли делать коммит и пуш?" If yes: `git add -A`, commit, then `git push` (origin/master) AND `git push github`.
+- **Commit/push workflow (standing permission, July 2026):** after completing any set of changes — `git add -A`, commit, then `git push` (origin/master) AND `git push github`, **without asking**. Never commit secrets (`config.php` stays git-ignored) or production data dumps. This supersedes the old ask-first flow.
 
 ---
 
@@ -261,11 +261,12 @@ templates/
 - When a fix fails: do not declare success. Ask for the next reproduction step or examine the actual DOM state.
 - Use English in all new comments.
 - Single endpoint `/ajax`, command dispatch by trait method name. All AJAX requires CSRF.
+- Any new/changed user-facing string: keys in all four i18n dictionaries (ru/de/en/lt), rendered via `window.t()` / `T::s()` — never hardcoded (see §16).
 - **Regression gate:** before changing a shared mechanism (`current` table, WebSocket message types, display-target resolution, cross-page Ajax commands) consult the impact map in `docs/deploy-checklist.md`; after deploying such a change, run its 5-minute smoke protocol.
 
 ---
 
-## 16. Planned but not yet implemented
+## 16. Automated testing (planned) & UI i18n (implemented)
 
 ### Automated testing
 - **Not yet started.** Proposed stack:
@@ -274,14 +275,9 @@ templates/
   - **PHPStan + ESLint** for static analysis — third
   - **Playwright** for E2E multi-role WebSocket flows — last (most setup overhead)
 
-### UI internationalization (English UI option)
-- **Goal:** add an English UI variant. Login form in English; language selector in `settings.html` (saved to `user_settings.ui_lang`).
-- **Critical constraint:** completely separate from the multi-language *content* system in the `languages` table.
-- **Proposed architecture (minimally invasive):**
-  1. Dictionary files: `public/js/i18n/ru.json`, `public/js/i18n/en.json` — flat key → string.
-  2. `public/js/i18n.js` exposing global `t('key', params)`. Initialized from `<script>window.UI_LANG = 'en'</script>` injected by PHP into `layout.html`.
-  3. AngularJS filter `| i18n` wrapping `t()`, so templates can use `{{ 'leader.title' | i18n }}`.
-  4. PHP helper `T::s('key')` reading the same JSON, for server-rendered pages.
-  5. `<select ng-model="settings.ui_lang">` in `settings.html`. After save: `window.location.reload()`.
-- **Risks:** string concatenation in JS must become parameterized `t('key', {name: x})`; inline `onclick` attributes with text need careful quoting; modal `label` configs live in JS; always bump `?v=` on translated JS files.
-- **Total estimate:** ~15–18 hours for full coverage.
+### UI internationalization — IMPLEMENTED (July 2026)
+- UI language per user: `ru` (default), `de`, `en`, `lt`; selector in `settings.html`, stored in `user_settings.ui_lang`.
+- Dictionaries: per-language JSON under `public/js/i18n/`; PHP injects the active one inline (`window.UI_LANG`, `window.UI_DICT = T::dictJson()`) — dictionary-only changes need no `?v=` bump.
+- Rendering: `window.t('key', params)` in JS, `T::s('key')` in PHP-rendered templates.
+- **Standing rule: every new or changed user-facing string gets keys in ALL FOUR dictionaries — no hardcoded UI text.**
+- Completely separate from the multi-language *content* system (`languages` table) — do not conflate (see §7).
