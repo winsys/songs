@@ -34,10 +34,18 @@ scenario re-checked.
 ### 2.1 `current` table (one row per group = "what is on screen")
 - **Writers:** `set_image`, `clear_image` (Ajax_Common); `set_tech_image`,
   `set_text` (UPSERT), `set_slide`, `set_message_text`, `set_bible_text`,
-  `set_video`, `video_control`, `disable_external_display` (Ajax_Tech).
-- **Readers:** `get_image` → main screen `text_layout.html` AND streaming
-  `text_layout_streaming.html` (skips `__slide__`); `get_current_state` →
-  tech console state restore (`restoreCurrentState`).
+  `set_video`, `video_control`, `disable_external_display`,
+  `set_display_transform` (UPDATE of `transform` only, on gesture end)
+  (Ajax_Tech).
+- **Readers:** `get_image` (incl. `transform`) → main screen
+  `text_layout.html` AND streaming `text_layout_streaming.html` (skips
+  `__slide__`, ignores `transform`); `get_current_state` → tech console
+  state restore (`restoreCurrentState`).
+- `transform` column (July 2026): zoom/pan state of the slide/image, JSON
+  `{"s","x","y"}` or '' = identity; auto-resets on every DELETE+INSERT.
+- **Gotcha (fixed e19074d, keep honoring):** the screen's text branch
+  deduplicates renders via `$scope.srcText` — every non-text branch MUST
+  reset `srcText`, or returning to the same text renders a blank screen.
 - Changing row shape/semantics ⇒ re-check: main screen, streaming screen,
   tech restore-after-reload, sermon right-pane consistency.
 
@@ -45,6 +53,7 @@ scenario re-checked.
 | Type | Producers | Consumers |
 |---|---|---|
 | `update_needed` | `updateSocket()` after most writes | both screens (refetch), tech console (reload+restore), leader (favorites), musician |
+| `display_transform` | `set_display_transform` (sermon pinch zoom/pan, ~10Hz during gesture) | main screen (applies CSS transform directly, no refetch); streaming ignores |
 | `leader_song_changed` | `set_image` channel `'leader'` | tech console (follow song, prepare verses) |
 | `display_target_changed` | `set_display_target` (tech) | sermon page (local copy), tech selects |
 | `sermon_display_cleared` | `disable_external_display` | sermon page (deactivate UI) |
