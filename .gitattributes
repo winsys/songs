@@ -1,0 +1,6 @@
+# Git hooks run under sh — CRLF breaks them on Windows checkouts.
+tools/hooks/* text eol=lf
+*.sh text eol=lf
+# Windows batch files require CRLF.
+*.cmd text eol=crlf
+*.bat text eol=crlf
