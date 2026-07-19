@@ -1,0 +1,31 @@
+#!/bin/sh
+# Enforce the terser contract (CLAUDE.md §3): every staged public/js/X.js gets
+# X.min.js regenerated with terser and staged alongside it; templates that
+# reference the file but are not part of the commit produce a ?v=N warning.
+#
+# Enable once per clone:  git config core.hooksPath tools/hooks
+
+staged=$(git diff --cached --name-only --diff-filter=ACM | grep '^public/js/' | grep '\.js$' | grep -v '\.min\.js$')
+[ -z "$staged" ] && exit 0
+
+status=0
+for f in $staged; do
+    base=$(basename "$f" .js)
+    min="public/js/$base.min.js"
+    if [ -f "$min" ]; then
+        echo "pre-commit: terser $f -> $min"
+        if npx terser "$f" -o "$min" --compress; then
+            git add "$min"
+        else
+            echo "pre-commit: terser FAILED for $f — commit blocked" >&2
+            status=1
+            continue
+        fi
+    fi
+    for t in $(grep -l -e "$base\.min\.js?v=" -e "$base\.js?v=" templates/*.html 2>/dev/null); do
+        if ! git diff --cached --name-only | grep -qx "$t"; then
+            echo "pre-commit: WARNING: $t references $base(.min).js?v= but is not in this commit — bump ?v=N if behavior changed" >&2
+        fi
+    done
+done
+exit $status

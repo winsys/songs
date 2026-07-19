@@ -5,6 +5,8 @@
 .idea/
 /nul
 /.claude/
+# Read-only DB credentials for tools/db_inspect.py (copy from db_ro.example.json)
+/tools/db_ro.json
 
 # Source Bible XMLs/JSONs feeding database/translations/build.py — not
 # tracked (download URLs are in build.py; the generated .sql outputs are

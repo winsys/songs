@@ -95,7 +95,7 @@ Any step fails ⇒ do not leave it "to check later": fix forward or roll back.
 
 ```
 git revert <bad-commit> && git push origin master && git push github master
-ssh root@server.winsys.lv "cd /srv/songs && git pull"
+tools\deploy.cmd            # = ssh root@server.winsys.lv "cd /srv/songs && git pull"
 ```
 - WS server restart is NOT needed for message-type changes; it IS needed if
   `websocket-server.php` itself changed: `php websocket-server.php restart`.
