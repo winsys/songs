@@ -260,6 +260,7 @@ templates/
 - When a fix fails: do not declare success. Ask for the next reproduction step or examine the actual DOM state.
 - Use English in all new comments.
 - Single endpoint `/ajax`, command dispatch by trait method name. All AJAX requires CSRF.
+- **Regression gate:** before changing a shared mechanism (`current` table, WebSocket message types, display-target resolution, cross-page Ajax commands) consult the impact map in `docs/deploy-checklist.md`; after deploying such a change, run its 5-minute smoke protocol.
 
 ---
 
