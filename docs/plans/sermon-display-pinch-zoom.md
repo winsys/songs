@@ -124,6 +124,11 @@ Persistence still goes through AJAX on gesture end.
   slide/image render → late-joining screens, reloads and WS reconnects restore
   the zoom; and since `set_slide`/`set_tech_image` DELETE+INSERT the row, every
   content switch auto-resets to identity.
+- **Screen-disable resets zoom** (decision): the tech page's "Отключить экран"
+  (`disable_external_display`) deletes the `current` row, which kills the
+  persisted transform; the screen must ALSO clear its cached local transform
+  in the empty-response branch of `fetchText()` (and generally whenever the
+  rendered content changes), so nothing zoomed survives a screen clear.
 - `get_current_state` (tech page) untouched — tech UI ignores transforms.
 
 ### 3.5 Gesture engine (sermon.js, vanilla Pointer Events, ~150 lines)
@@ -138,7 +143,12 @@ Persistence still goes through AJAX on gesture end.
 - One pointer = pan, **only when s > 1** (so taps/clicks keep working);
   `setPointerCapture` for reliability.
 - Double-tap: toggle 1× ↔ 2.5× centered on the tap point. Small `⟲` reset
-  button (and a `×N.N` zoom badge) shown while s > 1.
+  button (and a `×N.N` zoom badge) shown while s > 1. All new user-facing
+  strings (button tooltip, badge) go through the UI i18n dictionaries
+  (ru/de/en/lt, `window.t()`) — no hardcoded text.
+- Touch gestures only — no desktop mouse support (wheel/drag), per decision.
+  Panning the zoomed content by gestures is REQUIRED behavior, not optional:
+  one-finger pan when s > 1, two-finger pan always.
 - Local echo: apply `style.transform` directly on the pane element per
   `pointermove` (no `$apply` per frame — zero digest cost).
 - iOS Safari: `preventDefault()` on proprietary `gesturestart/gesturechange`
@@ -166,10 +176,11 @@ value (or identity) after rendering slide/image. Transition 120 ms linear.
 5. Build chores: `npx terser public/js/sermon.js -o public/js/sermon.min.js
    --compress` (no `--mangle`), bump `sermon.min.js?v=15` → `?v=16` in
    `sermon_layout.html`. `text_layout.html` JS is inline — no minify step.
-6. Test matrix: Android Chrome + iPad Safari pinch; desktop (mouse: wheel-zoom
-   optional, drag-pan) as bonus; slide vs image vs draw.io SVG slide; target =
-   own group / other group / NULL (muted → pane zooms locally, screen silent —
-   correct); screen reload mid-zoom (persistence); content switch (reset);
+6. Test matrix: Android Chrome + iPad Safari pinch + pan (no desktop-mouse
+   support — out of scope by decision); slide vs image vs draw.io SVG slide;
+   target = own group / other group / NULL (muted → pane zooms locally, screen
+   silent — correct); screen reload mid-zoom (persistence); content switch
+   (reset); tech "Отключить экран" (zoom must reset with the screen clear);
    video (gestures inactive); streaming screen unaffected.
 
 ## 5. Edge cases & risks
@@ -199,12 +210,14 @@ value (or identity) after rendering slide/image. Transition 120 ms linear.
 | **Total v1** | **~9–12 h** |
 | Phase 2 WS relay (only if needed) | +4–6 h |
 
-## 7. Open questions for Pavel
+## 7. Decisions (Pavel, 2026-07-19)
 
-1. Should the **tech page** ever see/control the transform (e.g. a reset
-   button there)? v1: no.
-2. Desktop mouse support on the pane (wheel = zoom, drag = pan) — include in
-   v1 or later?
-3. Max zoom: is 6× enough for sheet-music-density images?
-4. Should pinch also work for **video** (some projectors crop) — currently out
-   of scope.
+1. **Tech page:** no dedicated zoom UI there, but "Отключить экран"
+   (`disable_external_display`) must reset the zoom together with clearing
+   the screen (see §3.4 — row deletion + explicit cache clear on empty fetch).
+2. **Desktop mouse (wheel/drag): not needed.** Touch gestures only. Panning
+   the zoomed image by gestures is required v1 behavior.
+3. **Max zoom 6× confirmed.**
+4. **Video zoom: not needed** — stays out of scope.
+5. Any new user-facing strings introduced by this feature go through the UI
+   i18n dictionaries (ru/de/en/lt) — standing project rule.
