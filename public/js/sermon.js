@@ -1094,6 +1094,300 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
 
 
         // ==========================================================
+        // PINCH ZOOM / PAN OF THE DISPLAY (slide & image overlays)
+        // ==========================================================
+        // While a slide or an image is active (and no video), touch gestures
+        // on the right pane zoom/pan it locally AND on the main display:
+        // transient state goes out throttled (~10Hz) as set_display_transform
+        // with channel 'sermon' — the server resolves the technician-set
+        // target (NULL = muted, screens untouched) and rebroadcasts a
+        // display_transform WS event; gesture end persists the state into
+        // current.transform so screens restore it after reload/reconnect.
+        // Model: {s, x, y} — scale in [1..DZ_MAX_SCALE], translation as a
+        // fraction of the content element's own box, translate-after-scale
+        // with transform-origin 50% 50% (identical math on the screen side).
+        // Touch/pen only by decision — no mouse support. Video/text: no zoom.
+
+        var DZ_MAX_SCALE = 6;    // enough for sheet-density images (decision)
+        var DZ_SEND_MS   = 100;  // transient send throttle
+        var DZ_TAP_MS    = 250;  // max press duration counted as a tap
+        var DZ_TAP_DIST  = 12;   // max movement (px) still counted as a tap
+        var DZ_DBL_MS    = 320;  // max pause between taps of a double-tap
+        var DZ_DBL_SCALE = 2.5;  // double-tap zoom-in factor
+
+        var dzZoom     = { s: 1, x: 0, y: 0 };
+        var dzPointers = {};     // pointerId -> {x, y}
+        var dzBase     = null;   // gesture baseline: {type:'pinch'|'pan', ...}
+        var dzTimer    = null;   // send throttle timer
+        var dzDirty    = false;  // transient change awaiting a throttled send
+        var dzTouched  = false;  // any change during the current gesture
+        var dzLastTap  = { t: 0, x: 0, y: 0 };
+        var dzDown     = null;   // pointerdown info of a potential tap
+
+        function dzActive() {
+            return !!(($scope.displaySlideHtml || $scope.displayImageSrc)
+                      && !$scope.displayVideoSrc);
+        }
+
+        // The transformed content element. The slide overlay (z12) covers the
+        // image overlay (z10), so it wins when both scope values are set.
+        function dzContentEl() {
+            if ($scope.displaySlideHtml) return document.getElementById('display-slide-content');
+            if ($scope.displayImageSrc)  return document.getElementById('display-image');
+            return null;
+        }
+
+        // Untransformed geometry of the content element: sizes from offset*
+        // (not affected by CSS transforms); viewport center via offsetParent
+        // (#display-panel and #display-slide-wrap are never transformed).
+        function dzGeom(el) {
+            var parent = el.offsetParent || el.parentElement;
+            var pr = parent.getBoundingClientRect();
+            return {
+                W: el.offsetWidth,
+                H: el.offsetHeight,
+                cx: pr.left + el.offsetLeft + el.offsetWidth / 2,
+                cy: pr.top + el.offsetTop + el.offsetHeight / 2
+            };
+        }
+
+        // Content point (px, relative to the element center, unscaled) that
+        // currently sits under viewport point (px, py).
+        function dzContentPoint(g, px, py) {
+            return {
+                x: (px - g.cx - dzZoom.x * g.W) / dzZoom.s,
+                y: (py - g.cy - dzZoom.y * g.H) / dzZoom.s
+            };
+        }
+
+        function dzClamp() {
+            if (dzZoom.s <= 1.001) { dzZoom.s = 1; dzZoom.x = 0; dzZoom.y = 0; return; }
+            if (dzZoom.s > DZ_MAX_SCALE) dzZoom.s = DZ_MAX_SCALE;
+            var m = (dzZoom.s - 1) / 2; // content edges may reach, not pass, the view edges
+            if (dzZoom.x >  m) dzZoom.x =  m;
+            if (dzZoom.x < -m) dzZoom.x = -m;
+            if (dzZoom.y >  m) dzZoom.y =  m;
+            if (dzZoom.y < -m) dzZoom.y = -m;
+        }
+
+        function dzRender() {
+            var el = dzContentEl();
+            if (!el) return;
+            el.style.transform = dzZoom.s > 1
+                ? 'translate(' + (dzZoom.x * 100) + '%, ' + (dzZoom.y * 100) + '%) scale(' + dzZoom.s + ')'
+                : '';
+        }
+
+        function dzUpdateBadge() {
+            $scope.$applyAsync(function () {
+                $scope.zoomBadge = dzZoom.s > 1.001 ? dzZoom.s.toFixed(1) : null;
+            });
+        }
+
+        function dzSend(persist) {
+            $http.post('/ajax', {
+                command: 'set_display_transform',
+                channel: 'sermon',
+                s: +dzZoom.s.toFixed(3),
+                x: +dzZoom.x.toFixed(4),
+                y: +dzZoom.y.toFixed(4),
+                persist: persist ? 1 : 0
+            });
+        }
+
+        function dzQueueSend() {
+            dzTouched = true;
+            dzDirty = true;
+            if (dzTimer) return;
+            dzTimer = setTimeout(function () {
+                dzTimer = null;
+                if (dzDirty) { dzDirty = false; dzSend(false); }
+            }, DZ_SEND_MS);
+        }
+
+        function dzFlush() {
+            if (dzTimer) { clearTimeout(dzTimer); dzTimer = null; }
+            dzDirty = false;
+            dzTouched = false;
+            dzSend(true);
+            dzUpdateBadge();
+        }
+
+        // silent=true when the content itself is being switched/cleared: the
+        // current row is replaced server-side (transform resets there), so
+        // only local state needs resetting and nothing is sent.
+        function dzReset(silent) {
+            var was = dzZoom.s > 1.001;
+            dzZoom = { s: 1, x: 0, y: 0 };
+            if (dzTimer) { clearTimeout(dzTimer); dzTimer = null; }
+            dzDirty = false;
+            dzTouched = false;
+            dzBase = null;
+            dzRender();
+            dzUpdateBadge();
+            if (!silent && was) dzSend(true);
+        }
+
+        $scope.zoomBadge = null;
+        $scope.zoomResetClick = function () { dzReset(false); };
+
+        function dzDoubleTap(px, py) {
+            var el = dzContentEl();
+            if (!el) return;
+            var g = dzGeom(el);
+            if (dzZoom.s > 1.5) {
+                dzZoom = { s: 1, x: 0, y: 0 };
+            } else {
+                var p = dzContentPoint(g, px, py);
+                dzZoom.s = DZ_DBL_SCALE;
+                dzZoom.x = (px - g.cx - p.x * dzZoom.s) / g.W;
+                dzZoom.y = (py - g.cy - p.y * dzZoom.s) / g.H;
+                dzClamp();
+            }
+            dzBase = null;
+            dzRender();
+            dzFlush();
+        }
+
+        function dzPointerDown(e) {
+            if (e.pointerType === 'mouse' || !dzActive()) return;
+            if (e.target && e.target.id === 'dz-badge') return; // keep the badge tappable
+            var el = dzContentEl();
+            if (!el) return;
+            dzPointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+            try { e.currentTarget.setPointerCapture(e.pointerId); } catch (err) {}
+
+            var ids = Object.keys(dzPointers);
+            if (ids.length === 2) {
+                var a = dzPointers[ids[0]], b = dzPointers[ids[1]];
+                var g = dzGeom(el);
+                dzBase = {
+                    type: 'pinch',
+                    g: g,
+                    d0: Math.max(20, Math.hypot(a.x - b.x, a.y - b.y)),
+                    s0: dzZoom.s,
+                    // content point under the initial midpoint — kept under
+                    // the moving midpoint for the whole pinch
+                    p0: dzContentPoint(g, (a.x + b.x) / 2, (a.y + b.y) / 2)
+                };
+                dzDown = null; // two fingers — not a tap anymore
+            } else if (ids.length === 1) {
+                dzDown = { t: Date.now(), x: e.clientX, y: e.clientY, moved: false };
+                dzBase = dzZoom.s > 1.001 ? {
+                    type: 'pan',
+                    g: dzGeom(el),
+                    x0: dzZoom.x, y0: dzZoom.y,
+                    px: e.clientX, py: e.clientY
+                } : null;
+            }
+            e.preventDefault();
+        }
+
+        function dzPointerMove(e) {
+            var p = dzPointers[e.pointerId];
+            if (!p) return;
+            p.x = e.clientX;
+            p.y = e.clientY;
+            if (dzDown && !dzDown.moved
+                && Math.hypot(e.clientX - dzDown.x, e.clientY - dzDown.y) > DZ_TAP_DIST) {
+                dzDown.moved = true;
+            }
+            if (!dzBase) return;
+
+            var ids = Object.keys(dzPointers);
+            if (dzBase.type === 'pinch' && ids.length >= 2) {
+                var a = dzPointers[ids[0]], b = dzPointers[ids[1]];
+                var g = dzBase.g;
+                var d = Math.max(20, Math.hypot(a.x - b.x, a.y - b.y));
+                var mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+                dzZoom.s = dzBase.s0 * d / dzBase.d0;
+                if (dzZoom.s > DZ_MAX_SCALE) dzZoom.s = DZ_MAX_SCALE;
+                if (dzZoom.s < 1) dzZoom.s = 1;
+                dzZoom.x = (mx - g.cx - dzBase.p0.x * dzZoom.s) / g.W;
+                dzZoom.y = (my - g.cy - dzBase.p0.y * dzZoom.s) / g.H;
+                dzClamp();
+                dzRender();
+                dzQueueSend();
+            } else if (dzBase.type === 'pan' && ids.length === 1 && dzZoom.s > 1.001) {
+                dzZoom.x = dzBase.x0 + (e.clientX - dzBase.px) / dzBase.g.W;
+                dzZoom.y = dzBase.y0 + (e.clientY - dzBase.py) / dzBase.g.H;
+                dzClamp();
+                dzRender();
+                dzQueueSend();
+            }
+            e.preventDefault();
+        }
+
+        function dzPointerUp(e) {
+            if (!dzPointers[e.pointerId]) return;
+            delete dzPointers[e.pointerId];
+            var left = Object.keys(dzPointers);
+
+            // Tap / double-tap detection (quick single-finger press, no move)
+            if (dzDown && left.length === 0 && !dzDown.moved
+                && Date.now() - dzDown.t < DZ_TAP_MS && dzActive()) {
+                var now = Date.now();
+                if (now - dzLastTap.t < DZ_DBL_MS
+                    && Math.hypot(e.clientX - dzLastTap.x, e.clientY - dzLastTap.y) < 40) {
+                    dzDoubleTap(e.clientX, e.clientY);
+                    dzLastTap = { t: 0, x: 0, y: 0 };
+                } else {
+                    dzLastTap = { t: now, x: e.clientX, y: e.clientY };
+                }
+            }
+            dzDown = null;
+
+            if (left.length === 1 && dzBase && dzBase.type === 'pinch') {
+                // One finger lifted mid-pinch: continue as a pan.
+                var el = dzContentEl();
+                var rem = dzPointers[left[0]];
+                dzBase = (el && dzZoom.s > 1.001) ? {
+                    type: 'pan',
+                    g: dzGeom(el),
+                    x0: dzZoom.x, y0: dzZoom.y,
+                    px: rem.x, py: rem.y
+                } : null;
+            } else if (left.length === 0) {
+                if (dzTouched) dzFlush(); // broadcast+persist the final state
+                dzBase = null;
+            }
+        }
+
+        function dzPointerCancel(e) {
+            if (!dzPointers[e.pointerId]) return;
+            delete dzPointers[e.pointerId];
+            dzDown = null;
+            dzBase = null;
+            if (Object.keys(dzPointers).length === 0 && dzTouched) dzFlush();
+        }
+
+        (function dzInit() {
+            var panel = document.getElementById('display-panel');
+            if (!panel) return;
+            panel.addEventListener('pointerdown', dzPointerDown);
+            panel.addEventListener('pointermove', dzPointerMove);
+            panel.addEventListener('pointerup', dzPointerUp);
+            panel.addEventListener('pointercancel', dzPointerCancel);
+            // iOS Safari fires proprietary gesture events that pinch-zoom the
+            // whole page — suppress them while our gestures are active.
+            ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (t) {
+                panel.addEventListener(t, function (e) {
+                    if (dzActive()) e.preventDefault();
+                });
+            });
+        })();
+
+        // Toggle the gesture surface and reset the local zoom whenever the
+        // active slide/image (or video) changes — the replaced current row
+        // resets the persisted transform server-side at the same time.
+        $scope.$watchGroup(['displaySlideHtml', 'displayImageSrc', 'displayVideoSrc'],
+            function () {
+                var panel = document.getElementById('display-panel');
+                if (panel) panel.classList.toggle('dz-active', dzActive());
+                dzReset(true);
+            });
+
+        // ==========================================================
         // WEBSOCKET — react to tech-initiated display clear
         // ==========================================================
         // Tech's "Отключить экран" button broadcasts a global

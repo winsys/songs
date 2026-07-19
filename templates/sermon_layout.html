@@ -568,6 +568,32 @@
         #display-slide-content .sermon-slide-del,
         #display-slide-content .sermon-group-header { display: none !important; }
 
+        /* ── Pinch zoom/pan of the display (slide & image overlays) ── */
+        #display-panel.dz-active {
+            touch-action: none;        /* gestures instead of browser scroll/zoom */
+            -webkit-user-select: none;
+            user-select: none;
+        }
+        #display-image,
+        #display-slide-content {
+            transform-origin: 50% 50%; /* same transform model as the main screen */
+            will-change: transform;    /* no transition here: echo tracks the finger 1:1 */
+        }
+        #dz-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            z-index: 30;
+            background: rgba(0, 0, 0, 0.55);
+            color: #fff;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 14px;
+            cursor: pointer;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
         /* ── Video overlay in the right panel ── */
         #display-video-wrap {
             position: absolute;
@@ -757,13 +783,17 @@
             <?php echo T::s('sermon.display.empty'); ?>
         </div>
 
+        <!-- Zoom badge: current scale while zoomed; tap = reset (both here and on the display) -->
+        <div id="dz-badge" ng-show="zoomBadge" ng-click="zoomResetClick()"
+             title="<?php echo htmlspecialchars(T::s('sermon.zoom.reset'), ENT_QUOTES); ?>">&times;{{ zoomBadge }} &#10226;</div>
+
     </div>
 </div>
 
 <button id="fullscreen-btn" ng-click="toggleFullscreen()"><?php echo T::s('sermon.fullscreen'); ?></button>
 
 <script src="/js/websocket_auth.min.js"></script>
-<script src="/js/sermon.min.js?v=15" type="text/javascript"></script>
+<script src="/js/sermon.min.js?v=16" type="text/javascript"></script>
 <script>
     function toggleHeaderMenu(e) {
         e.stopPropagation();

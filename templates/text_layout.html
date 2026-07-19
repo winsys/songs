@@ -137,6 +137,16 @@
         #slide-content b, #slide-content strong,
         #slide-content i, #slide-content em { color: inherit; }
 
+        /* Live zoom/pan pushed from the sermon page (display_transform).
+           The transform sits on the CONTENT element; the 120ms transition
+           smooths the ~10Hz gesture packets into continuous motion. */
+        #overlay-image,
+        #slide-content {
+            transform-origin: 50% 50%;
+            transition: transform 120ms linear;
+            will-change: transform;
+        }
+
         #video-overlay {
             display: none;          /* управляется JS, не ng-show */
             position: fixed;
@@ -486,6 +496,33 @@
             }
 
 
+            // ── DISPLAY TRANSFORM (pinch zoom/pan from the sermon page) ────
+            // State {s, x, y}: scale plus translation as a fraction of the
+            // content element's own box (translate-after-scale, origin 50%).
+            // Transient values arrive as display_transform WS events; the
+            // persisted value comes with get_image (current.transform) so a
+            // reloaded/reconnected screen restores the zoom. Identity clears.
+            function _parseTransform(str) {
+                if (!str) return null;
+                try {
+                    var t = JSON.parse(str);
+                    return (t && t.s > 1.001) ? t : null;
+                } catch (e) { return null; }
+            }
+
+            function applyDisplayTransform(t) {
+                var active = (t && t.s > 1.001)
+                    ? { s: +t.s || 1, x: +t.x || 0, y: +t.y || 0 }
+                    : null;
+                var css = active
+                    ? 'translate(' + (active.x * 100) + '%, ' + (active.y * 100) + '%) scale(' + active.s + ')'
+                    : '';
+                var img = document.getElementById('overlay-image');
+                if (img) img.style.transform = css;
+                var sc = document.getElementById('slide-content');
+                if (sc) sc.style.transform = css;
+            }
+
             var _fetchSeq   = 0;  // discards stale responses
             var _fetchTimer = null; // debounce timer
 
@@ -511,6 +548,7 @@
                             $scope.overlayImageSrc = '';
                             hideVideoOverlay();
                             hideSlide();
+                            applyDisplayTransform(null); // screen cleared — zoom resets too
                             return;
                         }
 
@@ -536,6 +574,7 @@
                                 $scope.overlayImageSrc = '';
                                 $scope.text            = '';
                                 $scope.songName        = '';
+                                applyDisplayTransform(null); // video is never zoomed
                                 return;
                             } else if (videoState === 'paused') {
                                 pauseVideoOverlay();
@@ -557,6 +596,7 @@
                                 ? row.song_name
                                 : ((row.user_settings && row.user_settings.slide_bg_color) || '#1a237e');
                             showSlide(row.text || '', slideBg);
+                            applyDisplayTransform(_parseTransform(row.transform));
                             return;
                         }
                         hideSlide();
@@ -571,11 +611,13 @@
                             $scope.overlayImageSrc = imagePath;
                             $scope.text            = '';
                             $scope.songName        = '';
+                            applyDisplayTransform(_parseTransform(row.transform));
                             return;
                         }
 
                         // ── ТЕКСТ ──────────────────────────────────────────────
                         $scope.overlayImageSrc = '';
+                        applyDisplayTransform(null); // text mode is never zoomed
                         if ($scope.srcText !== row.text) {
                             $scope.srcText = row.text;
                             var preparedText = (row.text || '').substring(0);
@@ -599,6 +641,9 @@
                         // Handle incoming messages (only after authentication)
                         if (data.type === 'update_needed') {
                             schedFetch();
+                        } else if (data.type === 'display_transform') {
+                            // Fast path: apply zoom/pan directly, no refetch.
+                            applyDisplayTransform(data.data);
                         }
                     },
                     function(error) {

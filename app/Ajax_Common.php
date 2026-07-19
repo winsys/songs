@@ -373,7 +373,7 @@ trait Ajax_Common
     {
         $userId = $_SESSION['curGroupId'];
         $img = Info::get('db')->select(
-            "SELECT image, text, song_name, video_src, video_state
+            "SELECT image, text, song_name, video_src, video_state, transform
          FROM current WHERE groupId = " . (int)$userId
         );
 

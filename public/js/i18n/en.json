@@ -316,6 +316,7 @@
   "sermon.video.pause": "⏸ Pause",
   "sermon.video.play": "▶ Play",
   "sermon.video.youtubeNote": "YouTube — control via the player",
+  "sermon.zoom.reset": "Reset zoom",
   "settings.alert.googleLinkError": "❌ Error: {message}",
   "settings.alert.googleLinkUrlError": "❌ Error obtaining the OAuth URL!",
   "settings.alert.googleUnlinkError": "❌ Error unlinking the Google account!",
