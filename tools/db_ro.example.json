@@ -1,0 +1,7 @@
+{
+    "host": "server.winsys.lv",
+    "port": 43306,
+    "user": "songs_ro",
+    "password": "<fill in after creating the songs_ro user — see docs/deploy-checklist.md §5>",
+    "database": "songs"
+}

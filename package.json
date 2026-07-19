@@ -1,4 +1,9 @@
 {
+  "scripts": {
+    "min": "node tools/minify.js",
+    "min:all": "node tools/minify.js --all",
+    "min:check": "node tools/minify.js --check"
+  },
   "devDependencies": {
     "terser": "^5.46.0"
   }

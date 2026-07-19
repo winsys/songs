@@ -38,10 +38,11 @@ Capabilities: synchronized setlist management, digital sheet music, sermon prepa
 
 - **PHPStorm no longer auto-minifies.** Always run terser manually after editing any `.js` file.
 - Command: `npx terser public/js/foo.js -o public/js/foo.min.js --compress` — do **not** use `--mangle` (AngularJS 1.6.6 DI breaks with mangled parameter names; use array DI notation)
-- Always edit the `.js` source; exception: files without a `.js` counterpart (e.g. `csrf_interceptor.min.js`) can be edited directly.
+- Always edit the `.js` source, never the `.min.js`. (The old exception for `csrf_interceptor.min.js` is obsolete: its `.js` source exists since March 2026 and is the source of truth.)
 - If a template references `foo.min.js`, read and edit `foo.js` instead.
 - After editing any `.js` or `.css` file, **bump its `?v=N` query string** in every `<script>`/`<link>` tag in HTML templates that includes it — this is the cache-busting contract.
 - `*.min.js` files are auto-generated; never edit them directly.
+- Helpers: `npm run min` (rebuild stale .min.js + list templates needing a `?v=` bump), `npm run min:all`, `npm run min:check`. A pre-commit hook (`tools/hooks/pre-commit`; enable once per clone: `git config core.hooksPath tools/hooks`) auto-regenerates and stages `.min.js` for staged `.js` files and warns about missing `?v=` bumps.
 
 ---
 
