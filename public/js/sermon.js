@@ -191,12 +191,24 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
 
         var displayPanel = document.getElementById('display-panel');
         var touchStartY = 0;
+        var touchMulti  = false; // a second finger joined — pinch, never a swipe
 
         displayPanel.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) touchMulti = true;
             touchStartY = e.changedTouches[0].screenY;
         }, { passive: true });
 
         displayPanel.addEventListener('touchend', function(e) {
+            // Wait until the LAST finger lifts, then decide about the whole
+            // gesture once; fingers lifting one by one after a pinch used to
+            // read as a swipe (start Y of the first finger vs end Y of the
+            // last one) and flipped the slide right after zooming.
+            if (e.touches.length > 0) return;
+            var wasMulti = touchMulti;
+            touchMulti = false;
+            if (wasMulti) return;          // pinch/two-finger gesture
+            if (dzZoom.s > 1.001) return;  // zoomed: a single finger pans, not swipes
+
             var touchEndY = e.changedTouches[0].screenY;
             var deltaY = touchStartY - touchEndY; // positive = swipe up
 
@@ -213,6 +225,10 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                     }
                 });
             }
+        }, { passive: true });
+
+        displayPanel.addEventListener('touchcancel', function(e) {
+            if (e.touches.length === 0) touchMulti = false;
         }, { passive: true });
 
         // ==========================================================
