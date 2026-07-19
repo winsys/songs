@@ -2378,6 +2378,28 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         } else if (message.type === 'access_response') {
             // Another group approved/rejected our request: refresh the target list.
             loadDisplayTargetSettings();
+        } else if (message.type === 'leader_song_changed') {
+            // The leader opened a song: follow it on the console (select the
+            // song and prepare its verses) WITHOUT touching any screen — the
+            // display write, if any, is already resolved server-side by the
+            // leader-channel display target.
+            var d = message.data || {};
+            $scope.$apply(function() {
+                $scope.reloadFavorites(function() {
+                    for (var i = 0; i < $scope.favorites.length; i++) {
+                        var f = $scope.favorites[i];
+                        if (f.itemType === 'song' && f.LISTID == d.list_id && f.NUM == d.image_num) {
+                            if ($scope.showingSong !== f) {
+                                $scope.showingSong = f;
+                                splitText(f);
+                                $scope.showingChapter = null;
+                                $scope.selectedChapters = [];
+                            }
+                            break;
+                        }
+                    }
+                });
+            });
         }
     });
 

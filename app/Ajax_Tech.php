@@ -110,11 +110,27 @@ trait Ajax_Tech
         $song_name  = mysqli_real_escape_string($dbh, self::$args['song_name']  ?? '');
         $chapter_indices = mysqli_real_escape_string($dbh, self::$args['chapter_indices'] ?? '');
 
-        Info::get('db')->exec(
-            "UPDATE current
-             SET text='{$text}', song_name='{$song_name}', chapter_indices='{$chapter_indices}'
-             WHERE groupId={$userId} AND image='{$image_name}'"
+        $row = Info::get('db')->get(
+            "SELECT groupId FROM current WHERE groupId={$userId} AND image='{$image_name}'"
         );
+        if ($row) {
+            Info::get('db')->exec(
+                "UPDATE current
+                 SET text='{$text}', song_name='{$song_name}', chapter_indices='{$chapter_indices}'
+                 WHERE groupId={$userId} AND image='{$image_name}'"
+            );
+        } elseif ($text !== '') {
+            // The console may have selected this song by following the leader
+            // (leader_song_changed) without pushing its image row; a verse click
+            // must still reach the screen, so replace the group's current row.
+            // Empty text (verse toggle-off) keeps the old silent no-op to avoid
+            // resurrecting a stale song image over unrelated screen content.
+            Info::get('db')->exec("DELETE FROM current WHERE groupId={$userId}");
+            Info::get('db')->exec(
+                "INSERT INTO current (groupId, image, text, song_name, chapter_indices, video_src, video_state)
+                 VALUES ({$userId}, '{$image_name}', '{$text}', '{$song_name}', '{$chapter_indices}', '', 'stopped')"
+            );
+        }
         self::updateSocket();
         return '';
     }

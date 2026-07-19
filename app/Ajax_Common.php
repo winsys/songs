@@ -337,6 +337,23 @@ trait Ajax_Common
     {
         $userId = (int)$_SESSION['curGroupId'];
         $targetGroupId = self::resolveDisplayTarget($userId);
+
+        // The technician's console follows the leader's current song even when
+        // the leader channel does not reach any screen (target NULL = "do not
+        // broadcast") or points at another group's screen. This event only
+        // drives console UI state — it never touches a display.
+        $channel = isset(self::$args['channel']) ? (string)self::$args['channel'] : '';
+        if ($channel === 'leader') {
+            self::broadcastToGroup($userId, [
+                'type' => 'leader_song_changed',
+                'data' => [
+                    'list_id'   => (string)self::$args['list_id'],
+                    'image_num' => (string)self::$args['image_num'],
+                    'song_id'   => isset(self::$args['song_id']) ? (string)self::$args['song_id'] : '',
+                ],
+            ]);
+        }
+
         if ($targetGroupId === null) {
             return ''; // broadcast disabled for this channel — leave screens alone
         }
