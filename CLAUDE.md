@@ -127,6 +127,8 @@ Start with: `php websocket-server.php start`
 
 Runs as a separate process on localhost:2345. The browser JS connects to this; internal PHP triggers via port 2346.
 
+**Offline Docker copy:** `docker/` + `tools/offline_sync` run a full LAN copy (Apache+Workerman in one container, `/ws` same-origin proxy, mysql:5.7) for no-internet deployments — see `docs/offline-server.md`.
+
 ---
 
 ## 10. Templates / File reference

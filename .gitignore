@@ -1,6 +1,15 @@
 /app/config.php
 /public/images
 /vendor/
+
+# Offline/Docker server copy — production data and local secrets stay out of git
+/public/tech_media/
+/public/sermon_images/
+/public/sermon_videos/
+/docker/initdb/*.sql
+/docker/initdb/*.sql.gz
+/docker/config.container.php
+/docker/.env
 /node_modules/
 .idea/
 /nul
