@@ -6,6 +6,7 @@
 /public/tech_media/
 /public/sermon_images/
 /public/sermon_videos/
+/public/sermon_slides/
 /docker/initdb/*.sql
 /docker/initdb/*.sql.gz
 /docker/config.container.php
