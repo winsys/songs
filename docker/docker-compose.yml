@@ -54,5 +54,19 @@ services:
       retries: 180
       start_period: 30s
 
+  # Optional LAN DNS: answers songs.lan → SONGS_LAN_IP for every device on the
+  # network (point the router's DHCP "Primary DNS" at this machine). On Windows
+  # port 53 is often held by the ICS service — free it first, see
+  # docs/offline-server.md. With SONGS_LAN_IP empty the container just idles.
+  dns:
+    build: ./dns
+    image: songs-offline-dns
+    restart: unless-stopped
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    environment:
+      SONGS_LAN_IP: "${SONGS_LAN_IP:-}"
+
 volumes:
   db_data:

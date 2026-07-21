@@ -73,10 +73,9 @@ Recommended target: `http://songs.lan` from any device on the LAN.
    - **Router DNS entry** (Keenetic, MikroTik, OpenWrt, most business APs):
      add A-record `songs.lan` → server IP. Every client just works.
      The church router (TP-Link AC1200 class, stock firmware) can NOT do
-     this — it has DHCP address reservation but no custom DNS records, so
-     there use mDNS / hosts / raw IP below. (If a LAN-wide name is really
-     wanted: run a small DNS server on the laptop and hand its IP out via
-     the router's DHCP "Primary DNS" setting — TP-Link does allow that.)
+     this — it has DHCP address reservation but no custom DNS records. There,
+     use the bundled DNS container (see "`songs.lan` for every device" below)
+     or fall back to mDNS / hosts / raw IP.
    - **hosts file** on fixed devices (tech PC, screen PCs):
      `192.168.68.10  songs.lan` in
      `C:\Windows\System32\drivers\etc\hosts` (or `/etc/hosts`).
@@ -117,10 +116,46 @@ Recommended target: `http://songs.lan` from any device on the LAN.
    matter: (a) Windows classifies a NEW network as **Public** by default —
    set it to Private (`Set-NetConnectionProfile -InterfaceAlias "Wi-Fi"
    -NetworkCategory Private`), or the firewall rule won't apply; (b) redo the
-   DHCP reservation + `songs.lan` DNS entry on the new router (and update any
-   hosts-file entries that used the old IP); (c) the mDNS name
+   DHCP reservation on the new router, update `SONGS_LAN_IP` in `docker/.env`
+   followed by `docker compose up -d` (DNS container), and update any
+   hosts-file entries that used the old IP; (c) the mDNS name
    (`http://<hostname>.local`) keeps working across router changes with no
    reconfiguration — it's the most durable client-facing address.
+
+### `songs.lan` for every device: the bundled DNS container
+
+The `dns` service (alpine + dnsmasq, `docker/dns/`) answers `songs.lan` →
+`SONGS_LAN_IP` (from `docker/.env`) and immediately refuses every other name —
+the right behavior for an offline LAN: clients fail fast instead of hanging on
+timeouts. With `SONGS_LAN_IP` empty the container idles harmlessly.
+
+Server side (once, admin PowerShell):
+
+```powershell
+# 1. Windows' Internet Connection Sharing service commonly squats on port 53
+#    (it did on the church laptop, ZENBOOK-WINSYS). Free the port for good:
+Stop-Service SharedAccess
+Set-Service SharedAccess -StartupType Disabled   # re-enable only if Mobile Hotspot is ever needed
+
+# 2. Let LAN clients reach the DNS:
+New-NetFirewallRule -DisplayName "Songs offline DNS (UDP 53)" -Direction Inbound -Protocol UDP -LocalPort 53 -Action Allow -Profile Private,Domain
+New-NetFirewallRule -DisplayName "Songs offline DNS (TCP 53)" -Direction Inbound -Protocol TCP -LocalPort 53 -Action Allow -Profile Private,Domain
+```
+
+While ICS runs, Docker may still manage to bind 53 alongside it (verified
+answering correctly on 2026-07-22), but the boot-order race makes that
+unreliable — disable ICS.
+
+Then set `SONGS_LAN_IP=<reserved LAN IP>` in `docker/.env` and
+`docker compose up -d`.
+
+Router (TP-Link AC1200: Advanced → Network → DHCP Server): **Primary DNS** =
+the laptop's reserved IP, Secondary — empty. Devices apply it when they
+(re)join the Wi-Fi.
+
+Verify: on the server `Resolve-DnsName songs.lan -Server 127.0.0.1` → the LAN
+IP, `Resolve-DnsName ya.ru -Server 127.0.0.1` → "DNS operation refused"
+(proves dnsmasq answers, not ICS); from a phone open `http://songs.lan/`.
 
 ## Offline limitations
 
