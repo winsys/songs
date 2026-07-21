@@ -72,6 +72,11 @@ Recommended target: `http://songs.lan` from any device on the LAN.
 2. **DNS name.** In order of preference:
    - **Router DNS entry** (Keenetic, MikroTik, OpenWrt, most business APs):
      add A-record `songs.lan` → server IP. Every client just works.
+     The church router (TP-Link AC1200 class, stock firmware) can NOT do
+     this — it has DHCP address reservation but no custom DNS records, so
+     there use mDNS / hosts / raw IP below. (If a LAN-wide name is really
+     wanted: run a small DNS server on the laptop and hand its IP out via
+     the router's DHCP "Primary DNS" setting — TP-Link does allow that.)
    - **hosts file** on fixed devices (tech PC, screen PCs):
      `192.168.68.10  songs.lan` in
      `C:\Windows\System32\drivers\etc\hosts` (or `/etc/hosts`).
