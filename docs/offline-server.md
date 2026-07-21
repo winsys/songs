@@ -106,6 +106,16 @@ Recommended target: `http://songs.lan` from any device on the LAN.
 7. **Autostart:** Docker Desktop → Settings → "Start Docker Desktop when you
    sign in"; both services have `restart: unless-stopped`. Enable Windows
    auto-login if the box should recover from a power cut unattended.
+8. **Moving to a different router / network:** nothing server-side depends on
+   the IP — Docker binds 0.0.0.0:80 and the app builds every URL (including
+   WS) from `window.location.host`. On the new network only three things
+   matter: (a) Windows classifies a NEW network as **Public** by default —
+   set it to Private (`Set-NetConnectionProfile -InterfaceAlias "Wi-Fi"
+   -NetworkCategory Private`), or the firewall rule won't apply; (b) redo the
+   DHCP reservation + `songs.lan` DNS entry on the new router (and update any
+   hosts-file entries that used the old IP); (c) the mDNS name
+   (`http://<hostname>.local`) keeps working across router changes with no
+   reconfiguration — it's the most durable client-facing address.
 
 ## Offline limitations
 
