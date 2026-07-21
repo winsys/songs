@@ -101,7 +101,7 @@ EOF
 sync_media() {
     echo "== Syncing media from production (~1.4 GB on first run)"
     mkdir -p "$ROOT/public"
-    ssh "$HOST" "tar -czf - -C $REMOTE_APP/public images tech_media sermon_images sermon_videos" \
+    ssh "$HOST" "tar -czf - -C $REMOTE_APP/public images tech_media sermon_images sermon_videos sermon_slides" \
         | tar -xzf - -C "$ROOT/public"
     echo "   media synced into public/"
 }

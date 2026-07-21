@@ -3,7 +3,7 @@ set -e
 
 # Upload dirs are git-ignored and may be absent on a fresh clone — create them
 # so PHP can write uploads immediately.
-for d in images images/placeholders tech_media sermon_images sermon_videos; do
+for d in images images/placeholders tech_media sermon_images sermon_videos sermon_slides; do
     mkdir -p "/var/www/html/public/$d"
 done
 
