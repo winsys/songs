@@ -29,11 +29,17 @@ include "../app/App.php";
 $sessionLifetime = 18 * 60 * 60;
 ini_set('session.gc_maxlifetime', $sessionLifetime);
 
+// Secure flag must match the actual scheme: on HTTPS (production) the cookie
+// is HTTPS-only, but over plain HTTP (offline LAN copy) browsers REJECT
+// cookies marked Secure — login would silently fail.
+$isHttps = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+    || (($_SERVER['SERVER_PORT'] ?? null) == 443);
+
 session_set_cookie_params(
     $sessionLifetime,   // lifetime
     '/',                // path
     '',                 // domain (empty = current)
-    true,               // HTTPS only
+    $isHttps,           // secure: HTTPS only when actually on HTTPS
     true                // httponly: not accessible from JS
 );
 
