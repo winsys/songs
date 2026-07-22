@@ -104,9 +104,13 @@ Recommended target: `http://songs.lan` from any device on the LAN.
    has no internet" (else phones drop off the LAN mid-service). On iOS ignore
    the "No Internet Connection" banner — the LAN still works.
 6. **HTTP, not HTTPS, by design:** no internet means no Let's Encrypt;
-   self-signed certs would require installing a CA on every device. The code
-   sets no `secure` cookie flags itself, so plain HTTP sessions work. Do not
-   expose this copy to untrusted networks.
+   self-signed certs would require installing a CA on every device. Session
+   cookies get the `Secure` flag only when the request actually arrives over
+   HTTPS (`public/index.php` checks the scheme) — hardcoding it broke login
+   over plain HTTP: browsers silently reject `Secure` cookies on http://, the
+   login succeeded server-side but the session cookie never stuck (found
+   2026-07-22 on the church LAN, fixed). Do not expose this copy to untrusted
+   networks.
 7. **Autostart:** Docker Desktop → Settings → "Start Docker Desktop when you
    sign in"; both services have `restart: unless-stopped`. Enable Windows
    auto-login if the box should recover from a power cut unattended.
