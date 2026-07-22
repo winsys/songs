@@ -136,19 +136,24 @@ timeouts. With `SONGS_LAN_IP` empty the container idles harmlessly.
 Server side (once, admin PowerShell):
 
 ```powershell
-# 1. Windows' Internet Connection Sharing service commonly squats on port 53
-#    (it did on the church laptop, ZENBOOK-WINSYS). Free the port for good:
-Stop-Service SharedAccess
-Set-Service SharedAccess -StartupType Disabled   # re-enable only if Mobile Hotspot is ever needed
-
-# 2. Let LAN clients reach the DNS:
+# Let LAN clients reach the DNS:
 New-NetFirewallRule -DisplayName "Songs offline DNS (UDP 53)" -Direction Inbound -Protocol UDP -LocalPort 53 -Action Allow -Profile Private,Domain
 New-NetFirewallRule -DisplayName "Songs offline DNS (TCP 53)" -Direction Inbound -Protocol TCP -LocalPort 53 -Action Allow -Profile Private,Domain
 ```
 
-While ICS runs, Docker may still manage to bind 53 alongside it (verified
-answering correctly on 2026-07-22), but the boot-order race makes that
-unreliable — disable ICS.
+**About Windows ICS on port 53:** on the church laptop the Internet
+Connection Sharing service holds `0.0.0.0:53` and REFUSES to stop — it is
+kept busy by the Hyper-V "Default Switch" that Docker Desktop / WSL2
+networking itself relies on. Do NOT fight it (stopping it can break Docker's
+own networking). In practice Docker binds alongside it and LAN queries do
+reach dnsmasq — verified 2026-07-23. After a reboot, re-check with:
+
+```powershell
+Resolve-DnsName songs.lan -Server <laptop LAN IP>
+```
+
+If it ever stops answering after a boot, `cd docker && docker compose restart
+dns` re-binds the port.
 
 Then set `SONGS_LAN_IP=<reserved LAN IP>` in `docker/.env` and
 `docker compose up -d`.
