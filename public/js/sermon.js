@@ -1124,7 +1124,7 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
         // with transform-origin 50% 50% (identical math on the screen side).
         // Touch/pen only by decision — no mouse support. Video/text: no zoom.
 
-        var DZ_MAX_SCALE = 6;    // enough for sheet-density images (decision)
+        var DZ_MAX_SCALE = 10;   // raised from 6 on request (2026-07-26); server clamp matches
         var DZ_SEND_MS   = 100;  // transient send throttle
         var DZ_TAP_MS    = 250;  // max press duration counted as a tap
         var DZ_TAP_DIST  = 12;   // max movement (px) still counted as a tap

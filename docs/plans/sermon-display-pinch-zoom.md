@@ -224,7 +224,8 @@ value (or identity) after rendering slide/image. Transition 120 ms linear.
    the screen (see §3.4 — row deletion + explicit cache clear on empty fetch).
 2. **Desktop mouse (wheel/drag): not needed.** Touch gestures only. Panning
    the zoomed image by gestures is required v1 behavior.
-3. **Max zoom 6× confirmed.**
+3. **Max zoom 6× confirmed.** *(Raised to 10× on 2026-07-26 after live use;
+   server pan clamp widened to ±4.5 accordingly.)*
 4. **Video zoom: not needed** — stays out of scope.
 5. Any new user-facing strings introduced by this feature go through the UI
    i18n dictionaries (ru/de/en/lt) — standing project rule.

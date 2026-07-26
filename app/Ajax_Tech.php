@@ -811,11 +811,11 @@ trait Ajax_Tech
         $x = isset(self::$args['x']) ? (float)self::$args['x'] : 0.0;
         $y = isset(self::$args['y']) ? (float)self::$args['y'] : 0.0;
 
-        // Hard server-side clamps; the client additionally caps scale at 6x
-        // and pans within content bounds (|t| <= (s-1)/2).
+        // Hard server-side clamps; the client caps scale at 10x and pans
+        // within content bounds (|t| <= (s-1)/2, i.e. up to 4.5 at 10x).
         $s = max(1.0, min(10.0, $s));
-        $x = max(-2.5, min(2.5, $x));
-        $y = max(-2.5, min(2.5, $y));
+        $x = max(-4.5, min(4.5, $x));
+        $y = max(-4.5, min(4.5, $y));
         if ($s <= 1.001) { // identity: normalize so screens fully reset
             $s = 1.0;
             $x = 0.0;
