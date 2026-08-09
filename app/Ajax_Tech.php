@@ -343,13 +343,20 @@ trait Ajax_Tech
         $song_name = mysqli_escape_string(Info::get('dbh'), self::$args['song_name']);
         $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
 
-        Info::get('db')->exec("DELETE FROM current WHERE groupId={$targetGroupId}");
+        // Toggling a Bible verse must not affect the musician's notes: when
+        // the current row carries a notes image, write/clear the verse text
+        // in place instead of replacing the row with a __bible__ one.
+        if (self::hasNotesImage($targetGroupId)) {
+            self::updateScreenKeepingNotes($targetGroupId, $text, $song_name);
+        } else {
+            Info::get('db')->exec("DELETE FROM current WHERE groupId={$targetGroupId}");
 
-        if ($text !== '') {
-            Info::get('db')->exec(
-                "INSERT INTO current (groupId, image, text, song_name)
-                 VALUES ({$targetGroupId}, '__bible__', '{$text}', '{$song_name}')"
-            );
+            if ($text !== '') {
+                Info::get('db')->exec(
+                    "INSERT INTO current (groupId, image, text, song_name)
+                     VALUES ({$targetGroupId}, '__bible__', '{$text}', '{$song_name}')"
+                );
+            }
         }
 
         self::updateSocket($targetGroupId);
@@ -481,13 +488,19 @@ trait Ajax_Tech
             return ''; // broadcast disabled for this channel — leave screens alone
         }
 
-        Info::get('db')->exec("DELETE FROM current WHERE groupId={$targetGroupId}");
+        // Same notes-preserving contract as set_bible_text: message quotes
+        // (tech messages mode, sermon-page chips) never touch the notes image.
+        if (self::hasNotesImage($targetGroupId)) {
+            self::updateScreenKeepingNotes($targetGroupId, $text, $song_name);
+        } else {
+            Info::get('db')->exec("DELETE FROM current WHERE groupId={$targetGroupId}");
 
-        if ($text !== '') {
-            Info::get('db')->exec(
-                "INSERT INTO current (groupId, image, text, song_name, chapter_indices, video_src, video_state)
-                 VALUES ({$targetGroupId}, '__bible__', '{$text}', '{$song_name}', '', '', 'stopped')"
-            );
+            if ($text !== '') {
+                Info::get('db')->exec(
+                    "INSERT INTO current (groupId, image, text, song_name, chapter_indices, video_src, video_state)
+                     VALUES ({$targetGroupId}, '__bible__', '{$text}', '{$song_name}', '', '', 'stopped')"
+                );
+            }
         }
 
         self::updateSocket($targetGroupId);

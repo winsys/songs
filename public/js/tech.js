@@ -2452,6 +2452,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                                 $scope.showingSong = $scope.favorites[i];
                                 // Split text to prepare chapters
                                 splitText($scope.favorites[i]);
+                                // No verse indices in DB — the verse is off
+                                // (e.g. screen cleared while notes stay up):
+                                // drop any stale selection from this console.
+                                if (!state.chapter_indices || !state.chapter_indices.match(/^\d+(,\d+)*$/)) {
+                                    $scope.showingChapter   = null;
+                                    $scope.selectedChapters = [];
+                                }
                                 // Restore chapters if chapter_indices field has data
                                 if (state.chapter_indices && state.chapter_indices.match(/^\d+(,\d+)*$/)) {
                                     // chapter_indices contains verse indices like "0,2,4"
@@ -2493,8 +2500,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     }
                 }
 
-                // Restore message paragraph if song_name doesn't match other patterns
-                if (state.text && state.song_name && !state.song_name.match(/\d+:\d+/) && !state.image) {
+                // Restore message paragraph if song_name doesn't match other
+                // patterns. A notes image may coexist with a message quote
+                // (quotes no longer replace the musician's notes row) — but a
+                // notes image WITH chapter_indices is a song verse, not a quote.
+                if (state.text && state.song_name && !state.song_name.match(/\d+:\d+/) &&
+                    (!state.image ||
+                     (state.image.match(/\/images\/\d+\/.+\.jpg/) && !state.chapter_indices))) {
                     // Switch to messages mode if needed
                     if ($scope.pageMode !== 'messages') {
                         $scope.pageMode = 'messages';
@@ -2620,6 +2632,15 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.disableExternalDisplay = function () {
         $http({ method: 'POST', url: '/ajax', data: { command: 'disable_external_display' } });
         $scope.externalContentActive = false;
+        // The screen goes blank: drop every active-content highlight on the
+        // console. showingSong stays — the musician's notes survive the clear.
+        $scope.showingChapter      = null;
+        $scope.selectedChapters    = [];
+        $scope.showingBibleVerse   = null;
+        $scope.selectedBibleVerses = [];
+        $scope.showingMessagePara  = null;
+        $scope.activeMediaItem     = null;
+        $scope.techVideoPlaying    = false;
     };
 
     // Helper to restore chapters from chapter_indices like "0,2,4"
