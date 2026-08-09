@@ -2501,12 +2501,12 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 }
 
                 // Restore message paragraph if song_name doesn't match other
-                // patterns. A notes image may coexist with a message quote
-                // (quotes no longer replace the musician's notes row) — but a
-                // notes image WITH chapter_indices is a song verse, not a quote.
-                if (state.text && state.song_name && !state.song_name.match(/\d+:\d+/) &&
-                    (!state.image ||
-                     (state.image.match(/\/images\/\d+\/.+\.jpg/) && !state.chapter_indices))) {
+                // patterns. Requires an empty image: a Bible ref without a
+                // verse number ("Иоанна 3") is indistinguishable from a
+                // message title here, and quotes may now sit on top of a notes
+                // image — without this guard the console would flip into
+                // messages mode on a plain Bible verse click.
+                if (state.text && state.song_name && !state.song_name.match(/\d+:\d+/) && !state.image) {
                     // Switch to messages mode if needed
                     if ($scope.pageMode !== 'messages') {
                         $scope.pageMode = 'messages';
