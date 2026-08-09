@@ -415,7 +415,7 @@
   "tech.button.photosMedia": "🖼️ Фотографии / Медиа",
   "tech.button.standardWallpapers": "🎨 Стандартные заставки",
   "tech.confirm.addToWallpapers": "Добавить \"{name}\" в стандартные заставки?",
-  "tech.confirm.addedToWallpapers": "Изображение добавлено в стандартные заставки",
+  "tech.confirm.addedToWallpapers": "Добавлено в стандартные заставки",
   "tech.confirm.removeWallpaper": "Удалить заставку \"{name}\" из списка?",
   "tech.dialog.addSong": "Добавление новой песни",
   "tech.dialog.editSong": "Редактирование песни",

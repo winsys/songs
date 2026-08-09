@@ -913,14 +913,14 @@ trait Ajax_Tech
 
     /**
      * Get the list of standard wallpapers.
-     * Returns: {status, wallpapers: [{id, name, src}], is_admin}
+     * Returns: {status, wallpapers: [{id, name, src, media_type}], is_admin}
      */
     private static function get_standard_wallpapers()
     {
         $isAdmin = Security::isAdmin() || Security::isLeader();
 
         $wallpapers = Info::get('db')->select(
-            "SELECT id, name, src FROM standard_wallpapers ORDER BY id DESC"
+            "SELECT id, name, src, media_type FROM standard_wallpapers ORDER BY id DESC"
         );
 
         return json_encode([
@@ -931,14 +931,16 @@ trait Ajax_Tech
     }
 
     /**
-     * Add an image to standard wallpapers.
-     * Params: name, src
+     * Add a media item (image or mp3 audio) to standard wallpapers.
+     * Params: name, src, media_type ('image'|'video'|'audio', default 'image')
      */
     private static function add_to_wallpapers()
     {
         $dbh  = Info::get('dbh');
         $name = mysqli_real_escape_string($dbh, self::$args['name'] ?? '');
         $src  = mysqli_real_escape_string($dbh, self::$args['src']  ?? '');
+        $mediaType = mysqli_real_escape_string($dbh, self::$args['media_type'] ?? 'image');
+        if (!in_array($mediaType, ['image', 'video', 'audio'])) $mediaType = 'image';
 
         if (empty($name) || empty($src)) {
             return json_encode(['status' => 'error', 'message' => 'Name and src required']);
@@ -958,7 +960,8 @@ trait Ajax_Tech
         }
 
         Info::get('db')->exec(
-            "INSERT INTO standard_wallpapers (name, src) VALUES ('{$name}', '{$src}')"
+            "INSERT INTO standard_wallpapers (name, src, media_type)
+             VALUES ('{$name}', '{$src}', '{$mediaType}')"
         );
 
         return json_encode(['status' => 'success', 'id' => Info::get('dbh')->insert_id]);

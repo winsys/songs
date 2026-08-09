@@ -415,7 +415,7 @@
   "tech.button.photosMedia": "🖼️ Photos / Media",
   "tech.button.standardWallpapers": "🎨 Standard wallpapers",
   "tech.confirm.addToWallpapers": "Add \"{name}\" to standard wallpapers?",
-  "tech.confirm.addedToWallpapers": "Image added to standard wallpapers",
+  "tech.confirm.addedToWallpapers": "Added to standard wallpapers",
   "tech.confirm.removeWallpaper": "Remove wallpaper \"{name}\" from the list?",
   "tech.dialog.addSong": "Add a new song",
   "tech.dialog.editSong": "Edit song",
