@@ -526,7 +526,7 @@ trait Ajax_Tech
 
     /**
      * Add a media file to the tech playlist.
-     * Params: name, src, media_type ('image'|'video')
+     * Params: name, src, media_type ('image'|'video'|'audio')
      */
     private static function add_media_to_favorites()
     {
@@ -536,7 +536,7 @@ trait Ajax_Tech
         $src       = mysqli_real_escape_string($dbh, self::$args['src']        ?? '');
         $mediaType = mysqli_real_escape_string($dbh, self::$args['media_type'] ?? 'image');
 
-        if (!in_array($mediaType, ['image', 'video'])) $mediaType = 'image';
+        if (!in_array($mediaType, ['image', 'video', 'audio'])) $mediaType = 'image';
         if (empty($src)) return json_encode(['status' => 'error', 'message' => 'Empty src']);
 
         $maxSong  = Info::get('db')->get(
@@ -706,6 +706,66 @@ trait Ajax_Tech
         Info::get('db')->exec(
             "INSERT INTO tech_media_favorites (group_id, name, src, media_type, sort_order)
              VALUES ({$userId}, '{$nameSafe}', '{$pathSafe}', 'video', {$sortOrder})"
+        );
+        self::updateSocket();
+        return json_encode(['status' => 'success', 'path' => $path, 'name' => $name]);
+    }
+
+    /**
+     * Upload an mp3 audio file and add it to the playlist.
+     * Audio items play locally on the tech console — they never touch the
+     * main display (`current` table) or the musician's notes.
+     * Input: multipart file 'file', optional 'name'
+     */
+    private static function upload_media_audio()
+    {
+        $userId = (int)$_SESSION['curGroupId'];
+
+        if (!isset($_FILES['file']) || $_FILES['file']['error'] !== UPLOAD_ERR_OK) {
+            return json_encode(['status' => 'error', 'message' => 'Upload error']);
+        }
+
+        // [SECURITY #5] Validate file extension
+        $ext        = strtolower(pathinfo($_FILES['file']['name'], PATHINFO_EXTENSION));
+        $allowedExt = ['mp3'];
+        if (!in_array($ext, $allowedExt, true)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid audio type: ' . $ext]);
+        }
+
+        // [SECURITY #5] Validate actual MIME type
+        $allowedMime = [
+            'audio/mpeg', 'audio/mp3', 'audio/mpg',
+            'application/octet-stream',
+        ];
+        if (!self::checkMime($_FILES['file']['tmp_name'], $allowedMime)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid file type (MIME mismatch)']);
+        }
+
+        $dir = __DIR__ . '/../public/tech_media/' . $userId . '/';
+        if (!file_exists($dir) && !mkdir($dir, 0755, true)) {
+            return json_encode(['status' => 'error', 'message' => 'Cannot create dir']);
+        }
+
+        $filename = uniqid('aud_', true) . '.' . $ext;
+        if (!move_uploaded_file($_FILES['file']['tmp_name'], $dir . $filename)) {
+            return json_encode(['status' => 'error', 'message' => 'move failed']);
+        }
+
+        $path = '/tech_media/' . $userId . '/' . $filename;
+        // Use provided name or fall back to the original filename
+        $name = isset($_POST['name']) && !empty($_POST['name']) ? $_POST['name'] : $_FILES['file']['name'];
+
+        $dbh      = Info::get('dbh');
+        $nameSafe = mysqli_real_escape_string($dbh, $name);
+        $pathSafe = mysqli_real_escape_string($dbh, $path);
+
+        $maxSong  = Info::get('db')->get("SELECT IFNULL(MAX(sort_order),0) AS m FROM favorites WHERE groupId={$userId}");
+        $maxMedia = Info::get('db')->get("SELECT IFNULL(MAX(sort_order),0) AS m FROM tech_media_favorites WHERE group_id={$userId}");
+        $sortOrder = max((int)$maxSong['m'], (int)$maxMedia['m']) + 1;
+
+        Info::get('db')->exec(
+            "INSERT INTO tech_media_favorites (group_id, name, src, media_type, sort_order)
+             VALUES ({$userId}, '{$nameSafe}', '{$pathSafe}', 'audio', {$sortOrder})"
         );
         self::updateSocket();
         return json_encode(['status' => 'success', 'path' => $path, 'name' => $name]);
