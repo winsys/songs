@@ -415,7 +415,7 @@
   "tech.button.photosMedia": "🖼️ Fotos / Medien",
   "tech.button.standardWallpapers": "🎨 Standard-Hintergründe",
   "tech.confirm.addToWallpapers": "\"{name}\" zu den Standard-Hintergründen hinzufügen?",
-  "tech.confirm.addedToWallpapers": "Bild zu den Standard-Hintergründen hinzugefügt",
+  "tech.confirm.addedToWallpapers": "Zu den Standard-Hintergründen hinzugefügt",
   "tech.confirm.removeWallpaper": "Hintergrund \"{name}\" aus der Liste entfernen?",
   "tech.dialog.addSong": "Neues Lied hinzufügen",
   "tech.dialog.editSong": "Lied bearbeiten",

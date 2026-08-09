@@ -415,7 +415,7 @@
   "tech.button.photosMedia": "🖼️ Nuotraukos / Medija",
   "tech.button.standardWallpapers": "🎨 Standartiniai fonai",
   "tech.confirm.addToWallpapers": "Pridėti „{name}“ prie standartinių fonų?",
-  "tech.confirm.addedToWallpapers": "Paveikslėlis pridėtas prie standartinių fonų",
+  "tech.confirm.addedToWallpapers": "Pridėta prie standartinių fonų",
   "tech.confirm.removeWallpaper": "Pašalinti foną „{name}“ iš sąrašo?",
   "tech.dialog.addSong": "Naujos giesmės pridėjimas",
   "tech.dialog.editSong": "Giesmės redagavimas",

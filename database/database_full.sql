@@ -195,7 +195,8 @@ CREATE TABLE IF NOT EXISTS `song_list` (
 CREATE TABLE IF NOT EXISTS `standard_wallpapers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(255) NOT NULL COMMENT 'Wallpaper display name',
-  `src` varchar(500) NOT NULL COMMENT 'URL or path to the image',
+  `src` varchar(500) NOT NULL COMMENT 'URL or path to the media file',
+  `media_type` enum('image','video','audio') NOT NULL DEFAULT 'image',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   UNIQUE KEY `src` (`src`)

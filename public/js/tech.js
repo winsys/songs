@@ -744,7 +744,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     // ─────────────────────────────────────────────────────────
-    // Add image to standard wallpapers
+    // Add image / mp3 to standard wallpapers
     // ─────────────────────────────────────────────────────────
 
     $scope.addToWallpapers = function (item) {
@@ -754,7 +754,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $http({ method: "POST", url: "/ajax", data: {
                 command: 'add_to_wallpapers',
                 name: item.NAME || item.dispName,
-                src: item.src
+                src: item.src,
+                media_type: item.itemType || 'image'
             }}).then(
             function (r) {
                 if (r.data && r.data.status === 'success') {
@@ -778,7 +779,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 command: 'add_media_to_favorites',
                 name: wallpaper.name,
                 src: wallpaper.src,
-                media_type: 'image'
+                media_type: wallpaper.media_type || 'image'
             }}).then(
             function () {
                 $scope.showWallpapersPanel = false;
