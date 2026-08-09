@@ -104,6 +104,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
 
     // ── Active media item (video controls) ────────────────────
     $scope.activeMediaItem    = null;    // { FID, itemType, name, src }
+    $scope.activeAudioItem    = null;    // mp3 selected in playlist — local player only
     $scope.techVideoPlaying   = false;
     var techVideoSrc          = '';
 
@@ -487,6 +488,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 $scope.favorites = respond.data;
 
                 // Restore showingSong state after reload
+                var audioStillListed = false;
                 angular.forEach($scope.favorites, function (item) {
                     if (item.itemType === 'song' &&
                         $scope.showingSong && item.FID === $scope.showingSong.FID) {
@@ -497,7 +499,22 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                         $scope.activeMediaItem && item.FID === $scope.activeMediaItem.FID) {
                         $scope.activeMediaItem = item;
                     }
+                    // Re-point activeAudioItem at the fresh row
+                    if (item.itemType === 'audio' &&
+                        $scope.activeAudioItem && item.FID === $scope.activeAudioItem.FID) {
+                        $scope.activeAudioItem = item;
+                        audioStillListed = true;
+                    }
                 });
+
+                // Selected mp3 vanished from the playlist (deleted elsewhere):
+                // pause NOW, while the <audio> element is still in the DOM —
+                // after the digest ng-if tears it down and a playing detached
+                // element would keep sounding with no controls.
+                if ($scope.activeAudioItem && !audioStillListed) {
+                    pauseTechAudio();
+                    $scope.activeAudioItem = null;
+                }
 
                 // Call callback after favorites are loaded (for state restoration)
                 if (callback) callback();
@@ -676,6 +693,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     function success() {
                         $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' } });
                         $scope.preparedChapters = [];
+                        pauseTechAudio();
+                        $scope.activeAudioItem = null;
                         $scope.reloadFavorites();
                     }
                 );
@@ -800,6 +819,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     function _detectMediaType(url) {
         if (/(?:youtube\.com|youtu\.be)/.test(url)) return 'video';
         if (/\.(mp4|webm|ogg|mov|avi)$/i.test(url)) return 'video';
+        if (/\.(mp3|m4a|aac|wav)$/i.test(url))      return 'audio';
         return 'image';
     }
 
@@ -943,10 +963,74 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     // ─────────────────────────────────────────────────────────
+    // Upload mp3 → add to playlist
+    // ─────────────────────────────────────────────────────────
+
+    $scope.triggerMediaAudioUpload = function () {
+        document.getElementById('techMediaAudioInput').click();
+    };
+
+    $scope.onMediaAudioSelected = function (input) {
+        if (!input.files || !input.files[0]) return;
+        // Prompt for audio name
+        var mediaName = prompt(window.t('tech.prompt.audioName'));
+        if (mediaName === null) {
+            input.value = '';
+            return; // user cancelled
+        }
+        mediaName = mediaName.trim();
+        if (!mediaName) {
+            mediaName = input.files[0].name; // use filename as default
+        }
+        $scope.uploadingAudio = true;
+        var formData = new FormData();
+        formData.append('file',    input.files[0]);
+        formData.append('command', 'upload_media_audio');
+        formData.append('name',    mediaName);
+        $http.post('/ajax', formData, {
+            transformRequest: angular.identity,
+            headers: { 'Content-Type': undefined }
+        }).then(
+            function (r) {
+                $scope.uploadingAudio = false;
+                if (r.data && r.data.status === 'success') {
+                    $scope.showMediaAddPanel = false;
+                    $scope.reloadFavorites();
+                } else {
+                    alert(window.t('sermon.errorPrefix', { message: r.data && r.data.message ? r.data.message : '' }));
+                }
+                input.value = '';
+            },
+            function (e) {
+                $scope.uploadingAudio = false;
+                alert('HTTP error: ' + e.status);
+                input.value = '';
+            }
+        );
+    };
+
+    // ─────────────────────────────────────────────────────────
     // Click on a media item in the playlist
     // ─────────────────────────────────────────────────────────
 
+    // Pause the local mp3 player if it exists (the <audio> element lives
+    // inside an ng-if and only exists while an audio item is selected).
+    function pauseTechAudio() {
+        var el = document.getElementById('techAudioEl');
+        if (el) el.pause();
+    }
+
     $scope.activateMediaItem = function (item) {
+        // Audio plays locally on the tech console (sound desk) and never
+        // touches the main display or the musician's notes — selection just
+        // shows/hides the inline player under the chip.
+        if (item.itemType === 'audio') {
+            pauseTechAudio();
+            $scope.activeAudioItem =
+                ($scope.activeAudioItem && $scope.activeAudioItem.FID === item.FID) ? null : item;
+            return;
+        }
+
         // Repeated click = deactivation
         if ($scope.activeMediaItem && $scope.activeMediaItem.FID === item.FID) {
             // Clear active item
@@ -1009,7 +1093,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.deleteFavoriteItem = function (fav_id, fav_title, itemType) {
         $scope.confirmationDialog(fav_title || '?', function () {
 
-            var isMedia  = (itemType === 'image' || itemType === 'video');
+            var isMedia  = (itemType === 'image' || itemType === 'video' || itemType === 'audio');
             var command  = isMedia ? 'delete_media_favorite' : 'delete_favorite_item';
 
             // If deleting active item — clear display
@@ -1017,6 +1101,9 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 (!isMedia);
             var isDeletingActiveMedia = $scope.activeMediaItem &&
                 $scope.activeMediaItem.FID === fav_id && isMedia;
+            // Audio is local-only: stop the player, never touch the display
+            var isDeletingActiveAudio = $scope.activeAudioItem &&
+                $scope.activeAudioItem.FID === fav_id && itemType === 'audio';
 
             $http({ method: "POST", url: "/ajax", data: { command: command, id: fav_id }}).then(
                 function success() {
@@ -1031,6 +1118,10 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                         $scope.activeMediaItem = null;
                         $scope.techVideoPlaying = false;
                         $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' }});
+                    }
+                    if (isDeletingActiveAudio) {
+                        pauseTechAudio();
+                        $scope.activeAudioItem = null;
                     }
                     $scope.reloadFavorites();
                 }

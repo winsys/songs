@@ -972,6 +972,11 @@
     .media-fav-card:hover         { border-color: #a0b4c8; box-shadow: 0 2px 8px rgba(0,0,0,.07); }
     .media-fav-card.mfc-image     { border-left: 4px solid #27ae60; }
     .media-fav-card.mfc-video     { border-left: 4px solid #8e44ad; }
+    .media-fav-card.mfc-audio     { border-left: 4px solid #e67e22; }
+
+    /* Local mp3 player under the active audio chip */
+    .tech-audio-player          { margin: 4px 0 8px; }
+    .tech-audio-player audio    { width: 100%; height: 32px; outline: none; }
     .media-fav-card.mfc-active    { background: #f3eaff; border-color: #8e44ad; box-shadow: 0 2px 10px rgba(142,68,173,.18); }
 
     .mfc-icon { font-size: 22px; flex-shrink: 0; line-height: 1; }
@@ -1534,6 +1539,14 @@
                     <span ng-if="uploadingVideo"><?php echo T::s('common.loading'); ?></span>
                     <span ng-if="!uploadingVideo"><?php echo T::s('tech.add.videoFile'); ?></span>
                 </div>
+                <div class="map-btn-upload"
+                     ng-class="{'uploading': uploadingAudio}"
+                     ng-click="!uploadingAudio && triggerMediaAudioUpload()">
+                    <span ng-if="uploadingAudio" class="upload-spinner"></span>
+                    <span ng-if="!uploadingAudio">🎵</span>
+                    <span ng-if="uploadingAudio"><?php echo T::s('common.loading'); ?></span>
+                    <span ng-if="!uploadingAudio"><?php echo T::s('tech.add.audioFile'); ?></span>
+                </div>
             </div>
 
             <div class="map-sep"><?php echo T::s('tech.add.or'); ?></div>
@@ -1542,7 +1555,7 @@
             <div class="map-url-row">
                 <input type="text"
                        ng-model="mediaUrlInput"
-                       placeholder="URL: YouTube, .mp4, .jpg…"
+                       placeholder="URL: YouTube, .mp4, .mp3, .jpg…"
                        ng-keydown="$event.keyCode===13 && addMediaUrl()">
                 <button class="map-btn-add" ng-click="addMediaUrl()">➕</button>
             </div>
@@ -1587,6 +1600,8 @@
                onchange="angular.element(this).scope().onMediaImageSelected(this)">
         <input type="file" id="techMediaVideoInput" accept="video/*" style="display:none"
                onchange="angular.element(this).scope().onMediaVideoSelected(this)">
+        <input type="file" id="techMediaAudioInput" accept=".mp3,audio/mpeg" style="display:none"
+               onchange="angular.element(this).scope().onMediaAudioSelected(this)">
 
         <!-- ── Languages (all modes) + Verses-per-page (Bible) ──────── -->
         <div style="display: flex; gap: 24px; align-items: flex-start; margin-top: 16px; flex-wrap: wrap;">
@@ -1755,13 +1770,15 @@
                             </div>
                         </div>
 
-                        <!-- ── Media card (image or video) ── -->
-                        <div ng-if="listItem.itemType === 'image' || listItem.itemType === 'video'"
+                        <!-- ── Media card (image, video or audio) ── -->
+                        <div ng-if="listItem.itemType === 'image' || listItem.itemType === 'video' || listItem.itemType === 'audio'"
                              class="media-fav-card"
                              ng-class="{
                                  'mfc-image':  listItem.itemType === 'image',
                                  'mfc-video':  listItem.itemType === 'video',
-                                 'mfc-active': activeMediaItem && activeMediaItem.FID === listItem.FID
+                                 'mfc-audio':  listItem.itemType === 'audio',
+                                 'mfc-active': (activeMediaItem && activeMediaItem.FID === listItem.FID && listItem.itemType !== 'audio')
+                                               || (activeAudioItem && activeAudioItem.FID === listItem.FID && listItem.itemType === 'audio')
                              }"
                              ng-click="activateMediaItem(listItem)">
 
@@ -1771,9 +1788,11 @@
                                  ng-src="{{ listItem.src }}"
                                  onerror="this.style.visibility='hidden'">
 
-                            <!-- Icon for video -->
+                            <!-- Icon for video / audio -->
                             <span ng-if="listItem.itemType === 'video'"
                                   class="mfc-icon">🎬</span>
+                            <span ng-if="listItem.itemType === 'audio'"
+                                  class="mfc-icon">🎵</span>
 
                             <div class="mfc-info">
                                 <div class="mfc-name">{{ listItem.NAME || listItem.dispName }}</div>
@@ -1799,6 +1818,14 @@
                                 {{ techVideoPlaying ? ('<?php echo T::s('sermon.video.pause'); ?>') : ('<?php echo T::s('sermon.video.play'); ?>') }}
                             </button>
                             <button class="tvc-btn tvc-stop" ng-click="techStopVideo()"><?php echo T::s('tech.video.stop'); ?></button>
+                        </div>
+
+                        <!-- Local mp3 player under the active audio chip.
+                             Plays on the tech console only — the main display
+                             and the musician's notes are never affected. -->
+                        <div ng-if="listItem.itemType === 'audio' && activeAudioItem && activeAudioItem.FID === listItem.FID"
+                             class="tech-audio-player">
+                            <audio id="techAudioEl" controls preload="metadata" ng-src="{{ listItem.src }}"></audio>
                         </div>
 
                     </div>
@@ -2330,5 +2357,5 @@
 
 </div><!-- /ng-controller -->
 
-<script src="/js/tech.min.js?v=39" type="text/javascript"></script>
+<script src="/js/tech.min.js?v=40" type="text/javascript"></script>
 

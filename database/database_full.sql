@@ -209,7 +209,7 @@ CREATE TABLE IF NOT EXISTS `tech_media_favorites` (
   `group_id` int(11) NOT NULL,
   `name` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `src` varchar(2000) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `media_type` enum('image','video') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'image',
+  `media_type` enum('image','video','audio') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'image',
   `sort_order` int(11) NOT NULL DEFAULT '0',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
