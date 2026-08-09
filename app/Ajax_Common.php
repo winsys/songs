@@ -416,7 +416,26 @@ trait Ajax_Common
     {
         $userId = (int)$_SESSION['curGroupId'];
 
-        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$userId}");
+        // The musician's sheet-music image lives in the same `current` row
+        // (image = '/images/<listId>/<num>.jpg'), but the main display never
+        // renders that path. Clearing the screen must therefore keep it and
+        // wipe only what the display actually shows (text, video, slide,
+        // overlay image, zoom). Notes are switched off exclusively via the
+        // leader's notes click or the tech's current-song click (clear_image).
+        $row = Info::get('db')->get(
+            "SELECT image FROM current WHERE groupId = {$userId}"
+        );
+        $image = $row ? trim($row['image']) : '';
+        if (preg_match('#^/images/\d+/[^/]+\.jpg$#', $image)) {
+            Info::get('db')->exec(
+                "UPDATE current
+                 SET text = '', song_name = '', chapter_indices = '',
+                     video_src = '', video_state = 'stopped', transform = ''
+                 WHERE groupId = {$userId}"
+            );
+        } else {
+            Info::get('db')->exec("DELETE FROM current WHERE groupId = {$userId}");
+        }
         self::updateSocket($userId);
 
         $err1 = '';
