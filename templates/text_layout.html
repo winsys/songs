@@ -222,49 +222,57 @@
                 }
             }
 
-            function adjustTextSize(_retry) {
-                $timeout(function() {
-                    const container = document.getElementById("text-container");
-                    const textElement = document.getElementById("text");
+            // Fit the text in a requestAnimationFrame callback: it runs in the
+            // rendering step of the SAME frame the digest updated the DOM in,
+            // BEFORE the browser paints. The old $timeout(...,50) version let
+            // the new verse get painted at the previous font size first and
+            // resized it ~50-90 ms later — visible as a flicker / "the words
+            // are shown twice" on every verse switch.
+            function adjustTextSize() {
+                requestAnimationFrame(function() { fitTextNow(0); });
+            }
 
-                    if (!container || !textElement) return;
+            function fitTextNow(_retry) {
+                const container = document.getElementById("text-container");
+                const textElement = document.getElementById("text");
 
-                    // The ng-if subtree may have just been inserted and not laid
-                    // out yet — retry until the container has real dimensions.
-                    if (container.clientHeight <= 0 || container.clientWidth <= 0) {
-                        if ((_retry || 0) < 10) adjustTextSize((_retry || 0) + 1);
-                        return;
-                    }
+                if (!container || !textElement) return;
 
-                    // +2px width tolerance: the 90vw-derived width is fractional
-                    // while scrollWidth is an integer, so an exact comparison can
-                    // be false from the very first iteration and pin the font at
-                    // the floor (see the leader-page sub-pixel fit fix).
-                    const maxW = container.clientWidth + 2;
-                    let maxSize = 100, currentSize = 10;
+                // The ng-if subtree may not be laid out yet (e.g. hidden tab) —
+                // retry a few times on a timer.
+                if (container.clientHeight <= 0 || container.clientWidth <= 0) {
+                    if (_retry < 10) $timeout(function() { fitTextNow(_retry + 1); }, 50, false);
+                    return;
+                }
+
+                // +2px width tolerance: the 90vw-derived width is fractional
+                // while scrollWidth is an integer, so an exact comparison can
+                // be false from the very first iteration and pin the font at
+                // the floor (see the leader-page sub-pixel fit fix).
+                const maxW = container.clientWidth + 2;
+                let maxSize = 100, currentSize = 10;
+                textElement.style.fontSize = currentSize + "px";
+
+                while (currentSize < maxSize &&
+                textElement.scrollHeight <= container.clientHeight &&
+                textElement.scrollWidth <= maxW) {
+                    currentSize++;
                     textElement.style.fontSize = currentSize + "px";
+                }
 
-                    while (currentSize < maxSize &&
-                    textElement.scrollHeight <= container.clientHeight &&
-                    textElement.scrollWidth <= maxW) {
-                        currentSize++;
-                        textElement.style.fontSize = currentSize + "px";
-                    }
+                while (currentSize > 8 &&
+                (textElement.scrollHeight > container.clientHeight || textElement.scrollWidth > maxW)) {
+                    currentSize--;
+                    textElement.style.fontSize = currentSize + "px";
+                }
 
-                    while (currentSize > 8 &&
-                    (textElement.scrollHeight > container.clientHeight || textElement.scrollWidth > maxW)) {
-                        currentSize--;
-                        textElement.style.fontSize = currentSize + "px";
-                    }
-
-                    if (currentSize > $scope.fontMaxSize) currentSize = $scope.fontMaxSize;
-                    $scope.fontSize = currentSize;
-                    // $applyAsync instead of $apply: this runs inside $timeout's
-                    // digest (where $apply throws "inprog") but is also called
-                    // raw from the window resize handler (where a digest IS
-                    // needed) — $applyAsync is safe in both contexts.
-                    $scope.$applyAsync();
-                }, 50);
+                if (currentSize > $scope.fontMaxSize) currentSize = $scope.fontMaxSize;
+                textElement.style.fontSize = currentSize + "px";
+                $scope.fontSize = currentSize;
+                // Sync the scope copy for ng-style without forcing an extra
+                // synchronous digest ($applyAsync is safe both inside and
+                // outside a digest — resize events call this raw).
+                $scope.$applyAsync();
             }
 
             function _ytId(url) {

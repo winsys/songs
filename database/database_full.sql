@@ -72,6 +72,18 @@ CREATE TABLE IF NOT EXISTS `current` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table songs.current_notes
+-- Dedicated musician-notes state ("notes channel"): one row per group with
+-- the sheet-music image currently shown to musicians. Completely separate
+-- from `current` so screen commands can never disturb the musician page.
+CREATE TABLE IF NOT EXISTS `current_notes` (
+  `groupId` int(11) NOT NULL,
+  `image` varchar(2000) NOT NULL DEFAULT '',
+  PRIMARY KEY (`groupId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table songs.display_access_requests
 CREATE TABLE IF NOT EXISTS `display_access_requests` (
   `id` int(11) NOT NULL AUTO_INCREMENT,

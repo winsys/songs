@@ -20,20 +20,17 @@ app.controller('Musician', function ($scope, $http)
         );
     };
 
-    $scope.checkImage = function(){
-        $http({ method: "POST", url: "/ajax", data: {command: 'get_image' } }).then(
+    // The musician page listens to the dedicated NOTES CHANNEL only
+    // (current_notes + notes_update). Screen traffic (update_needed, Bible,
+    // messages, slides, videos, wallpapers) can never disturb the sheet
+    // music: notes change exclusively when the leader or the technician
+    // toggles a song.
+    $scope.checkNotes = function(){
+        $http({ method: "POST", url: "/ajax", data: {command: 'get_notes' } }).then(
             function success(respond){
-                if (respond.data.length > 0) {
-                    var imagePath = respond.data[0].image || '';
-                    // Show placeholder for: sermon images, bible text marker, empty path
-                    var isSermonImage = (imagePath.indexOf('/sermon_images/') === 0);
-                    var isBible = (imagePath === '__bible__');
-                    var isEmpty = (imagePath === '');
-                    if (isSermonImage || isBible || isEmpty) {
-                        $scope.imgName = $scope.placeholderImage;
-                    } else {
-                        $scope.imgName = imagePath + '?t=' + new Date().getTime();
-                    }
+                var imagePath = (respond.data && respond.data.image) || '';
+                if (imagePath) {
+                    $scope.imgName = imagePath + '?t=' + new Date().getTime();
                 } else {
                     $scope.imgName = $scope.placeholderImage;
                 }
@@ -59,16 +56,23 @@ app.controller('Musician', function ($scope, $http)
         window.createAuthenticatedWebSocket(
             null,
             function(data) {
-                if (data.type === 'update_needed') {
+                if (data.type === 'notes_update') {
                     $scope.$apply(function() {
-                        $scope.checkImage();
+                        $scope.checkNotes();
                     });
+                }
+            },
+            null,
+            function(connected) {
+                // Refetch on reconnect to catch a notes_update missed offline.
+                if (connected) {
+                    $scope.$applyAsync(function() { $scope.checkNotes(); });
                 }
             }
         );
     }
 
     $scope.loadPlaceholderImage();
-    $scope.checkImage();
+    $scope.checkNotes();
     initSocket();
 });

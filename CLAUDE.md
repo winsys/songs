@@ -77,6 +77,8 @@ All AJAX responses are JSON. CSRF token is validated from `X-CSRF-Token` header 
 
 **Slides:** Stored in `current` table with `image='__slide__'`, `text`=inner HTML, `song_name`=bg color hex. Per-slide background color is stored as `data-bg` on `.sermon-slide` elements. Streaming screen (`text_layout_streaming.html`) skips `__slide__` items entirely.
 
+**Notes channel (Aug 2026):** the musician's sheet music lives in the `current_notes` table (one row per group) + `notes_update` WS event — fully separate from `current`. Notes switch only via the leader's / tech's song toggle (`set_image` / `set_tech_image` with a sheet path; `clear_image` with `channel:'leader'` or `clear_notes:1`). Screen commands (Bible, messages, slides, media, screen-off) must never touch `current_notes`. Media on screen (video/wallpaper, empty text) survives song selection — see `hasActiveMediaRow()`.
+
 ---
 
 ## 7. Architecture notes
