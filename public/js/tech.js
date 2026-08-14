@@ -39,7 +39,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.quickParaActive      = null; // last clicked quick result (list highlight)
     $scope.selectedMessage      = null;
     $scope.messageParagraphs    = [];
-    $scope.showingMessagePara   = null;
+    $scope.showingMessagePara   = null;  // display string (kept in sync with the index)
+    $scope.showingMsgParaIdx    = null;  // AUTHORITATIVE: active paragraph INDEX (duplicate texts make string identity ambiguous)
     var messageSearchTimer      = null;
     var pendingQuickPara        = null; // {id, idx} — set by selectParaResult, consumed after get_message loads
 
@@ -52,6 +53,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.msgStopMarkerIdx = null;   // ephemeral end-of-playback marker (paragraph index); not persisted
     var msgAudio            = null;    // HTMLAudioElement (lazy init)
     var msgTimerInterval    = null;    // $interval handle for timer display
+    var msgAdvanceTimer     = null;    // $timeout armed for the exact next timecode boundary
 
     function parseMsgTimecodes(raw) {
         if (!raw) return [];
@@ -529,9 +531,11 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             $scope.preparedChapters = [];
             $scope.showingChapter = null;
             $scope.selectedChapters = [];
+            // Song toggle-off is the tech's notes off-switch (clear_notes);
+            // playing media on the screen survives it server-side.
             $http({ method: "POST",
                 url: "/ajax",
-                data: { command: 'clear_image' }
+                data: { command: 'clear_image', clear_notes: 1 }
             });
         } else {
             $scope.showingSong = favoriteItem;
@@ -691,7 +695,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             $scope.confirmationDialog(window.t('leader.confirm.clearTitle'), function() {
                 $http({method: "POST", url: "/ajax", data: {command: 'clear_favorites'}}).then(
                     function success() {
-                        $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' } });
+                        $http({ method: "POST", url: "/ajax", data: { command: 'clear_image', clear_notes: 1 } });
                         $scope.preparedChapters = [];
                         pauseTechAudio();
                         $scope.activeAudioItem = null;
@@ -1113,7 +1117,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                         $scope.preparedChapters  = [];
                         $scope.showingChapter    = null;
                         $scope.selectedChapters  = [];
-                        $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' }});
+                        // Deleting the active song switches its notes off too.
+                        $http({ method: "POST", url: "/ajax", data: { command: 'clear_image', clear_notes: 1 }});
                     }
                     if (isDeletingActiveMedia) {
                         $scope.activeMediaItem = null;
@@ -1560,32 +1565,29 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // Show paragraph #idx on the display (no-op if already showing) and scroll
     // the paragraph panel to it. Mirrors the audio-seek part of onMsgParaClick.
     function activateMsgParaByIdx(idx) {
-        var para = $scope.messageParagraphs[idx];
-        if (para === undefined) return;
+        if ($scope.messageParagraphs[idx] === undefined) return;
         if (msgAudio && $scope.msgAudioPlaying && $scope.msgTimecodes.length > idx) {
             msgAudio.currentTime = $scope.msgTimecodes[idx];
+            armMsgBoundaryTimer();
         }
-        if ($scope.showingMessagePara !== para) {
-            $scope.toggleMessageParagraph(para);
+        if ($scope.showingMsgParaIdx !== idx) {
+            showMsgParagraph(idx);
         }
-        $timeout(function() {
-            var panel = document.getElementById('messages-para-panel');
-            if (!panel) return;
-            var el = panel.querySelectorAll('.bible-verse-item')[idx];
-            if (el) el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        }, 80);
+        scrollMsgParaIntoView(idx, 'center', 80, true);
     }
 
     $scope.selectMessage = function(msg) {
         $scope.selectedMessage    = msg;   // preliminary (for list highlight)
         $scope.messageParagraphs  = [];
         $scope.showingMessagePara = null;
+        $scope.showingMsgParaIdx  = null;
         // Reset audio
         $scope.msgTimecodes    = [];
         $scope.msgAudioPlaying = false;
         $scope.msgAudioLoaded  = false;
         $scope.msgCalibrating  = false;
         $scope.msgStopMarkerIdx = null;
+        stopMsgTimers();
         if (msgAudio) { msgAudio.pause(); msgAudio.src = ''; }
 
         $http({ method: "POST", url: "/ajax", data: {
@@ -1649,44 +1651,17 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     msgAudio = document.getElementById('msgAudioEl');
                     if (msgAudio) {
                         msgAudio.addEventListener('ended', function() {
-                            $scope.$apply(function() { $scope.msgAudioPlaying = false; });
+                            $scope.$apply(function() {
+                                $scope.msgAudioPlaying = false;
+                                stopMsgTimers();
+                            });
                         });
+                        // Fallback sync (~4 Hz): the precise boundary timer
+                        // does the on-time switching; this corrects any missed
+                        // timer (tab throttling, drift) from the audio clock.
                         msgAudio.addEventListener('timeupdate', function() {
                             if (!$scope.msgAudioPlaying || $scope.msgCalibrating) return;
-                            var ct = msgAudio.currentTime;
-                            var curIdx  = $scope.messageParagraphs.indexOf($scope.showingMessagePara);
-                            var nextIdx = curIdx + 1;
-                            if (nextIdx < $scope.messageParagraphs.length &&
-                                nextIdx < $scope.msgTimecodes.length &&
-                                ct >= $scope.msgTimecodes[nextIdx]) {
-                                // Stop marker: the marked paragraph has just finished
-                                // playing (playback is about to leave it) — stop here
-                                // instead of advancing.
-                                if ($scope.msgStopMarkerIdx !== null &&
-                                    curIdx === $scope.msgStopMarkerIdx) {
-                                    $scope.$apply(function() {
-                                        msgAudio.pause();
-                                        $scope.msgAudioPlaying = false;
-                                        $scope.msgCurrentTime  = msgAudio.currentTime;
-                                        if (msgTimerInterval) { $interval.cancel(msgTimerInterval); msgTimerInterval = null; }
-                                    });
-                                    return;
-                                }
-                                $scope.$apply(function() {
-                                    var nextPara = $scope.messageParagraphs[nextIdx];
-                                    $scope.showingMessagePara = nextPara;
-                                    var title = $scope.selectedMessage ? $scope.selectedMessage.TITLE : '';
-                                    $http({ method: 'POST', url: '/ajax', data: {
-                                        command: 'set_message_text', text: nextPara, song_name: title
-                                    }});
-                                    $timeout(function() {
-                                        var panel = document.getElementById('messages-para-panel');
-                                        if (!panel) return;
-                                        var items = panel.querySelectorAll('.bible-verse-item');
-                                        if (items[nextIdx]) items[nextIdx].scrollIntoView({ block: 'nearest' });
-                                    }, 50);
-                                });
-                            }
+                            $scope.$applyAsync(function() { msgSyncToTime(); });
                         });
                     }
                 }
@@ -1698,25 +1673,98 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         });
     };
 
-    $scope.toggleMessageParagraph = function(para) {
-        if ($scope.showingMessagePara === para) {
-            // Toggle off
+    // ── Message audio ↔ paragraph sync engine ────────────────────────
+    // The displayed paragraph is DERIVED from the audio position: it is
+    // always the last paragraph whose calibrated timecode has been reached.
+    // Switching is driven by a timer armed for the exact next boundary, with
+    // the timeupdate listener as a low-frequency safety net. All tracking is
+    // index-based; string identity is never used (paragraph texts may repeat).
+
+    /** Show paragraph #idx on the display (null = clear) and track it. */
+    function showMsgParagraph(idx) {
+        if (idx === null || $scope.messageParagraphs[idx] === undefined) {
+            $scope.showingMsgParaIdx  = null;
             $scope.showingMessagePara = null;
-            $http({ method: "POST", url: "/ajax", data: {
-                    command: 'set_message_text',
-                    text: '',
-                    song_name: ''
-                }});
-        } else {
-            $scope.showingMessagePara = para;
-            var title = $scope.selectedMessage ? $scope.selectedMessage.TITLE : '';
-            $http({ method: "POST", url: "/ajax", data: {
-                    command: 'set_message_text',
-                    text: para,
-                    song_name: title
-                }});
+            $http({ method: 'POST', url: '/ajax', data: {
+                command: 'set_message_text', text: '', song_name: ''
+            }});
+            return;
         }
-    };
+        $scope.showingMsgParaIdx  = idx;
+        $scope.showingMessagePara = $scope.messageParagraphs[idx];
+        $http({ method: 'POST', url: '/ajax', data: {
+            command: 'set_message_text',
+            text: $scope.messageParagraphs[idx],
+            song_name: $scope.selectedMessage ? $scope.selectedMessage.TITLE : ''
+        }});
+    }
+
+    function scrollMsgParaIntoView(idx, block, delay, smooth) {
+        $timeout(function() {
+            var panel = document.getElementById('messages-para-panel');
+            if (!panel) return;
+            var el = panel.querySelectorAll('.bible-verse-item')[idx];
+            if (el) el.scrollIntoView(smooth ? { block: block, behavior: 'smooth' } : { block: block });
+        }, delay || 50);
+    }
+
+    /** Paragraph that must be on display at audio position ct (-1 = none yet). */
+    function msgParaForTime(ct) {
+        var n = Math.min($scope.msgTimecodes.length, $scope.messageParagraphs.length);
+        var target = -1;
+        for (var i = 0; i < n; i++) {
+            if (ct >= $scope.msgTimecodes[i] - 0.03) target = i;
+            else break;
+        }
+        return target;
+    }
+
+    /** Bring the display in line with the audio clock; re-arm the timer. */
+    function msgSyncToTime() {
+        if (!msgAudio || !$scope.msgAudioPlaying || $scope.msgCalibrating) return;
+        var target = msgParaForTime(msgAudio.currentTime);
+        if (target >= 0 && target !== $scope.showingMsgParaIdx) {
+            // Stop marker: playback is leaving the marked paragraph — pause
+            // at the boundary instead of advancing.
+            if ($scope.msgStopMarkerIdx !== null &&
+                $scope.showingMsgParaIdx === $scope.msgStopMarkerIdx &&
+                target > $scope.msgStopMarkerIdx) {
+                msgAudio.pause();
+                $scope.msgAudioPlaying = false;
+                $scope.msgCurrentTime  = msgAudio.currentTime;
+                stopMsgTimers();
+                return;
+            }
+            showMsgParagraph(target);
+            scrollMsgParaIntoView(target, 'nearest');
+        }
+        armMsgBoundaryTimer();
+    }
+
+    function stopMsgBoundaryTimer() {
+        if (msgAdvanceTimer) { $timeout.cancel(msgAdvanceTimer); msgAdvanceTimer = null; }
+    }
+
+    /** Arm a timer for the exact moment the next timecode is reached. */
+    function armMsgBoundaryTimer() {
+        stopMsgBoundaryTimer();
+        if (!msgAudio || !$scope.msgAudioPlaying || $scope.msgCalibrating) return;
+        var ct   = msgAudio.currentTime;
+        var next = msgParaForTime(ct) + 1;
+        var n    = Math.min($scope.msgTimecodes.length, $scope.messageParagraphs.length);
+        if (next >= n) return;
+        var rate  = msgAudio.playbackRate || 1;
+        var delay = Math.max(10, (($scope.msgTimecodes[next] - ct) / rate) * 1000 + 15);
+        msgAdvanceTimer = $timeout(function() {
+            msgAdvanceTimer = null;
+            msgSyncToTime();
+        }, delay);
+    }
+
+    function stopMsgTimers() {
+        if (msgTimerInterval) { $interval.cancel(msgTimerInterval); msgTimerInterval = null; }
+        stopMsgBoundaryTimer();
+    }
 
     function saveMsgTimecodesToDb() {
         if (!$scope.selectedMessage || $scope.msgTimecodes.length === 0) return;
@@ -1745,22 +1793,20 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             // Snap to 0.05 s — fine enough that calibration is not off by a
             // perceptible amount, and preserved through save (see formatMsgTimecodePrecise).
             $scope.msgTimecodes[idx] = Math.round(msgAudio.currentTime * 20) / 20;
-            $scope.showingMessagePara = para;
-            var title = $scope.selectedMessage ? $scope.selectedMessage.TITLE : '';
-            $http({ method: 'POST', url: '/ajax', data: {
-                command: 'set_message_text', text: para, song_name: title
-            }});
+            showMsgParagraph(idx);
             saveMsgTimecodesToDb();
             return;
         }
-        if ($scope.msgAudioPlaying && $scope.showingMessagePara === para) {
+        if ($scope.msgAudioPlaying && $scope.showingMsgParaIdx === idx) {
             $scope.stopMsgAudio();
             return;
         }
         if (msgAudio && $scope.msgAudioPlaying && $scope.msgTimecodes.length > idx) {
             msgAudio.currentTime = $scope.msgTimecodes[idx];
+            armMsgBoundaryTimer();
         }
-        $scope.toggleMessageParagraph(para);
+        // Toggle by index — string comparison is ambiguous for repeated texts
+        showMsgParagraph($scope.showingMsgParaIdx === idx ? null : idx);
     };
 
     // Toggle an ephemeral "stop here" marker on a paragraph. During playback the
@@ -1776,11 +1822,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         if ($scope.msgAudioPlaying) {
             msgAudio.pause();
             $scope.msgAudioPlaying = false;
-            if (msgTimerInterval) { $interval.cancel(msgTimerInterval); msgTimerInterval = null; }
+            stopMsgTimers();
         } else {
-            // Start from current paragraph timecode (or from beginning)
-            var idx = $scope.messageParagraphs.indexOf($scope.showingMessagePara);
-            if (idx >= 0 && $scope.msgTimecodes[idx] !== undefined) {
+            // Start from the active paragraph's timecode; with no active
+            // paragraph resume from the current position — msgSyncToTime will
+            // put the matching paragraph on display (never restarts from #0).
+            var idx = $scope.showingMsgParaIdx;
+            if (idx !== null && $scope.msgTimecodes[idx] !== undefined) {
                 msgAudio.currentTime = $scope.msgTimecodes[idx];
             }
             msgAudio.play();
@@ -1789,6 +1837,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             msgTimerInterval = $interval(function() {
                 $scope.msgCurrentTime = msgAudio ? msgAudio.currentTime : 0;
             }, 500);
+            armMsgBoundaryTimer();
         }
     };
 
@@ -1805,11 +1854,10 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         msgAudio.currentTime = 0;
         $scope.msgAudioPlaying = false;
         $scope.msgCurrentTime  = 0;
-        if (msgTimerInterval) { $interval.cancel(msgTimerInterval); msgTimerInterval = null; }
+        stopMsgTimers();
         // Clear active paragraph from display
-        if ($scope.showingMessagePara !== null) {
-            $scope.showingMessagePara = null;
-            $http({ method: 'POST', url: '/ajax', data: { command: 'set_message_text', text: '', song_name: '' }});
+        if ($scope.showingMsgParaIdx !== null || $scope.showingMessagePara !== null) {
+            showMsgParagraph(null);
         }
         // In calibration mode, save updated timecodes to DB
         if ($scope.msgCalibrating) {
@@ -2234,7 +2282,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         var list = $scope.messageParagraphs;
         if (!list || list.length === 0) return;
 
-        var currentIdx = list.indexOf($scope.showingMessagePara);
+        var currentIdx = ($scope.showingMsgParaIdx === null) ? -1 : $scope.showingMsgParaIdx;
         var nextIdx;
 
         if (currentIdx === -1) {
@@ -2244,31 +2292,27 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             if (nextIdx < 0 || nextIdx >= list.length) return;
         }
 
-        var nextPara = list[nextIdx];
-
         if ($scope.msgCalibrating && msgAudio && $scope.msgAudioLoaded) {
             // Calibration mode: arrow keys move to the adjacent paragraph and
             // seek the audio to its stored timecode. They do NOT record a new
             // timecode — capturing happens only on a mouse click.
-            $scope.showingMessagePara = nextPara;
-            var title = $scope.selectedMessage ? $scope.selectedMessage.TITLE : '';
-            $http({ method: 'POST', url: '/ajax', data: {
-                command: 'set_message_text', text: nextPara, song_name: title
-            }});
+            showMsgParagraph(nextIdx);
             if ($scope.msgTimecodes[nextIdx] !== undefined) {
                 msgAudio.currentTime  = $scope.msgTimecodes[nextIdx];
                 $scope.msgCurrentTime = msgAudio.currentTime;
             }
         } else {
-            $scope.toggleMessageParagraph(nextPara);
+            // During playback arrows behave like a click: seek the audio to
+            // the paragraph's timecode so display and sound stay locked to
+            // the calibrated times.
+            if (msgAudio && $scope.msgAudioPlaying && $scope.msgTimecodes.length > nextIdx) {
+                msgAudio.currentTime = $scope.msgTimecodes[nextIdx];
+                armMsgBoundaryTimer();
+            }
+            showMsgParagraph(nextIdx);
         }
 
-        $timeout(function() {
-            var panel = document.getElementById('messages-para-panel');
-            if (!panel) return;
-            var items = panel.querySelectorAll('.bible-verse-item');
-            if (items[nextIdx]) items[nextIdx].scrollIntoView({ block: 'nearest' });
-        }, 50);
+        scrollMsgParaIntoView(nextIdx, 'nearest');
     }
 
     function navigateSongChapter(dir) {
@@ -2504,15 +2548,21 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             function(response) {
                 var state = response.data;
 
+                // The selected song comes from the NOTES CHANNEL (current_notes),
+                // fully independent of what the screen row shows. Fall back to
+                // a song image in the screen row (set_text upsert rows).
+                var songImgRe = /\/images\/\d+\/.+\.jpg/;
+                var songImg = (state.notes_image && state.notes_image.match(songImgRe))
+                    ? state.notes_image
+                    : ((state.image && state.image.match(songImgRe)) ? state.image : '');
+
                 // Determine what type of state we're restoring to avoid clearing it prematurely
-                // Priority: Bible > Message > Song > Media
                 var isRestoringBible = state.text && state.song_name &&
                     state.song_name.match(/\d+:\d+/);
                 var isRestoringMessage = !isRestoringBible && state.text && state.song_name;
-                var isRestoringSong = !isRestoringBible && !isRestoringMessage &&
-                    state.image && state.image.match(/\/images\/\d+\/.+\.jpg/);
-                var isRestoringMedia = !isRestoringBible && !isRestoringMessage && !isRestoringSong &&
-                    (state.image || state.video_src);
+                var isRestoringSong = !!songImg;   // notes coexist with any screen content
+                var isRestoringMedia = !isRestoringBible && !isRestoringMessage &&
+                    !!((state.image && !state.image.match(songImgRe)) || state.video_src);
 
                 // Clear previous state (but preserve message paragraph if we're restoring it)
                 if (!isRestoringSong) {
@@ -2526,14 +2576,15 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 }
                 if (!isRestoringMessage) {
                     $scope.showingMessagePara = null;
+                    $scope.showingMsgParaIdx  = null;
                 }
                 if (!isRestoringMedia) {
                     $scope.activeMediaItem = null;
                 }
 
-                // Restore song if image path matches song image pattern
-                if (state.image && state.image.match(/\/images\/\d+\/.+\.jpg/)) {
-                    var matches = state.image.match(/\/images\/(\d+)\/(.+)\.jpg/);
+                // Restore song from the notes channel (or a song-image row)
+                if (songImg) {
+                    var matches = songImg.match(/\/images\/(\d+)\/(.+)\.jpg/);
                     if (matches) {
                         var listId = parseInt(matches[1]);
                         var songNum = matches[2];
@@ -2608,13 +2659,16 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     if ($scope.selectedMessage && $scope.selectedMessage.TITLE === state.song_name && $scope.messageParagraphs.length > 0) {
                         // Find the matching paragraph in messageParagraphs list
                         var foundPara = null;
+                        var foundIdx  = null;
                         for (var i = 0; i < $scope.messageParagraphs.length; i++) {
                             if ($scope.messageParagraphs[i] === state.text) {
                                 foundPara = $scope.messageParagraphs[i];
+                                foundIdx  = i;
                                 break;
                             }
                         }
                         $scope.showingMessagePara = foundPara || state.text;
+                        $scope.showingMsgParaIdx  = foundIdx;
                     } else {
                         // Message not loaded - need to search and load it first
                         // Search for message by title
@@ -2640,6 +2694,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                                         for (var k = 0; k < $scope.messageParagraphs.length; k++) {
                                             if ($scope.messageParagraphs[k] === state.text) {
                                                 $scope.showingMessagePara = $scope.messageParagraphs[k];
+                                                $scope.showingMsgParaIdx  = k;
                                                 break;
                                             }
                                         }
@@ -2731,6 +2786,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $scope.showingBibleVerse   = null;
         $scope.selectedBibleVerses = [];
         $scope.showingMessagePara  = null;
+        $scope.showingMsgParaIdx   = null;
         $scope.activeMediaItem     = null;
         $scope.techVideoPlaying    = false;
     };

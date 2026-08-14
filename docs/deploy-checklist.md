@@ -46,13 +46,33 @@ scenario re-checked.
 - **Gotcha (fixed e19074d, keep honoring):** the screen's text branch
   deduplicates renders via `$scope.srcText` — every non-text branch MUST
   reset `srcText`, or returning to the same text renders a blank screen.
+- **Media-guard (Aug 2026):** song selection / notes toggles (`set_image`,
+  `set_tech_image` with a sheet path, `clear_image` in notes-off form) SKIP
+  the row write when `hasActiveMediaRow()` — a video (any state) or a
+  full-screen image with empty text keeps playing. Text rows and slides are
+  NOT protected. Explicit media commands (`set_video`, wallpaper click,
+  `disable_external_display`) still replace/clear the row.
 - Changing row shape/semantics ⇒ re-check: main screen, streaming screen,
   tech restore-after-reload, sermon right-pane consistency.
+
+### 2.1b `current_notes` table — the NOTES CHANNEL (Aug 2026)
+- One row per group: the sheet-music image musicians currently see.
+  Completely separate from `current`; screen commands never touch it.
+- **Writers:** `setNotes()` from `set_image` (leader song click; always own
+  group, ignores display target) and `set_tech_image` (tech song click);
+  `clearNotes()` from `clear_image` with `channel:'leader'` OR
+  `clear_notes:1` (tech song toggle-off, playlist clear, active-song
+  delete). These four paths are THE ONLY notes off/on switches.
+- **Readers:** `get_notes` → musician page; `get_current_state.notes_image`
+  → tech console restore (selected song survives any screen content).
+- `upload_song_image` re-broadcasts `notes_update` when the uploaded sheet
+  is the group's current notes (musicians re-pull with a fresh buster).
 
 ### 2.2 WebSocket message types (group-routed via port 2346)
 | Type | Producers | Consumers |
 |---|---|---|
-| `update_needed` | `updateSocket()` after most writes | both screens (refetch), tech console (reload+restore), leader (favorites), musician |
+| `update_needed` | `updateSocket()` after most writes | both screens (refetch), tech console (reload+restore), leader (favorites) — musician IGNORES it since Aug 2026 |
+| `notes_update` | `setNotes()`/`clearNotes()`, `upload_song_image` | musician page (refetch `get_notes`); everyone else ignores |
 | `display_transform` | `set_display_transform` (sermon pinch zoom/pan, ~10Hz during gesture) | main screen (applies CSS transform directly, no refetch); streaming ignores |
 | `leader_song_changed` | `set_image` channel `'leader'` | tech console (follow song, prepare verses) |
 | `display_target_changed` | `set_display_target` (tech) | sermon page (local copy), tech selects |

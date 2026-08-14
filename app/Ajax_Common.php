@@ -354,9 +354,23 @@ trait Ajax_Common
             ]);
         }
 
+        // Notes channel: opening a song always shows its sheet music to the
+        // caller's OWN group's musicians — regardless of where (or whether)
+        // the screen broadcast goes.
+        $listIdRaw   = preg_replace('/[^0-9]/', '', (string)self::$args['list_id']);
+        $imageNumRaw = preg_replace('#[^0-9a-zA-Z_\-]#', '', (string)self::$args['image_num']);
+        self::setNotes($userId, "/images/{$listIdRaw}/{$imageNumRaw}.jpg");
+
         if ($targetGroupId === null) {
             return ''; // broadcast disabled for this channel — leave screens alone
         }
+
+        // Media on screen (video/YouTube/wallpaper) survives song selection:
+        // it plays until explicitly replaced or stopped from the tech console.
+        if (self::hasActiveMediaRow($targetGroupId)) {
+            return '';
+        }
+
         $listId = mysqli_escape_string(Info::get('dbh'), self::$args['list_id']);
         $imageNum = mysqli_escape_string(Info::get('dbh'), self::$args['image_num']);
 
@@ -395,50 +409,92 @@ trait Ajax_Common
         return json_encode($txt[0]);
     }
 
-    // True when the group's `current` row carries the musician's sheet-music
-    // image ('/images/<listId>/<num>.jpg'). The main display never renders
-    // that path — only the musician page does — so screen-clearing commands
-    // must not drop it. Notes are switched off exclusively via the leader's
-    // notes click or the tech's current-song click (both delete the row).
-    private static function hasNotesImage($groupId)
+    // ─── NOTES CHANNEL ───────────────────────────────────────────────
+    // The musician's sheet-music image lives in `current_notes`, fully
+    // separate from `current` (the screen row). Only two events may switch
+    // notes off: the leader's song toggle-off (clear_image, channel 'leader')
+    // and the technician's song toggle-off (clear_image with clear_notes).
+    // Everything else — Bible/message quotes, slides, wallpapers, videos,
+    // screen-off — must never touch this table.
+
+    /** True for a sheet-music image path ('/images/<listId>/<num>.jpg'). */
+    private static function isNotesImagePath($image)
     {
-        $row = Info::get('db')->get(
-            "SELECT image FROM current WHERE groupId = " . (int)$groupId
-        );
-        return $row && preg_match('#^/images/\d+/[^/]+\.jpg$#', trim($row['image']));
+        return (bool)preg_match('#^/images/\d+/[^/]+\.jpg$#', trim((string)$image));
     }
 
-    // Rewrite everything the main display shows while keeping the row (and
-    // its notes image) in place. $textEsc / $songNameEsc must already be
-    // escaped for SQL; empty strings blank the screen.
-    private static function updateScreenKeepingNotes($groupId, $textEsc = '', $songNameEsc = '')
+    /** Set the group's notes image and notify musician pages. */
+    private static function setNotes($groupId, $image)
     {
+        $imgEsc = mysqli_real_escape_string(Info::get('dbh'), $image);
         Info::get('db')->exec(
-            "UPDATE current
-             SET text = '{$textEsc}', song_name = '{$songNameEsc}', chapter_indices = '',
-                 video_src = '', video_state = 'stopped', transform = ''
-             WHERE groupId = " . (int)$groupId
+            "REPLACE INTO current_notes (groupId, image) VALUES (" . (int)$groupId . ", '{$imgEsc}')"
         );
+        self::broadcastToGroup((int)$groupId, ['type' => 'notes_update']);
+    }
+
+    /** Clear the group's notes image and notify musician pages. */
+    private static function clearNotes($groupId)
+    {
+        Info::get('db')->exec("DELETE FROM current_notes WHERE groupId = " . (int)$groupId);
+        self::broadcastToGroup((int)$groupId, ['type' => 'notes_update']);
+    }
+
+    /** Current notes image for the caller's group ({image: '' when off}). */
+    private static function get_notes()
+    {
+        $groupId = (int)$_SESSION['curGroupId'];
+        $row = Info::get('db')->get(
+            "SELECT image FROM current_notes WHERE groupId = {$groupId}"
+        );
+        return json_encode(['image' => $row ? $row['image'] : '']);
+    }
+
+    // True when the group's screen is occupied by MEDIA content: a video
+    // (any state) or a full-screen image (wallpaper / sermon image) with no
+    // text. Song selection and notes toggles must leave such content alone —
+    // media plays until someone explicitly replaces or stops it. Text rows
+    // (verses, Bible, messages) and slides are NOT protected: selecting a
+    // song clears them, as it always did.
+    private static function hasActiveMediaRow($groupId)
+    {
+        $row = Info::get('db')->get(
+            "SELECT image, text, video_src FROM current WHERE groupId = " . (int)$groupId
+        );
+        if (!$row) return false;
+        if (trim((string)$row['video_src']) !== '') return true;
+        $img = trim((string)$row['image']);
+        if ($img === '' || $img === '__bible__' || $img === '__slide__') return false;
+        if (self::isNotesImagePath($img)) return false;
+        return trim((string)$row['text']) === '';
     }
 
     private static function clear_image()
     {
-        $userId = (int)$_SESSION['curGroupId'];
+        $userId  = (int)$_SESSION['curGroupId'];
+        $channel = isset(self::$args['channel']) ? (string)self::$args['channel'] : '';
+
+        // Notes off-switch: leader toggle-off (channel 'leader') or the tech
+        // console's explicit clear_notes flag (song toggle-off, playlist
+        // clear, active-song delete). Notes always belong to the caller's OWN
+        // group — the display target only routes screens.
+        if ($channel === 'leader' || !empty(self::$args['clear_notes'])) {
+            self::clearNotes($userId);
+        }
+
         $targetGroupId = self::resolveDisplayTarget($userId);
         if ($targetGroupId === null) {
             return ''; // broadcast disabled for this channel — leave screens alone
         }
 
-        // The sermon page sends clear_image when a citation/image chip is
-        // toggled off — that must not touch the musician's notes. Channel-less
-        // (tech current-song click) and leader-channel (leader notes click)
-        // calls ARE the notes off-switch and keep deleting the whole row.
-        $channel = isset(self::$args['channel']) ? (string)self::$args['channel'] : '';
-        if ($channel === 'sermon' && self::hasNotesImage($targetGroupId)) {
-            self::updateScreenKeepingNotes($targetGroupId);
-        } else {
-            Info::get('db')->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
+        // Screen part. The notes off-switch must not stop playing media
+        // (video/YouTube/wallpaper): those stay until explicitly replaced or
+        // stopped from the tech console.
+        $isNotesToggle = ($channel === 'leader' || !empty(self::$args['clear_notes']));
+        if ($isNotesToggle && self::hasActiveMediaRow($targetGroupId)) {
+            return ''; // notes are off; media keeps playing, screens untouched
         }
+        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$targetGroupId}");
         self::updateSocket($targetGroupId);
         return '';
     }
@@ -447,17 +503,12 @@ trait Ajax_Common
     // Clears the current row for tech's own group, fires the usual per-group
     // update_needed, and broadcasts a sermon_display_cleared event globally so
     // any sermon page targeting this group can deactivate its local UI.
+    // The musician's notes live in current_notes and are not affected.
     private static function disable_external_display()
     {
         $userId = (int)$_SESSION['curGroupId'];
 
-        // Clear the screen but keep the musician's notes image if present
-        // (see hasNotesImage) — the button must not affect the musician page.
-        if (self::hasNotesImage($userId)) {
-            self::updateScreenKeepingNotes($userId);
-        } else {
-            Info::get('db')->exec("DELETE FROM current WHERE groupId = {$userId}");
-        }
+        Info::get('db')->exec("DELETE FROM current WHERE groupId = {$userId}");
         self::updateSocket($userId);
 
         $err1 = '';
@@ -604,7 +655,18 @@ trait Ajax_Common
 
         if (move_uploaded_file($_FILES['image']['tmp_name'], $targetFile)) {
             self::updateSocket();
-            return json_encode(['status' => 'success', 'path' => '/images/' . $song['LISTID'] . '/' . $filename]);
+            // If this song's sheet is currently shown to musicians, tell the
+            // musician pages to re-pull it (the file changed under the same
+            // path, so a fresh cache-busted fetch is needed).
+            $path    = '/images/' . $song['LISTID'] . '/' . $filename;
+            $groupId = (int)$_SESSION['curGroupId'];
+            $notes   = Info::get('db')->get(
+                "SELECT image FROM current_notes WHERE groupId = {$groupId}"
+            );
+            if ($notes && $notes['image'] === $path) {
+                self::broadcastToGroup($groupId, ['type' => 'notes_update']);
+            }
+            return json_encode(['status' => 'success', 'path' => $path]);
         }
         return json_encode(['status' => 'error', 'message' => 'Failed to move uploaded file. Check write permissions on: ' . $uploadDir]);
     }

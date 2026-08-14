@@ -1739,8 +1739,13 @@
                         <div style="font-size:12px;"><?php echo T::s('tech.empty.songs'); ?></div>
                     </div>
 
+                    <!-- track by keeps DOM rows alive across reloadFavorites()
+                         (fired on every update_needed): without it the local
+                         mp3 <audio> below is destroyed mid-playback. Songs and
+                         media come from different tables, so the type prefix
+                         keeps the keys unique. -->
                     <div class="row" style="position: relative; margin-bottom: 12px;"
-                         ng-repeat="listItem in favorites">
+                         ng-repeat="listItem in favorites track by (listItem.itemType + '-' + listItem.FID)">
 
                         <!-- Clickable card: whole area triggers prepareText -->
                         <div ng-if="listItem.itemType === 'song'"
@@ -1963,7 +1968,7 @@
                         <audio id="msgAudioEl" style="display:none;"></audio>
                         <div class="bible-verse-item"
                              ng-repeat="(msgParaIdx, para) in messageParagraphs"
-                             ng-class="{'chapter-selected': showingMessagePara === para, 'msg-stop-marker': msgStopMarkerIdx === msgParaIdx}"
+                             ng-class="{'chapter-selected': showingMsgParaIdx === msgParaIdx, 'msg-stop-marker': msgStopMarkerIdx === msgParaIdx}"
                              ng-click="onMsgParaClick(msgParaIdx, para)"><button
                                               ng-show="msgTimecodes.length > 0"
                                               ng-click="toggleMsgStopMarker(msgParaIdx, $event)"
@@ -2367,5 +2372,5 @@
 
 </div><!-- /ng-controller -->
 
-<script src="/js/tech.min.js?v=41" type="text/javascript"></script>
+<script src="/js/tech.min.js?v=42" type="text/javascript"></script>
 
