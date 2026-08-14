@@ -2536,6 +2536,35 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     }
                 });
             });
+        } else if (message.type === 'notes_update') {
+            // Notes channel changed (leader or another console of this group
+            // toggled a song): sync the console's song selection with it.
+            // Off → drop the highlight and the verse list; on → select the
+            // matching song. Idempotent for this console's own toggles.
+            // ($http.then runs inside a digest — no $apply needed.)
+            $http({ method: 'POST', url: '/ajax', data: { command: 'get_notes' } }).then(function(r) {
+                var img = (r.data && r.data.image) || '';
+                if (!img) {
+                    $scope.showingSong      = null;
+                    $scope.preparedChapters = [];
+                    $scope.showingChapter   = null;
+                    $scope.selectedChapters = [];
+                    return;
+                }
+                if ($scope.showingSong && $scope.showingSong.imageName === img) return;
+                var m = img.match(/\/images\/(\d+)\/(.+)\.jpg/);
+                if (!m) return;
+                for (var i = 0; i < $scope.favorites.length; i++) {
+                    var f = $scope.favorites[i];
+                    if (f.itemType === 'song' && f.LISTID == m[1] && f.NUM == m[2]) {
+                        $scope.showingSong = f;
+                        splitText(f);
+                        $scope.showingChapter = null;
+                        $scope.selectedChapters = [];
+                        break;
+                    }
+                }
+            });
         }
     });
 
