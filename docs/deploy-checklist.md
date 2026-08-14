@@ -72,7 +72,7 @@ scenario re-checked.
 | Type | Producers | Consumers |
 |---|---|---|
 | `update_needed` | `updateSocket()` after most writes | both screens (refetch), tech console (reload+restore), leader (favorites) — musician IGNORES it since Aug 2026 |
-| `notes_update` | `setNotes()`/`clearNotes()`, `upload_song_image` | musician page (refetch `get_notes`); everyone else ignores |
+| `notes_update` | `setNotes()`/`clearNotes()`, `upload_song_image` | musician page (refetch `get_notes`); tech console (sync song highlight with the notes channel) |
 | `display_transform` | `set_display_transform` (sermon pinch zoom/pan, ~10Hz during gesture) | main screen (applies CSS transform directly, no refetch); streaming ignores |
 | `leader_song_changed` | `set_image` channel `'leader'` | tech console (follow song, prepare verses) |
 | `display_target_changed` | `set_display_target` (tech) | sermon page (local copy), tech selects |
