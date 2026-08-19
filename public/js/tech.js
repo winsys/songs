@@ -2487,6 +2487,9 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // WEBSOCKET MESSAGE HANDLER
     // ==========================================================
 
+    // Monotonic counter for notes_update → get_notes fetches (see below).
+    var notesSyncSeq = 0;
+
     // Listen for WebSocket messages (setup in common.js)
     window.addEventListener('websocket_message', function(event) {
         var message = event.detail;
@@ -2541,8 +2544,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             // toggled a song): sync the console's song selection with it.
             // Off → drop the highlight and the verse list; on → select the
             // matching song. Idempotent for this console's own toggles.
+            // Sequence-guarded: rapid toggles fire several events and the
+            // get_notes responses can arrive out of order — an older response
+            // must never overwrite a newer selection.
             // ($http.then runs inside a digest — no $apply needed.)
+            var notesSeq = ++notesSyncSeq;
             $http({ method: 'POST', url: '/ajax', data: { command: 'get_notes' } }).then(function(r) {
+                if (notesSeq !== notesSyncSeq) return; // stale response
                 var img = (r.data && r.data.image) || '';
                 if (!img) {
                     $scope.showingSong      = null;
@@ -2577,13 +2585,14 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             function(response) {
                 var state = response.data;
 
-                // The selected song comes from the NOTES CHANNEL (current_notes),
-                // fully independent of what the screen row shows. Fall back to
-                // a song image in the screen row (set_text upsert rows).
+                // The selected song comes from the NOTES CHANNEL (current_notes)
+                // ONLY. The screen row is never used as a fallback: with shared
+                // display targets it can hold a song image broadcast by ANOTHER
+                // group, which must not select anything on this console.
                 var songImgRe = /\/images\/\d+\/.+\.jpg/;
                 var songImg = (state.notes_image && state.notes_image.match(songImgRe))
                     ? state.notes_image
-                    : ((state.image && state.image.match(songImgRe)) ? state.image : '');
+                    : '';
 
                 // Determine what type of state we're restoring to avoid clearing it prematurely
                 var isRestoringBible = state.text && state.song_name &&
