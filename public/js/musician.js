@@ -25,9 +25,16 @@ app.controller('Musician', function ($scope, $http)
     // messages, slides, videos, wallpapers) can never disturb the sheet
     // music: notes change exclusively when the leader or the technician
     // toggles a song.
+    // Sequence guard: rapid song switching fires several notes_update events,
+    // and the resulting get_notes responses can arrive out of order — an older
+    // response must never overwrite a newer one (it would pin the previous
+    // song's sheet on the screen).
+    var notesFetchSeq = 0;
     $scope.checkNotes = function(){
+        var seq = ++notesFetchSeq;
         $http({ method: "POST", url: "/ajax", data: {command: 'get_notes' } }).then(
             function success(respond){
+                if (seq !== notesFetchSeq) return; // stale out-of-order response
                 var imagePath = (respond.data && respond.data.image) || '';
                 if (imagePath) {
                     $scope.imgName = imagePath + '?t=' + new Date().getTime();

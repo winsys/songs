@@ -362,7 +362,9 @@ trait Ajax_Tech
         $userId    = (int)$_SESSION['curGroupId'];
         $text      = mysqli_escape_string(Info::get('dbh'), self::$args['text']);
         $song_name = mysqli_escape_string(Info::get('dbh'), self::$args['song_name']);
-        $targetGroupId = isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $userId;
+        // Own group only — the tech console's Bible always drives its own
+        // screens; a client-supplied target_group_id is no longer honored.
+        $targetGroupId = $userId;
 
         // The musician's notes live in current_notes and are unaffected here.
         Info::get('db')->exec("DELETE FROM current WHERE groupId={$targetGroupId}");

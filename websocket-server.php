@@ -16,6 +16,38 @@ $ws_worker->count = 1;
 $authenticated_connections = [];
 $connections_by_group = [];  // groupId => [connection, ...]
 
+/**
+ * [SECURITY] Resolve the user's real group from the database — same rule as
+ * Security::startUserSession (GROUP_ID when set, else the user's own ID).
+ * The client-claimed groupId is never trusted: a connection may only ever
+ * subscribe to its own group's events. Opens a short-lived connection per
+ * auth (auth happens once per WS connection) so a long-idle persistent
+ * handle can't go stale. Returns null when the lookup fails — such a
+ * connection receives no group-scoped broadcasts at all.
+ */
+function ws_resolve_group_id($userId, $config)
+{
+    if ($userId <= 0 || !isset($config['db'])) return null;
+    $db = $config['db'];
+    $ii = mysqli_init();
+    // Same connect path as app/Database.php (prod mysql CLI is broken; the
+    // options file / socket are simply ignored where they don't exist).
+    @mysqli_options($ii, MYSQLI_READ_DEFAULT_FILE, '/etc/mysql/mysql.conf.d/mysqld.cnf');
+    if (!@mysqli_real_connect(
+        $ii, $db['host'], $db['login'], $db['pass'], $db['database'],
+        (int)$db['port'], '/var/run/mysqld/mysqld.sock'
+    )) {
+        return null;
+    }
+    $groupId = null;
+    $res = mysqli_query($ii, "SELECT ID, GROUP_ID FROM users WHERE ID = " . (int)$userId);
+    if ($res && ($row = mysqli_fetch_assoc($res))) {
+        $groupId = ((int)$row['GROUP_ID'] > 0) ? (int)$row['GROUP_ID'] : (int)$row['ID'];
+    }
+    mysqli_close($ii);
+    return $groupId;
+}
+
 $ws_worker->onConnect = function($connection) use ($ws_worker) {
     // Connection not yet authenticated - will be validated on first message
     $connection->authenticated = false;
@@ -53,10 +85,24 @@ $ws_worker->onMessage = function($connection, $data) use ($ws_worker, &$authenti
             return;
         }
 
+        // [SECURITY] Group membership comes from the database, never from the
+        // client's claim (the HMAC token only covers userId, so the claimed
+        // groupId is unauthenticated and could subscribe to any group).
+        // A failed lookup (DB briefly down) rejects the auth: the client's
+        // auto-reconnect retries, instead of silently staying deaf to its
+        // group's events on a "healthy" connection.
+        $userIdInt = (int)$auth_data['userId'];
+        $resolvedGroupId = ws_resolve_group_id($userIdInt, $config);
+        if ($userIdInt > 0 && $resolvedGroupId === null) {
+            $connection->send(json_encode(['error' => 'Group resolution failed']));
+            $connection->close();
+            return;
+        }
+
         // Authentication successful
         $connection->authenticated = true;
-        $connection->userId = (int)$auth_data['userId'];
-        $connection->groupId = isset($auth_data['groupId']) ? (int)$auth_data['groupId'] : null;
+        $connection->userId = $userIdInt;
+        $connection->groupId = $resolvedGroupId;
 
         // Store connection by userId
         if (!isset($authenticated_connections[$connection->userId])) {

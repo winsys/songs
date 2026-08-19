@@ -64,9 +64,18 @@ scenario re-checked.
   `clear_notes:1` (tech song toggle-off, playlist clear, active-song
   delete). These four paths are THE ONLY notes off/on switches.
 - **Readers:** `get_notes` → musician page; `get_current_state.notes_image`
-  → tech console restore (selected song survives any screen content).
+  → tech console restore (selected song survives any screen content; the
+  screen row is NEVER a fallback for the selected song — with shared
+  display targets it can hold another group's image).
 - `upload_song_image` re-broadcasts `notes_update` when the uploaded sheet
   is the group's current notes (musicians re-pull with a fresh buster).
+- `get_notes` fetches on the musician page and tech console are
+  sequence-guarded: an out-of-order (stale) response is discarded, so rapid
+  song toggles can't pin a previous song's sheet.
+- **Stale-client safety net (Aug 2026):** `get_image` called by a
+  musician-ROLE session returns the notes-channel image in the legacy
+  response shape (old cached musician.js reads the screen row otherwise).
+  Musician role has no screen routes, so screens are unaffected.
 
 ### 2.2 WebSocket message types (group-routed via port 2346)
 | Type | Producers | Consumers |
@@ -86,8 +95,15 @@ scenario re-checked.
   `set_tech_image`, `set_message_text`, `set_video`, `video_control`,
   `set_slide`. NULL target = command must not touch any screen — but
   side-channels (e.g. `leader_song_changed`) must still fire.
-- Tech-page calls WITHOUT `channel` use the legacy own-group path — never
-  break it.
+- Tech-page calls WITHOUT `channel` act on the caller's OWN group only.
+  A client-supplied `target_group_id` is IGNORED since Aug 2026 (it let
+  stale/crafted clients write into another group's screen row); the same
+  applies to `set_bible_text`. Cross-group routing happens ONLY via the
+  technician-set display targets resolved server-side.
+- The WS server derives a connection's group from the `users` table at auth
+  time; the client-claimed `groupId` is ignored (it was unauthenticated —
+  the HMAC token covers only userId). Changing group membership takes
+  effect on the next WS reconnect.
 
 ### 2.4 Build & i18n contracts
 - Any JS edit: terser (no `--mangle`) + `?v=N` bump in every referencing

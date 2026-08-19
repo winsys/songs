@@ -330,7 +330,13 @@ trait Ajax_Common
             );
             return ($row && $row['t'] !== null) ? (int)$row['t'] : null;
         }
-        return isset(self::$args['target_group_id']) ? (int)self::$args['target_group_id'] : $groupId;
+        // Channel-less commands (tech console) always act on the caller's OWN
+        // group. A client-supplied target_group_id is deliberately ignored:
+        // only technician-set display targets (resolved above) may route a
+        // command to another group's screen. Stale cached clients used to send
+        // target_group_id with every display command and could write into
+        // another group's screen row.
+        return $groupId;
     }
 
     private static function set_image()
@@ -386,6 +392,26 @@ trait Ajax_Common
     private static function get_image()
     {
         $userId = $_SESSION['curGroupId'];
+
+        // Stale-client safety net: a long-open musician page may still run the
+        // old cached JS that read the sheet music from the screen row. The
+        // musician role has no screen routes, so for it this command serves the
+        // NOTES CHANNEL image in the legacy response shape — a musician can
+        // never receive another group's / another command's screen content.
+        if (Security::getRole() === 'musician') {
+            $notes = Info::get('db')->get(
+                "SELECT image FROM current_notes WHERE groupId = " . (int)$userId
+            );
+            return json_encode([[
+                'image'       => $notes ? $notes['image'] : '',
+                'text'        => '',
+                'song_name'   => '',
+                'video_src'   => '',
+                'video_state' => '',
+                'transform'   => '',
+            ]]);
+        }
+
         $img = Info::get('db')->select(
             "SELECT image, text, song_name, video_src, video_state, transform
          FROM current WHERE groupId = " . (int)$userId
@@ -427,8 +453,13 @@ trait Ajax_Common
     private static function setNotes($groupId, $image)
     {
         $imgEsc = mysqli_real_escape_string(Info::get('dbh'), $image);
+        // DELETE + INSERT instead of REPLACE: guarantees exactly one row per
+        // group even if the table was ever created without its PRIMARY KEY
+        // (REPLACE would then accumulate rows and get_notes would return the
+        // oldest image).
+        Info::get('db')->exec("DELETE FROM current_notes WHERE groupId = " . (int)$groupId);
         Info::get('db')->exec(
-            "REPLACE INTO current_notes (groupId, image) VALUES (" . (int)$groupId . ", '{$imgEsc}')"
+            "INSERT INTO current_notes (groupId, image) VALUES (" . (int)$groupId . ", '{$imgEsc}')"
         );
         self::broadcastToGroup((int)$groupId, ['type' => 'notes_update']);
     }
