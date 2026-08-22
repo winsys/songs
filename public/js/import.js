@@ -55,6 +55,15 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     $scope.zipProgress    = 0;
     $scope.songLog        = [];
 
+    // ── Sheet-music image groups of the selected collection ────
+    $scope.imageGroups       = [];
+    $scope.newGroupName      = '';
+    $scope.groupDeleteTarget = null;   // group ID for which the delete panel is open
+    $scope.groupBusy         = false;
+    $scope.zipGroupSel       = '';     // ZIP target: group ID (string) or 'new'
+    $scope.zipNewGroupName   = '';
+    $scope.zipMode           = 'replace';   // 'replace' | 'add'
+
     // ── Messages ──────────────────────────────────────────────
     $scope.msgLang       = 'ru';
     $scope.selectedMsgFile = null;
@@ -257,6 +266,131 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     };
 
     // ─────────────────────────────────────────────────────────
+    // Sheet-music image groups (per collection) + ZIP import target
+    // ─────────────────────────────────────────────────────────
+    function loadImageGroups() {
+        if (!$scope.songListId) {
+            $scope.imageGroups = [];
+            $scope.zipGroupSel = '';
+            return;
+        }
+        $http({ method: 'POST', url: '/ajax', data: { command: 'get_image_groups', list_id: $scope.songListId } }).then(
+            function (r) {
+                $scope.imageGroups = r.data || [];
+                angular.forEach($scope.imageGroups, function (g) { g.editName = g.NAME; });
+                // Keep the ZIP target valid; the default is the main group.
+                var ids = $scope.imageGroups.map(function (g) { return String(g.ID); });
+                if ($scope.zipGroupSel !== 'new' && ids.indexOf($scope.zipGroupSel) === -1) {
+                    var main = null;
+                    angular.forEach($scope.imageGroups, function (g) { if (!main && g.IS_MAIN == 1) main = g; });
+                    main = main || $scope.imageGroups[0];
+                    $scope.zipGroupSel = main ? String(main.ID) : '';
+                }
+            }
+        );
+    }
+
+    $scope.$watch('songListId', function () {
+        $scope.groupDeleteTarget = null;
+        $scope.zipGroupSel = '';
+        loadImageGroups();
+    });
+
+    function groupError(d) {
+        songLog('error', window.t('import.log.error', { message: d && d.message ? d.message : window.t('import.log.unknownError') }));
+    }
+
+    // Creates a group; resolves with the new group row or null.
+    function createImageGroup(name) {
+        return $http({ method: 'POST', url: '/ajax', data: { command: 'add_image_group', list_id: $scope.songListId, name: name } }).then(
+            function (r) {
+                var d = r.data;
+                if (d && d.status === 'success' && d.group) {
+                    songLog('ok', window.t('import.log.groupAdded', { name: d.group.NAME }));
+                    return d.group;
+                }
+                groupError(d);
+                return null;
+            },
+            function () { songLog('error', window.t('import.log.connError')); return null; }
+        );
+    }
+
+    $scope.addImageGroup = function () {
+        var name = ($scope.newGroupName || '').trim();
+        if (!name || $scope.groupBusy || !$scope.songListId) return;
+        $scope.groupBusy = true;
+        createImageGroup(name).then(function (g) {
+            $scope.groupBusy = false;
+            if (g) {
+                $scope.newGroupName = '';
+                loadImageGroups();
+            }
+        });
+    };
+
+    $scope.renameImageGroup = function (g) {
+        var name = (g.editName || '').trim();
+        if (!name || name === g.NAME) { g.editName = g.NAME; return; }
+        $http({ method: 'POST', url: '/ajax', data: { command: 'rename_image_group', id: g.ID, name: name } }).then(
+            function (r) {
+                var d = r.data;
+                if (d && d.status === 'success' && d.group) {
+                    songLog('ok', window.t('import.log.groupRenamed', { name: d.group.NAME }));
+                    loadImageGroups();
+                } else {
+                    g.editName = g.NAME;
+                    groupError(d);
+                }
+            },
+            function () { g.editName = g.NAME; songLog('error', window.t('import.log.connError')); }
+        );
+    };
+
+    $scope.moveImageGroup = function (g, dir) {
+        var idx = $scope.imageGroups.indexOf(g);
+        var to  = idx + dir;
+        if (idx < 0 || to < 0 || to >= $scope.imageGroups.length || $scope.groupBusy) return;
+        var ids = $scope.imageGroups.map(function (x) { return x.ID; });
+        ids.splice(idx, 1);
+        ids.splice(to, 0, g.ID);
+        $scope.groupBusy = true;
+        $http({ method: 'POST', url: '/ajax', data: { command: 'reorder_image_groups', list_id: $scope.songListId, ids: ids } }).then(
+            function (r) {
+                $scope.groupBusy = false;
+                var d = r.data;
+                if (d && d.status === 'success') {
+                    songLog('ok', window.t('import.log.groupsReordered'));
+                } else {
+                    groupError(d);
+                }
+                loadImageGroups();
+            },
+            function () { $scope.groupBusy = false; songLog('error', window.t('import.log.connError')); }
+        );
+    };
+
+    $scope.deleteImageGroup = function (g) {
+        if ($scope.groupBusy) return;
+        $scope.groupBusy = true;
+        $http({ method: 'POST', url: '/ajax', data: { command: 'delete_image_group', id: g.ID } }).then(
+            function (r) {
+                $scope.groupBusy = false;
+                $scope.groupDeleteTarget = null;
+                var d = r.data;
+                if (d && d.status === 'success') {
+                    songLog('ok', window.t('import.log.groupDeleted', { name: g.NAME }));
+                    if ($scope.zipGroupSel === String(g.ID)) $scope.zipGroupSel = '';
+                } else {
+                    groupError(d);
+                }
+                loadImageGroups();
+            },
+            function () { $scope.groupBusy = false; songLog('error', window.t('import.log.connError')); }
+        );
+    };
+
+    // ─────────────────────────────────────────────────────────
     // File selection
     // ─────────────────────────────────────────────────────────
     $scope.onSongSogSelected = function () {
@@ -341,16 +475,37 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     // ─────────────────────────────────────────────────────────
     // Import images (ZIP)
     // ─────────────────────────────────────────────────────────
+    // Target: an existing group (zipGroupSel = ID) or a group created on the
+    // fly (zipGroupSel = 'new' + zipNewGroupName). zipMode: 'replace' files
+    // of the same page slot (legacy behaviour) or 'add' only missing ones.
     $scope.importSongZip = function () {
-        if (!$scope.selectedZipFile || !$scope.songListId) return;
+        if (!$scope.selectedZipFile || !$scope.songListId || $scope.zipImporting) return;
+        $scope.songLog = [];
+        if ($scope.zipGroupSel === 'new') {
+            var name = ($scope.zipNewGroupName || '').trim();
+            if (!name) return;
+            $scope.zipImporting = true;
+            createImageGroup(name).then(function (g) {
+                if (!g) { $scope.zipImporting = false; return; }
+                $scope.zipNewGroupName = '';
+                $scope.zipGroupSel = String(g.ID);
+                runZipImport(g.ID);
+            });
+            return;
+        }
         $scope.zipImporting = true;
-        $scope.zipProgress  = 0;
-        $scope.songLog      = [];
+        runZipImport(parseInt($scope.zipGroupSel, 10) || 0);
+    };
+
+    function runZipImport(groupId) {
+        $scope.zipProgress = 0;
         songLog('ok', window.t('import.log.startZip'));
 
         var fd = new FormData();
         fd.append('command',  'import_song_images_zip');
         fd.append('list_id',  $scope.songListId);
+        fd.append('group_id', groupId);
+        fd.append('mode',     $scope.zipMode);
         fd.append('zipfile',  $scope.selectedZipFile);
 
         $http.post('/ajax', fd, {
@@ -362,17 +517,18 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                 $scope.zipProgress  = 100;
                 var d = r.data;
                 if (d.status === 'success') {
-                    songLog('ok', window.t('import.log.zipImported', { extracted: d.extracted, errors: d.errors }));
+                    songLog('ok', window.t('import.log.zipImported', { extracted: d.extracted, skipped: d.skipped || 0, errors: d.errors }));
                     if (d.log && d.log.length) {
                         angular.forEach(d.log, function (l) { songLog(l.type, l.msg); });
                     }
                 } else {
                     songLog('error', window.t('import.log.passwordError', { message: d.message || window.t('import.log.serverError') }));
                 }
+                loadImageGroups();   // refresh the per-group image counts
             },
             function () { $scope.zipImporting = false; songLog('error', window.t('import.log.connError')); }
         );
-    };
+    }
 
     // ─────────────────────────────────────────────────────────
     // Import messages (SOG)

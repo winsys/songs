@@ -364,7 +364,11 @@ trait Ajax_Common
         // caller's OWN group's musicians — regardless of where (or whether)
         // the screen broadcast goes.
         $listIdRaw   = preg_replace('/[^0-9]/', '', (string)self::$args['list_id']);
-        $imageNumRaw = preg_replace('#[^0-9a-zA-Z_\-]#', '', (string)self::$args['image_num']);
+        // Song numbers may contain letters of any script, spaces and
+        // parentheses ("д001", "304 (1)") — only path separators and control
+        // characters are dropped, so the notes path names the real file (the
+        // old ASCII-only filter pointed "д001" at "001.jpg").
+        $imageNumRaw = trim(preg_replace('#[/\\\\\x00-\x1F]#', '', (string)self::$args['image_num']));
         self::setNotes($userId, "/images/{$listIdRaw}/{$imageNumRaw}.jpg");
 
         if ($targetGroupId === null) {
@@ -471,14 +475,44 @@ trait Ajax_Common
         self::broadcastToGroup((int)$groupId, ['type' => 'notes_update']);
     }
 
-    /** Current notes image for the caller's group ({image: '' when off}). */
+    /**
+     * Current notes image for the caller's group ({image: '' when off}).
+     *
+     * With `with_groups: 1` (musician page) the response also carries the
+     * song's image groups and their pages (see app/SongImages.php):
+     *   list_id, num, groups: [{id, name, is_main, images: ['/images/...']}]
+     * The tech console calls without the flag and keeps the one-field shape.
+     * The notes channel itself (current_notes, notes_update) is unchanged —
+     * the main sheet path stays the only thing stored there.
+     */
     private static function get_notes()
     {
         $groupId = (int)$_SESSION['curGroupId'];
         $row = Info::get('db')->get(
             "SELECT image FROM current_notes WHERE groupId = {$groupId}"
         );
-        return json_encode(['image' => $row ? $row['image'] : '']);
+        $image = $row ? (string)$row['image'] : '';
+        $out   = ['image' => $image];
+
+        if (!empty(self::$args['with_groups'])
+            && preg_match('#^/images/(\d+)/([^/]+)\.jpg$#', $image, $m)) {
+            $listId = (int)$m[1];
+            $num    = $m[2];
+            $out['list_id'] = $listId;
+            $out['num']     = $num;
+            $out['groups']  = [];
+            if (SongImages::isSafeNum($num)) {
+                foreach (SongImages::groups($listId) as $g) {
+                    $out['groups'][] = [
+                        'id'      => (int)$g['ID'],
+                        'name'    => $g['NAME'],
+                        'is_main' => (int)$g['IS_MAIN'],
+                        'images'  => SongImages::songPages($listId, $g, $num),
+                    ];
+                }
+            }
+        }
+        return json_encode($out);
     }
 
     // True when the group's screen is occupied by MEDIA content: a video

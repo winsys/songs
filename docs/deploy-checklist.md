@@ -80,6 +80,26 @@ scenario re-checked.
   musician-ROLE session returns the notes-channel image in the legacy
   response shape (old cached musician.js reads the screen row otherwise).
   Musician role has no screen routes, so screens are unaffected.
+- **Image groups (Aug 2026, `app/SongImages.php`):** `get_notes` with
+  `with_groups: 1` (musician page ONLY) adds `list_id`, `num`, `groups[]`
+  with page paths; without the flag (tech console) the response shape is
+  unchanged. The channel still stores ONLY the main sheet path
+  `/images/<L>/<NUM>.jpg` — never a page/group path. `set_image` keeps
+  non-ASCII song numbers (`д001`, `304 (1)`) in that path since this change.
+
+### 2.1c Sheet-music image groups (Aug 2026)
+- Table `song_image_groups` (per collection: NAME, SORT_ORDER, IS_MAIN);
+  page files are the source of truth: main-group page 1 = legacy
+  `/images/<L>/<NUM>.jpg`, everything else `/images/<L>/g<ID>/<NUM>_<page>.jpg|png`.
+- **Writers:** `import_song_images_zip` (`group_id`, `mode` replace|add),
+  `add/rename/delete/reorder_image_group(s)` (Ajax_Import, admin), the
+  legacy `upload_song_image` (main page 1 only — unchanged).
+- **Readers:** `get_notes with_groups` (musician), `get_image_groups` (import
+  page). Leader/tech pages and the screens use the main sheet only.
+- Changing file naming or the IS_MAIN rule ⇒ re-check `SongImages::songPages`,
+  `parseEntryName`, the musician fallback order and the import log.
+- Production has NO php zip extension: `ZipReader` (pure PHP) is the import
+  path there; ZipArchive only on machines that have it (names read RAW).
 
 ### 2.2 WebSocket message types (group-routed via port 2346)
 | Type | Producers | Consumers |
@@ -148,6 +168,11 @@ Setup: one browser as ведущий, one as техник (same group), one scre
    восстановилось (включая зум-трансформацию, когда фича появится).
 7. **Auth spot-check:** страница логина открывается, вход работает (CSRF/
    session не задеты).
+8. **Musician image groups (Aug 2026):** страница музыканта показывает ноты
+   открытой песни и полупрозрачные кнопки «НОТЫ»/«АККОРДЫ»; переключение
+   группы без картинки показывает первую найденную (кнопка выбора остаётся);
+   в полноэкранном режиме только картинка; на странице импорта у выбранного
+   сборника виден список групп.
 
 Any step fails ⇒ do not leave it "to check later": fix forward or roll back.
 

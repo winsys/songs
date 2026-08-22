@@ -203,6 +203,23 @@ CREATE TABLE IF NOT EXISTS `song_list` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table songs.song_image_groups
+-- Sheet-music image groups per song collection (Aug 2026). Page 1 of the
+-- IS_MAIN group is the legacy /images/<list>/<num>.jpg; all other pages are
+-- files under /images/<list>/g<ID>/<num>_<page>.jpg|png (see app/SongImages.php).
+-- Every collection gets the defaults "НОТЫ" (main) + "АККОРДЫ" on first use.
+CREATE TABLE IF NOT EXISTS `song_image_groups` (
+  `ID` int(11) NOT NULL AUTO_INCREMENT,
+  `LISTID` int(11) NOT NULL COMMENT 'list_names.LIST_ID',
+  `NAME` varchar(255) NOT NULL,
+  `SORT_ORDER` int(11) NOT NULL DEFAULT '0',
+  `IS_MAIN` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 = page 1 is the legacy main sheet /images/<list>/<num>.jpg',
+  PRIMARY KEY (`ID`),
+  KEY `idx_song_image_groups_list` (`LISTID`,`SORT_ORDER`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table songs.standard_wallpapers
 CREATE TABLE IF NOT EXISTS `standard_wallpapers` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
