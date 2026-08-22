@@ -88,7 +88,10 @@ scenario re-checked.
   non-ASCII song numbers (`д001`, `304 (1)`) in that path since this change.
 
 ### 2.1c Sheet-music image groups (Aug 2026)
-- Table `song_image_groups` (per collection: NAME, SORT_ORDER, IS_MAIN);
+- Table `song_image_groups` (per collection: NAME = as created, NAMES = JSON
+  translations per UI language with fallback to NAME, SORT_ORDER, IS_MAIN);
+  every reader must go through `SongImages::displayName()` for user-facing
+  names (`set_image_group_names` edits the translations);
   page files are the source of truth: main-group page 1 = legacy
   `/images/<L>/<NUM>.jpg`, everything else `/images/<L>/g<ID>/<NUM>_<page>.jpg|png`.
 - **Writers:** `import_song_images_zip` (`group_id`, `mode` replace|add),

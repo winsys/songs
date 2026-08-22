@@ -63,6 +63,8 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     $scope.zipGroupSel       = '';     // ZIP target: group ID (string) or 'new'
     $scope.zipNewGroupName   = '';
     $scope.zipMode           = 'replace';   // 'replace' | 'add'
+    $scope.uiLangs           = ['ru', 'de', 'en', 'lt'];   // group-name translations (UI languages)
+    var openNamePanels       = {};         // group ID -> translations panel open
 
     // ── Messages ──────────────────────────────────────────────
     $scope.msgLang       = 'ru';
@@ -277,7 +279,11 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
         $http({ method: 'POST', url: '/ajax', data: { command: 'get_image_groups', list_id: $scope.songListId } }).then(
             function (r) {
                 $scope.imageGroups = r.data || [];
-                angular.forEach($scope.imageGroups, function (g) { g.editName = g.NAME; });
+                angular.forEach($scope.imageGroups, function (g) {
+                    g.editName  = g.NAME;
+                    g.editNames = angular.extend({ ru: '', de: '', en: '', lt: '' }, g.NAMES || {});
+                    g.showNames = !!openNamePanels[g.ID];
+                });
                 // Keep the ZIP target valid; the default is the main group.
                 var ids = $scope.imageGroups.map(function (g) { return String(g.ID); });
                 if ($scope.zipGroupSel !== 'new' && ids.indexOf($scope.zipGroupSel) === -1) {
@@ -344,6 +350,38 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                 }
             },
             function () { g.editName = g.NAME; songLog('error', window.t('import.log.connError')); }
+        );
+    };
+
+    $scope.toggleGroupNames = function (g) {
+        g.showNames = !g.showNames;
+        openNamePanels[g.ID] = g.showNames;
+    };
+
+    // Translations of the group name: one field per UI language, empty =
+    // the original NAME is shown. Saved on blur / Enter when changed.
+    $scope.saveImageGroupNames = function (g) {
+        var names = {};
+        var changed = false;
+        angular.forEach($scope.uiLangs, function (lang) {
+            var v = (g.editNames[lang] || '').trim();
+            if (v) names[lang] = v;
+            if (v !== ((g.NAMES && g.NAMES[lang]) || '')) changed = true;
+        });
+        if (!changed) return;
+        $http({ method: 'POST', url: '/ajax', data: { command: 'set_image_group_names', id: g.ID, names: names } }).then(
+            function (r) {
+                var d = r.data;
+                if (d && d.status === 'success' && d.group) {
+                    g.NAMES        = d.group.NAMES || {};
+                    g.display_name = d.group.display_name;
+                    g.editNames    = angular.extend({ ru: '', de: '', en: '', lt: '' }, g.NAMES);
+                    songLog('ok', window.t('import.log.groupNamesSaved', { name: g.NAME }));
+                } else {
+                    groupError(d);
+                }
+            },
+            function () { songLog('error', window.t('import.log.connError')); }
         );
     };
 

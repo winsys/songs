@@ -27,8 +27,14 @@
  */
 class SongImages
 {
-    const DEFAULT_MAIN_NAME   = 'НОТЫ';
-    const DEFAULT_SECOND_NAME = 'АККОРДЫ';
+    /** Default group names (NAME = the original; NAMES = per UI language). */
+    const DEFAULT_MAIN_NAME    = 'НОТЫ';
+    const DEFAULT_SECOND_NAME  = 'АККОРДЫ';
+    const DEFAULT_MAIN_NAMES   = ['ru' => 'НОТЫ', 'de' => 'NOTEN', 'en' => 'SHEET MUSIC', 'lt' => 'NATOS'];
+    const DEFAULT_SECOND_NAMES = ['ru' => 'АККОРДЫ', 'de' => 'AKKORDE', 'en' => 'CHORDS', 'lt' => 'AKORDAI'];
+
+    /** UI languages a group name can be translated into (mirrors T::ALLOWED). */
+    const UI_LANGS = ['ru', 'de', 'en', 'lt'];
 
     /** Accepted page-file extensions (stored lowercase; "jpeg" is saved as "jpg"). */
     const EXT_PATTERN = 'jpe?g|png';
@@ -65,9 +71,53 @@ class SongImages
             return null;
         }
         $row = Info::get('db')->get(
-            "SELECT ID, LISTID, NAME, SORT_ORDER, IS_MAIN FROM song_image_groups WHERE ID = {$groupId}"
+            "SELECT ID, LISTID, NAME, NAMES, SORT_ORDER, IS_MAIN FROM song_image_groups WHERE ID = {$groupId}"
         );
         return $row ?: null;
+    }
+
+    // ─── Multilingual names ──────────────────────────────────────────
+    // NAME is the name the group was created with; NAMES (JSON
+    // {ui_lang: name}) holds optional translations. A missing / empty
+    // translation falls back to NAME.
+
+    /** Translations of a group: [lang => name] (only non-empty, allowed languages). */
+    public static function names(array $g)
+    {
+        $raw = isset($g['NAMES']) ? (string)$g['NAMES'] : '';
+        $arr = $raw !== '' ? json_decode($raw, true) : null;
+        $out = [];
+        if (is_array($arr)) {
+            foreach (self::UI_LANGS as $lang) {
+                if (isset($arr[$lang]) && trim((string)$arr[$lang]) !== '') {
+                    $out[$lang] = trim((string)$arr[$lang]);
+                }
+            }
+        }
+        return $out;
+    }
+
+    /** Name of a group in the given (default: current) UI language. */
+    public static function displayName(array $g, $lang = null)
+    {
+        $lang  = $lang ?: (class_exists('T') ? T::lang() : 'ru');
+        $names = self::names($g);
+        return isset($names[$lang]) ? $names[$lang] : (string)$g['NAME'];
+    }
+
+    /** Normalize a translations array for storage; null when nothing is set. */
+    public static function encodeNames($names)
+    {
+        $out = [];
+        if (is_array($names)) {
+            foreach (self::UI_LANGS as $lang) {
+                $v = isset($names[$lang]) ? trim((string)preg_replace('/\s+/u', ' ', (string)$names[$lang])) : '';
+                if ($v !== '') {
+                    $out[$lang] = mb_substr($v, 0, 100, 'UTF-8');
+                }
+            }
+        }
+        return $out ? json_encode($out, JSON_UNESCAPED_UNICODE) : null;
     }
 
     /** The group that holds the legacy main sheet (falls back to the first group). */
@@ -94,16 +144,18 @@ class SongImages
         if ($cnt > 0) {
             return;
         }
-        $main   = mysqli_real_escape_string($dbh, self::DEFAULT_MAIN_NAME);
-        $second = mysqli_real_escape_string($dbh, self::DEFAULT_SECOND_NAME);
-        $db->exec("INSERT INTO song_image_groups (LISTID, NAME, SORT_ORDER, IS_MAIN) VALUES ({$listId}, '{$main}', 1, 1)");
-        $db->exec("INSERT INTO song_image_groups (LISTID, NAME, SORT_ORDER, IS_MAIN) VALUES ({$listId}, '{$second}', 2, 0)");
+        $main    = mysqli_real_escape_string($dbh, self::DEFAULT_MAIN_NAME);
+        $second  = mysqli_real_escape_string($dbh, self::DEFAULT_SECOND_NAME);
+        $mainN   = mysqli_real_escape_string($dbh, self::encodeNames(self::DEFAULT_MAIN_NAMES));
+        $secondN = mysqli_real_escape_string($dbh, self::encodeNames(self::DEFAULT_SECOND_NAMES));
+        $db->exec("INSERT INTO song_image_groups (LISTID, NAME, NAMES, SORT_ORDER, IS_MAIN) VALUES ({$listId}, '{$main}', '{$mainN}', 1, 1)");
+        $db->exec("INSERT INTO song_image_groups (LISTID, NAME, NAMES, SORT_ORDER, IS_MAIN) VALUES ({$listId}, '{$second}', '{$secondN}', 2, 0)");
     }
 
     private static function load($listId)
     {
         return Info::get('db')->select(
-            "SELECT ID, LISTID, NAME, SORT_ORDER, IS_MAIN
+            "SELECT ID, LISTID, NAME, NAMES, SORT_ORDER, IS_MAIN
              FROM song_image_groups
              WHERE LISTID = {$listId}
              ORDER BY SORT_ORDER, ID"

@@ -35,12 +35,13 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
 
     // ─── Remembered group selection (per collection, browser session) ───
     var SEL_KEY = 'musicianImageGroup';
-    var sel = { byList: {}, lastName: '' };
+    var sel = { byList: {}, lastName: '', lastOrig: '' };
     try {
         var stored = JSON.parse(sessionStorage.getItem(SEL_KEY));
         if (stored && typeof stored === 'object') {
             sel.byList   = stored.byList || {};
             sel.lastName = stored.lastName || '';
+            sel.lastOrig = stored.lastOrig || '';
         }
     } catch (e) { /* private mode / disabled storage: selection lives in memory only */ }
 
@@ -64,14 +65,17 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
 
     // Selected group for a collection: the remembered id, else a group with
     // the same name as the last choice made in another collection (the
-    // defaults "НОТЫ"/"АККОРДЫ" exist everywhere), else the first group.
+    // defaults "НОТЫ"/"АККОРДЫ" exist everywhere; matched by the translated
+    // AND the original name), else the first group.
     function resolveSelected(groups, listId) {
         var g = findGroup(groups, sel.byList[listId]);
         if (g) return g;
-        if (sel.lastName) {
-            var want = sel.lastName.toLowerCase();
+        var wanted = [sel.lastName, sel.lastOrig].filter(Boolean).map(function(s) { return String(s).toLowerCase(); });
+        if (wanted.length) {
             for (var i = 0; i < groups.length; i++) {
-                if (String(groups[i].name).toLowerCase() === want) return groups[i];
+                var n = String(groups[i].name || '').toLowerCase();
+                var o = String(groups[i].orig || '').toLowerCase();
+                if (wanted.indexOf(n) !== -1 || (o && wanted.indexOf(o) !== -1)) return groups[i];
             }
         }
         return groups.length ? groups[0] : null;
@@ -139,6 +143,7 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
         if (!g || $scope.notes.listId === null) return;
         sel.byList[$scope.notes.listId] = g.id;
         sel.lastName = g.name;
+        sel.lastOrig = g.orig || '';
         saveSel();
         $scope.selectedGroupId = g.id;
         var shown = g.images.length ? g : firstWithImages($scope.notes.groups);

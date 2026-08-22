@@ -125,6 +125,20 @@ Fullscreen shows only the current image. Formats: JPG and PNG.
   the song-list popups (tech + leader), confirmation and enlarged-image
   dialogs; `.close` no longer floats (`margin-left:auto` / `order:2`).
 
+### Follow-up 2 (same day)
+- **Multilingual group names:** column `song_image_groups.NAMES` (JSON
+  `{ui_lang: name}`, migration `add_song_image_group_names.sql` + runner,
+  defaults translated: НОТЫ → NOTEN / SHEET MUSIC / NATOS, АККОРДЫ → AKKORDE /
+  CHORDS / AKORDAI). `NAME` stays the name the group was created with and is
+  the fallback for every language without a translation.
+  `SongImages::displayName()` picks `T::lang()`; `get_notes` (musician),
+  `get_song_images` (edit dialog) and `get_image_groups.display_name`
+  (import page) return the localized name, the import page edits
+  translations in a 🌐 panel per group (`set_image_group_names`, admin).
+  The musician's remembered choice matches by translated OR original name.
+- **Placeholder «нет картинок»:** regenerated portrait 1000×1400 (1:1.4).
+- **Settings:** the UI-language card title is English-only («🌐 UI language»).
+
 ## 4. Regression analysis
 
 - `current_notes` / `notes_update`: no writer changed; `get_notes` gains an

@@ -505,7 +505,8 @@ trait Ajax_Common
                 foreach (SongImages::groups($listId) as $g) {
                     $out['groups'][] = [
                         'id'      => (int)$g['ID'],
-                        'name'    => $g['NAME'],
+                        'name'    => SongImages::displayName($g),   // in the musician's UI language
+                        'orig'    => $g['NAME'],
                         'is_main' => (int)$g['IS_MAIN'],
                         'images'  => SongImages::songPages($listId, $g, $num),
                     ];

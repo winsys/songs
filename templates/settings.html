@@ -416,9 +416,10 @@
             <div class="settings-page-title"><?php echo T::s('settings.title'); ?></div>
         </div>
 
-        <!-- 0. UI language selector (label kept bilingual on purpose) -->
+        <!-- 0. UI language selector (title deliberately English-only, so it is
+             recognisable whatever language the user switched to) -->
         <div class="settings-card">
-            <span class="settings-card-title">🌐 Язык интерфейса / UI language</span>
+            <span class="settings-card-title">🌐 UI language</span>
             <div class="settings-field">
                 <select class="settings-input" ng-model="settings.ui_lang">
                     <option value="ru">Русский</option>
