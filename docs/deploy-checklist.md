@@ -132,6 +132,9 @@ scenario re-checked.
   `video_seek`, `set_slide`, `set_leader_text`. NULL target = command must
   not touch any screen — but
   side-channels (e.g. `leader_song_changed`) must still fire.
+- The pianist page (`/piano`, Aug 2026) never broadcasts: its `piano_*`
+  commands only touch `$_SESSION['piano_favorites']`; it must stay free of
+  `set_image` / `set_tech_image` / `updateSocket` / notes-channel writes.
 - Tech-page calls WITHOUT `channel` act on the caller's OWN group only.
   A client-supplied `target_group_id` is IGNORED since Aug 2026 (it let
   stale/crafted clients write into another group's screen row); the same

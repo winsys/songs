@@ -16,6 +16,7 @@ It serves six user roles:
 - **Техник (Technician)** — controls main and streaming displays
 - **Администратор (Administrator)** — full access, manages users and database
 - **screen** — display-only endpoints (index, ajax, text, text_stream, settings)
+- **Пианист (Pianist mode, `/piano`)** — not a role: a private copy of the leader page available to musician/leader/tech/admin; personal song list in the PHP session (`Ajax_Piano`), notes/lyrics on the own screen only, never touches screens or shared state
 
 Capabilities: synchronized setlist management, digital sheet music, sermon preparation with rich-text + slide integration, technical screen control (main display, streaming display, wallpapers, media playlist), database administration, multi-language song/Bible content.
 
@@ -147,6 +148,7 @@ app/
   Ajax.php                   # AJAX dispatcher
   Ajax_Common.php            # songs, favorites, user settings, languages; getLanguages()
   Ajax_Import.php            # languages, songs, messages import
+  Ajax_Piano.php             # pianist mode: session-only personal song list (piano_*)
   Ajax_Settings.php          # user/group settings, Google linking
   Ajax_Sermon.php            # sermons CRUD, display targets, media
   Ajax_Tech.php              # display control, Bible, messages
@@ -168,6 +170,7 @@ public/js/
   websocket_auth.js          # authenticated WS connection, returns {destroy()}
   songs_service.js           # AngularJS service, languages, song lookup
   leader.js                  # leader role controller
+  piano.js                   # pianist mode (private leader copy: no broadcasts, session list)
   tech.js                    # technician role controller (largest)
   sermon.js                  # sermon presentation mode
   sermon_prep.js             # sermon prep editor
@@ -182,6 +185,7 @@ templates/
   login.html                 # login form
   index.html                 # home / role hub
   leader.html                # leader interface
+  piano.html                 # pianist mode (derived from leader.html; keep the two in sync by hand)
   musician.html              # musician interface
   tech.html                  # technician interface (largest)
   sermon.html

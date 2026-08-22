@@ -132,7 +132,7 @@
         <div class="home-title">Worship Songs</div>
         <div class="home-church"><?php echo htmlspecialchars($_SESSION['userName']) ?></div>
 
-        <?php if ($role === 'admin' || $role === 'leader' || $role === 'musician'): ?>
+        <?php if ($role === 'admin' || $role === 'leader' || $role === 'musician' || $role === 'tech'): ?>
         <div class="home-section-label"><?php echo T::s('home.section.ministry'); ?></div>
         <?php endif; ?>
 
@@ -145,6 +145,12 @@
         <?php if ($role === 'admin' || $role === 'musician'): ?>
         <button class="btn-home btn-blue" onclick="window.location.href='/musician'">
             <span class="btn-icon">🎸</span> <?php echo T::s('home.role.musician'); ?>
+        </button>
+        <?php endif; ?>
+
+        <?php if ($role === 'admin' || $role === 'leader' || $role === 'musician' || $role === 'tech'): ?>
+        <button class="btn-home btn-blue" onclick="window.location.href='/piano'">
+            <span class="btn-icon">🎹</span> <?php echo T::s('home.role.piano'); ?>
         </button>
         <?php endif; ?>
 

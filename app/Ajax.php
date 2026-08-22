@@ -10,6 +10,7 @@ class Ajax
     use Ajax_Common;    // Common functions used across multiple pages
     use Ajax_Tech;      // Tech page functions
     use Ajax_Leader;    // Leader page functions (verse broadcast mode)
+    use Ajax_Piano;     // Pianist page: session-only personal song list
     use Ajax_Sermon;    // Sermon page functions
     use Ajax_Settings;  // Settings page functions
     use Ajax_Import;    // Import page functions
