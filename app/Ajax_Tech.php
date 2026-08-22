@@ -832,6 +832,50 @@ trait Ajax_Tech
     }
 
     /**
+     * Transient playback-position sync for the video on the display: seeks
+     * made on the sermon page (its slider or inside the YouTube player) and
+     * the periodic drift check while the video plays there.
+     * Args: channel ('sermon'), src (the video source the position refers
+     * to), t (seconds), sync (0 = explicit seek, the screen always applies
+     * it; 1 = periodic check, the screen only catches up when its own
+     * position lags behind by more than its threshold).
+     * Broadcasts a group-scoped `video_seek` WS event to the resolved
+     * display-target group. Nothing is written to `current`; the event is
+     * dropped when the target's row holds a different source (the
+     * technician may have replaced the video meanwhile). NULL target =
+     * muted channel, nothing happens.
+     */
+    private static function video_seek()
+    {
+        $userId        = (int)$_SESSION['curGroupId'];
+        $targetGroupId = self::resolveDisplayTarget($userId);
+        if ($targetGroupId === null) {
+            return json_encode(['status' => 'ok']); // broadcast disabled — no-op
+        }
+
+        $src = isset(self::$args['src']) ? trim((string)self::$args['src']) : '';
+        $t   = isset(self::$args['t']) ? (float)self::$args['t'] : 0.0;
+        if ($src === '' || !is_finite($t) || $t < 0) {
+            return json_encode(['status' => 'ok']);
+        }
+
+        $row = Info::get('db')->get("SELECT video_src FROM current WHERE groupId = {$targetGroupId}");
+        if (!$row || trim((string)$row['video_src']) !== $src) {
+            return json_encode(['status' => 'ok']); // the screen shows something else
+        }
+
+        self::broadcastToGroup($targetGroupId, [
+            'type' => 'video_seek',
+            'data' => [
+                'src'  => $src,
+                't'    => round($t, 2),
+                'sync' => empty(self::$args['sync']) ? 0 : 1,
+            ],
+        ]);
+        return json_encode(['status' => 'ok']);
+    }
+
+    /**
      * Show a sermon slide on the main display.
      * Params: html (slide HTML content), title (slide title), target_group_id
      */

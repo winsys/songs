@@ -79,6 +79,8 @@ All AJAX responses are JSON. CSRF token is validated from `X-CSRF-Token` header 
 
 **Notes channel (Aug 2026):** the musician's sheet music lives in the `current_notes` table (one row per group) + `notes_update` WS event — fully separate from `current`. Notes switch only via the leader's / tech's song toggle (`set_image` / `set_tech_image` with a sheet path; `clear_image` with `channel:'leader'` or `clear_notes:1`). Screen commands (Bible, messages, slides, media, screen-off) must never touch `current_notes`. Media on screen (video/wallpaper, empty text) survives song selection — see `hasActiveMediaRow()`.
 
+**Video position sync (Aug 2026):** `public/js/yt_bridge.js` talks to YouTube iframes over the IFrame-API postMessage protocol without loading YouTube's script (`listening` handshake → `infoDelivery` position reports ~2×/s while playing → `seekTo` command). The sermon page mirrors slider seeks and seeks made inside its YouTube player to the display via the `video_seek` Ajax command → transient `video_seek` WS event (nothing written to `current`; `Ajax_Tech::video_seek` drops it when `current.video_src` differs). Every 5 s while playing it also re-sends the position; the main screen applies explicit seeks always and periodic ones only to catch up (lag > 2.5 s) — it never rewinds on its own. A `?t=` / `start=` timecode in a YouTube link becomes `start=` on both sides. Play/pause are NOT mirrored from inside the player (only the sermon page's own buttons, as before).
+
 ---
 
 ## 7. Architecture notes
