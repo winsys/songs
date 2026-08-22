@@ -241,10 +241,6 @@ trait Ajax_Import
                 $errors++;
                 continue;
             }
-            if (!$p['known']) {
-                $log[] = ['type' => 'warn', 'msg' => T::s('import.log.noSongForImage', ['num' => $p['num'], 'name' => $p['name']])];
-            }
-
             list($abs) = SongImages::target($listId, $group, $p['num'], $p['page'], $p['ext']);
             $shown    = substr($abs, strlen($listDir) + 1); // "001.jpg" or "g3/001_2.png"
             $existing = SongImages::slotFiles($listId, $group, $p['num'], $p['page']);
@@ -267,6 +263,12 @@ trait Ajax_Import
                 $log[] = ['type' => 'warn', 'msg' => T::s('import.log.invalidImage', ['name' => $p['name']])];
                 $errors++;
                 continue;
+            }
+
+            // Images may be imported before the song texts: an unknown number
+            // is still saved (as page 1), but flagged.
+            if (!$p['known']) {
+                $log[] = ['type' => 'warn', 'msg' => T::s('import.log.noSongForImage', ['num' => $p['num'], 'name' => $p['name']])];
             }
 
             $dir = dirname($abs);
