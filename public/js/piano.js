@@ -10,8 +10,9 @@
  * Notes view: a full-viewport overlay (browser fullscreen when available)
  * with the image of the chosen image group ("type") — the same translucent
  * group buttons and the same remembered choice (sessionStorage
- * 'musicianImageGroup') as the musician page. Lyrics view: the leader's
- * black auto-fitted text screen.
+ * 'musicianImageGroup') as the musician page; the search-result preview and
+ * the inline notes of the full list switch the image type the same way.
+ * Lyrics view: the leader's black auto-fitted text screen.
  */
 app.controller('Piano', ['$scope', '$http', 'SongsService', '$timeout', function ($scope, $http, SongsService, $timeout)
 {
@@ -112,9 +113,35 @@ app.controller('Piano', ['$scope', '$http', 'SongsService', '$timeout', function
         }
     };
 
+    // Search-result preview: the main sheet at once, then the song's image
+    // groups (type buttons, remembered choice) like the notes view.
+    var previewSeq = 0;
     $scope.$on('song:previewSong', function (e, song) {
-        $scope.songPreview = { visible: true, song: song, imgError: false };
+        var seq = ++previewSeq;
+        $scope.songPreview = { visible: true, song: song, imgError: false, image: song.imageName,
+                               groups: [], selectedGroupId: null, shownGroup: null };
+        loadGroups(song.ID, function (groups) {
+            var sp = $scope.songPreview;
+            if (seq !== previewSeq || !sp.visible) return;
+            sp.groups = groups;
+            applyPreviewGroup(sp, resolveSelected(groups, String(song.LISTID)));
+        });
     });
+
+    function applyPreviewGroup(sp, selected) {
+        sp.selectedGroupId = selected ? selected.id : null;
+        sp.shownGroup = (selected && selected.image) ? selected : firstWithImage(sp.groups);
+        sp.imgError = false;
+        sp.image = (sp.shownGroup && sp.shownGroup.image) ? sp.shownGroup.image : sp.song.imageName;
+    }
+
+    $scope.selectPreviewGroup = function (g, $event) {
+        if ($event) $event.stopPropagation();
+        var sp = $scope.songPreview;
+        if (!g || !sp.song) return;
+        rememberSel(String(sp.song.LISTID), g);
+        applyPreviewGroup(sp, g);
+    };
 
     $scope.closeSongPreview = function () {
         $scope.songPreview.visible = false;
@@ -141,8 +168,29 @@ app.controller('Piano', ['$scope', '$http', 'SongsService', '$timeout', function
         jQuery("#list-popup .modal").modal(flag ? 'show' : 'hide');
     };
 
+    // Full list: inline notes with image-type chips (groups loaded once per row).
     $scope.toggleInlineNotes = function (song) {
         song.showInlineNotes = !song.showInlineNotes;
+        if (!song.showInlineNotes || song.inlineGroups) return;
+        song.inlineGroups = [];
+        song.inlineImage = '/images/' + song.LISTID + '/' + song.NUM + '.jpg';
+        loadGroups(song.ID, function (groups) {
+            song.inlineGroups = groups;
+            applyInlineGroup(song, resolveSelected(groups, String(song.LISTID)));
+        });
+    };
+
+    function applyInlineGroup(song, selected) {
+        song.inlineSelectedId = selected ? selected.id : null;
+        var shown = (selected && selected.image) ? selected : firstWithImage(song.inlineGroups);
+        song.inlineShownId = shown ? shown.id : null;
+        song.inlineImage = (shown && shown.image) ? shown.image : noImageSrc;
+    }
+
+    $scope.selectInlineGroup = function (song, g) {
+        if (!g) return;
+        rememberSel(String(song.LISTID), g);
+        applyInlineGroup(song, g);
     };
 
     $scope.clearFavorites = function () {
@@ -245,6 +293,25 @@ app.controller('Piano', ['$scope', '$http', 'SongsService', '$timeout', function
         return groups.length ? groups[0] : null;
     }
 
+    // Remember the chosen image type for the collection (shared with the musician page).
+    function rememberSel(listId, g) {
+        var sel = loadSel();
+        sel.byList[listId] = g.id;
+        sel.lastName = g.name;
+        sel.lastOrig = g.orig_name || '';
+        saveSel(sel);
+    }
+
+    // Image groups of a song with their images: cb(groups) on success only.
+    function loadGroups(songId, cb) {
+        $http({ method: "POST", url: "/ajax", data: { command: 'get_song_images', song_id: songId } }).then(
+            function (r) {
+                var d = r.data || {};
+                if (d.status === 'success' && d.groups && d.groups.length) cb(d.groups);
+            }
+        );
+    }
+
     function renderNotes() {
         var nf = $scope.notesFs;
         var buster = '?t=' + new Date().getTime();
@@ -286,11 +353,7 @@ app.controller('Piano', ['$scope', '$http', 'SongsService', '$timeout', function
         if ($event) $event.stopPropagation();
         var nf = $scope.notesFs;
         if (!g || !nf.song) return;
-        var sel = loadSel();
-        sel.byList[String(nf.song.LISTID)] = g.id;
-        sel.lastName = g.name;
-        sel.lastOrig = g.orig_name || '';
-        saveSel(sel);
+        rememberSel(String(nf.song.LISTID), g);
         nf.selectedGroupId = g.id;
         nf.shownGroup = g.image ? g : firstWithImage(nf.groups);
         renderNotes();

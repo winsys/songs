@@ -741,7 +741,24 @@
         flex: 1; min-height: 0;
         display: flex; align-items: center; justify-content: center;
         background: #111; overflow: hidden;
+        position: relative;   /* the image-type buttons (.mg-bar) overlay the top */
     }
+
+    /* Image-type chips above the inline notes in the full song list */
+    .inline-types { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .inline-type-btn {
+        padding: 8px 16px;
+        border-radius: 8px;
+        border: 1.5px solid #dee2e6;
+        background: #f8f9fa;
+        color: #5a6272;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .inline-type-btn.inline-type-sel { background: #ebf3fb; border-color: #1a6db5; color: #1a6db5; }
+    .inline-type-btn.inline-type-shown { box-shadow: inset 0 0 0 2px #1a6db5; }
+    .inline-type-btn.inline-type-empty { color: #b0b8c1; }
     .song-preview-img {
         max-width: 100%; max-height: 100%;
         object-fit: contain; display: block;
@@ -982,7 +999,15 @@
                                         ng-click="addSongToFavorites(song.ID)"><?php echo T::s('leader.list.select'); ?></button>
                             </div>
                             <div class="col-xs-12" ng-if="song.showInlineNotes" style="margin-top: 10px;">
-                                <img ng-src="/images/{{ song.LISTID }}/{{ song.NUM }}.jpg"
+                                <div class="inline-types" ng-if="song.inlineGroups.length">
+                                    <button class="inline-type-btn"
+                                            ng-repeat="g in song.inlineGroups track by g.id"
+                                            ng-class="{'inline-type-sel': g.id === song.inlineSelectedId,
+                                                       'inline-type-shown': song.inlineShownId === g.id && g.id !== song.inlineSelectedId,
+                                                       'inline-type-empty': !g.image}"
+                                            ng-click="selectInlineGroup(song, g)">{{ g.name }}</button>
+                                </div>
+                                <img ng-if="song.inlineImage" ng-src="{{ song.inlineImage }}"
                                      style="width: 100%; border-radius: 8px; border: 1px solid #dee2e6;"
                                      onerror="this.style.display='none'">
                             </div>
@@ -1003,11 +1028,19 @@
                 <span class="song-preview-book" ng-if="songPreview.song.bookName">{{ songPreview.song.bookName }}</span>
             </div>
             <div class="song-preview-img-wrap">
-                <img ng-src="{{ songPreview.song.imageName }}"
+                <img ng-src="{{ songPreview.image }}"
                      class="song-preview-img"
                      ng-hide="songPreview.imgError"
                      onerror="angular.element(this).scope().$apply(function(s){s.songPreview.imgError=true;})">
                 <div class="song-preview-no-img" ng-show="songPreview.imgError"><?php echo T::s('leader.preview.noImage'); ?></div>
+                <div class="mg-bar" ng-if="songPreview.groups.length">
+                    <button class="mg-btn"
+                            ng-repeat="g in songPreview.groups track by g.id"
+                            ng-class="{'mg-sel': g.id === songPreview.selectedGroupId,
+                                       'mg-shown': songPreview.shownGroup && g.id === songPreview.shownGroup.id && g.id !== songPreview.selectedGroupId,
+                                       'mg-empty': !g.image}"
+                            ng-click="selectPreviewGroup(g, $event)">{{ g.name }}</button>
+                </div>
             </div>
             <div class="song-preview-actions">
                 <button class="btn-action-blue" ng-click="confirmAddSongFromPreview()"><?php echo T::s('leader.preview.add'); ?></button>
@@ -1040,7 +1073,7 @@
     </div>
 </div>
 
-<script src="/js/piano.min.js?v=1" type="text/javascript"></script>
+<script src="/js/piano.min.js?v=2" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}

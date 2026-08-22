@@ -191,6 +191,35 @@ trait Ajax_Settings
         return json_encode(['status' => 'success']);
     }
 
+    /**
+     * Join link (QR auto-login) of an observer account of the admin's group.
+     * Args: user_id, regenerate (0|1). The token is issued on first request
+     * and replaced on regenerate — old links / printed QR codes stop working.
+     * Admin only; only observer accounts carry a token.
+     */
+    private static function get_join_link()
+    {
+        if (!Security::canManageUsers()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+        $groupId       = (int)$_SESSION['curGroupId'];
+        $currentUserId = (int)$_SESSION['curUserId'];
+        $id            = (int)(self::$args['user_id'] ?? 0);
+        $user = Info::get('db')->get(
+            "SELECT ID, JOIN_TOKEN FROM users
+             WHERE ID = {$id} AND ROLE = 'observer' AND (GROUP_ID = {$groupId} OR ID = {$currentUserId})"
+        );
+        if (!$user) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+        $token = isset($user['JOIN_TOKEN']) ? (string)$user['JOIN_TOKEN'] : '';
+        if (!preg_match('/^[a-f0-9]{32}$/', $token) || !empty(self::$args['regenerate'])) {
+            $token = bin2hex(random_bytes(16));
+            Info::get('db')->exec("UPDATE users SET JOIN_TOKEN = '{$token}' WHERE ID = {$id}");
+        }
+        return json_encode(['status' => 'success', 'token' => $token]);
+    }
+
     private static function create_group_user()
     {
         $groupId = (int)$_SESSION['curGroupId'];

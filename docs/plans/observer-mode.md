@@ -45,6 +45,21 @@ default UI language, fallback to the leader's); history in `sessionStorage`
 - Migration `database/migrations/add_observer_mode.sql` (+ runner
   `run_add_observer_mode.php`, re-runnable).
 
+### Join link / QR code (auto-login, added 2026-08-22 after the phone test)
+- `users.JOIN_TOKEN` (migration `add_join_token.sql` + runner): a 128-bit
+  random hex token carried ONLY by observer accounts; `/join/<token>`
+  (`App.php`, before the login check → `Security::joinByToken()`) starts the
+  session exactly like a password login and redirects to `/observer`;
+  anything else → `/login`. Saved to the phone's home screen, the link logs
+  in again on every opening (sessions last 18 h).
+- Settings page, observer slot: «📱 QR-код входа» → modal with the QR
+  (`public/js/vendor/qrcode.min.js`, qrcode-generator 1.4.4, MIT — the only
+  vendored dependency, no network calls), the link, «Копировать ссылку»,
+  «🖨 Печать» (Blob + `<a target=_blank>` + onload print), «🔄 Новая ссылка»
+  (regenerates the token → old QR codes stop working). «Поделиться» of the
+  observer account appends the link. Server: `Ajax_Settings::get_join_link
+  {user_id, regenerate}` (admin only, observer accounts of the own group).
+
 ### Observer channel (group mode)
 - Table `current_observer` (groupId PK, active, song_id, verse_idx, langs,
   updated_at). WS event `observer_update` with the compact state

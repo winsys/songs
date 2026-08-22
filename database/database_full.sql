@@ -344,9 +344,11 @@ CREATE TABLE IF NOT EXISTS `users` (
   `GOOGLE_ID` varchar(255) DEFAULT NULL,
   `ROLE` enum('admin','leader','musician','preacher','tech','screen','observer') NOT NULL DEFAULT 'musician',
   `GROUP_ID` int(11) NOT NULL DEFAULT '0',
+  `JOIN_TOKEN` varchar(64) DEFAULT NULL COMMENT 'Auto-login token for the /join/<token> link (observer accounts only); NULL = no link issued',
   `LAST_LOGIN` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`ID`),
-  UNIQUE KEY `idx_google_id` (`GOOGLE_ID`)
+  UNIQUE KEY `idx_google_id` (`GOOGLE_ID`),
+  UNIQUE KEY `idx_join_token` (`JOIN_TOKEN`)
 ) ENGINE=InnoDB AUTO_INCREMENT=20 DEFAULT CHARSET=utf8;
 
 -- Data exporting was unselected.

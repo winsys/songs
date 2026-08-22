@@ -336,6 +336,57 @@
         text-align: center;
     }
     .btn-share-user:hover { border-color: #1a6db5; color: #1a6db5; }
+    .btn-qr-user {
+        padding: 6px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1.5px solid #cfe3f7;
+        background: #ebf3fb;
+        color: #1a6db5;
+        cursor: pointer;
+        transition: all 0.15s;
+        width: 100%;
+        text-align: center;
+    }
+    .btn-qr-user:hover { background: #d6e9f8; }
+
+    /* Observer join link / QR code modal (auto-login without a password) */
+    .qr-overlay {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 99999;
+        display: flex; align-items: center; justify-content: center;
+        padding: 12px;
+    }
+    .qr-modal {
+        background: #fff;
+        border-radius: 14px;
+        width: 100%;
+        max-width: 420px;
+        max-height: 96vh;
+        overflow-y: auto;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+        padding: 18px 18px 16px;
+    }
+    .qr-title { font-size: 16px; font-weight: 600; color: #2c3e50; margin-bottom: 2px; }
+    .qr-user { font-size: 12px; color: #95a5a6; margin-bottom: 12px; }
+    .qr-code { display: flex; justify-content: center; margin: 6px 0 10px; }
+    .qr-code svg { width: 260px; max-width: 100%; height: auto; }
+    .qr-hint { font-size: 12px; color: #5a6272; line-height: 1.45; margin-bottom: 10px; }
+    .qr-link {
+        width: 100%;
+        font-size: 12px;
+        font-family: monospace;
+        padding: 8px 10px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 8px;
+        color: #2c3e50;
+        background: #f8f9fa;
+        margin-bottom: 10px;
+    }
+    .qr-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .qr-actions button { flex: 1 1 45%; width: auto; }
     .btn-create-user {
         padding: 7px 16px;
         border-radius: 8px;
@@ -406,6 +457,25 @@
 </script>
 
 <div ng-controller="Settings">
+
+    <!-- Observer join link / QR code: the phone logs in as the group's
+         observer account without a password and lands on /observer -->
+    <div class="qr-overlay" ng-if="joinQr.visible" ng-click="closeJoinQr()">
+        <div class="qr-modal" ng-click="$event.stopPropagation()">
+            <div class="qr-title"><?php echo T::s('settings.joinQr.title'); ?></div>
+            <div class="qr-user">{{ joinQr.user.NAME }} ({{ joinQr.user.LOGIN }})</div>
+            <div class="qr-code" ng-bind-html="joinQr.svg"></div>
+            <div class="qr-hint"><?php echo T::s('settings.joinQr.hint'); ?></div>
+            <input class="qr-link" type="text" readonly ng-value="joinQr.url" onclick="this.select()">
+            <div class="qr-actions">
+                <button class="btn-share-user" ng-click="copyJoinLink()"><?php echo T::s('settings.joinQr.copy'); ?></button>
+                <button class="btn-share-user" ng-click="printJoinQr()"><?php echo T::s('settings.joinQr.print'); ?></button>
+                <button class="btn-share-user" ng-click="regenerateJoinLink()"><?php echo T::s('settings.joinQr.regenerate'); ?></button>
+                <button class="btn-share-user" ng-click="closeJoinQr()"><?php echo T::s('common.button.close'); ?></button>
+            </div>
+        </div>
+    </div>
+
     <div class="settings-wrapper">
 
         <!-- Header -->
@@ -821,6 +891,7 @@
                         <div class="user-slot-actions">
                             <button class="btn-save-user" ng-click="updateGroupUser(slot.user)"><?php echo T::s('common.button.save'); ?></button>
                             <button class="btn-share-user" ng-show="permissions.canManageUsers" ng-click="shareUser(slot.user, slot.roleLabel)" title="<?php echo T::s('settings.tooltip.shareUser'); ?>"><?php echo T::s('settings.button.share'); ?></button>
+                            <button class="btn-qr-user" ng-show="permissions.canManageUsers && slot.role === 'observer'" ng-click="showJoinQr(slot.user)"><?php echo T::s('settings.button.joinQr'); ?></button>
                         </div>
                     </div>
 
@@ -886,4 +957,5 @@
     </div>
 </div>
 
-<script src="/js/settings.js?v=18" type="text/javascript"></script>
+<script src="/js/vendor/qrcode.min.js?v=1" type="text/javascript"></script>
+<script src="/js/settings.js?v=19" type="text/javascript"></script>
