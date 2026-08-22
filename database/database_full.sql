@@ -84,6 +84,22 @@ CREATE TABLE IF NOT EXISTS `current_notes` (
 
 -- Data exporting was unselected.
 
+-- Dumping structure for table songs.current_observer
+-- OBSERVER CHANNEL (Aug 2026): one row per group with what the leader
+-- currently broadcasts to observers (/observer group mode). Separate from
+-- `current` (screens) and `current_notes` (musicians).
+CREATE TABLE IF NOT EXISTS `current_observer` (
+  `groupId` int(11) NOT NULL,
+  `active` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 = the leader broadcasts to observers (group mode)',
+  `song_id` int(11) NOT NULL DEFAULT '0' COMMENT 'song_list.ID currently broadcast (0 = nothing)',
+  `verse_idx` int(11) NOT NULL DEFAULT '-1' COMMENT 'Verse index from the leader verse mode (-1 = whole song)',
+  `langs` varchar(255) NOT NULL DEFAULT '' COMMENT 'Language codes selected by the leader, comma-separated (observer fallback)',
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  PRIMARY KEY (`groupId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- Data exporting was unselected.
+
 -- Dumping structure for table songs.display_access_requests
 CREATE TABLE IF NOT EXISTS `display_access_requests` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -326,7 +342,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `LOGIN` varchar(64) NOT NULL,
   `PASS` varchar(128) NOT NULL,
   `GOOGLE_ID` varchar(255) DEFAULT NULL,
-  `ROLE` enum('admin','leader','musician','preacher','tech','screen') NOT NULL DEFAULT 'musician',
+  `ROLE` enum('admin','leader','musician','preacher','tech','screen','observer') NOT NULL DEFAULT 'musician',
   `GROUP_ID` int(11) NOT NULL DEFAULT '0',
   `LAST_LOGIN` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`ID`),

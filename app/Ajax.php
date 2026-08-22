@@ -11,6 +11,7 @@ class Ajax
     use Ajax_Tech;      // Tech page functions
     use Ajax_Leader;    // Leader page functions (verse broadcast mode)
     use Ajax_Piano;     // Pianist page: session-only personal song list
+    use Ajax_Observer;  // Observer page: read-only views + the observer channel (group mode)
     use Ajax_Sermon;    // Sermon page functions
     use Ajax_Settings;  // Settings page functions
     use Ajax_Import;    // Import page functions
@@ -32,6 +33,13 @@ class Ajax
         if (!in_array($command, $csrfExempt) && !Security::validateCsrf()) {
             http_response_code(403);
             return json_encode(['status' => false, 'message' => 'CSRF token mismatch']);
+        }
+
+        // [SECURITY] The observer login is shared by the whole church: it may
+        // only call the read-only view commands and its own channel.
+        if (Security::isObserver() && !self::observerCommandAllowed($command)) {
+            http_response_code(403);
+            return json_encode(['status' => false, 'message' => 'Access denied']);
         }
 
         if (is_callable(array('Ajax', $command))){

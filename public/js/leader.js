@@ -114,6 +114,52 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
             });
     };
 
+    // ==========================================================
+    // OBSERVER CHANNEL (группа наблюдателей, Aug 2026)
+    // ==========================================================
+    // Separate from the screens and from the notes channel: while the
+    // "broadcast to the group" toggle is on, the page ADDITIONALLY tells the
+    // observer pages what it shows (song / verse / nothing). The existing
+    // set_image / set_leader_text / clear_image calls are untouched; the
+    // server ignores observer_set_song while the toggle is off.
+    $scope.observer = { active: false };
+    var observerCur = null;   // {songId, verseIdx, langs} — what is open now; re-sent when the toggle turns on
+
+    function observerSend(songId, verseIdx, langs) {
+        songId = parseInt(songId) || 0;
+        observerCur = songId ? { songId: songId, verseIdx: verseIdx, langs: langs || [] } : null;
+        if (!$scope.observer.active) return;
+        $http({ method: "POST", url: "/ajax",
+                data: { command: 'observer_set_song',
+                        song_id: songId,
+                        verse_idx: (verseIdx == null ? -1 : verseIdx),
+                        langs: langs || [] } });
+    }
+
+    function observerOff() {
+        observerSend(0, -1, []);
+    }
+
+    $scope.toggleObserver = function() {
+        var next = !$scope.observer.active;
+        $http({ method: "POST", url: "/ajax",
+                data: { command: 'observer_set_active', active: next ? 1 : 0 } }).then(function(r) {
+            var d = r.data || {};
+            if (d.status !== 'ok') return;
+            $scope.observer.active = !!parseInt(d.active);
+            // Turned on with something already open: push it right away.
+            if ($scope.observer.active && observerCur) {
+                observerSend(observerCur.songId, observerCur.verseIdx, observerCur.langs);
+            }
+        });
+    };
+
+    function loadObserverState() {
+        $http({ method: "POST", url: "/ajax", data: { command: 'observer_get_state' } }).then(function(r) {
+            $scope.observer.active = !!parseInt((r.data || {}).active);
+        });
+    }
+
     // The leader's black text-fullscreen content (null = image mode / off).
     $scope.fullScreenText = null;
 
@@ -169,6 +215,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
         }).then(openLocal, function() {
             $scope.fullScreen = false; $scope.fullScreenText = null;
         });
+        observerSend(song_id, -1, []);
     }
 
     function leaderLeaveFullscreen() {
@@ -183,6 +230,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
             command: 'clear_image',
             channel: 'leader'
         }}).then(exitLocal, exitLocal);
+        observerOff();
     }
 
     // Pick the best song text: default language first, else first lang with text.
@@ -428,6 +476,13 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
         }, 30);
     }
 
+    // Codes of the selected languages, in group order.
+    function vmSelectedCodes() {
+        var vm = $scope.verseMode;
+        return vm.langs.filter(function(l) { return vm.selected[l.code]; })
+                       .map(function(l) { return l.code; });
+    }
+
     // Broadcast one verse through the leader channel. The server resolves
     // the technician-set target (NULL = do not broadcast).
     function vmSend(chip) {
@@ -441,6 +496,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
                         text: chip.text,
                         song_name: vm.song.NAME || '',
                         chapter_indices: String(chip.idx) } });
+        observerSend(vm.song.SONGID || vm.song.ID, chip.idx, vmSelectedCodes());
     }
 
     // Mirror the selected language(s) to the tech consoles of the group
@@ -468,6 +524,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
                         text: '',
                         song_name: '',
                         chapter_indices: '' } });
+        if (vm.song) observerSend(vm.song.SONGID || vm.song.ID, -1, vmSelectedCodes());
     }
 
     $scope.openVerseMode = function(listItem) {
@@ -514,6 +571,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
                         image_num: listItem.NUM,
                         list_id: listItem.LISTID,
                         song_id: listItem.SONGID } });
+        observerSend(listItem.SONGID || listItem.ID, -1, vmSelectedCodes());
     };
 
     // Close = the leader's song toggle-off: notes off, screen cleared
@@ -524,6 +582,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
         if (document.fullscreenElement) { document.exitFullscreen(); }
         $http({ method: "POST", url: "/ajax",
                 data: { command: 'clear_image', channel: 'leader' } });
+        observerOff();
     };
 
     $scope.vmToggleLang = function(lang) {
@@ -551,6 +610,8 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
             if (chip) vmSend(chip); else vmSendOff();
         } else {
             vmRenderCurrent();
+            // Observers use the leader's languages as a fallback — keep them current.
+            if (vm.song) observerSend(vm.song.SONGID || vm.song.ID, -1, vmSelectedCodes());
         }
     };
 
@@ -757,6 +818,11 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
                         $scope.reloadFavorites();
                     });
                 }
+            } else if (data.type === 'observer_update') {
+                // Keep the toggle in sync across the group's leader sessions.
+                $scope.$applyAsync(function() {
+                    $scope.observer.active = !!parseInt((data.data || {}).active);
+                });
             }
         },
         function(error) {
@@ -792,5 +858,6 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
     $scope.loadSongLists();  // sets listId to first visible list, then calls reloadSongList
     SongsService.getLanguages().then(function (langs) { $scope.langList = langs; });
     $scope.reloadFavorites();
+    loadObserverState();
 }]);
 

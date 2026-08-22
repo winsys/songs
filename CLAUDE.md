@@ -17,6 +17,7 @@ It serves six user roles:
 - **Администратор (Administrator)** — full access, manages users and database
 - **screen** — display-only endpoints (index, ajax, text, text_stream, settings)
 - **Пианист (Pianist mode, `/piano`)** — not a role: a private copy of the leader page available to musician/leader/tech/admin; personal song list in the PHP session (`Ajax_Piano`), notes/lyrics on the own screen only, never touches screens or shared state
+- **Наблюдатель (Observer, `/observer`)** — role `observer`: ONE shared login per group for any church member (phone-first); read-only search/reading of songs (lyrics in any language / any image type), any Bible translation and the messages, session-only history; passive **group mode** that follows the leader's «📡 Транслировать в группу» toggle (observer channel). Ajax is limited to a read-only whitelist for this role; no settings page.
 
 Capabilities: synchronized setlist management, digital sheet music, sermon preparation with rich-text + slide integration, technical screen control (main display, streaming display, wallpapers, media playlist), database administration, multi-language song/Bible content.
 
@@ -61,6 +62,7 @@ All requests go through `public/index.php` via `.htaccess` rewrite (`?route=<pat
 - `Ajax_Sermon` — sermon CRUD, audio uploads
 - `Ajax_Settings` — display customization, user management, wallpapers
 - `Ajax_Import` — song lists, SOG/ZIP imports, languages, sheet-music image groups (`*_image_group(s)`)
+- `Ajax_Observer` — observer page: `observer_get_state`, `observer_list_messages`; leader-side `observer_set_active` / `observer_set_song`; the `$observerCommands` whitelist enforced in `Ajax::execute` for the observer role
 
 All AJAX responses are JSON. CSRF token is validated from `X-CSRF-Token` header (injected by the AngularJS `csrf_interceptor`). Multipart uploads send `_csrf_token` as a POST field instead.
 
@@ -72,13 +74,15 @@ All AJAX responses are JSON. CSRF token is validated from `X-CSRF-Token` header 
 
 **Database:** `app/Database.php` wraps MySQLi with `select()` (array), `get()` (single row), `getValue()` (scalar), `exec()`. The MySQL handle is available via `Info::get('dbh')` for `mysqli_real_escape_string`.
 
-**Roles & permissions:** Defined in `app/Security.php`. Roles: `admin`, `leader`, `musician`, `preacher`, `tech`, `screen`. Role checks via `Security::isAdmin()`, `canManageUsers()`, etc. Route access is enforced in `App.php` before rendering.
+**Roles & permissions:** Defined in `app/Security.php`. Roles: `admin`, `leader`, `musician`, `preacher`, `tech`, `screen`, `observer`. Role checks via `Security::isAdmin()`, `canManageUsers()`, etc. Route access is enforced in `App.php` before rendering.
 
 **WebSocket client:** `public/js/websocket_auth.js` exports `createAuthenticatedWebSocket(url, onMessage, onError, onStatusChange)` — returns `{ destroy() }`, NOT a raw WebSocket. Handles ping/pong, auto-reconnect, and session keepalive.
 
 **Slides:** Stored in `current` table with `image='__slide__'`, `text`=inner HTML, `song_name`=bg color hex. Per-slide background color is stored as `data-bg` on `.sermon-slide` elements. Streaming screen (`text_layout_streaming.html`) skips `__slide__` items entirely.
 
 **Notes channel (Aug 2026):** the musician's sheet music lives in the `current_notes` table (one row per group) + `notes_update` WS event — fully separate from `current`. Notes switch only via the leader's / tech's song toggle (`set_image` / `set_tech_image` with a sheet path; `clear_image` with `channel:'leader'` or `clear_notes:1`). Screen commands (Bible, messages, slides, media, screen-off) must never touch `current_notes`. Media on screen (video/wallpaper, empty text) survives song selection — see `hasActiveMediaRow()`.
+
+**Observer channel (Aug 2026):** table `current_observer` (one row per group: `active`, `song_id`, `verse_idx`, `langs`) + group-scoped WS event `observer_update` carrying the compact state. Written ONLY by the leader page's `observer_set_active` / `observer_set_song` (sent in addition to — never instead of — `set_image` / `set_leader_text` / `clear_image`; no-op while the toggle is off). Read by `/observer` (`observer_get_state` returns the song with all `TEXT*` + image groups). Fully separate from `current` and `current_notes`; screens, musicians and the tech console never touch it.
 
 **Sheet-music image groups (Aug 2026):** every collection has ordered image groups (`song_image_groups`, defaults «НОТЫ» IS_MAIN + «АККОРДЫ», names translatable per UI language in `NAMES` JSON — render via `SongImages::displayName()`); a song has AT MOST ONE image per group. Storage is file-based (`app/SongImages.php`): the main group's image is the legacy derived `/images/<L>/<NUM>.jpg`, every other group's is `/images/<L>/g<GROUP_ID>/<NUM>.jpg|png`. The musician page asks `get_notes` with `with_groups:1` (tech console keeps the legacy one-field shape) and remembers the chosen group in `sessionStorage`. ZIP import (`import_song_images_zip`, `group_id` + `mode` replace|add) runs on the pure-PHP `app/ZipReader.php` — production has no zip extension. Song numbers may contain Cyrillic/spaces (`д001`, `304 (1)`); never ASCII-filter them.
 
@@ -149,6 +153,7 @@ app/
   Ajax_Common.php            # songs, favorites, user settings, languages; getLanguages()
   Ajax_Import.php            # languages, songs, messages import
   Ajax_Piano.php             # pianist mode: session-only personal song list (piano_*)
+  Ajax_Observer.php          # observer mode: read-only whitelist + observer channel (observer_*)
   Ajax_Settings.php          # user/group settings, Google linking
   Ajax_Sermon.php            # sermons CRUD, display targets, media
   Ajax_Tech.php              # display control, Bible, messages
@@ -171,6 +176,7 @@ public/js/
   songs_service.js           # AngularJS service, languages, song lookup
   leader.js                  # leader role controller
   piano.js                   # pianist mode (private leader copy: no broadcasts, session list)
+  observer.js                # observer page: songs/Bible/messages search + viewers, group mode
   tech.js                    # technician role controller (largest)
   sermon.js                  # sermon presentation mode
   sermon_prep.js             # sermon prep editor
@@ -186,6 +192,7 @@ templates/
   index.html                 # home / role hub
   leader.html                # leader interface
   piano.html                 # pianist mode (derived from leader.html; keep the two in sync by hand)
+  observer.html              # observer page (phone-first; dark full-viewport viewers)
   musician.html              # musician interface
   tech.html                  # technician interface (largest)
   sermon.html
