@@ -41,6 +41,13 @@ class App
             exit;
         }
 
+        // Observer auto-login link / QR code: /join/<token> (before login check)
+        if ($route[0] == 'join') {
+            $token = isset($route[1]) ? (string)$route[1] : '';
+            header("Location: " . (Security::joinByToken($token) ? '/observer' : '/login'));
+            exit;
+        }
+
         // Public signup-request endpoints (before login check)
         if ($route[0] == 'signup-request') {
             Signup::handleRequestForm();

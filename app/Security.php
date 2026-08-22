@@ -214,6 +214,29 @@ class Security
         return false;
     }
 
+    /**
+     * Auto-login through the observer join link (QR code): /join/<token>.
+     * The token is a per-user random secret (users.JOIN_TOKEN) that only
+     * OBSERVER accounts carry — the shared, read-only login of a group — so a
+     * leaked link cannot reach any other role. Regenerating the token on the
+     * settings page invalidates every old link. On success the session is
+     * switched to that account exactly like a password login.
+     */
+    public static function joinByToken(string $token): bool
+    {
+        if (!preg_match('/^[a-f0-9]{32}$/', $token)) {
+            return false;
+        }
+        $user = Info::get('db')->get(
+            "SELECT * FROM users WHERE JOIN_TOKEN = '{$token}' AND ROLE = 'observer' LIMIT 1"
+        );
+        if (!$user) {
+            return false;
+        }
+        self::startUserSession($user);
+        return true;
+    }
+
     public static function doLogout(): void
     {
         $_SESSION = [];

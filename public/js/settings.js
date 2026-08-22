@@ -1,5 +1,5 @@
 
-app.controller('Settings', function ($scope, $http)
+app.controller('Settings', function ($scope, $http, $sce)
 {
     // Permissions - loading from server
     $scope.permissions = {
@@ -436,6 +436,17 @@ app.controller('Settings', function ($scope, $http)
         );
     };
 
+    function copyText(text, doneMsg) {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(
+                function() { alert(doneMsg); },
+                function() { prompt(window.t('settings.share.copyPrompt'), text); }
+            );
+        } else {
+            prompt(window.t('settings.share.copyPrompt'), text);
+        }
+    }
+
     $scope.shareUser = function(user, roleLabel) {
         var body = window.t('settings.share.template', {
             role: roleLabel,
@@ -444,14 +455,100 @@ app.controller('Settings', function ($scope, $http)
             password: user.PASS
         });
         var text = 'https://songs.winsys.lv\n' + body;
-        if (navigator.clipboard && navigator.clipboard.writeText) {
-            navigator.clipboard.writeText(text).then(
-                function() { alert(window.t('settings.alert.userCopied')); },
-                function() { prompt(window.t('settings.share.copyPrompt'), text); }
+        if (user.ROLE === 'observer') {
+            // The shared observer login also gets its password-less join link.
+            $http({ method: 'POST', url: '/ajax', data: { command: 'get_join_link', user_id: user.ID } }).then(
+                function success(r) {
+                    if (r.data && r.data.status === 'success' && r.data.token) {
+                        text += '\n' + window.t('settings.joinQr.shareLine', { url: joinUrl(r.data.token) });
+                    }
+                    copyText(text, window.t('settings.alert.userCopied'));
+                },
+                function error() { copyText(text, window.t('settings.alert.userCopied')); }
             );
-        } else {
-            prompt(window.t('settings.share.copyPrompt'), text);
+            return;
         }
+        copyText(text, window.t('settings.alert.userCopied'));
+    };
+
+    // ============================================================
+    // OBSERVER JOIN LINK / QR CODE (auto-login without a password)
+    // ============================================================
+    // /join/<token> logs the phone in as the group's observer account and
+    // opens /observer; the token lives in users.JOIN_TOKEN (observer
+    // accounts only) and "New link" replaces it — old QR codes stop working.
+    $scope.joinQr = { visible: false, user: null, token: '', url: '', svg: '' };
+
+    function joinUrl(token) {
+        return window.location.origin + '/join/' + token;
+    }
+
+    function joinQrSvg(url, cellSize, margin) {
+        if (typeof qrcode !== 'function') return '';
+        var code = qrcode(0, 'M');
+        code.addData(url);
+        code.make();
+        return code.createSvgTag({ cellSize: cellSize, margin: margin, scalable: true });
+    }
+
+    function loadJoinLink(user, regenerate) {
+        $http({ method: 'POST', url: '/ajax', data: { command: 'get_join_link', user_id: user.ID, regenerate: regenerate ? 1 : 0 } }).then(
+            function success(r) {
+                if (r.data && r.data.status === 'success' && r.data.token) {
+                    var q = $scope.joinQr;
+                    q.user = user;
+                    q.token = r.data.token;
+                    q.url = joinUrl(q.token);
+                    q.svg = $sce.trustAsHtml(joinQrSvg(q.url, 4, 2));
+                    q.visible = true;
+                } else {
+                    alert(window.t('settings.joinQr.error'));
+                }
+            },
+            function error() { alert(window.t('settings.joinQr.error')); }
+        );
+    }
+
+    $scope.showJoinQr = function(user) { loadJoinLink(user, false); };
+    $scope.closeJoinQr = function() { $scope.joinQr.visible = false; };
+
+    $scope.regenerateJoinLink = function() {
+        if (!$scope.joinQr.user) return;
+        if (!confirm(window.t('settings.joinQr.regenerateConfirm'))) return;
+        loadJoinLink($scope.joinQr.user, true);
+    };
+
+    $scope.copyJoinLink = function() {
+        copyText($scope.joinQr.url, window.t('settings.joinQr.copied'));
+    };
+
+    // Printable page (title, group name, QR, link): Blob + <a target="_blank">
+    // with an onload print script — the reliable print pattern (CLAUDE.md).
+    $scope.printJoinQr = function() {
+        var q = $scope.joinQr;
+        if (!q.token) return;
+        var esc = function(s) {
+            return String(s).replace(/[&<>"]/g, function(c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+        };
+        var groupName = ($scope.settings && $scope.settings.display_name) ? $scope.settings.display_name : '';
+        var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + esc(window.t('settings.joinQr.printTitle')) + '</title>'
+            + '<style>body{font-family:Arial,sans-serif;text-align:center;padding:40px 20px;color:#222}'
+            + 'h1{font-size:28px;margin:0 0 4px}h2{font-size:18px;font-weight:normal;color:#555;margin:0 0 18px}'
+            + 'p{font-size:16px;color:#444;max-width:520px;margin:0 auto 24px;line-height:1.4}'
+            + 'svg{width:320px;max-width:80vw;height:auto}.link{font-family:monospace;font-size:13px;word-break:break-all;margin-top:24px;color:#333}</style>'
+            + '</head><body><h1>' + esc(window.t('settings.joinQr.printTitle')) + '</h1>'
+            + (groupName ? '<h2>' + esc(groupName) + '</h2>' : '')
+            + '<p>' + esc(window.t('settings.joinQr.printHint')) + '</p>'
+            + joinQrSvg(q.url, 8, 4)
+            + '<div class="link">' + esc(q.url) + '</div>'
+            + '<script>window.onload=function(){window.print();};<\/script></body></html>';
+        var blob = new Blob([html], { type: 'text/html' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
     };
 
     // ============================================================
