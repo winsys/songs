@@ -36,6 +36,25 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
          $scope.videoSeeking     = false;
          var videoProgressTimer  = null;
 
+         // Position sync with the display (video_seek): slider seeks and seeks
+         // made inside the YouTube player are pushed to the screen; while
+         // playing, the position is re-sent every VIDEO_SYNC_MS so a screen
+         // that started late (ad, reload) catches up. See yt_bridge.js.
+         $scope.videoYtReady     = false;  // YouTube player reported position+duration → slider usable
+         var ytBridge            = null;   // yt_bridge instance for #sermon-yt-player
+         var ytDuration          = 0;      // seconds, from the bridge
+         var ytAnchor            = null;   // {t, wall, advancing, rate, state} — last reported position
+         var ytInitialPos        = 0;      // start offset from the link (?t=) — ad-end guard
+         var videoShownAt        = 0;      // Date.now() of the last showVideo()
+         var videoDetectAfter    = 0;      // no jump detection / periodic sync before this Date.now()
+         var seekGraceUntil      = 0;      // after a seek: reports disagreeing with its target are stale — ignored
+         var videoSyncTimer      = null;
+         var lastSeek            = { t: -1, at: 0 };  // dedupes ng-mouseup + native change on the slider
+         var VIDEO_SEEK_JUMP_SEC = 1.5;    // position jump above this = a seek made inside the player
+         var VIDEO_SYNC_MS       = 5000;   // periodic position sync while playing
+         var VIDEO_SETTLE_MS     = 4000;   // quiet period after (re)loading a video
+         var VIDEO_AD_GUARD_MS   = 90000;  // a pre-roll ad ending looks like a seek back to the start
+
         var userSettings = null;
         var activeEl     = null;
 
@@ -54,6 +73,24 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
             $scope.loadSermonList();
             loadDisplayTargets();
         });
+
+        // Slider commit for touch devices: ng-mouseup does not fire after a
+        // touch drag, the native change event fires once on release for
+        // mouse and touch alike (seekVideo dedupes the mouse double-fire).
+        document.addEventListener('change', function (e) {
+            if (!e.target || e.target.id !== 'svc-seek') return;
+            $scope.$applyAsync(function () { $scope.seekVideo(); $scope.videoSeeking = false; });
+        });
+        document.addEventListener('touchstart', function (e) {
+            if (e.target && e.target.id === 'svc-seek') $scope.videoSeeking = true;
+        }, { passive: true });
+        var _seekTouchEnd = function (e) {
+            if (e.target && e.target.id === 'svc-seek') {
+                setTimeout(function () { $scope.videoSeeking = false; }, 150);
+            }
+        };
+        document.addEventListener('touchend', _seekTouchEnd, { passive: true });
+        document.addEventListener('touchcancel', _seekTouchEnd, { passive: true });
 
         $scope.groupCitations = function() {
             setTimeout(function() {
@@ -812,6 +849,20 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
             var m = url.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/)|youtu\.be\/)([\w-]{11})/);
             return m ? m[1] : null;
         }
+        function _ytStart(url) {
+            return (typeof window.ytStartSeconds === 'function') ? window.ytStartSeconds(url) : 0;
+        }
+        function _ytEmbedUrl(ytId, src) {
+            // `start` honours a ?t= / ?start= timecode in the link (the screen
+            // builds the same URL, so both sides open at the same spot);
+            // `origin` is what YouTube's own IFrame API sends along with
+            // enablejsapi so the player can address its replies.
+            var start = _ytStart(src);
+            return 'https://www.youtube.com/embed/' + ytId
+                + '?autoplay=1&rel=0&modestbranding=1&enablejsapi=1'
+                + (start > 0 ? '&start=' + start : '')
+                + (window.location.origin ? '&origin=' + encodeURIComponent(window.location.origin) : '');
+        }
         function _fmtTime(s) {
             if (!s || isNaN(s)) return '0:00';
             var m = Math.floor(s / 60), sec = Math.floor(s % 60);
@@ -823,12 +874,11 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
         function showVideo(src, name) {
             var ytId = _ytId(src);
 
+            _teardownVideoSync();
             $scope.displayVideoSrc = src;          // non-empty triggers ng-show
             if (ytId) {
                 $scope.displayVideoIsYouTube = true;
-                $scope.displayVideoEmbedSrc  = $sce.trustAsResourceUrl(
-                    'https://www.youtube.com/embed/' + ytId + '?autoplay=1&rel=0&modestbranding=1&enablejsapi=1'
-                );
+                $scope.displayVideoEmbedSrc  = $sce.trustAsResourceUrl(_ytEmbedUrl(ytId, src));
                 $scope.displayVideoSrcLocal  = null;
                 $scope.videoIsYouTube        = true;
             } else {
@@ -846,9 +896,18 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
             clearDisplayScope();
 
             if (!ytId) { _startProgress(); }
+
+            ytInitialPos     = ytId ? _ytStart(src) : 0;
+            videoShownAt     = Date.now();
+            videoDetectAfter = videoShownAt + VIDEO_SETTLE_MS;
+            // The iframe is created / re-pointed by the digest that follows;
+            // attach the bridge once it exists.
+            if (ytId) { $timeout(_attachYtBridge); }
+            _startVideoSync();
         }
 
         function clearVideoDisplay() {
+            _teardownVideoSync();
             $scope.displayVideoSrc       = '';
             $scope.displayVideoIsYouTube = false;
             $scope.displayVideoEmbedSrc  = null;
@@ -885,6 +944,119 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                 channel: 'sermon',
                 video_state: state
             }});
+        }
+
+        // ---------- position sync with the display (video_seek) ----------
+
+        /**
+         * Push the playback position to the display (server resolves the
+         * sermon-channel target; NULL = no-op, a screen showing another
+         * source ignores it). sync=false: an explicit seek the screen always
+         * applies; sync=true: periodic check — the screen only catches up
+         * when it lags behind, it never rewinds on its own.
+         */
+        function sendVideoSeek(t, sync) {
+            if (!$scope.videoActive || !$scope.displayVideoSrc) return;
+            $http({ method: 'POST', url: '/ajax', data: {
+                command: 'video_seek',
+                channel: 'sermon',
+                src:     $scope.displayVideoSrc,
+                t:       Math.round(t * 100) / 100,
+                sync:    sync ? 1 : 0
+            }});
+        }
+
+        function _attachYtBridge() {
+            if (ytBridge) { ytBridge.destroy(); ytBridge = null; }
+            var iframe = document.getElementById('sermon-yt-player');
+            if (!iframe || !$scope.videoIsYouTube || typeof window.createYouTubeBridge !== 'function') return;
+            ytBridge = window.createYouTubeBridge(iframe, { onInfo: _onYtInfo, onStateChange: _onYtState });
+        }
+
+        function _teardownVideoSync() {
+            _stopVideoSync();
+            if (ytBridge) { ytBridge.destroy(); ytBridge = null; }
+            ytAnchor   = null;
+            ytDuration = 0;
+            $scope.videoYtReady = false;
+        }
+
+        function _startVideoSync() {
+            _stopVideoSync();
+            videoSyncTimer = setInterval(function () {
+                // videoPlaying is the page's own intent: the ⏯ button clears it
+                // synchronously, before the player confirms the pause.
+                if (!$scope.videoActive || !$scope.videoPlaying || Date.now() < videoDetectAfter) return;
+                var t = null;
+                if ($scope.videoIsYouTube) {
+                    if (ytBridge && ytBridge.isPlaying()) t = ytBridge.getTime();
+                } else {
+                    var el = document.getElementById('sermon-display-video');
+                    if (el && !el.paused && !el.ended && el.duration) t = el.currentTime;
+                }
+                if (t !== null && t > 0) sendVideoSeek(t, true);
+            }, VIDEO_SYNC_MS);
+        }
+        function _stopVideoSync() {
+            if (videoSyncTimer) { clearInterval(videoSyncTimer); videoSyncTimer = null; }
+        }
+
+        /** Position report from the YouTube player (~2×/s while playing). */
+        function _onYtInfo(info) {
+            var now = Date.now();
+            var t   = info.time;
+            // Right after a seek the player may still deliver a report queued
+            // before it; one that disagrees with the seek target is stale —
+            // it must neither count as a jump nor move the anchor/slider.
+            if (ytAnchor && now < seekGraceUntil) {
+                var atTarget = ytAnchor.advancing
+                    ? ytAnchor.t + (now - ytAnchor.wall) / 1000 * ytAnchor.rate
+                    : ytAnchor.t;
+                if (Math.abs(t - atTarget) > VIDEO_SEEK_JUMP_SEC) return;
+            }
+            // Jump detection: the player has no seek event, so compare the
+            // report with the position expected from the previous one.
+            if (ytAnchor && now >= videoDetectAfter && ytAnchor.state !== -1 && ytAnchor.state !== 5) {
+                var expected = ytAnchor.advancing
+                    ? ytAnchor.t + (now - ytAnchor.wall) / 1000 * ytAnchor.rate
+                    : ytAnchor.t;
+                var forward  = t > expected + VIDEO_SEEK_JUMP_SEC;
+                // Backward: against the last REPORTED position — a stall never
+                // moves it back, a seek does.
+                var backward = t < ytAnchor.t - VIDEO_SEEK_JUMP_SEC;
+                // A pre-roll ad on this side reports its own timeline; when the
+                // real video then starts from its initial position the time
+                // falls back — not a seek, do not restart the screen.
+                var adEnd = backward && Math.abs(t - ytInitialPos) < 1
+                    && (now - videoShownAt) < VIDEO_AD_GUARD_MS;
+                if ((forward || backward) && !adEnd) {
+                    sendVideoSeek(t, false);
+                    seekGraceUntil = now + 700;
+                }
+            }
+            ytAnchor = { t: t, wall: now, advancing: info.state === 1, rate: info.rate || 1, state: info.state };
+
+            if ($scope.videoSeeking) return;   // the preacher is dragging the slider
+            $scope.$applyAsync(function () {
+                ytDuration = info.duration || 0;
+                $scope.videoYtReady = ytDuration > 0;
+                if (ytDuration > 0) {
+                    $scope.videoProgress = Math.max(0, Math.min(100, t / ytDuration * 100));
+                }
+                $scope.videoCurrentTime = _fmtTime(t);
+            });
+        }
+
+        /** State change inside the YouTube player — keeps the ⏯ button honest. */
+        function _onYtState(state) {
+            if (ytAnchor) {
+                ytAnchor.advancing = (state === 1);
+                ytAnchor.wall      = Date.now();
+                ytAnchor.state     = state;
+            }
+            if (state === 1 || state === 2 || state === 0) {
+                $scope.$applyAsync(function () { $scope.videoPlaying = (state === 1); });
+            }
         }
 
         // ---------- progress bar for local files ----------
@@ -949,10 +1121,30 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
         };
 
         $scope.seekVideo = function () {
-            var el = document.getElementById('sermon-display-video');
-            if (el && el.duration) {
-                el.currentTime = (el.duration * $scope.videoProgress) / 100;
+            var t, el = null, now = Date.now();
+            if ($scope.videoIsYouTube) {
+                if (!ytBridge || !(ytDuration > 0)) return;
+                t = ytDuration * $scope.videoProgress / 100;
+            } else {
+                el = document.getElementById('sermon-display-video');
+                if (!el || !el.duration) return;
+                t = (el.duration * $scope.videoProgress) / 100;
             }
+            // Mouse users fire both ng-mouseup and the native change event.
+            if (Math.abs(t - lastSeek.t) < 0.05 && now - lastSeek.at < 1000) return;
+            lastSeek = { t: t, at: now };
+
+            if ($scope.videoIsYouTube) {
+                ytBridge.seekTo(t);
+                // Our own seek must not be re-detected as one made inside the player.
+                ytAnchor = { t: t, wall: now, advancing: ytBridge.isPlaying(),
+                             rate: ytAnchor ? ytAnchor.rate : 1, state: ytBridge.getState() };
+                seekGraceUntil = now + 700;
+                $scope.videoCurrentTime = _fmtTime(t);
+            } else {
+                el.currentTime = t;
+            }
+            sendVideoSeek(t, false);
         };
 
         /**
@@ -1439,6 +1631,7 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                                 clearInterval(videoProgressTimer);
                                 videoProgressTimer = null;
                             }
+                            _teardownVideoSync();
                         });
                     } else if (data && data.type === 'display_target_changed'
                                && data.data && data.data.channel === 'sermon') {

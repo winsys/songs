@@ -718,15 +718,17 @@
                 <button class="svc-btn svc-btn-stop" ng-click="stopVideo()">⏹</button>
             </div>
 
-            <!-- Progress (local files only) -->
-            <div class="svc-progress" ng-if="!videoIsYouTube">
-                <input type="range" min="0" max="100" step="0.1"
+            <!-- Progress: local files always; YouTube once the player reports
+                 its position (yt_bridge) — until then the note below stays.
+                 Seeks are mirrored to the display (video_seek). -->
+            <div class="svc-progress" ng-if="!videoIsYouTube || videoYtReady">
+                <input type="range" id="svc-seek" min="0" max="100" step="0.1"
                        ng-model="videoProgress"
                        ng-mousedown="videoSeeking = true"
                        ng-mouseup="seekVideo(); videoSeeking = false">
                 <span class="svc-time">{{ videoCurrentTime }}</span>
             </div>
-            <div class="svc-yt" ng-if="videoIsYouTube"><?php echo T::s('sermon.video.youtubeNote'); ?></div>
+            <div class="svc-yt" ng-if="videoIsYouTube && !videoYtReady"><?php echo T::s('sermon.video.youtubeNote'); ?></div>
 
         </div>
 
@@ -793,7 +795,8 @@
 <button id="fullscreen-btn" ng-click="toggleFullscreen()"><?php echo T::s('sermon.fullscreen'); ?></button>
 
 <script src="/js/websocket_auth.min.js"></script>
-<script src="/js/sermon.min.js?v=18" type="text/javascript"></script>
+<script src="/js/yt_bridge.min.js?v=1"></script>
+<script src="/js/sermon.min.js?v=19" type="text/javascript"></script>
 <script>
     function toggleHeaderMenu(e) {
         e.stopPropagation();

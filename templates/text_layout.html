@@ -14,6 +14,7 @@
     <script src="/js/angular.min.js"></script>
     <script src="/js/csrf_interceptor.min.js"></script>
     <script src="/js/websocket_auth.min.js"></script>
+    <script src="/js/yt_bridge.min.js?v=1"></script>
     <style>
         body {
             margin: 0;
@@ -410,6 +411,8 @@
             var _videoOverlay = null;   // элемент #video-overlay
             var _currentVideoSrc = '';  // текущий src (чтобы не пересоздавать)
             var _currentVideoType = ''; // 'youtube' | 'file' | ''
+            var _ytBridge = null;       // yt_bridge for #yt-player (position + seekTo)
+            var VIDEO_DRIFT_SEC = 2.5;  // periodic sync: catch up only when lagging by more than this
 
             function _getOverlay() {
                 if (!_videoOverlay) _videoOverlay = document.getElementById('video-overlay');
@@ -441,13 +444,22 @@
                 var ytId = _ytId(src);
                 if (ytId) {
                     _currentVideoType = 'youtube';
+                    // Same embed URL as the sermon page: `start` honours a ?t= /
+                    // ?start= timecode in the link, `origin` is what YouTube's own
+                    // IFrame API sends along with enablejsapi.
+                    var start = (typeof window.ytStartSeconds === 'function') ? window.ytStartSeconds(src) : 0;
                     var iframe = document.createElement('iframe');
                     iframe.id            = 'yt-player';
                     iframe.src           = 'https://www.youtube.com/embed/' + ytId +
-                        '?autoplay=1&rel=0&modestbranding=1&enablejsapi=1';
+                        '?autoplay=1&rel=0&modestbranding=1&enablejsapi=1' +
+                        (start > 0 ? '&start=' + start : '') +
+                        (window.location.origin ? '&origin=' + encodeURIComponent(window.location.origin) : '');
                     iframe.allow         = 'autoplay; fullscreen';
                     iframe.allowFullscreen = true;
                     overlay.appendChild(iframe);
+                    if (typeof window.createYouTubeBridge === 'function') {
+                        _ytBridge = window.createYouTubeBridge(iframe);
+                    }
                 } else {
                     _currentVideoType = 'file';
                     var video = document.createElement('video');
@@ -508,6 +520,7 @@
              */
             function hideVideoOverlay() {
                 var overlay = _getOverlay();
+                if (_ytBridge) { _ytBridge.destroy(); _ytBridge = null; }
                 if (overlay) {
                     overlay.style.display = 'none';
                     overlay.innerHTML     = '';
@@ -518,6 +531,48 @@
                 // Восстанавливаем img overlay (пусть Angular управляет через ng-show)
                 var imgOverlay = document.getElementById('overlay-image');
                 if (imgOverlay) imgOverlay.style.display = '';
+            }
+
+
+            /**
+             * Playback position pushed from the sermon page (video_seek WS event).
+             * Explicit seeks (sync=0) are always applied; periodic checks (sync=1)
+             * only when this screen plays the same video, knows its own position
+             * and lags behind by more than VIDEO_DRIFT_SEC — it never rewinds on
+             * its own (a blind seek every few seconds would stutter playback, and
+             * a preacher-side stall must not replay content for the audience).
+             * Ignored when the event refers to another source than the one shown.
+             */
+            function applyVideoSeek(d) {
+                if (!d || !_currentVideoSrc) return;
+                if (String(d.src || '').trim() !== _currentVideoSrc) return;
+                var t = parseFloat(d.t);
+                if (!isFinite(t) || t < 0) return;
+                var sync = !!d.sync;
+
+                if (_currentVideoType === 'youtube') {
+                    if (sync) {
+                        if (!_ytBridge || !_ytBridge.isPlaying()) return;
+                        var cur = _ytBridge.getTime();
+                        if (cur === null || t - cur <= VIDEO_DRIFT_SEC) return;
+                        _ytBridge.seekTo(t);
+                    } else if (_ytBridge) {
+                        _ytBridge.seekTo(t);
+                    } else {
+                        var iframe = document.getElementById('yt-player');
+                        if (iframe) {
+                            iframe.contentWindow.postMessage(
+                                JSON.stringify({ event: 'command', func: 'seekTo', args: [t, true] }),
+                                '*'
+                            );
+                        }
+                    }
+                } else if (_currentVideoType === 'file') {
+                    var v = document.getElementById('file-player');
+                    if (!v) return;
+                    if (sync && (v.paused || v.ended || !v.duration || t - v.currentTime <= VIDEO_DRIFT_SEC)) return;
+                    v.currentTime = t;
+                }
             }
 
 
@@ -677,6 +732,9 @@
                         } else if (data.type === 'display_transform') {
                             // Fast path: apply zoom/pan directly, no refetch.
                             applyDisplayTransform(data.data);
+                        } else if (data.type === 'video_seek') {
+                            // Fast path: playback position from the sermon page.
+                            applyVideoSeek(data.data);
                         }
                     },
                     function(error) {

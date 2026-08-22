@@ -83,6 +83,7 @@ scenario re-checked.
 | `update_needed` | `updateSocket()` after most writes | both screens (refetch), tech console (reload+restore), leader (favorites) — musician IGNORES it since Aug 2026 |
 | `notes_update` | `setNotes()`/`clearNotes()`, `upload_song_image` | musician page (refetch `get_notes`); tech console (sync song highlight with the notes channel) |
 | `display_transform` | `set_display_transform` (sermon pinch zoom/pan, ~10Hz during gesture) | main screen (applies CSS transform directly, no refetch); streaming ignores |
+| `video_seek` | `video_seek` (sermon page: slider seek, seek made inside its YouTube player, periodic position sync every 5 s while playing; dropped server-side when `current.video_src` differs) | main screen (seeks its YouTube iframe via `yt_bridge.js` / `<video>`; explicit seeks always, periodic ones only to catch up when lagging > 2.5 s — never rewinds); streaming ignores |
 | `leader_song_changed` | `set_image` channel `'leader'` | tech console (follow song, prepare verses) |
 | `display_target_changed` | `set_display_target` (tech) | sermon page (local copy), tech selects |
 | `sermon_display_cleared` | `disable_external_display` | sermon page (deactivate UI) |
@@ -93,7 +94,8 @@ scenario re-checked.
 ### 2.3 Display-target resolution (channels)
 - `resolveDisplayTarget()` gates: `set_image`, `clear_image`,
   `set_tech_image`, `set_message_text`, `set_video`, `video_control`,
-  `set_slide`. NULL target = command must not touch any screen — but
+  `video_seek`, `set_slide`. NULL target = command must not touch any
+  screen — but
   side-channels (e.g. `leader_song_changed`) must still fire.
 - Tech-page calls WITHOUT `channel` act on the caller's OWN group only.
   A client-supplied `target_group_id` is IGNORED since Aug 2026 (it let
@@ -127,6 +129,9 @@ Setup: one browser as ведущий, one as техник (same group), one scre
 4. **Sermon:** страница проповеди показывает слайд (цель канала задана) —
    слайд на главном экране; «Отключить экран» у техника убирает его и
    деактивирует UI проповедника.
+   **Видео (Aug 2026):** YouTube-ролик со страницы проповеди — перемотка
+   ползунком и внутри плеера повторяется на главном экране (~1 с);
+   пауза/пуск и ⏹ работают как раньше; обычный видеофайл — то же самое.
 5. **Bible/messages:** техник выводит стих — стих на экране, навигация
    стрелками работает.
 6. **Reconnect:** перезагрузить вкладку экрана — актуальное состояние
