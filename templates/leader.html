@@ -662,6 +662,13 @@
             max-width: 96vw;
         }
     }
+    /* Bootstrap's clearfix pseudo-elements (::before/::after on
+       .modal-header/.modal-footer) become flex items inside the flex headers
+       below and push the title / close button away from the edges. */
+    #list-popup .modal-header::before, #list-popup .modal-header::after,
+    #confirmation-dialog .modal-header::before, #confirmation-dialog .modal-header::after,
+    #confirmation-dialog .modal-footer::before, #confirmation-dialog .modal-footer::after { display: none; }
+
     #list-popup .modal-content {
         max-height: 96vh;
         border-radius: 10px;

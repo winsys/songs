@@ -211,6 +211,9 @@ templates/
 - **Fix:** store original pixel values in `data-base-font-px` attributes on each element, then rescale proportionally. Apply `style.fontSize` directly to the container DOM element.
 - The base font for sermon prep is exposed as the CSS variable `--sp-base-font`. Heading scaling in the styles dropdown uses `em` units relative to that variable.
 
+### Bootstrap 3 modals + flexbox
+- `.modal-header` / `.modal-footer` carry clearfix `::before/::after` pseudo-elements (`display:table; content:" "`). Inside a `display:flex; justify-content:space-between` header they become flex items and push the title and the close button away from the edges. Disable them (`display:none`) for every flex header/footer and stop floating `.close` (`margin-left:auto` or `order`).
+
 ### AngularJS + native events
 - `ng-change` does not see plain JS functions invoked outside the digest cycle.
 - For reliable cross-context event handling, use `document.addEventListener('change')` and call `$scope.$apply()` / `$scope.$applyAsync()` if needed.

@@ -17,6 +17,13 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
     $scope.imgName = '/field_small.jpg';
     $scope.placeholderImage = '/field_small.jpg';
 
+    // "No images for this song yet" picture in the user's UI language —
+    // shown when a song is on but no group holds an image for it (or the
+    // listed file fails to load). Notes OFF keeps the configured placeholder.
+    var NO_IMAGE_LANGS = ['ru', 'de', 'en', 'lt'];
+    var uiLang = String(window.UI_LANG || 'ru').toLowerCase();
+    var noImageSrc = '/no_image/' + (NO_IMAGE_LANGS.indexOf(uiLang) !== -1 ? uiLang : 'ru') + '.png';
+
     // Current song from the notes channel + its image groups
     $scope.notes = { image: '', listId: null, num: '', groups: [] };
     $scope.selectedGroupId = null;  // the musician's choice for the current collection
@@ -80,7 +87,7 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
 
     function render() {
         if (!$scope.pages.length) {
-            $scope.imgName = $scope.placeholderImage;
+            $scope.imgName = $scope.notes.image ? noImageSrc : $scope.placeholderImage;
             return;
         }
         if ($scope.pageIdx < 0 || $scope.pageIdx >= $scope.pages.length) $scope.pageIdx = 0;
@@ -187,6 +194,16 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
                 applyNotes(respond.data || {});
             }
         );
+    };
+
+    // A listed page that fails to load (file removed meanwhile, legacy server
+    // without group data) falls back to the "no images" picture.
+    $scope.onImageError = function() {
+        var src = String($scope.imgName || '');
+        if (src.indexOf(noImageSrc) === 0 || src === $scope.placeholderImage) return;
+        $scope.$applyAsync(function() {
+            if ($scope.imgName === src) $scope.imgName = noImageSrc;
+        });
     };
 
     // A tap toggles fullscreen; a swipe that just flipped a page must not.
