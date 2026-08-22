@@ -11,14 +11,22 @@
  * OBSERVER CHANNEL — table `current_observer` (one row per group) + the
  * group-scoped WS event `observer_update`. It is completely separate from
  * `current` (the screens) and `current_notes` (the musicians): the leader
- * page writes it with its own commands (observer_set_active /
- * observer_set_song) IN ADDITION to its existing set_image / set_leader_text
- * / clear_image calls, and only while the leader's "broadcast to the group"
- * toggle is on. The existing display commands never touch this table.
+ * page and the tech console write it with their own commands
+ * (observer_set_active / observer_set_song / observer_set_text) IN ADDITION
+ * to their existing set_image / set_tech_image / set_text / set_leader_text
+ * / set_bible_text / set_message_text / clear_image calls, and only while
+ * the group's "broadcast to the group" toggle is on. The existing display
+ * commands never touch this table.
  *
- * The `observer_update` event carries the compact state
- * ({active, song_id, verse_idx, langs}); observer pages fetch the full song
- * (texts + image groups) with observer_get_state only when song_id changes.
+ * Two layers: the SONG (song_id + verse_idx, observers pick language / image
+ * type themselves) and a TEXT OVERLAY (text + title — the Bible verse or
+ * message paragraph the technician shows; while non-empty it is what
+ * observers see, clearing it brings the song back; a song command clears it).
+ *
+ * The `observer_update` event carries the state without the song payload
+ * ({active, song_id, verse_idx, langs, text, title}); observer pages fetch
+ * the song (texts + image groups) with observer_get_state only when song_id
+ * changes.
  */
 trait Ajax_Observer
 {
@@ -42,17 +50,17 @@ trait Ajax_Observer
         return in_array((string)$command, self::$observerCommands, true);
     }
 
-    /** Only the leader (or the admin) drives the observer channel. */
+    /** The leader, the technician (or the admin) drive the observer channel. */
     private static function observerCanBroadcast()
     {
-        return Security::isLeader() || Security::isAdmin();
+        return Security::isLeader() || Security::isTech() || Security::isAdmin();
     }
 
-    /** Normalized channel state of a group: {active, song_id, verse_idx, langs[]}. */
+    /** Normalized channel state of a group: {active, song_id, verse_idx, langs[], text, title}. */
     private static function observerState($groupId)
     {
         $row = Info::get('db')->get(
-            "SELECT active, song_id, verse_idx, langs FROM current_observer WHERE groupId = " . (int)$groupId
+            "SELECT active, song_id, verse_idx, langs, text, title FROM current_observer WHERE groupId = " . (int)$groupId
         );
         $langs = [];
         if ($row && trim((string)$row['langs']) !== '') {
@@ -61,11 +69,14 @@ trait Ajax_Observer
                 if ($code !== '') $langs[] = $code;
             }
         }
+        $on = $row && (int)$row['active'];
         return [
             'active'    => $row ? (int)$row['active'] : 0,
-            'song_id'   => ($row && (int)$row['active']) ? (int)$row['song_id'] : 0,
-            'verse_idx' => ($row && (int)$row['active']) ? (int)$row['verse_idx'] : -1,
+            'song_id'   => $on ? (int)$row['song_id'] : 0,
+            'verse_idx' => $on ? (int)$row['verse_idx'] : -1,
             'langs'     => $langs,
+            'text'      => $on ? (string)$row['text'] : '',
+            'title'     => $on ? (string)$row['title'] : '',
         ];
     }
 
@@ -153,9 +164,9 @@ trait Ajax_Observer
             );
         } else {
             Info::get('db')->exec(
-                "INSERT INTO current_observer (groupId, active, song_id, verse_idx, langs)
-                 VALUES ({$groupId}, 0, 0, -1, '')
-                 ON DUPLICATE KEY UPDATE active = 0, song_id = 0, verse_idx = -1, langs = ''"
+                "INSERT INTO current_observer (groupId, active, song_id, verse_idx, langs, text, title)
+                 VALUES ({$groupId}, 0, 0, -1, '', '', '')
+                 ON DUPLICATE KEY UPDATE active = 0, song_id = 0, verse_idx = -1, langs = '', text = '', title = ''"
             );
         }
         $state = self::observerState($groupId);
@@ -189,9 +200,46 @@ trait Ajax_Observer
         $verseIdx = isset(self::$args['verse_idx']) ? (int)self::$args['verse_idx'] : -1;
         if ($songId <= 0 || $verseIdx < 0) $verseIdx = -1;
         $langs = mysqli_real_escape_string(Info::get('dbh'), self::observerLangsArg());
+        // A song command replaces whatever text overlay the console showed.
         Info::get('db')->exec(
-            "UPDATE current_observer SET song_id = {$songId}, verse_idx = {$verseIdx}, langs = '{$langs}'
+            "UPDATE current_observer SET song_id = {$songId}, verse_idx = {$verseIdx}, langs = '{$langs}', text = '', title = ''
              WHERE groupId = {$groupId}"
+        );
+        $state = self::observerState($groupId);
+        self::observerNotify($groupId, $state);
+        return json_encode(['status' => 'ok'] + $state);
+    }
+
+    /**
+     * Text overlay for the observers — what the tech console put on the
+     * screen besides songs: a Bible verse or a message paragraph.
+     * Args: text ('' = clear the overlay, the song comes back), title (the
+     * Bible reference / message title). Same utf8 (3-byte) limits as the
+     * screen row: 4-byte characters are stripped. Ignored while the toggle
+     * is off.
+     */
+    private static function observer_set_text()
+    {
+        if (!self::observerCanBroadcast()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+        $groupId = (int)$_SESSION['curGroupId'];
+        $row = Info::get('db')->get("SELECT active FROM current_observer WHERE groupId = {$groupId}");
+        if (!$row || !(int)$row['active']) {
+            return json_encode(['status' => 'inactive']);
+        }
+        $dbh   = Info::get('dbh');
+        $text  = trim((string)(self::$args['text'] ?? ''));
+        $title = trim((string)(self::$args['title'] ?? ''));
+        if ($text === '') {
+            $title = '';
+        }
+        $text  = preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', $text);
+        $title = mb_substr(preg_replace('/[\x{10000}-\x{10FFFF}]/u', '', $title), 0, 255, 'UTF-8');
+        $textEsc  = mysqli_real_escape_string($dbh, $text);
+        $titleEsc = mysqli_real_escape_string($dbh, $title);
+        Info::get('db')->exec(
+            "UPDATE current_observer SET text = '{$textEsc}', title = '{$titleEsc}' WHERE groupId = {$groupId}"
         );
         $state = self::observerState($groupId);
         self::observerNotify($groupId, $state);

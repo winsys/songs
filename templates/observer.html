@@ -465,6 +465,21 @@
         overflow-wrap: anywhere;
         overflow: hidden;
     }
+    /* Text overlay from the tech console (Bible verse / message paragraph):
+       the caption sits at the bottom like the main screen's title line */
+    .obs-gtext { padding-bottom: 34px; }
+    .obs-gtext .obs-gverse-inner { font-weight: 500; }
+    .obs-gtitle {
+        position: absolute;
+        left: 0; right: 0; bottom: 8px;
+        text-align: center;
+        font-size: 14px;
+        color: #8fb8e0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 0 12px;
+    }
 </style>
 
 <div ng-controller="Observer">
@@ -697,9 +712,9 @@
             <button class="obs-vbtn obs-vbtn-danger" ng-click="leaveGroup()"><?php echo T::s('observer.group.leave'); ?></button>
             <button class="obs-vbtn" ng-click="fontStep(-1)" title="<?php echo T::s('common.button.decrease'); ?>">A−</button>
             <button class="obs-vbtn" ng-click="fontStep(1)" title="<?php echo T::s('common.button.increase'); ?>">A+</button>
-            <div class="obs-vtitle obs-vtitle-group">{{ group.song ? (group.song.NUM + ' — ' + group.song.NAME) : '' }}</div>
+            <div class="obs-vtitle obs-vtitle-group">{{ group.text ? group.title : (group.song ? (group.song.NUM + ' — ' + group.song.NAME) : '') }}</div>
         </div>
-        <div class="obs-vmodes" ng-show="!group.fs && group.song">
+        <div class="obs-vmodes" ng-show="!group.fs && group.song && !group.text">
             <button class="obs-mode" ng-repeat="l in group.langs track by l.code"
                     ng-class="{on: group.view.kind === 'text' && group.view.lang === l.code}"
                     ng-click="setView(group, 'text', l.code)">{{ l.label }}</button>
@@ -710,9 +725,14 @@
                                empty: !g.image}"
                     ng-click="setView(group, 'image', g.id)">{{ g.name }}</button>
         </div>
-        <div class="obs-fshint" ng-show="!group.fs && group.song"><?php echo T::s('observer.fsHint'); ?></div>
+        <div class="obs-fshint" ng-show="!group.fs && (group.song || group.text)"><?php echo T::s('observer.fsHint'); ?></div>
         <div class="obs-vcontent" ng-click="toggleFs(group, 'obsGroup')">
-            <div class="obs-wait" ng-if="!group.song">
+            <!-- text overlay from the tech console: Bible verse / message paragraph, auto-fitted -->
+            <div class="obs-gverse obs-gtext" ng-if="group.text">
+                <div id="obsGtextInner" class="obs-gverse-inner"></div>
+                <div class="obs-gtitle" ng-if="group.title">{{ group.title }}</div>
+            </div>
+            <div class="obs-wait" ng-if="!group.song && !group.text">
                 <div class="obs-wait-ico">📡</div>
                 <div ng-if="group.active">
                     <div class="obs-wait-title"><?php echo T::s('observer.group.waitTitle'); ?></div>
@@ -725,18 +745,18 @@
                 <div class="obs-wait-conn" ng-if="wsConnected === false"><?php echo T::s('common.ws.disconnected'); ?></div>
             </div>
             <!-- one verse from the leader's verse mode: auto-fitted to the screen -->
-            <div class="obs-gverse" ng-if="group.song && group.view.kind === 'text' && group.verseIdx >= 0">
+            <div class="obs-gverse" ng-if="!group.text && group.song && group.view.kind === 'text' && group.verseText">
                 <div id="obsGverseInner" class="obs-gverse-inner"></div>
             </div>
-            <div class="obs-text obs-text-song" ng-if="group.song && group.view.kind === 'text' && group.verseIdx < 0" ng-style="{'font-size': fontPx + 'px'}">
+            <div class="obs-text obs-text-song" ng-if="!group.text && group.song && group.view.kind === 'text' && !group.verseText" ng-style="{'font-size': fontPx + 'px'}">
                 <div class="obs-verse-block" ng-repeat="b in group.blocks track by $index">{{ b }}</div>
             </div>
-            <div class="obs-empty" ng-if="group.song && group.view.kind === 'none'"><?php echo T::s('observer.noContent'); ?></div>
-            <img class="obs-img" ng-if="group.song && group.view.kind === 'image'" ng-src="{{ group.imageSrc }}"
+            <div class="obs-empty" ng-if="!group.text && group.song && group.view.kind === 'none'"><?php echo T::s('observer.noContent'); ?></div>
+            <img class="obs-img" ng-if="!group.text && group.song && group.view.kind === 'image'" ng-src="{{ group.imageSrc }}"
                  onerror="angular.element(this).scope().onImageError('group')">
         </div>
     </div>
 
 </div><!-- /ng-controller -->
 
-<script src="/js/observer.min.js?v=2" type="text/javascript"></script>
+<script src="/js/observer.min.js?v=3" type="text/javascript"></script>
