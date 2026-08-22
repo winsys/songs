@@ -402,6 +402,27 @@
         flex: 1;
     }
 
+    /* ── Sheet-music image groups ─────────────────────────────── */
+    .group-row { padding: 6px 10px 6px 8px; }
+    .group-order {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .group-move {
+        padding: 1px 7px;
+        font-size: 9px;
+        line-height: 1.4;
+        border-radius: 5px;
+    }
+    .group-row .import-input.group-name {
+        flex: 1;
+        min-width: 120px;
+        margin-bottom: 0;
+        padding: 6px 10px;
+        font-weight: 600;
+    }
+
 </style>
 
 <div ng-controller="ImportCtrl">
@@ -481,10 +502,84 @@
                 </button>
             </div>
 
-            <!-- 4. ZIP images -->
+            <!-- 4. Image groups + ZIP images -->
             <div class="import-section" ng-show="songListId">
                 <h4><?php echo T::s('import.section.images'); ?></h4>
-                <p><?php echo T::s('import.hint.zipFormat'); ?></p>
+                <p><?php echo T::s('import.hint.imageGroups'); ?></p>
+
+                <!-- Image groups of the collection (rename inline, reorder, delete, add) -->
+                <label class="import-label"><?php echo T::s('import.field.imageGroups'); ?></label>
+                <div class="lang-list" style="margin-bottom:12px;">
+                    <div ng-repeat="g in imageGroups track by g.ID">
+                        <div class="lang-row group-row">
+                            <span class="group-order">
+                                <button class="btn-import-sm group-move" ng-click="moveImageGroup(g, -1)"
+                                        ng-disabled="$first || groupBusy">&#9650;</button>
+                                <button class="btn-import-sm group-move" ng-click="moveImageGroup(g, 1)"
+                                        ng-disabled="$last || groupBusy">&#9660;</button>
+                            </span>
+                            <input type="text" class="import-input group-name" ng-model="g.editName" maxlength="100"
+                                   ng-blur="renameImageGroup(g)"
+                                   ng-keyup="$event.keyCode === 13 && renameImageGroup(g)" />
+                            <span class="lang-badge-default" ng-if="g.IS_MAIN == 1"><?php echo T::s('import.groups.main'); ?></span>
+                            <span class="lang-col-hint">{{ ('<?php echo T::s('import.groups.imageCount'); ?>').replace('{count}', g.image_count) }}</span>
+                            <button class="btn-lang-delete" ng-if="g.IS_MAIN != 1"
+                                    ng-click="groupDeleteTarget = (groupDeleteTarget === g.ID ? null : g.ID)">
+                                <?php echo T::s('import.button.delete'); ?>
+                            </button>
+                            <span ng-if="g.IS_MAIN == 1"
+                                  style="font-size:11px; color:#aab; padding: 5px 12px;"><?php echo T::s('import.lang.protected'); ?></span>
+                        </div>
+
+                        <!-- Delete-confirmation panel -->
+                        <div class="lang-delete-panel" ng-if="groupDeleteTarget === g.ID">
+                            <p>{{ ('<?php echo T::s('import.groups.deleteWarning'); ?>').replace('{name}', g.NAME).replace('{count}', g.image_count) }}</p>
+                            <div class="lang-delete-confirm-row">
+                                <button class="btn-import-primary"
+                                        style="background:#e74c3c; border-color:#c0392b; white-space:nowrap;"
+                                        ng-click="deleteImageGroup(g)"
+                                        ng-disabled="groupBusy">
+                                    <?php echo T::s('import.button.confirmDelete'); ?>
+                                </button>
+                                <button class="btn-import-success"
+                                        style="white-space:nowrap;"
+                                        ng-click="groupDeleteTarget = null">
+                                    <?php echo T::s('import.button.cancel'); ?>
+                                </button>
+                            </div>
+                        </div>
+                    </div><!-- /ng-repeat g -->
+                </div>
+                <div class="new-list-row">
+                    <input type="text" class="import-input" ng-model="newGroupName" maxlength="100"
+                           placeholder="<?php echo T::s('import.placeholder.groupName'); ?>"
+                           ng-keyup="$event.keyCode === 13 && addImageGroup()" />
+                    <button class="btn-import-success" ng-click="addImageGroup()"
+                            ng-disabled="!newGroupName || groupBusy">
+                        <?php echo T::s('import.button.groupAdd'); ?>
+                    </button>
+                </div>
+
+                <!-- ZIP import: target group + mode -->
+                <p style="margin-top:18px;"><?php echo T::s('import.hint.zipFormat'); ?></p>
+
+                <label class="import-label"><?php echo T::s('import.field.zipGroup'); ?></label>
+                <select class="import-select" ng-model="zipGroupSel">
+                    <option ng-repeat="g in imageGroups track by g.ID" value="{{ g.ID }}">{{ g.NAME }}</option>
+                    <option value="new"><?php echo T::s('import.option.zipNewGroup'); ?></option>
+                </select>
+                <input type="text" class="import-input" ng-if="zipGroupSel === 'new'" ng-model="zipNewGroupName" maxlength="100"
+                       placeholder="<?php echo T::s('import.placeholder.groupName'); ?>" />
+
+                <label class="import-label"><?php echo T::s('import.field.zipMode'); ?></label>
+                <div class="radio-group">
+                    <label>
+                        <input type="radio" ng-model="zipMode" value="replace" /> <?php echo T::s('import.zip.modeReplace'); ?>
+                    </label>
+                    <label>
+                        <input type="radio" ng-model="zipMode" value="add" /> <?php echo T::s('import.zip.modeAdd'); ?>
+                    </label>
+                </div>
 
                 <label class="import-label"><?php echo T::s('import.field.zipFile'); ?></label>
                 <input type="file" id="songZipFile" accept=".zip"
@@ -497,7 +592,7 @@
 
                 <button class="btn-import-primary"
                         ng-click="importSongZip()"
-                        ng-disabled="!selectedZipFile || zipImporting">
+                        ng-disabled="!selectedZipFile || zipImporting || (zipGroupSel === 'new' && !zipNewGroupName)">
                     <span ng-if="!zipImporting"><?php echo T::s('import.button.zipImport'); ?></span>
                     <span ng-if="zipImporting"><?php echo T::s('import.loading.zipImport'); ?></span>
                 </button>
@@ -758,4 +853,4 @@
     </div>
 </div>
 
-<script src="/js/import.js?v=12" type="text/javascript"></script>
+<script src="/js/import.js?v=13" type="text/javascript"></script>

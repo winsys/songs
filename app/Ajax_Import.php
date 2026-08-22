@@ -31,6 +31,8 @@ trait Ajax_Import
         Info::get('db')->exec(
             "INSERT INTO list_names (LIST_ID, LIST_NAME, ADDEDBY) VALUES ({$nextId}, '{$name}', {$userId})"
         );
+        // Every collection starts with the default image groups (НОТЫ + АККОРДЫ).
+        SongImages::ensureDefaults($nextId);
 
         return json_encode(['status' => 'success', 'list_id' => $nextId]);
     }
@@ -147,9 +149,17 @@ trait Ajax_Import
     }
 
     // --------------------------------------------------------
-    // Import song book images from a ZIP archive
+    // Import song book images from a ZIP archive into an image group
     // POST file: zipfile
-    // POST fields: list_id
+    // POST fields: list_id,
+    //              group_id (default: the collection's main group),
+    //              mode = 'replace' (overwrite files of the same page slot,
+    //                     default — the legacy behaviour) | 'add' (keep
+    //                     existing files, import only missing ones)
+    // Entry names: <NUM>.jpg|png = page 1, <NUM>_2.jpg|png = page 2, … (see
+    // SongImages::parseEntryName). Page 1 of the main group is the legacy
+    // /images/<list>/<NUM>.jpg; every other page is stored under g<GROUP_ID>/.
+    // Works without the zip extension (ZipReader fallback).
     // --------------------------------------------------------
     private static function import_song_images_zip()
     {
@@ -167,67 +177,321 @@ trait Ajax_Import
             return json_encode(['status' => 'error', 'message' => T::s('ajax.error.noCollection')]);
         }
 
-        if (!class_exists('ZipArchive')) {
-            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.zipNotInstalled')]);
+        $db     = Info::get('db');
+        $groups = SongImages::groups($listId);
+        if (!$groups) {
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.groupsTableMissing')]);
+        }
+        $groupId = (int)($_POST['group_id'] ?? 0);
+        $group   = null;
+        if ($groupId > 0) {
+            foreach ($groups as $g) {
+                if ((int)$g['ID'] === $groupId) {
+                    $group = $g;
+                }
+            }
+            if (!$group) {
+                return json_encode(['status' => 'error', 'message' => T::s('ajax.error.groupNotFound')]);
+            }
+        } else {
+            $group = SongImages::mainGroup($groups);
+        }
+        $mode = (($_POST['mode'] ?? 'replace') === 'add') ? 'add' : 'replace';
+
+        $openError = '';
+        $zip = self::openImageZip($_FILES['zipfile']['tmp_name'], $openError);
+        if (!$zip) {
+            return json_encode(['status' => 'error', 'message' => $openError]);
         }
 
-        $zip = new ZipArchive();
-        $res = $zip->open($_FILES['zipfile']['tmp_name']);
-        if ($res !== true) {
-            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.zipOpenFailed', ['code' => $res])]);
+        $listDir = SongImages::listDir($listId);
+        if (!is_dir($listDir) && !@mkdir($listDir, 0777, true) && !is_dir($listDir)) {
+            $zip->close();
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.dirCreateFailed', ['dir' => '/images/' . $listId])]);
         }
 
-        $targetDir = __DIR__ . '/../public/images/' . $listId . '/';
-        if (!file_exists($targetDir)) {
-            mkdir($targetDir, 0777, true);
+        // Known song numbers of the collection: they tell "503_2" (page 2 of
+        // song 503) from a song actually numbered "503_2".
+        $numSet = [];
+        foreach ($db->select("SELECT NUM FROM song_list WHERE LISTID = {$listId}") as $r) {
+            $numSet[(string)$r['NUM']] = true;
         }
 
-        $allowedExt = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
         $extracted = 0;
-        $errors = 0;
-        $log = [];
+        $skipped   = 0;
+        $errors    = 0;
+        $log       = [];
+
+        // Raw entry names: ZipArchive would otherwise re-encode non-UTF-8
+        // names as CP437 (a Windows-zipped "д001.jpg" becomes "ñ001.jpg");
+        // SongImages::decodeName() handles the DOS-Cyrillic case itself.
+        $nameFlags = ($zip instanceof ZipArchive) ? ZipArchive::FL_ENC_RAW : 0;
 
         for ($i = 0; $i < $zip->numFiles; $i++) {
-            $name = $zip->getNameIndex($i);
-
-            // Skip directories and hidden files
-            if (substr($name, -1) === '/' || strpos(basename($name), '.') === 0) continue;
-
-            $ext = strtolower(pathinfo($name, PATHINFO_EXTENSION));
-            if (!in_array($ext, $allowedExt)) {
-                $log[] = ['type' => 'warn', 'msg' => T::s('import.log.skippedNotImage', ['name' => $name])];
+            $p = SongImages::parseEntryName($zip->getNameIndex($i, $nameFlags), $numSet);
+            if ($p === null) {
+                continue; // directory or hidden file
+            }
+            if (isset($p['error'])) {
+                $log[] = ['type' => 'warn', 'msg' => T::s('import.log.skippedNotImage', ['name' => $p['name']])];
                 continue;
             }
+            if (!SongImages::isSafeNum($p['num'])) {
+                $log[] = ['type' => 'error', 'msg' => T::s('import.log.badFileName', ['name' => $p['name']])];
+                $errors++;
+                continue;
+            }
+            if (!$p['known']) {
+                $log[] = ['type' => 'warn', 'msg' => T::s('import.log.noSongForImage', ['num' => $p['num'], 'name' => $p['name']])];
+            }
 
-            // Filename without path (handles nested directories inside the ZIP)
-            $basename = basename($name);
-            $targetFile = $targetDir . $basename;
+            list($abs) = SongImages::target($listId, $group, $p['num'], $p['page'], $p['ext']);
+            $shown    = substr($abs, strlen($listDir) + 1); // "001.jpg" or "g3/001_2.png"
+            $existing = SongImages::slotFiles($listId, $group, $p['num'], $p['page']);
+
+            if ($mode === 'add' && $existing) {
+                $log[] = ['type' => 'ok', 'msg' => T::s('import.log.skippedExists', ['name' => $shown])];
+                $skipped++;
+                continue;
+            }
 
             $content = $zip->getFromIndex($i);
-            if ($content === false) {
-                $log[] = ['type' => 'error', 'msg' => T::s('import.log.zipReadError', ['name' => $name])];
+            if ($content === false || $content === '') {
+                $log[] = ['type' => 'error', 'msg' => T::s('import.log.zipReadError', ['name' => $p['name']])];
+                $errors++;
+                continue;
+            }
+            // Real JPEG/PNG content only, whatever the extension says.
+            $info = @getimagesizefromstring($content);
+            if (!$info || !in_array($info[2], [IMAGETYPE_JPEG, IMAGETYPE_PNG], true)) {
+                $log[] = ['type' => 'warn', 'msg' => T::s('import.log.invalidImage', ['name' => $p['name']])];
                 $errors++;
                 continue;
             }
 
-            if (file_put_contents($targetFile, $content) === false) {
-                $log[] = ['type' => 'error', 'msg' => T::s('import.log.fileWriteError', ['name' => $basename])];
+            $dir = dirname($abs);
+            if (!is_dir($dir) && !@mkdir($dir, 0777, true) && !is_dir($dir)) {
+                $log[] = ['type' => 'error', 'msg' => T::s('import.log.fileWriteError', ['name' => $shown])];
                 $errors++;
                 continue;
             }
+            // Replace mode: the slot may hold the other extension (001_2.png
+            // vs 001_2.jpg) — one file per page.
+            foreach ($existing as $old) {
+                if ($old !== $abs) {
+                    @unlink($old);
+                }
+            }
+            if (@file_put_contents($abs, $content) === false) {
+                $log[] = ['type' => 'error', 'msg' => T::s('import.log.fileWriteError', ['name' => $shown])];
+                $errors++;
+                continue;
+            }
+            @chmod($abs, 0664);
 
-            $log[] = ['type' => 'ok', 'msg' => T::s('import.log.imageSaved', ['name' => $basename])];
+            $log[] = ['type' => 'ok', 'msg' => T::s('import.log.imageSaved', ['name' => $shown])];
             $extracted++;
         }
 
         $zip->close();
 
+        // Musicians of the importer's group looking at this collection re-pull
+        // their notes (new pages appear, changed files get a fresh buster).
+        if ($extracted > 0) {
+            $own   = (int)$_SESSION['curGroupId'];
+            $notes = $db->get("SELECT image FROM current_notes WHERE groupId = {$own}");
+            if ($notes && strpos((string)$notes['image'], '/images/' . $listId . '/') === 0) {
+                self::broadcastToGroup($own, ['type' => 'notes_update']);
+            }
+        }
+
         return json_encode([
-            'status' => 'success',
+            'status'    => 'success',
             'extracted' => $extracted,
-            'errors' => $errors,
-            'log' => $log,
+            'skipped'   => $skipped,
+            'errors'    => $errors,
+            'log'       => $log,
+            'group'     => ['id' => (int)$group['ID'], 'name' => $group['NAME']],
         ]);
+    }
+
+    /** ZipArchive when the extension is available, otherwise the pure-PHP reader. */
+    private static function openImageZip($path, &$error)
+    {
+        $zip = class_exists('ZipArchive') ? new ZipArchive() : new ZipReader();
+        $res = $zip->open($path);
+        if ($res === true) {
+            return $zip;
+        }
+        $error = T::s('ajax.error.zipOpenFailed', ['code' => $res]);
+        return null;
+    }
+
+    // ============================================================
+    // SHEET-MUSIC IMAGE GROUPS (per collection) — see app/SongImages.php
+    // ============================================================
+
+    // --------------------------------------------------------
+    // Groups of a collection with image counts (any logged-in user).
+    // Params: list_id
+    // --------------------------------------------------------
+    private static function get_image_groups()
+    {
+        $listId = (int)(self::$args['list_id'] ?? 0);
+        $out = [];
+        foreach (SongImages::groups($listId) as $g) {
+            $out[] = self::imageGroupRow($listId, $g);
+        }
+        return json_encode($out);
+    }
+
+    private static function imageGroupRow($listId, array $g)
+    {
+        return [
+            'ID'          => (int)$g['ID'],
+            'LISTID'      => (int)$g['LISTID'],
+            'NAME'        => $g['NAME'],
+            'SORT_ORDER'  => (int)$g['SORT_ORDER'],
+            'IS_MAIN'     => (int)$g['IS_MAIN'],
+            'image_count' => SongImages::countImages($listId, $g),
+        ];
+    }
+
+    /**
+     * Normalize + validate a group name within a collection.
+     * Returns [name, null] or [null, error message].
+     */
+    private static function validImageGroupName($name, $listId, $exceptId = 0)
+    {
+        $name = trim((string)preg_replace('/\s+/u', ' ', (string)$name));
+        if ($name === '') {
+            return [null, T::s('ajax.error.groupNameEmpty')];
+        }
+        if (mb_strlen($name, 'UTF-8') > 100) {
+            $name = mb_substr($name, 0, 100, 'UTF-8');
+        }
+        $lower = mb_strtolower($name, 'UTF-8');
+        foreach (SongImages::groups($listId) as $g) {
+            if ((int)$g['ID'] !== (int)$exceptId && mb_strtolower($g['NAME'], 'UTF-8') === $lower) {
+                return [null, T::s('ajax.error.groupExists')];
+            }
+        }
+        return [$name, null];
+    }
+
+    // --------------------------------------------------------
+    // Add a group to a collection (admin). Params: list_id, name
+    // --------------------------------------------------------
+    private static function add_image_group()
+    {
+        if (!Security::isAdmin()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+        $db     = Info::get('db');
+        $dbh    = Info::get('dbh');
+        $listId = (int)(self::$args['list_id'] ?? 0);
+        if ($listId <= 0 || !$db->get("SELECT LIST_ID FROM list_names WHERE LIST_ID = {$listId}")) {
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.noCollection')]);
+        }
+        $groups = SongImages::groups($listId);
+        if (!$groups) {
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.groupsTableMissing')]);
+        }
+        list($name, $err) = self::validImageGroupName(self::$args['name'] ?? '', $listId);
+        if ($err !== null) {
+            return json_encode(['status' => 'error', 'message' => $err]);
+        }
+        $order = 0;
+        foreach ($groups as $g) {
+            $order = max($order, (int)$g['SORT_ORDER']);
+        }
+        $db->exec(
+            "INSERT INTO song_image_groups (LISTID, NAME, SORT_ORDER, IS_MAIN)
+             VALUES ({$listId}, '" . mysqli_real_escape_string($dbh, $name) . "', " . ($order + 1) . ", 0)"
+        );
+        $g = SongImages::group((int)$db->insert_id());
+        if (!$g) {
+            return json_encode(['status' => 'error', 'message' => T::s('import.log.serverError')]);
+        }
+        return json_encode(['status' => 'success', 'group' => self::imageGroupRow($listId, $g)]);
+    }
+
+    // --------------------------------------------------------
+    // Rename a group (admin). Params: id, name
+    // --------------------------------------------------------
+    private static function rename_image_group()
+    {
+        if (!Security::isAdmin()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+        $id = (int)(self::$args['id'] ?? 0);
+        $g  = SongImages::group($id);
+        if (!$g) {
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.groupNotFound')]);
+        }
+        list($name, $err) = self::validImageGroupName(self::$args['name'] ?? '', (int)$g['LISTID'], $id);
+        if ($err !== null) {
+            return json_encode(['status' => 'error', 'message' => $err]);
+        }
+        Info::get('db')->exec(
+            "UPDATE song_image_groups SET NAME = '" . mysqli_real_escape_string(Info::get('dbh'), $name) . "' WHERE ID = {$id}"
+        );
+        $g['NAME'] = $name;
+        return json_encode(['status' => 'success', 'group' => self::imageGroupRow((int)$g['LISTID'], $g)]);
+    }
+
+    // --------------------------------------------------------
+    // Delete a group with all its page files (admin). Params: id
+    // The main group (legacy sheets) cannot be deleted.
+    // --------------------------------------------------------
+    private static function delete_image_group()
+    {
+        if (!Security::isAdmin()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+        $id = (int)(self::$args['id'] ?? 0);
+        $g  = SongImages::group($id);
+        if (!$g) {
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.groupNotFound')]);
+        }
+        if ((int)$g['IS_MAIN'] === 1) {
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.groupMainDelete')]);
+        }
+        Info::get('db')->exec("DELETE FROM song_image_groups WHERE ID = {$id}");
+        SongImages::deleteGroupFiles((int)$g['LISTID'], $id);
+        // Musicians of the admin's own group re-resolve their selection.
+        self::broadcastToGroup((int)$_SESSION['curGroupId'], ['type' => 'notes_update']);
+        return json_encode(['status' => 'success']);
+    }
+
+    // --------------------------------------------------------
+    // Reorder the groups of a collection (admin). Params: list_id, ids[]
+    // ids must contain every group of the collection exactly once.
+    // --------------------------------------------------------
+    private static function reorder_image_groups()
+    {
+        if (!Security::isAdmin()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+        $listId = (int)(self::$args['list_id'] ?? 0);
+        $ids    = is_array(self::$args['ids'] ?? null) ? array_map('intval', self::$args['ids']) : [];
+        $groups = SongImages::groups($listId);
+        $known  = [];
+        foreach ($groups as $g) {
+            $known[(int)$g['ID']] = true;
+        }
+        if (!$groups || count($ids) !== count($groups) || count(array_unique($ids)) !== count($ids)) {
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.groupNotFound')]);
+        }
+        foreach ($ids as $id) {
+            if (!isset($known[$id])) {
+                return json_encode(['status' => 'error', 'message' => T::s('ajax.error.groupNotFound')]);
+            }
+        }
+        foreach ($ids as $i => $id) {
+            Info::get('db')->exec("UPDATE song_image_groups SET SORT_ORDER = " . ($i + 1) . " WHERE ID = {$id} AND LISTID = {$listId}");
+        }
+        return json_encode(['status' => 'success']);
     }
 
     // --------------------------------------------------------

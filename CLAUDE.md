@@ -59,7 +59,7 @@ All requests go through `public/index.php` via `.htaccess` rewrite (`?route=<pat
 - `Ajax_Tech` — display control (`set_slide`, media, Bible, messages)
 - `Ajax_Sermon` — sermon CRUD, audio uploads
 - `Ajax_Settings` — display customization, user management, wallpapers
-- `Ajax_Import` — song list and MIDI/MusicXML imports
+- `Ajax_Import` — song lists, SOG/ZIP imports, languages, sheet-music image groups (`*_image_group(s)`)
 
 All AJAX responses are JSON. CSRF token is validated from `X-CSRF-Token` header (injected by the AngularJS `csrf_interceptor`). Multipart uploads send `_csrf_token` as a POST field instead.
 
@@ -78,6 +78,8 @@ All AJAX responses are JSON. CSRF token is validated from `X-CSRF-Token` header 
 **Slides:** Stored in `current` table with `image='__slide__'`, `text`=inner HTML, `song_name`=bg color hex. Per-slide background color is stored as `data-bg` on `.sermon-slide` elements. Streaming screen (`text_layout_streaming.html`) skips `__slide__` items entirely.
 
 **Notes channel (Aug 2026):** the musician's sheet music lives in the `current_notes` table (one row per group) + `notes_update` WS event — fully separate from `current`. Notes switch only via the leader's / tech's song toggle (`set_image` / `set_tech_image` with a sheet path; `clear_image` with `channel:'leader'` or `clear_notes:1`). Screen commands (Bible, messages, slides, media, screen-off) must never touch `current_notes`. Media on screen (video/wallpaper, empty text) survives song selection — see `hasActiveMediaRow()`.
+
+**Sheet-music image groups (Aug 2026):** every collection has ordered image groups (`song_image_groups`, defaults «НОТЫ» IS_MAIN + «АККОРДЫ»); a song can have any number of page images per group. Storage is file-based (`app/SongImages.php`): page 1 of the main group is the legacy derived `/images/<L>/<NUM>.jpg`, every other page is `/images/<L>/g<GROUP_ID>/<NUM>_<page>.jpg|png`. The musician page asks `get_notes` with `with_groups:1` (tech console keeps the legacy one-field shape) and remembers the chosen group in `sessionStorage`. ZIP import (`import_song_images_zip`, `group_id` + `mode` replace|add) runs on the pure-PHP `app/ZipReader.php` — production has no zip extension. Song numbers may contain Cyrillic/spaces (`д001`, `304 (1)`); never ASCII-filter them.
 
 **Video position sync (Aug 2026):** `public/js/yt_bridge.js` talks to YouTube iframes over the IFrame-API postMessage protocol without loading YouTube's script (`listening` handshake → `infoDelivery` position reports ~2×/s while playing → `seekTo` command). The sermon page mirrors slider seeks and seeks made inside its YouTube player to the display via the `video_seek` Ajax command → transient `video_seek` WS event (nothing written to `current`; `Ajax_Tech::video_seek` drops it when `current.video_src` differs). Every 5 s while playing it also re-sends the position; the main screen applies explicit seeks always and periodic ones only to catch up (lag > 2.5 s) — it never rewinds on its own. A `?t=` / `start=` timecode in a YouTube link becomes `start=` on both sides. Play/pause are NOT mirrored from inside the player (only the sermon page's own buttons, as before).
 
@@ -152,6 +154,8 @@ app/
   GoogleAuth.php             # OAuth login + account linking
   Info.php                   # service container
   Security.php               # auth, CSRF, password encryption, roles
+  SongImages.php             # sheet-music image groups: paths, page listing, ZIP name parsing
+  ZipReader.php              # pure-PHP ZIP reader (production has no zip extension)
   config_example.php         # secrets template
 
 database/
