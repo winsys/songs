@@ -289,16 +289,304 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
         leaderLeaveFullscreen();
     };
 
+    // ==========================================================
+    // SPLIT-SCREEN VERSE MODE (слова по куплетам)
+    // ==========================================================
+    // Left half: language buttons + verse chips; right half: the verse that
+    // is currently broadcast, rendered by the main screen's rules. Verse
+    // clicks go through set_leader_text (leader channel, server-resolved
+    // display target) using the tech console's text format, so the main
+    // screen shows the verse and the tech console follows the highlight
+    // through the same update_needed → restore path it already uses.
+
+    $scope.verseMode = {
+        open: false,
+        song: null,       // snapshot of the favorites item (survives reloads)
+        langs: [],        // languages the song has text in (group order)
+        selected: {},     // lang code -> true
+        multi: false,     // user_settings.leader_text_multilang
+        chips: [],        // [{idx, text, preview}] — idx = base-skeleton index
+        activeIdx: null   // verse currently on screen (null = off)
+    };
+
+    var vmSettings = null;   // group user_settings (main-screen colors/font)
+
+    function vmTextCol(lang) { return 'TEXT' + (lang.col_suffix || ''); }
+
+    // True when the song has lyrics in at least one active language.
+    $scope.songHasAnyText = function(listItem) {
+        for (var i = 0; i < ($scope.langList || []).length; i++) {
+            if (listItem['hasText_' + $scope.langList[i].code] === '1') return true;
+        }
+        return false;
+    };
+
+    // Strip the display markers the main screen replaces ('$ $' page break,
+    // $*****$ dot row, stray '$') — same pipeline as text_layout.html.
+    function vmCleanMarkers(s) {
+        var text = (s || '');
+        text = text.replace('$ $', '\r\n-----\r\n');
+        text = text.replace(/\$(\*{5,})\$/g, function(m, stars) { return '·'.repeat(stars.length); });
+        return text.replace('$', '');
+    }
+
+    // Verse skeleton — EXACTLY the tech console's splitText contract: the
+    // group's default (first) language defines verse count and indices,
+    // falling back to the first language with text; selected languages are
+    // joined per verse with the dash separator line.
+    function vmBuildChips() {
+        var vm = $scope.verseMode;
+        vm.chips = [];
+        if (!vm.song) return;
+        var langList = $scope.langList || [];
+        var base = null;
+        if (langList.length && (vm.song[vmTextCol(langList[0])] || '')) base = langList[0];
+        if (!base) {
+            for (var i = 0; i < langList.length; i++) {
+                if (vm.song[vmTextCol(langList[i])]) { base = langList[i]; break; }
+            }
+        }
+        if (!base) return;
+        var baseVerses = (vm.song[vmTextCol(base)] || '').split('\r\n');
+        var selLangs = vm.langs.filter(function(l) { return vm.selected[l.code]; });
+
+        baseVerses.forEach(function(baseVerse, idx) {
+            if (!baseVerse.trim()) return;
+            var parts = [];
+            selLangs.forEach(function(lang) {
+                var verses = (vm.song[vmTextCol(lang)] || '').split('\r\n');
+                var v = verses[idx];
+                if (v && v.trim()) parts.push(v);
+            });
+            if (!parts.length) return;
+            vm.chips.push({
+                idx: idx,
+                text: parts.join('\r\n- - - - - - - -\r\n'), // broadcast format (same as tech)
+                preview: vmCleanMarkers(parts[0])            // chip shows the first selected language
+            });
+        });
+    }
+
+    function vmChipByIdx(idx) {
+        var chips = $scope.verseMode.chips;
+        for (var i = 0; i < chips.length; i++) {
+            if (chips[i].idx === idx) return chips[i];
+        }
+        return null;
+    }
+
+    // Main-screen colors/font for the right pane (group user_settings).
+    function vmApplyDisplayStyle() {
+        var right = document.getElementById('lvmRight');
+        if (!right || !vmSettings) return;
+        right.style.backgroundColor = vmSettings.main_bg_color   || '#000000';
+        right.style.color           = vmSettings.main_font_color || '#FFFFFF';
+        var t = document.getElementById('lvmText');
+        if (t) t.style.fontFamily = vmSettings.main_font || 'Arial';
+    }
+
+    // Render the active verse into the right pane and auto-fit the font
+    // (binary search, capped by main_font_max_size — main screen rules).
+    function vmRenderCurrent() {
+        var el = document.getElementById('lvmText');
+        if (!el) return;
+        var vm = $scope.verseMode;
+        var chip = (vm.activeIdx !== null) ? vmChipByIdx(vm.activeIdx) : null;
+        el.textContent = chip ? vmCleanMarkers(chip.text) : '';
+        vmFitText();
+    }
+
+    function vmFitText(_retry) {
+        $timeout(function() {
+            var el = document.getElementById('lvmText');
+            var disp = el ? el.parentElement : null;
+            if (!el || !disp || !$scope.verseMode.open) return;
+            if (!el.textContent) { el.style.fontSize = ''; return; }
+            var availW = disp.clientWidth  * 0.92;
+            var availH = disp.clientHeight * 0.92;
+            if (availH <= 20 || availW <= 20) {
+                // Pane not laid out yet — retry a few times.
+                if ((_retry || 0) < 10) vmFitText((_retry || 0) + 1);
+                return;
+            }
+            // Floor the wrap width + compare with tolerance (sub-pixel fit
+            // lesson: integer scrollWidth vs fractional derived width).
+            var wrapW = Math.floor(availW);
+            el.style.width = wrapW + 'px';
+            var maxFont = (vmSettings && parseInt(vmSettings.main_font_max_size)) || 64;
+            var lo = 8, hi = maxFont, best = 8;
+            for (var i = 0; i < 16; i++) {
+                var mid = (lo + hi) / 2;
+                el.style.fontSize = mid + 'px';
+                if (el.scrollHeight <= availH + 1 && el.scrollWidth <= wrapW + 2) {
+                    best = mid; lo = mid;
+                } else {
+                    hi = mid;
+                }
+            }
+            el.style.fontSize = best + 'px';
+        }, 30);
+    }
+
+    // Broadcast one verse through the leader channel. The server resolves
+    // the technician-set target (NULL = do not broadcast).
+    function vmSend(chip) {
+        var vm = $scope.verseMode;
+        vm.activeIdx = chip.idx;
+        vmRenderCurrent();
+        $http({ method: "POST", url: "/ajax",
+                data: { command: 'set_leader_text',
+                        channel: 'leader',
+                        image_name: vm.song.imageName,
+                        text: chip.text,
+                        song_name: vm.song.NAME || '',
+                        chapter_indices: String(chip.idx) } });
+    }
+
+    // Verse off: screen falls back to the song image row (same as the tech
+    // console's verse toggle-off).
+    function vmSendOff() {
+        var vm = $scope.verseMode;
+        vm.activeIdx = null;
+        vmRenderCurrent();
+        $http({ method: "POST", url: "/ajax",
+                data: { command: 'set_leader_text',
+                        channel: 'leader',
+                        image_name: vm.song ? vm.song.imageName : '',
+                        text: '',
+                        song_name: '',
+                        chapter_indices: '' } });
+    }
+
+    $scope.openVerseMode = function(listItem) {
+        var vm = $scope.verseMode;
+        vm.song = listItem;   // snapshot: favorites reloads replace the array
+        vm.langs = ($scope.langList || []).filter(function(l) {
+            return listItem['hasText_' + l.code] === '1' && (listItem[vmTextCol(l)] || '').length;
+        });
+        vm.selected = {};
+        if (vm.langs.length) vm.selected[vm.langs[0].code] = true;
+        vm.activeIdx = null;
+        vm.open = true;
+
+        // The multi-language toggle and main-screen rendering settings may
+        // change between opens — refresh them each time.
+        $http({ method: "POST", url: "/ajax", data: { command: 'get_user_settings' } }).then(function(r) {
+            vmSettings = r.data || null;
+            vm.multi = !!(vmSettings && parseInt(vmSettings.leader_text_multilang));
+            vmApplyDisplayStyle();
+        });
+        vmBuildChips();
+        vmRenderCurrent();
+
+        // Same broadcast as the "Аа"/notes toggle: notes on for musicians,
+        // song image on the target screen, leader_song_changed for the tech
+        // console. No verse is selected yet.
+        $http({ method: "POST", url: "/ajax",
+                data: { command: 'set_image',
+                        channel: 'leader',
+                        image_num: listItem.NUM,
+                        list_id: listItem.LISTID,
+                        song_id: listItem.SONGID } });
+    };
+
+    // Close = the leader's song toggle-off: notes off, screen cleared
+    // server-side (playing media survives; NULL target = screens untouched).
+    $scope.vmClose = function() {
+        $scope.verseMode.open = false;
+        $scope.verseMode.activeIdx = null;
+        $http({ method: "POST", url: "/ajax",
+                data: { command: 'clear_image', channel: 'leader' } });
+    };
+
+    $scope.vmToggleLang = function(lang) {
+        var vm = $scope.verseMode;
+        if (vm.multi) {
+            if (vm.selected[lang.code]) {
+                // The last selected language cannot be switched off.
+                var cnt = 0;
+                angular.forEach(vm.selected, function(v) { if (v) cnt++; });
+                if (cnt <= 1) return;
+                delete vm.selected[lang.code];
+            } else {
+                vm.selected[lang.code] = true;
+            }
+        } else {
+            vm.selected = {};
+            vm.selected[lang.code] = true;
+        }
+        vmBuildChips();
+        // Re-broadcast the verse on screen in the new language set.
+        if (vm.activeIdx !== null) {
+            var chip = vmChipByIdx(vm.activeIdx);
+            if (chip) vmSend(chip); else vmSendOff();
+        } else {
+            vmRenderCurrent();
+        }
+    };
+
+    $scope.vmToggleVerse = function(chip) {
+        if ($scope.verseMode.activeIdx === chip.idx) {
+            vmSendOff();
+        } else {
+            vmSend(chip);
+        }
+    };
+
+    // Swipe navigation: step to the adjacent verse chip; when nothing is on
+    // screen yet, any swipe starts from the first verse.
+    $scope.vmStep = function(dir) {
+        var vm = $scope.verseMode;
+        if (!vm.open || !vm.chips.length) return;
+        var pos = -1;
+        for (var i = 0; i < vm.chips.length; i++) {
+            if (vm.chips[i].idx === vm.activeIdx) { pos = i; break; }
+        }
+        var next = (pos === -1) ? 0 : pos + dir;
+        if (next < 0 || next >= vm.chips.length) return;
+        vmSend(vm.chips[next]);
+        var chipEl = document.getElementById('lvm-chip-' + vm.chips[next].idx);
+        if (chipEl) chipEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    };
+
+    // Vertical swipe on the right pane: up = next verse, down = previous —
+    // same convention and 50px threshold as the sermon page's display panel.
+    (function() {
+        var pane = document.getElementById('lvmRight');
+        if (!pane) return;
+        var startY = 0, multi = false;
+        pane.addEventListener('touchstart', function(e) {
+            if (e.touches.length > 1) multi = true;
+            startY = e.changedTouches[0].screenY;
+        }, { passive: true });
+        pane.addEventListener('touchend', function(e) {
+            if (e.touches.length > 0) return; // wait for the last finger
+            var wasMulti = multi;
+            multi = false;
+            if (wasMulti) return;             // pinch/two-finger gesture
+            var deltaY = startY - e.changedTouches[0].screenY; // positive = swipe up
+            if (Math.abs(deltaY) <= 50) return;
+            $scope.$apply(function() {
+                $scope.vmStep(deltaY > 0 ? 1 : -1);
+            });
+        }, { passive: true });
+        pane.addEventListener('touchcancel', function(e) {
+            if (e.touches.length === 0) multi = false;
+        }, { passive: true });
+    })();
+
     // Re-fit the text if the viewport size changes while it is shown. Debounced
     // so the mobile address-bar show/hide (which fires many resize events) does
     // not cause flicker or a mid-transition tiny measurement.
     var leaderResizeTimer = null;
     function leaderScheduleRefit() {
-        if (!($scope.fullScreen && $scope.fullScreenText != null)) return;
+        var fsTextOpen = ($scope.fullScreen && $scope.fullScreenText != null);
+        if (!fsTextOpen && !$scope.verseMode.open) return;
         if (leaderResizeTimer) clearTimeout(leaderResizeTimer);
         leaderResizeTimer = setTimeout(function() {
             leaderResizeTimer = null;
-            fitLeaderText();
+            if ($scope.fullScreen && $scope.fullScreenText != null) fitLeaderText();
+            if ($scope.verseMode.open) vmRenderCurrent();
         }, 200);
     }
     window.addEventListener('resize', leaderScheduleRefit);

@@ -756,6 +756,27 @@
             </div>
         </div>
 
+        <!-- Leader screen (verse mode) -->
+        <div class="settings-card" ng-show="permissions.canEditFavoritesOrder || permissions.canEditAllSettings">
+            <span class="settings-card-title collapsible" ng-click="toggle('leaderscreen')">
+                <span><?php echo T::s('settings.card.leaderScreen'); ?></span>
+                <span class="collapse-caret">{{ collapsed.leaderscreen ? '▸' : '▾' }}</span>
+            </span>
+            <div ng-show="!collapsed.leaderscreen">
+            <div class="settings-field">
+                <label class="settings-label">20. <?php echo T::s('settings.leaderTextMultilang'); ?></label>
+                <div class="scale-row">
+                    <input type="checkbox" id="leaderMultilangCheck"
+                           ng-model="settings.leader_text_multilang"
+                           ng-true-value="1" ng-false-value="0">
+                    <label for="leaderMultilangCheck" style="cursor:pointer; margin:0; font-size:13px; color:#34495e; font-weight:normal;">
+                        <?php echo T::s('settings.hint.leaderTextMultilang'); ?>
+                    </label>
+                </div>
+            </div>
+            </div>
+        </div>
+
         <!-- Group users -->
         <div class="settings-card">
             <span class="settings-card-title"><?php echo T::s('settings.card.groupUsers'); ?></span>
@@ -864,4 +885,4 @@
     </div>
 </div>
 
-<script src="/js/settings.js?v=16" type="text/javascript"></script>
+<script src="/js/settings.js?v=17" type="text/javascript"></script>

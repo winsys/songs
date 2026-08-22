@@ -760,6 +760,7 @@ trait Ajax_Common
                 'main_font_max_size'     => 64,
                 'slide_font_max_size'    => 64,
                 'ui_lang'                => 'ru',
+                'leader_text_multilang'  => 0,
             ];
         }
 

@@ -377,6 +377,129 @@
         margin-top: 0.6em;
     }
 
+    /* ---- Split-screen verse mode (слова по куплетам) ---------- */
+    .lvm {
+        position: fixed;
+        top: 0; left: 0;
+        /* Stable vh units, like .leader-text-fs (mobile address bar). */
+        width: 100vw;
+        height: 100vh;
+        z-index: 100000;
+        display: flex;
+        background: #000;
+        box-sizing: border-box;
+    }
+    .lvm-left {
+        width: 50%;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        background: #f0f2f5;
+        border-right: 1px solid #333;
+        box-sizing: border-box;
+    }
+    /* Language buttons: big and spread as far apart as possible
+       (comfortable switching on a phone). */
+    .lvm-langs {
+        display: flex;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 10px;
+        flex-shrink: 0;
+    }
+    .lvm-lang-btn {
+        flex: 1;
+        min-width: 0;
+        height: 48px;
+        border-radius: 10px;
+        border: 2px solid #cdd4dd;
+        background: #fff;
+        color: #5a6272;
+        font-size: 17px;
+        font-weight: 700;
+        cursor: pointer;
+        user-select: none;
+    }
+    .lvm-lang-active {
+        background: #1a6db5;
+        border-color: #1a6db5;
+        color: #fff;
+    }
+    .lvm-chips {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0 10px 10px;
+        -webkit-overflow-scrolling: touch;
+    }
+    .lvm-chip {
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        background: #fff;
+        color: #2c3e50;
+        padding: 10px 12px;
+        margin-bottom: 8px;
+        font-size: 14px;
+        line-height: 1.35;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+        cursor: pointer;
+        user-select: none;
+    }
+    .lvm-chip-active {
+        background: #ebf3fb;
+        border-color: #1a6db5;
+        color: #1a6db5;
+        font-weight: 600;
+    }
+    .lvm-right {
+        width: 50%;
+        height: 100%;
+        position: relative;
+        overflow: hidden;
+        box-sizing: border-box;
+        /* bg/color/font are overridden by JS from the group's main-screen
+           settings (user_settings) — same rules as text_layout. */
+        background: #000;
+        color: #fff;
+    }
+    /* 70%-transparent close bar: full width of the right pane, same height
+       as the language buttons on the left. */
+    .lvm-close {
+        position: absolute;
+        top: 0; left: 0;
+        width: 100%;
+        height: 48px;
+        z-index: 3;
+        border: none;
+        border-radius: 0;
+        background: #5a6272;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 600;
+        opacity: 0.3;
+        cursor: pointer;
+    }
+    .lvm-display {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .lvm-text {
+        width: 92%;
+        max-height: 92%;
+        font-family: Arial, sans-serif;
+        font-weight: 600;
+        line-height: 1.2;
+        text-align: center;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        overflow: hidden;
+    }
+
     /* Reset all styles when wrapper goes fullscreen */
     .song-thumb-wrap:-webkit-full-screen {
         width: 100vw !important;
@@ -904,6 +1027,12 @@
                     </span>
                 </span>
 
+                <!-- Split-screen verse mode: broadcast verses to the screens -->
+                <div class="song-text-btn"
+                     ng-if="songHasAnyText(listItem)"
+                     ng-click="openVerseMode(listItem)"
+                     title="<?php echo T::s('leader.verses.open'); ?>">¶</div>
+
                 <!-- Full song text on the leader's screen (also turns on notes for musicians) -->
                 <div class="song-text-btn"
                      ng-click="openFullscreenText(listItem)"
@@ -1073,9 +1202,36 @@
         <div id="leaderTextFsInner" class="leader-text-fs-inner"></div>
     </div>
 
+    <!-- Split-screen verse mode: language buttons + verse chips on the left,
+         the currently broadcast verse on the right (ng-show, NOT ng-if — the
+         touch listeners are attached to #lvmRight once at controller init) -->
+    <div id="leaderVerseMode" class="lvm" ng-show="verseMode.open">
+        <div class="lvm-left">
+            <div class="lvm-langs">
+                <button class="lvm-lang-btn"
+                        ng-repeat="lang in verseMode.langs"
+                        ng-class="{'lvm-lang-active': verseMode.selected[lang.code]}"
+                        ng-click="vmToggleLang(lang)">{{ lang.label }}</button>
+            </div>
+            <div class="lvm-chips">
+                <div class="lvm-chip"
+                     ng-attr-id="{{ 'lvm-chip-' + chip.idx }}"
+                     ng-repeat="chip in verseMode.chips"
+                     ng-class="{'lvm-chip-active': verseMode.activeIdx === chip.idx}"
+                     ng-click="vmToggleVerse(chip)">{{ chip.preview }}</div>
+            </div>
+        </div>
+        <div class="lvm-right" id="lvmRight">
+            <button class="lvm-close" ng-click="vmClose()">✕ <?php echo T::s('common.button.close'); ?></button>
+            <div class="lvm-display">
+                <div id="lvmText" class="lvm-text"></div>
+            </div>
+        </div>
+    </div>
+
     </div><!-- /ng-controller -->
 
-<script src="/js/leader.min.js?v=32" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=33" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}

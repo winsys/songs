@@ -45,6 +45,7 @@ trait Ajax_Settings
         $slideFontMaxSize = max(20, min(200, $slideFontMaxSize));
         $uiLang = isset($settings['ui_lang']) ? (string)$settings['ui_lang'] : 'ru';
         if (!in_array($uiLang, ['ru', 'de', 'en', 'lt'], true)) $uiLang = 'ru';
+        $leaderTextMultilang = !empty($settings['leader_text_multilang']) ? 1 : 0;
 
         $existing = Info::get('db')->get("SELECT group_id FROM user_settings WHERE group_id = {$userId}");
 
@@ -72,7 +73,8 @@ trait Ajax_Settings
                     slide_bg_color           = '{$slideBgColor}',
                     main_font_max_size       = {$mainFontMaxSize},
                     slide_font_max_size      = {$slideFontMaxSize},
-                    ui_lang                  = '{$uiLang}'
+                    ui_lang                  = '{$uiLang}',
+                    leader_text_multilang    = {$leaderTextMultilang}
                 WHERE group_id = {$userId}
             ");
         } else {
@@ -83,14 +85,14 @@ trait Ajax_Settings
                     streaming_bg_color, streaming_font, streaming_font_color, streaming_height_percent,
                     sermon_notes_bg_color, sermon_bible_base_color, sermon_msg_base_color,
                     sermon_prep_font_size, sermon_notes_font_size, sermon_scale_chips,
-                    slide_bg_color, main_font_max_size, slide_font_max_size, ui_lang
+                    slide_bg_color, main_font_max_size, slide_font_max_size, ui_lang, leader_text_multilang
                 ) VALUES (
                     {$userId}, '{$displayName}', '{$favoritesOrder}', '{$availableLists}', " . ($availableLanguages === null ? 'NULL' : "'{$availableLanguages}'") . ", '{$placeholderImage}',
                     '{$mainBgColor}', '{$mainFont}', '{$mainFontColor}',
                     '{$streamingBgColor}', '{$streamingFont}', '{$streamingFontColor}', {$streamingHeightPercent},
                     '{$sermonNotesBgColor}', '{$sermonBibleBaseColor}', '{$sermonMsgBaseColor}',
                     {$sermonPrepFontSize}, {$sermonNotesFontSize}, {$sermonScaleChips},
-                    '{$slideBgColor}', {$mainFontMaxSize}, {$slideFontMaxSize}, '{$uiLang}'
+                    '{$slideBgColor}', {$mainFontMaxSize}, {$slideFontMaxSize}, '{$uiLang}', {$leaderTextMultilang}
                 )
             ");
         }
