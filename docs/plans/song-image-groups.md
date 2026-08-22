@@ -139,6 +139,23 @@ Fullscreen shows only the current image. Formats: JPG and PNG.
 - **Placeholder «нет картинок»:** regenerated portrait 1000×1400 (1:1.4).
 - **Settings:** the UI-language card title is English-only («🌐 UI language»).
 
+### Follow-up 3 (same day) — ONE image per group
+- Pavel: a song has at most one image per group ("type"). Pages removed:
+  non-main groups store `/images/<L>/g<ID>/<NUM>.jpg|png` (the legacy
+  `<NUM>_1.<ext>` written by the first build is still recognised by
+  `SongImages::slotFiles()` and replaced on the next upload; the two such
+  files on production were renamed at deploy). ZIP entries are plain song
+  numbers (no `_2` page suffix parsing).
+- API: `get_notes with_groups` → `groups[].image` (path|null);
+  `get_song_images` → `groups[].image`; `upload_song_group_image` /
+  `delete_song_group_image` replace the page commands.
+- Musician page: group buttons larger (56 px, 20 px font) at the TOP,
+  centred; no pager/swipe.
+- Edit dialog: per group a thumbnail + ✕ + one button whose label depends on
+  the image («➕ Добавить картинку» / «✏️ Изменить картинку»); the classic
+  «Картинка» row (deferred upload on Save) is shown for NEW songs only, with
+  the same label logic; the ZIP import hint says one image per song and group.
+
 ## 4. Regression analysis
 
 - `current_notes` / `notes_update`: no writer changed; `get_notes` gains an

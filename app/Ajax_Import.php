@@ -156,9 +156,10 @@ trait Ajax_Import
     //              mode = 'replace' (overwrite files of the same page slot,
     //                     default — the legacy behaviour) | 'add' (keep
     //                     existing files, import only missing ones)
-    // Entry names: <NUM>.jpg|png = page 1, <NUM>_2.jpg|png = page 2, … (see
-    // SongImages::parseEntryName). Page 1 of the main group is the legacy
-    // /images/<list>/<NUM>.jpg; every other page is stored under g<GROUP_ID>/.
+    // Entry names are song numbers (<NUM>.jpg|png, see
+    // SongImages::parseEntryName); a song has ONE image per group. The main
+    // group's image is the legacy /images/<list>/<NUM>.jpg; every other group
+    // stores g<GROUP_ID>/<NUM>.<ext>.
     // Works without the zip extension (ZipReader fallback).
     // --------------------------------------------------------
     private static function import_song_images_zip()
@@ -241,9 +242,9 @@ trait Ajax_Import
                 $errors++;
                 continue;
             }
-            list($abs) = SongImages::target($listId, $group, $p['num'], $p['page'], $p['ext']);
-            $shown    = substr($abs, strlen($listDir) + 1); // "001.jpg" or "g3/001_2.png"
-            $existing = SongImages::slotFiles($listId, $group, $p['num'], $p['page']);
+            list($abs) = SongImages::target($listId, $group, $p['num'], $p['ext']);
+            $shown    = substr($abs, strlen($listDir) + 1); // "001.jpg" or "g3/001.png"
+            $existing = SongImages::slotFiles($listId, $group, $p['num']);
 
             if ($mode === 'add' && $existing) {
                 $log[] = ['type' => 'ok', 'msg' => T::s('import.log.skippedExists', ['name' => $shown])];
@@ -277,8 +278,8 @@ trait Ajax_Import
                 $errors++;
                 continue;
             }
-            // Replace mode: the slot may hold the other extension (001_2.png
-            // vs 001_2.jpg) — one file per page.
+            // Replace mode: the slot may hold the other extension (001.png vs
+            // 001.jpg) or the legacy "001_1" name — one file per song and group.
             foreach ($existing as $old) {
                 if ($old !== $abs) {
                     @unlink($old);
@@ -527,22 +528,18 @@ trait Ajax_Import
         return in_array(Security::getRole(), ['admin', 'leader', 'tech'], true);
     }
 
-    /** Groups of the song's collection with the song's pages: [{id, name, is_main, pages: [{page, url}]}]. */
+    /** Groups of the song's collection with the song's image in each: [{id, name, orig_name, is_main, image|null}]. */
     private static function songImageGroups(array $song)
     {
         $listId = (int)$song['LISTID'];
         $out    = [];
         foreach (SongImages::groups($listId) as $g) {
-            $pages = [];
-            foreach (SongImages::songPagesDetailed($listId, $g, $song['NUM']) as $page => $url) {
-                $pages[] = ['page' => (int)$page, 'url' => $url];
-            }
             $out[] = [
                 'id'        => (int)$g['ID'],
                 'name'      => SongImages::displayName($g),   // in the caller's UI language
                 'orig_name' => $g['NAME'],
                 'is_main'   => (int)$g['IS_MAIN'],
-                'pages'     => $pages,
+                'image'     => SongImages::songImage($listId, $g, $song['NUM']),
             ];
         }
         return $out;
@@ -578,12 +575,13 @@ trait Ajax_Import
     }
 
     // --------------------------------------------------------
-    // Upload one page image into a group (multipart).
-    // POST: song_id, group_id, image; optional page (replace that slot).
-    // Default slot = next free page; page 1 of the main group is the legacy
-    // main sheet (<NUM>.jpg), exactly like upload_song_image.
+    // Upload / replace the song's image in a group (multipart).
+    // POST: song_id, group_id, image. The main group's image is the legacy
+    // <NUM>.jpg (exactly like upload_song_image); other groups store
+    // g<GROUP_ID>/<NUM>.<jpg|png>. An existing image of the slot (other
+    // extension / legacy "_1" name) is removed.
     // --------------------------------------------------------
-    private static function upload_song_page_image()
+    private static function upload_song_group_image()
     {
         if (!self::canEditSongImages()) {
             return json_encode(['status' => 'error', 'message' => 'Access denied']);
@@ -615,17 +613,12 @@ trait Ajax_Import
         }
         $ext = ($ext === 'png') ? 'png' : 'jpg';
 
-        $existing = SongImages::songPagesDetailed($listId, $group, $num);
-        $page     = (int)($_POST['page'] ?? 0);
-        if ($page < 1) {
-            $page = $existing ? max(array_keys($existing)) + 1 : 1;
-        }
-        list($abs, $url) = SongImages::target($listId, $group, $num, $page, $ext);
+        list($abs, $url) = SongImages::target($listId, $group, $num, $ext);
         $dir = dirname($abs);
         if (!is_dir($dir) && !@mkdir($dir, 0777, true) && !is_dir($dir)) {
             return json_encode(['status' => 'error', 'message' => T::s('ajax.error.dirCreateFailed', ['dir' => dirname($url)])]);
         }
-        foreach (SongImages::slotFiles($listId, $group, $num, $page) as $old) {
+        foreach (SongImages::slotFiles($listId, $group, $num) as $old) {
             if ($old !== $abs) {
                 @unlink($old);
             }
@@ -640,23 +633,21 @@ trait Ajax_Import
         self::notifyNotesIfCurrent($listId, $num);
         return json_encode([
             'status' => 'success',
-            'page'   => $page,
             'path'   => $url,
             'groups' => self::songImageGroups($song),
         ]);
     }
 
     // --------------------------------------------------------
-    // Delete one page image. Params: song_id, group_id, page
+    // Delete the song's image in a group. Params: song_id, group_id
     // --------------------------------------------------------
-    private static function delete_song_page_image()
+    private static function delete_song_group_image()
     {
         if (!self::canEditSongImages()) {
             return json_encode(['status' => 'error', 'message' => 'Access denied']);
         }
         $songId  = (int)(self::$args['song_id'] ?? 0);
         $groupId = (int)(self::$args['group_id'] ?? 0);
-        $page    = (int)(self::$args['page'] ?? 0);
         $song    = Info::get('db')->get("SELECT ID, LISTID, NUM FROM song_list WHERE ID = {$songId}");
         if (!$song) {
             return json_encode(['status' => 'error', 'message' => 'Song not found']);
@@ -664,10 +655,10 @@ trait Ajax_Import
         $listId = (int)$song['LISTID'];
         $num    = (string)$song['NUM'];
         $group  = SongImages::group($groupId);
-        if (!$group || (int)$group['LISTID'] !== $listId || $page < 1 || !SongImages::isSafeNum($num)) {
+        if (!$group || (int)$group['LISTID'] !== $listId || !SongImages::isSafeNum($num)) {
             return json_encode(['status' => 'error', 'message' => T::s('ajax.error.groupNotFound')]);
         }
-        foreach (SongImages::slotFiles($listId, $group, $num, $page) as $f) {
+        foreach (SongImages::slotFiles($listId, $group, $num) as $f) {
             @unlink($f);
         }
         self::notifyNotesIfCurrent($listId, $num);

@@ -4,26 +4,27 @@
  * Sheet-music image groups (Aug 2026).
  *
  * Every song collection (`list_names` row) owns an ordered list of image
- * groups (table `song_image_groups`; defaults "НОТЫ" + "АККОРДЫ"), and a song
- * can carry any number of images ("pages") in every group. Storage is
- * FILE-BASED — there is no per-image table, so the database can never drift
- * from the disk:
+ * groups ("types" — table `song_image_groups`; defaults "НОТЫ" + "АККОРДЫ",
+ * names translatable per UI language), and a song has AT MOST ONE image in
+ * every group. Storage is FILE-BASED — there is no per-image table, so the
+ * database can never drift from the disk:
  *
- *   page 1 of the MAIN group  = /images/<LISTID>/<NUM>.jpg
- *                               (the legacy main sheet, derived everywhere
- *                               else in the app — unchanged; PNG bytes may
- *                               live under the .jpg name, like the tech
- *                               console upload has always done)
- *   every other page          = /images/<LISTID>/g<GROUP_ID>/<NUM>_<page>.<jpg|png>
+ *   main group (IS_MAIN = 1) = /images/<LISTID>/<NUM>.jpg
+ *                              (the legacy main sheet, derived everywhere
+ *                              else in the app — unchanged; PNG bytes may
+ *                              live under the .jpg name, like the tech
+ *                              console upload has always done)
+ *   every other group        = /images/<LISTID>/g<GROUP_ID>/<NUM>.<jpg|png>
+ *                              (a legacy "<NUM>_1.<ext>" name written by the
+ *                              first, multi-page build is still recognised)
  *
- * Listing is a directory scan filtered by an exact-NUM regex, so song numbers
- * containing "_" or "-" ("422_C", "503_E-F") cannot collide with page suffixes.
- * Group directories are named by the immutable group ID: renaming or
- * reordering a group never moves files.
+ * Listing is a directory scan filtered by an exact-NUM regex. Group
+ * directories are named by the immutable group ID: renaming or reordering a
+ * group never moves files.
  *
  * Used by Ajax_Common::get_notes (musician page) and the Ajax_Import group /
- * ZIP commands. Pure helpers (parseEntryName, decodeName, isSafeNum) have no
- * DB dependency and are unit-testable standalone.
+ * ZIP / per-song image commands. Pure helpers (parseEntryName, decodeName,
+ * isSafeNum) have no DB dependency and are unit-testable standalone.
  */
 class SongImages
 {
@@ -36,7 +37,7 @@ class SongImages
     /** UI languages a group name can be translated into (mirrors T::ALLOWED). */
     const UI_LANGS = ['ru', 'de', 'en', 'lt'];
 
-    /** Accepted page-file extensions (stored lowercase; "jpeg" is saved as "jpg"). */
+    /** Accepted image-file extensions (stored lowercase; "jpeg" is saved as "jpg"). */
     const EXT_PATTERN = 'jpe?g|png';
 
     /** @var bool|null Per-request cache of the groups table existence. */
@@ -179,7 +180,7 @@ class SongImages
         return __DIR__ . '/../public/images/' . (int)$listId;
     }
 
-    /** Absolute directory of a group's page files. */
+    /** Absolute directory of a group's image files. */
     public static function groupDir($listId, $groupId)
     {
         return self::listDir($listId) . '/g' . (int)$groupId;
@@ -213,47 +214,53 @@ class SongImages
 
     // ─── Listing ─────────────────────────────────────────────────────
 
-    /**
-     * Page images of one song in one group, ordered by page number.
-     * Returns web paths ('/images/...').
-     */
-    public static function songPages($listId, array $group, $num)
+    /** Regex matching the song's file in a group directory (current + legacy "_1" name). */
+    private static function fileRegex($num)
     {
-        return array_values(self::songPagesDetailed($listId, $group, $num));
+        return '/^' . preg_quote($num, '/') . '(?:_1)?\.(' . self::EXT_PATTERN . ')$/i';
     }
 
     /**
-     * Same as songPages() but keyed by page number ([page => web path]) —
-     * the edit dialog needs the numbers to delete / replace a page.
+     * Absolute paths of the files holding the song's image in a group —
+     * normally 0 or 1 (more only when both extensions / the legacy name
+     * exist; "<NUM>.ext" sorts first and wins).
      */
-    public static function songPagesDetailed($listId, array $group, $num)
+    public static function slotFiles($listId, array $group, $num)
     {
         $listId = (int)$listId;
         if (!self::isSafeNum($num)) {
             return [];
         }
-        $isMain = ((int)$group['IS_MAIN'] === 1);
-        $out    = [];
-        if ($isMain && is_file(self::listDir($listId) . '/' . $num . '.jpg')) {
-            $out[1] = self::mainImageUrl($listId, $num);
+        if ((int)$group['IS_MAIN'] === 1) {
+            $f = self::listDir($listId) . '/' . $num . '.jpg';
+            return is_file($f) ? [$f] : [];
         }
         $dir = self::groupDir($listId, $group['ID']);
+        $out = [];
         if (is_dir($dir)) {
-            $re = '/^' . preg_quote($num, '/') . '_(\d{1,3})\.(' . self::EXT_PATTERN . ')$/i';
+            $re = self::fileRegex($num);
             foreach (scandir($dir) as $f) {
-                if (!preg_match($re, $f, $m)) {
-                    continue;
+                if (preg_match($re, $f) && is_file($dir . '/' . $f)) {
+                    $out[] = $dir . '/' . $f;
                 }
-                $page = (int)$m[1];
-                // Page 1 of the main group lives in the collection root only.
-                if ($page < 1 || ($isMain && $page === 1) || isset($out[$page])) {
-                    continue;
-                }
-                $out[$page] = self::groupUrl($listId, $group['ID']) . '/' . $f;
             }
+            sort($out);
         }
-        ksort($out);
         return $out;
+    }
+
+    /** Web path of the song's image in a group, or null when it has none. */
+    public static function songImage($listId, array $group, $num)
+    {
+        $files = self::slotFiles($listId, $group, $num);
+        if (!$files) {
+            return null;
+        }
+        if ((int)$group['IS_MAIN'] === 1) {
+            return self::mainImageUrl($listId, $num);
+        }
+        $dir = self::groupDir($listId, $group['ID']);
+        return self::groupUrl($listId, $group['ID']) . '/' . substr($files[0], strlen($dir) + 1);
     }
 
     /** Number of image files a group holds (all songs of the collection). */
@@ -273,7 +280,7 @@ class SongImages
         $dir = self::groupDir($listId, $group['ID']);
         if (is_dir($dir)) {
             foreach (scandir($dir) as $f) {
-                if (preg_match('/_\d{1,3}\.(' . self::EXT_PATTERN . ')$/i', $f)) {
+                if (preg_match('/\.(' . self::EXT_PATTERN . ')$/i', $f) && is_file($dir . '/' . $f)) {
                     $n++;
                 }
             }
@@ -311,18 +318,15 @@ class SongImages
     }
 
     /**
-     * Map an archive entry to a (song number, page, extension) triple using the
-     * collection's known song numbers ($numSet = [NUM => true, ...]):
-     *
-     *   "001.jpg"    → num "001",   page 1
-     *   "001_2.png"  → num "001",   page 2  (unless "001_2" is itself a song number)
-     *   "422_C.jpg"  → num "422_C", page 1  (an exact song number always wins)
-     *   "x/y/003.jpg"→ num "003",   page 1  (directories inside the ZIP are ignored)
+     * Map an archive entry to a (song number, extension) pair; the file name
+     * stem IS the song number ("x/y/д001.JPG" → num "д001", ext "jpg" —
+     * directories inside the ZIP are ignored).
      *
      * Returns null for directories / hidden files, ['error' => 'notImage'] for
-     * other extensions, otherwise ['name', 'num', 'page', 'ext', 'known'].
-     * Unknown numbers are still returned (known=false): images may be imported
-     * before the song texts, exactly as the old import allowed.
+     * other extensions, otherwise ['name', 'num', 'ext', 'known'] where known
+     * tells whether the collection has a song with that number ($numSet =
+     * [NUM => true, ...]). Unknown numbers are still returned: images may be
+     * imported before the song texts, exactly as the old import allowed.
      */
     public static function parseEntryName($rawName, array $numSet)
     {
@@ -344,67 +348,29 @@ class SongImages
         if ($ext === 'jpeg') {
             $ext = 'jpg';
         }
-        if ($ext !== 'jpg' && $ext !== 'png') {
+        if (($ext !== 'jpg' && $ext !== 'png') || $stem === '') {
             return ['name' => $name, 'error' => 'notImage'];
         }
-        if ($stem === '') {
-            return ['name' => $name, 'error' => 'notImage'];
-        }
-
-        $num   = $stem;
-        $page  = 1;
-        $known = isset($numSet[$stem]);
-        if (!$known && preg_match('/^(.+?)[ _\-]+(\d{1,3})$/u', $stem, $p) && isset($numSet[$p[1]])) {
-            $num   = $p[1];
-            $page  = max(1, (int)$p[2]);
-            $known = true;
-        }
-        return ['name' => $name, 'num' => $num, 'page' => $page, 'ext' => $ext, 'known' => $known];
+        return ['name' => $name, 'num' => $stem, 'ext' => $ext, 'known' => isset($numSet[$stem])];
     }
 
     /**
-     * Where a page of a song lives: [absolute path, web path].
-     * Page 1 of the main group is the legacy root file (always ".jpg").
+     * Where the song's image in a group lives: [absolute path, web path].
+     * The main group's image is the legacy root file (always ".jpg").
      */
-    public static function target($listId, array $group, $num, $page, $ext)
+    public static function target($listId, array $group, $num, $ext)
     {
-        $page = max(1, (int)$page);
-        if ((int)$group['IS_MAIN'] === 1 && $page === 1) {
+        if ((int)$group['IS_MAIN'] === 1) {
             return [self::listDir($listId) . '/' . $num . '.jpg', self::mainImageUrl($listId, $num)];
         }
-        $file = $num . '_' . $page . '.' . $ext;
+        $file = $num . '.' . $ext;
         return [
             self::groupDir($listId, $group['ID']) . '/' . $file,
             self::groupUrl($listId, $group['ID']) . '/' . $file,
         ];
     }
 
-    /**
-     * Existing files occupying a page slot (any accepted extension, any
-     * letter case — the listing is case-insensitive too, so a manually
-     * copied "001_2.JPG" counts as the slot being taken).
-     */
-    public static function slotFiles($listId, array $group, $num, $page)
-    {
-        $page = max(1, (int)$page);
-        if ((int)$group['IS_MAIN'] === 1 && $page === 1) {
-            $f = self::listDir($listId) . '/' . $num . '.jpg';
-            return is_file($f) ? [$f] : [];
-        }
-        $dir = self::groupDir($listId, $group['ID']);
-        $out = [];
-        if (is_dir($dir)) {
-            $re = '/^' . preg_quote($num . '_' . $page, '/') . '\.(' . self::EXT_PATTERN . ')$/i';
-            foreach (scandir($dir) as $f) {
-                if (preg_match($re, $f) && is_file($dir . '/' . $f)) {
-                    $out[] = $dir . '/' . $f;
-                }
-            }
-        }
-        return $out;
-    }
-
-    /** Remove a group's directory with all its page files (main sheets are never touched). */
+    /** Remove a group's directory with all its image files (main sheets are never touched). */
     public static function deleteGroupFiles($listId, $groupId)
     {
         self::rmTree(self::groupDir($listId, $groupId));
