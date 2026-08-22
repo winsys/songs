@@ -1,0 +1,1047 @@
+<style>
+    /* ============================================================
+       PIANIST PAGE — private copy of the leader page (design consistent with index.html)
+       ============================================================ */
+
+    body {
+        background: #f0f2f5;
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    }
+
+    /* ---- Page layout: container like sermon_prep (max 1100px) --- */
+    .piano-wrapper {
+        max-width: 1100px;
+        margin: 0 auto;
+        padding: 20px 15px 48px;
+    }
+
+    @media (max-width: 768px) {
+        .piano-wrapper { padding: 14px 10px 40px; }
+    }
+
+    @media (max-width: 480px) {
+        .piano-wrapper { padding: 10px 8px 32px; }
+    }
+
+    /* ---- Header ---------------------------------------------- */
+    .piano-header {
+        display: flex;
+        align-items: center;
+        margin-bottom: 24px;
+        gap: 12px;
+    }
+
+    .btn-action-blue {
+        padding: 7px 14px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 500;
+        border: none;
+        background: #1a6db5;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+    }
+    .btn-action-blue:hover {
+        background: #155a99;
+        transform: translateY(-1px);
+        box-shadow: 0 3px 10px rgba(26,109,181,0.28);
+    }
+
+    .btn-back {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        color: #5a6272;
+        background: #f4f5f7;
+        border: none;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-decoration: none;
+        flex-shrink: 0;
+    }
+
+    .btn-back:hover {
+        background: #e8eaed;
+        color: #2c3e50;
+        transform: translateX(-1px);
+    }
+
+    .piano-title-block {
+        flex: 1;
+    }
+
+    .piano-page-title {
+        font-size: 18px;
+        font-weight: 600;
+        color: #2c3e50;
+        margin: 0;
+        line-height: 1.2;
+    }
+
+    .piano-page-subtitle {
+        font-size: 12px;
+        color: #95a5a6;
+        margin: 2px 0 0;
+    }
+
+    .piano-logo {
+        font-size: 28px;
+        line-height: 1;
+    }
+
+    /* ---- Section labels (same as index.html) ----------------- */
+    .section-label {
+        font-size: 11px;
+        font-weight: 600;
+        color: #b0b8c1;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin: 20px 0 10px;
+    }
+
+    /* ---- Song list buttons ----------------------------------- */
+    .songlist-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 4px;
+    }
+
+    .btn-list {
+        flex: 1;
+        min-width: 80px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        text-align: center;
+        border: 1.5px solid #dee2e6;
+        background: #f8f9fa;
+        color: #5a6272;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: normal;
+        word-wrap: break-word;
+        line-height: 1.3;
+    }
+
+    .btn-list:hover, .btn-list:focus {
+        border-color: #1a6db5;
+        color: #1a6db5;
+        background: #ebf3fb;
+        outline: none;
+    }
+
+    .btn-selected {
+        background: #ebf3fb !important;
+        border-color: #1a6db5 !important;
+        color: #1a6db5 !important;
+        font-weight: 600;
+    }
+
+    .btn-show-all {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        border: none;
+        background: #1a6db5;
+        color: #fff;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+
+    .btn-show-all:hover {
+        background: #155a99;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(26, 109, 181, 0.30);
+    }
+
+    /* ---- Search input / angucomplete override ----------------- */
+    #ccf6 .angucomplete-holder {
+        width: 100%;
+    }
+
+    #ccf6 .angucomplete-input-container input {
+        width: 100%;
+        height: 48px;
+        padding: 10px 16px !important;
+        border: 1.5px solid #dee2e6 !important;
+        border-radius: 10px !important;
+        font-size: 15px;
+        color: #2c3e50;
+        background: #fff;
+        box-shadow: none !important;
+        transition: border-color 0.15s;
+        -webkit-appearance: none;
+    }
+
+    #ccf6 .angucomplete-input-container input:focus {
+        border-color: #3498db !important;
+        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12) !important;
+        outline: none;
+    }
+
+    .angucomplete-dropdown {
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+        overflow: hidden;
+        margin-top: 4px;
+    }
+
+    .angucomplete-row {
+        padding: 12px 16px !important;
+        font-size: 14px !important;
+        color: #2c3e50;
+        border-bottom: 1px solid #f0f2f5;
+        transition: background 0.1s;
+    }
+
+    .angucomplete-row:hover,
+    .angucomplete-selected-row {
+        background: #ebf3fb !important;
+        color: #1a6db5 !important;
+    }
+
+    .angucomplete-description {
+        font-size: 11px !important;
+        color: #95a5a6 !important;
+        margin-top: 2px;
+    }
+
+    /* ---- Favorites list -------------------------------------- */
+    .favorites-list {
+        margin-top: 8px;
+    }
+
+    .prod-list-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1.5px solid #f0f2f5;
+        background: #fff;
+        margin-bottom: 8px;
+        transition: all 0.15s;
+    }
+
+    .prod-list-item:hover {
+        border-color: #dee2e6;
+        background: #fafbfc;
+    }
+
+    .prod-list-item.active-song {
+        border-color: #3498db;
+        background: #ebf5fb;
+        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.15);
+    }
+
+    .item-text {
+        font-size: 15px;
+        font-weight: 500;
+        color: #2c3e50;
+        flex: 1;
+        line-height: 1.3;
+    }
+
+    .song-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 3px;
+    }
+
+    .song-book-name {
+        font-size: 11px;
+        color: #95a5a6;
+    }
+
+    .song-lang-badges {
+        display: inline-flex;
+        gap: 4px;
+    }
+
+    .lang-badge {
+        display: inline-block;
+        font-size: 9px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+        line-height: 1.4;
+        letter-spacing: 0.3px;
+    }
+
+    .lang-ru { background: #d0e8ff; color: #1a5a99; }
+    .lang-lt { background: #d4f0d4; color: #2a6a2a; }
+    .lang-en { background: #fff0cc; color: #7a5a00; }
+
+    /* Notes thumbnail */
+    .song-thumb-wrap {
+        width: 52px;
+        height: 52px;
+        flex-shrink: 0;
+        border-radius: 8px;
+        overflow: hidden;
+        border: 1.5px solid #8fa3b8;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s;
+    }
+
+    .song-thumb-wrap:hover {
+        transform: scale(1.06);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.14);
+    }
+
+    .song-thumb {
+        width: 52px;
+        height: 52px;
+        object-fit: cover;
+        display: block;
+    }
+
+    /* Text icon: same size as the notes thumbnail, opens full lyrics on the
+       leader's own screen. */
+    .song-text-btn {
+        width: 52px;
+        height: 52px;
+        flex-shrink: 0;
+        border-radius: 8px;
+        border: 1.5px solid #8fa3b8;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 22px;
+        font-weight: 700;
+        color: #1a6db5;
+        background: #f4f8fc;
+        transition: transform 0.15s, box-shadow 0.15s;
+        user-select: none;
+    }
+    .song-text-btn:hover {
+        transform: scale(1.06);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.14);
+    }
+
+    /* Black full-text screen (lyrics), this device only */
+    .piano-text-fs {
+        position: fixed;
+        top: 0; left: 0;
+        /* Use stable vh units (like the main screen) instead of right/bottom:0,
+           so the height doesn't jump when the mobile address bar shows/hides. */
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+        z-index: 100000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-sizing: border-box;
+        overflow: hidden;
+    }
+    /* Verse blocks, centered and sized (by JS) to fill the screen — same fill
+       principle as the main display (#text in text_layout.html). */
+    /* Plain block (NOT flex) so verse lines wrap to the width. The JS sets an
+       explicit px width; the outer flex container centers this block. */
+    .piano-text-fs-inner {
+        width: 92vw;
+        max-height: 92vh;
+        color: #fff;
+        font-family: Arial, sans-serif;
+        font-weight: 600;
+        line-height: 1.2;
+        text-align: center;
+        overflow: hidden;
+    }
+    .piano-text-para {
+        margin: 0;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+        overflow-wrap: break-word;
+    }
+    /* Gap between verses (each source line). */
+    .piano-text-para + .piano-text-para {
+        margin-top: 0.6em;
+    }
+
+    /* ---- Notes view: the chosen image group's picture, own screen only --- */
+    .piano-notes-fs {
+        position: fixed;
+        top: 0; left: 0;
+        width: 100vw;
+        height: 100vh;
+        background: #000;
+        z-index: 100000;
+        cursor: pointer;
+        overflow: hidden;
+    }
+    .piano-notes-img {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        margin: auto;
+        width: 100%;
+        height: 100%;
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        background: #000;
+    }
+    /* Image-type buttons: same look as the musician page (top, centred, 50%) */
+    .mg-bar {
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 12px;
+        pointer-events: none;
+        z-index: 5;
+    }
+    .mg-btn {
+        pointer-events: auto;
+        opacity: 0.5;
+        min-height: 56px;
+        padding: 0 28px;
+        border: none;
+        border-radius: 12px;
+        background: #2c3e50;
+        color: #fff;
+        font-size: 20px;
+        font-weight: 600;
+        cursor: pointer;
+        -webkit-tap-highlight-color: transparent;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    .mg-btn:focus { outline: none; }
+    .mg-btn.mg-sel { background: #1a6db5; }
+    .mg-btn.mg-shown { box-shadow: inset 0 0 0 2px #fff; }
+    .mg-btn.mg-empty { color: rgba(255,255,255,0.55); }
+
+    /* Delete button */
+    .btn-delete {
+        width: 32px;
+        height: 32px;
+        border-radius: 7px;
+        border: none;
+        background: #fdecea;
+        color: #c0392b;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.15s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+        line-height: 1;
+    }
+
+    .btn-delete:hover {
+        background: #fad7d4;
+        transform: scale(1.08);
+    }
+
+    /* ---- Bottom actions -------------------------------------- */
+    .bottom-actions {
+        margin-top: 20px;
+        padding-top: 16px;
+        border-top: 1px solid #f0f2f5;
+        display: flex;
+        justify-content: flex-start;
+    }
+
+    .btn-clear {
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        padding: 10px 18px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 500;
+        border: 1.5px solid #fad7d4;
+        background: #fdecea;
+        color: #c0392b;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+
+    .btn-clear:hover {
+        background: #fad7d4;
+        border-color: #e74c3c;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 10px rgba(192, 57, 43, 0.18);
+    }
+
+    /* ---- Modal overrides ------------------------------------- */
+    .modal-dialog {
+        border-radius: 14px;
+    }
+
+    .modal-content {
+        border: none;
+        border-radius: 14px;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.16);
+        overflow: hidden;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .modal-body {
+        padding: 20px;
+        overflow-y: auto;
+        flex: 1;
+    }
+
+    .modal-song-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid #f0f2f5;
+    }
+
+    .modal-song-row:last-child {
+        border-bottom: none;
+    }
+
+    .modal-song-name {
+        flex: 1;
+        font-size: 15px;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+
+    /* ---- Notes mode: full-width modal ------------------------ */
+    #list-popup .modal-dialog {
+        width:     100%;
+        max-width: 1100px;
+        margin:    10px auto;
+    }
+    @media (max-width: 1100px) {
+        #list-popup .modal-dialog {
+            width: 96vw;
+            max-width: 96vw;
+        }
+    }
+    /* Bootstrap's clearfix pseudo-elements (::before/::after on
+       .modal-header/.modal-footer) become flex items inside the flex headers
+       below and push the title / close button away from the edges. */
+    #list-popup .modal-header::before, #list-popup .modal-header::after,
+    #confirmation-dialog .modal-header::before, #confirmation-dialog .modal-header::after,
+    #confirmation-dialog .modal-footer::before, #confirmation-dialog .modal-footer::after { display: none; }
+
+    #list-popup .modal-content {
+        max-height: 96vh;
+        border-radius: 10px;
+    }
+    #list-popup .modal-body {
+        padding: 15px;
+    }
+
+    /* Toggle button in modal header */
+    .notes-toggle-btn {
+        display:       inline-flex;
+        align-items:   center;
+        gap:           5px;
+        border:        2px solid #cdd4dd;
+        background:    #f4f5f7;
+        color:         #5a6272;
+        border-radius: 8px;
+        padding:       5px 12px;
+        font-size:     13px;
+        font-weight:   600;
+        cursor:        pointer;
+        transition:    background 0.15s, border-color 0.15s, color 0.15s;
+        white-space:   nowrap;
+    }
+    .notes-toggle-btn.notes-toggle-active {
+        background:    #e8f4fd;
+        border-color:  #2980b9;
+        color:         #1a6fa8;
+    }
+
+    /* ---- Notes mode: song card ------------------------------- */
+    .notes-song-card {
+        position:      relative;
+        margin-bottom: 10px;
+        border-radius: 8px;
+        border:        1px solid #dde3ea;
+        overflow:      hidden;
+        background:    #fff;
+    }
+    .notes-song-card:last-child { margin-bottom: 0; }
+
+    .notes-song-title {
+        padding:     8px 12px;
+        font-size:   15pt;
+        font-weight: 600;
+        color:       #2c3e50;
+        background:  #f8f9fa;
+        display:     flex;
+        align-items: center;
+        gap:         8px;
+        flex-wrap:   wrap;
+    }
+
+    .notes-song-img {
+        width:   100%;
+        display: block;
+    }
+
+    /* Invisible overlay button covering title + image */
+    .notes-select-overlay {
+        position:   absolute;
+        inset:      0;
+        width:      100%;
+        height:     100%;
+        background: transparent;
+        border:     none;
+        cursor:     pointer;
+        padding:    0;
+        margin:     0;
+        z-index:    2;
+    }
+    .notes-select-overlay:hover  { background: rgba(41,128,185, 0.10); }
+    .notes-select-overlay:active { background: rgba(41,128,185, 0.22); }
+
+    /* Small "Select" pill visible in the corner on hover via sibling trick */
+    .notes-card-hint {
+        position:      absolute;
+        top:           8px;
+        right:         10px;
+        z-index:       3;
+        background:    rgba(41,128,185, 0.85);
+        color:         #fff;
+        font-size:     12px;
+        font-weight:   600;
+        border-radius: 6px;
+        padding:       3px 10px;
+        pointer-events:none;
+        opacity:       0;
+        transition:    opacity 0.15s;
+    }
+    .notes-song-card:hover .notes-card-hint { opacity: 1; }
+
+
+    .btn-select {
+        padding: 8px 16px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 500;
+        border: none;
+        background: #ebf3fb;
+        color: #1a6db5;
+        cursor: pointer;
+        transition: all 0.15s;
+        white-space: nowrap;
+    }
+
+    .btn-select:hover {
+        background: #d6e9f8;
+        transform: translateY(-1px);
+    }
+
+    /* ---- Responsive tweaks ----------------------------------- */
+    @media (max-width: 480px) {
+        .piano-page-title { font-size: 16px; }
+        .item-text { font-size: 14px; }
+        .song-thumb { width: 44px; height: 44px; }
+        .song-thumb-wrap { width: 44px; height: 44px; }
+        .song-text-btn { width: 44px; height: 44px; font-size: 18px; }
+        .btn-show-all { width: 100%; margin-top: 4px; }
+        .songlist-row { flex-direction: column; }
+        .btn-list { min-width: unset; }
+    }
+
+    /* ---- Number input fix ------------------------------------ */
+    input[type=number]::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+    }
+    input[type=number] {
+        -moz-appearance: textfield;
+        appearance: textfield;
+        margin: 0;
+    }
+
+    /* ---- Search result row with thumbnail --------------------- */
+    .angucomplete-song-row {
+        display: flex !important;
+        align-items: center !important;
+        padding: 7px 12px !important;
+        gap: 10px;
+    }
+    .angucomplete-song-img-col {
+        width: 46px; height: 46px; flex-shrink: 0;
+        border-radius: 5px; overflow: hidden;
+        background: #e8edf2;
+        cursor: pointer;
+        position: relative;
+        display: flex; align-items: center; justify-content: center;
+        border: 1px solid #dee3ea;
+        transition: opacity 0.15s;
+    }
+    .angucomplete-song-img-col:hover { opacity: 0.75; }
+    .angucomplete-song-img-col::after {
+        content: '🎵';
+        position: absolute; font-size: 17px; opacity: 0.3;
+    }
+    .angucomplete-song-thumb-sm {
+        width: 46px; height: 46px; object-fit: cover;
+        display: block; position: relative; z-index: 1;
+    }
+    .angucomplete-song-text-col { flex: 1; min-width: 0; }
+    .angucomplete-row-meta { display: flex; align-items: center; gap: 6px; margin-top: 3px; flex-wrap: wrap; }
+    .angucomplete-book-name { font-size: 10px; color: #95a5a6; }
+
+    /* ---- Song preview modal ----------------------------------- */
+    .song-preview-overlay {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.75);
+        z-index: 99999;
+        display: flex; align-items: center; justify-content: center;
+        padding: 10px;
+    }
+    .song-preview-modal {
+        background: #fff;
+        border-radius: 10px;
+        width: 100%; height: 100%;
+        max-width: 98vw; max-height: 96vh;
+        display: flex; flex-direction: column;
+        overflow: hidden;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.5);
+    }
+    .song-preview-header {
+        padding: 10px 16px 6px; flex-shrink: 0;
+        border-bottom: 1px solid #f0f2f5;
+    }
+    .song-preview-title { font-size: 15px; font-weight: 700; color: #1a2533; }
+    .song-preview-book {
+        display: inline-block; font-size: 11px; color: #6b7c93;
+        background: #f0f4f8; border-radius: 10px;
+        padding: 2px 8px; margin-left: 8px; vertical-align: middle;
+    }
+    .song-preview-img-wrap {
+        flex: 1; min-height: 0;
+        display: flex; align-items: center; justify-content: center;
+        background: #111; overflow: hidden;
+    }
+    .song-preview-img {
+        max-width: 100%; max-height: 100%;
+        object-fit: contain; display: block;
+    }
+    .song-preview-no-img {
+        color: #888; font-size: 14px;
+    }
+    .song-preview-actions {
+        display: flex; gap: 10px;
+        padding: 10px 16px 12px; flex-shrink: 0;
+        border-top: 1px solid #f0f2f5;
+    }
+</style>
+
+<div ng-controller="Piano">
+    <div class="piano-wrapper">
+
+
+        <!-- Header: Back button + Title -->
+        <div class="piano-header">
+            <button class="btn-back" onclick="window.location.href='/index'">
+                <?php echo T::s('common.button.back'); ?>
+            </button>
+            <div class="piano-title-block">
+                <div class="piano-page-title"><?php echo T::s('piano.title'); ?></div>
+                <div class="piano-page-subtitle"><?php echo T::s('piano.subtitle'); ?></div>
+            </div>
+        </div>
+
+        <!-- Song list selector -->
+        <div class="section-label"><?php echo T::s('leader.section.books'); ?></div>
+
+        <div class="songlist-row">
+            <button class="btn-list songlist-btn"
+                    ng-repeat="list in visibleSongLists"
+                    ng-class="listId == list.LIST_ID ? 'btn-selected' : ''"
+                    ng-click="setList(list.LIST_ID)">
+                {{ list.LIST_NAME }}
+            </button>
+        </div>
+        <div class="songlist-row" style="margin-top: 8px;">
+            <button class="btn-action-blue" ng-click="openList()"><?php echo T::s('leader.button.showAll'); ?><span ng-if="currentListName()">: {{ currentListName() }}</span></button>
+        </div>
+
+        <!-- Search -->
+        <div class="section-label" style="margin-top: 20px;"><?php echo T::s('leader.section.search'); ?></div>
+
+        <script type="text/ng-template" id="song-row-tmpl.html">
+            <div class="angucomplete-holder" ng-class="{'angucomplete-dropdown-visible': showDropdown}">
+                <input id="{{id}}_value" name="{{inputName}}" tabindex="{{fieldTabindex}}"
+                       ng-class="{'angucomplete-input-not-empty': notEmpty}"
+                       ng-model="searchStr" ng-disabled="disableInput" type="{{inputType}}"
+                       placeholder="{{placeholder}}" maxlength="{{maxlength}}"
+                       ng-focus="onFocusHandler()" class="{{inputClass}}"
+                       ng-focus="resetHideResults()" ng-blur="hideResults($event)"
+                       autocapitalize="off" autocorrect="off" autocomplete="off"
+                       ng-change="inputChangeHandler(searchStr)"/>
+                <div id="{{id}}_dropdown" class="angucomplete-dropdown" ng-show="showDropdown">
+                    <div class="angucomplete-searching" ng-show="searching" ng-bind="textSearching"></div>
+                    <div class="angucomplete-searching" ng-show="!searching && (!results || results.length == 0)" ng-bind="textNoResults"></div>
+                    <div class="angucomplete-row angucomplete-song-row"
+                         ng-repeat="result in results"
+                         ng-click="selectResult(result)"
+                         ng-mouseenter="hoverRow($index)"
+                         ng-class="{'angucomplete-selected-row': $index == currentIndex}">
+                        <div class="angucomplete-song-img-col"
+                             ng-click="$emit('song:previewSong', result.originalObject); $event.stopPropagation()"
+                             title="<?php echo T::s('leader.search.viewNotes'); ?>">
+                            <img ng-src="{{result.image}}" class="angucomplete-song-thumb-sm"
+                                 onerror="this.style.display='none'">
+                        </div>
+                        <div class="angucomplete-song-text-col">
+                            <div class="angucomplete-title" ng-if="matchClass" ng-bind-html="result.title"></div>
+                            <div class="angucomplete-title" ng-if="!matchClass">{{ result.title }}</div>
+                            <div class="angucomplete-row-meta">
+                                <span ng-if="result.originalObject.bookName" class="angucomplete-book-name">{{ result.originalObject.bookName }}</span>
+                                <span class="song-lang-badges">
+                                    <span class="lang-badge lang-{{lang.code}}"
+                                          ng-repeat="lang in $parent.$parent.langList"
+                                          ng-if="result.originalObject['hasText_' + lang.code] == '1'">{{lang.label}}</span>
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </script>
+
+        <angucomplete-alt id="ccf6"
+                          placeholder="<?php echo T::s('leader.search.placeholder'); ?>"
+                          pause="100"
+                          local-data="searchSongList"
+                          search-fields="dispName,TEXT"
+                          title-field="dispName"
+                          description-field="langInfo"
+                          image-field="imageName"
+                          selected-object="selectedItem"
+                          minlength="2"
+                          input-class="form-control"
+                          template-url="song-row-tmpl.html">
+        </angucomplete-alt>
+
+        <!-- Selected songs -->
+        <div class="section-label" style="margin-top: 20px;">
+            <?php echo T::s('leader.section.selected'); ?>
+            <span ng-if="favorites.length > 0"
+                  style="background:#ebf3fb; color:#1a6db5; border-radius:20px;
+                         padding:1px 8px; font-size:10px; margin-left:6px; font-weight:700;">
+                {{ favorites.length }}
+            </span>
+        </div>
+
+        <!-- Empty state -->
+        <div ng-if="favorites.length === 0"
+             style="text-align:center; padding: 28px 16px; color: #b0b8c1;">
+            <div style="font-size: 32px; margin-bottom: 8px;">🎵</div>
+            <div style="font-size: 13px;"><?php echo T::s('leader.empty.title'); ?><br><?php echo T::s('leader.empty.subtitle'); ?></div>
+        </div>
+
+        <!-- Favorites list -->
+        <div class="favorites-list">
+            <div class="prod-list-item"
+                 ng-repeat="listItem in favorites">
+
+                <!-- Delete button -->
+                <button class="btn-delete"
+                        ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)"
+                        title="<?php echo T::s('leader.button.delete'); ?>">✕</button>
+
+                <!-- Song info -->
+                <span style="flex: 1; min-width: 0;">
+                    <span class="item-text">{{ listItem.dispName }}</span>
+                    <span class="song-meta">
+                        <span class="song-book-name" ng-if="listItem.bookName">{{ listItem.bookName }}</span>
+                        <span class="song-lang-badges">
+                            <span class="lang-badge lang-{{lang.code}}"
+                                  ng-repeat="lang in langList"
+                                  ng-if="listItem['hasText_' + lang.code] == '1'">{{lang.label}}</span>
+                        </span>
+                    </span>
+                </span>
+
+
+                <!-- Full song text on the pianist's own screen -->
+                <div class="song-text-btn"
+                     ng-click="openFullscreenText(listItem)"
+                     title="<?php echo T::s('piano.thumb.openText'); ?>">Аа</div>
+
+                <!-- Song image thumbnail: opens the notes view on this screen only -->
+                <div class="song-thumb-wrap"
+                     ng-click="openNotes(listItem)"
+                     title="<?php echo T::s('piano.thumb.openNotes'); ?>">
+                    <img class="song-thumb" ng-src="{{ listItem.imageName }}" onerror="this.style.display='none'"/>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bottom actions -->
+        <div class="bottom-actions" ng-if="favorites.length > 0">
+            <button class="btn-clear" ng-click="clearFavorites()">
+                <?php echo T::s('leader.button.clear'); ?>
+            </button>
+        </div>
+
+    </div><!-- /piano-wrapper -->
+
+
+    <!-- ============================================================
+         Modal: confirmation dialog
+         ============================================================ -->
+    <div id="confirmation-dialog">
+        <div class="modal fade confirmation-dialog" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header" style="border-bottom: 1px solid #f0f2f5; padding: 16px 20px;">
+                        <h4 class="modal-title" style="font-size:16px; font-weight:600; color:#2c3e50;">
+                            {{ confirmationDialogConfig.title }}
+                        </h4>
+                    </div>
+                    <div class="modal-body" style="padding: 16px 20px;">
+                        <p style="font-size: 14px; color: #5a6272;">
+                            <strong>{{ confirmationDialogConfig.message }}</strong>
+                        </p>
+                    </div>
+                    <div class="modal-footer" style="border-top: 1px solid #f0f2f5; padding: 12px 20px; display:flex; gap:8px; justify-content:flex-end;">
+                        <button type="button"
+                                class="btn-select"
+                                style="background:#f4f5f7; color:#5a6272;"
+                                data-dismiss="modal"><?php echo T::s('common.button.cancel'); ?></button>
+                        <button type="button"
+                                ng-repeat="button in confirmationDialogConfig.buttons"
+                                ng-click="button.action()"
+                                class="btn-select"
+                                style="background:#fdecea; color:#c0392b; border:1.5px solid #fad7d4;">
+                            &nbsp;&nbsp;&nbsp;{{ button.label }}&nbsp;&nbsp;&nbsp;
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================================
+         Modal: full song list
+         ============================================================ -->
+    <div id="list-popup">
+        <div class="modal fade list-popup" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header" style="display:flex; align-items:center; justify-content:space-between; padding:12px 16px; border-bottom:1px solid #e8edf2; position:sticky; top:0; background:#fff; z-index:10;">
+                        <div style="display:flex; align-items:center; gap:10px;">
+                            <span style="font-size:14px; font-weight:600; color:#2c3e50;"><?php echo T::s('leader.list.title'); ?></span>
+                        </div>
+                        <button type="button" data-dismiss="modal"
+                                style="border:none; background:#f4f5f7; color:#5a6272; border-radius:8px; padding:6px 14px; font-size:13px; cursor:pointer; font-weight:600;">
+                            ✕ <?php echo T::s('common.button.close'); ?>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+
+                        <!-- Song list rows -->
+                        <div class="row"
+                             style="padding-top: 10px; padding-bottom: 10px; border-bottom: #204d74 solid 1px"
+                             ng-repeat="song in songList">
+                            <div class="col-xs-7 col-s-7 col-md-7" style="font-size: 16pt">
+                                {{ song.dispName }}
+                                <span class="song-lang-badges" style="margin-left: 6px; vertical-align: middle;">
+                                    <span class="lang-badge"
+                                          ng-repeat="lang in langList"
+                                          ng-if="song['hasText_' + lang.code] == '1'">{{lang.label}}</span>
+                                </span>
+                            </div>
+                            <div class="col-xs-5 col-s-5 col-md-5 text-right">
+                                <button class="btn btn-lg" style="font-size: 16pt; background: #ebf3fb; color: #1a6db5; border: none;"
+                                        ng-click="toggleInlineNotes(song)"><?php echo T::s('leader.list.notes'); ?></button>
+                                <button class="btn btn-lg" style="font-size: 16pt; background: #1a6db5; color: #fff; border: none;"
+                                        ng-click="addSongToFavorites(song.ID)"><?php echo T::s('leader.list.select'); ?></button>
+                            </div>
+                            <div class="col-xs-12" ng-if="song.showInlineNotes" style="margin-top: 10px;">
+                                <img ng-src="/images/{{ song.LISTID }}/{{ song.NUM }}.jpg"
+                                     style="width: 100%; border-radius: 8px; border: 1px solid #dee2e6;"
+                                     onerror="this.style.display='none'">
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Song preview modal -->
+    <div class="song-preview-overlay" ng-if="songPreview.visible" ng-click="closeSongPreview()">
+        <div class="song-preview-modal" ng-click="$event.stopPropagation()">
+            <div class="song-preview-header">
+                <span class="song-preview-title">{{ songPreview.song.NUM }}.&nbsp;&nbsp;{{ songPreview.song.NAME }}</span>
+                <span class="song-preview-book" ng-if="songPreview.song.bookName">{{ songPreview.song.bookName }}</span>
+            </div>
+            <div class="song-preview-img-wrap">
+                <img ng-src="{{ songPreview.song.imageName }}"
+                     class="song-preview-img"
+                     ng-hide="songPreview.imgError"
+                     onerror="angular.element(this).scope().$apply(function(s){s.songPreview.imgError=true;})">
+                <div class="song-preview-no-img" ng-show="songPreview.imgError"><?php echo T::s('leader.preview.noImage'); ?></div>
+            </div>
+            <div class="song-preview-actions">
+                <button class="btn-action-blue" ng-click="confirmAddSongFromPreview()"><?php echo T::s('leader.preview.add'); ?></button>
+                <button class="btn btn-default" ng-click="closeSongPreview()"><?php echo T::s('common.button.cancel'); ?></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Black full-text screen (song lyrics, maximized to fit) — this device only -->
+    <div id="pianoTextFs" class="piano-text-fs"
+         ng-show="fullScreenText !== null"
+         ng-click="exitFullscreenText()">
+        <div id="pianoTextFsInner" class="piano-text-fs-inner"></div>
+    </div>
+
+    <!-- Notes view: the chosen image group's picture, full screen, on this
+         device only. A tap on the picture closes it; the translucent buttons
+         switch the image type (choice remembered like on the musician page). -->
+    <div id="pianoNotesFs" class="piano-notes-fs" ng-show="notesFs.open" ng-click="closeNotes()">
+        <img class="piano-notes-img" ng-if="notesFs.open" ng-src="{{ notesFs.image }}"
+             onerror="angular.element(this).scope().onNotesImageError()"/>
+        <div class="mg-bar" ng-if="notesFs.open && notesFs.groups.length">
+            <button class="mg-btn"
+                    ng-repeat="g in notesFs.groups track by g.id"
+                    ng-class="{'mg-sel': g.id === notesFs.selectedGroupId,
+                               'mg-shown': notesFs.shownGroup && g.id === notesFs.shownGroup.id && g.id !== notesFs.selectedGroupId,
+                               'mg-empty': !g.image}"
+                    ng-click="selectNotesGroup(g, $event)">{{ g.name }}</button>
+        </div>
+    </div>
+</div>
+
+<script src="/js/piano.min.js?v=1" type="text/javascript"></script>
+
+<script type="text/javascript">
+    function forceFullScreen(){}
+</script>

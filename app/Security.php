@@ -266,10 +266,10 @@ class Security
 
     private static $roleRoutes = array(
         'admin' => null,
-        'leader' => array('index', 'ajax', 'leader', 'tech', 'settings'),
-        'musician' => array('index', 'ajax', 'musician', 'settings'),
+        'leader' => array('index', 'ajax', 'leader', 'tech', 'piano', 'settings'),
+        'musician' => array('index', 'ajax', 'musician', 'piano', 'settings'),
         'preacher' => array('index', 'ajax', 'sermon_prep', 'sermon', 'settings'),
-        'tech' => array('index', 'ajax', 'tech', 'text', 'text_stream', 'settings'),
+        'tech' => array('index', 'ajax', 'tech', 'text', 'text_stream', 'piano', 'settings'),
         'screen' => array('index', 'ajax', 'text', 'text_stream', 'settings'),
     );
 
