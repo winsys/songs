@@ -58,4 +58,31 @@ trait Ajax_Leader
         self::updateSocket($targetGroupId);
         return '';
     }
+
+    /**
+     * Language selection made in the leader's verse mode. Pure console-follow
+     * side channel (like leader_song_changed): broadcast to the caller's OWN
+     * group so tech consoles mirror their language toggles — regardless of
+     * where (or whether) the screen broadcast goes. No DB write.
+     *
+     * Args: langs — array of language codes in group order, e.g. ['de','en'].
+     */
+    private static function set_leader_langs()
+    {
+        $userId = (int)$_SESSION['curGroupId'];
+        $langs  = self::$args['langs'] ?? [];
+        if (!is_array($langs)) $langs = [];
+        $clean = [];
+        foreach ($langs as $code) {
+            $code = strtolower(preg_replace('/[^a-zA-Z]/', '', (string)$code));
+            if ($code !== '') $clean[] = $code;
+        }
+        if (!empty($clean)) {
+            self::broadcastToGroup($userId, [
+                'type' => 'leader_langs_changed',
+                'data' => ['langs' => $clean],
+            ]);
+        }
+        return '';
+    }
 }

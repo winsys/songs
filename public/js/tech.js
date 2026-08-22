@@ -2573,6 +2573,44 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     }
                 }
             });
+        } else if (message.type === 'leader_langs_changed') {
+            // The leader switched languages in the split-screen verse mode:
+            // mirror the selection on the console's shared language toggles so
+            // the song verse chips show the same language(s). Only the songs
+            // view is rebuilt here; the verse highlight is re-mapped by index
+            // because the chip strings change with the language.
+            var langCodes = (message.data && message.data.langs) || [];
+            if (langCodes.length) {
+                $scope.$apply(function() {
+                    var langsChanged = false;
+                    angular.forEach($scope.langList, function(l) {
+                        var on = langCodes.indexOf(l.code) !== -1;
+                        if (!!$scope.languages[l.code] !== on) {
+                            $scope.languages[l.code] = on;
+                            langsChanged = true;
+                        }
+                    });
+                    if (!langsChanged || !$scope.showingSong) return;
+                    var selIdx = $scope.selectedChapters.map(function(ch) {
+                        var m = ch.match(/\((\d+)\)$/);
+                        return m ? m[1] : null;
+                    }).filter(function(x) { return x !== null; });
+                    splitText($scope.showingSong);
+                    $scope.selectedChapters = [];
+                    if (selIdx.length) {
+                        $scope.restoreChaptersFromSongName(selIdx.join(','), $scope.showingSong);
+                        if ($scope.selectedChapters.length === 1) {
+                            $scope.showingChapter = $scope.selectedChapters[0];
+                        } else if ($scope.selectedChapters.length > 1) {
+                            $scope.showingChapter = $scope.selectedChapters.map(function(ch) {
+                                return ch.replace(/\n\(\d+\)$/, '');
+                            }).join('\r\n');
+                        } else {
+                            $scope.showingChapter = null;
+                        }
+                    }
+                });
+            }
         }
     });
 

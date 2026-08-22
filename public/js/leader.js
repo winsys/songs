@@ -443,6 +443,18 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
                         chapter_indices: String(chip.idx) } });
     }
 
+    // Mirror the selected language(s) to the tech consoles of the group
+    // (leader_langs_changed side channel — fires regardless of the display
+    // target, like leader_song_changed).
+    function vmSendLangs() {
+        var vm = $scope.verseMode;
+        var codes = vm.langs.filter(function(l) { return vm.selected[l.code]; })
+                            .map(function(l) { return l.code; });
+        if (!codes.length) return;
+        $http({ method: "POST", url: "/ajax",
+                data: { command: 'set_leader_langs', langs: codes } });
+    }
+
     // Verse off: screen falls back to the song image row (same as the tech
     // console's verse toggle-off).
     function vmSendOff() {
@@ -477,7 +489,21 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
             vmApplyDisplayStyle();
         });
         vmBuildChips();
-        vmRenderCurrent();
+        vmSendLangs();
+
+        // Go browser-fullscreen, like the black full-text mode: after the
+        // digest reveals the overlay (best-effort — the fixed overlay already
+        // covers the viewport if the request is denied).
+        $timeout(function() {
+            var el = document.getElementById('leaderVerseMode');
+            if (el && el.requestFullscreen) {
+                try {
+                    var p = el.requestFullscreen();
+                    if (p && p.catch) p.catch(function() {});
+                } catch (e) { /* ignore */ }
+            }
+            vmRenderCurrent();
+        }, 0);
 
         // Same broadcast as the "Аа"/notes toggle: notes on for musicians,
         // song image on the target screen, leader_song_changed for the tech
@@ -495,6 +521,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
     $scope.vmClose = function() {
         $scope.verseMode.open = false;
         $scope.verseMode.activeIdx = null;
+        if (document.fullscreenElement) { document.exitFullscreen(); }
         $http({ method: "POST", url: "/ajax",
                 data: { command: 'clear_image', channel: 'leader' } });
     };
@@ -512,10 +539,12 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
                 vm.selected[lang.code] = true;
             }
         } else {
+            if (vm.selected[lang.code]) return;   // radio: same language re-tap is a no-op
             vm.selected = {};
             vm.selected[lang.code] = true;
         }
         vmBuildChips();
+        vmSendLangs();
         // Re-broadcast the verse on screen in the new language set.
         if (vm.activeIdx !== null) {
             var chip = vmChipByIdx(vm.activeIdx);

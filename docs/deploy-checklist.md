@@ -89,6 +89,7 @@ scenario re-checked.
 | `display_transform` | `set_display_transform` (sermon pinch zoom/pan, ~10Hz during gesture) | main screen (applies CSS transform directly, no refetch); streaming ignores |
 | `video_seek` | `video_seek` (sermon page: slider seek, seek made inside its YouTube player, periodic position sync every 5 s while playing; dropped server-side when `current.video_src` differs) | main screen (seeks its YouTube iframe via `yt_bridge.js` / `<video>`; explicit seeks always, periodic ones only to catch up when lagging > 2.5 s — never rewinds); streaming ignores |
 | `leader_song_changed` | `set_image` channel `'leader'` | tech console (follow song, prepare verses) |
+| `leader_langs_changed` | `set_leader_langs` (leader verse mode: open + every language switch) | tech console (mirror language toggles, rebuild song chips, re-map highlight by index) |
 | `display_target_changed` | `set_display_target` (tech) | sermon page (local copy), tech selects |
 | `sermon_display_cleared` | `disable_external_display` | sermon page (deactivate UI) |
 | `access_request` / `access_response` | display-access flow | tech console |

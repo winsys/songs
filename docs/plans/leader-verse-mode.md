@@ -76,6 +76,13 @@ selected at once (default: OFF — buttons behave as a radio switch).
   a verse is on re-broadcasts it in the new language set.
 - Swipe on the right half: up = next verse, down = previous (threshold 50px —
   same convention as sermon.js).
+- Opening the mode goes browser-fullscreen (best-effort, like the black
+  full-text mode); closing exits fullscreen. ESC drops fullscreen only — the
+  overlay stays until ✕ (which broadcasts the off-switch).
+- Language sync to the tech console (added same day after testing): the mode
+  sends `set_leader_langs` (open + every switch) → WS `leader_langs_changed`
+  to the leader's OWN group → the tech console mirrors its shared language
+  toggles, rebuilds the song chips and re-maps the verse highlight by index.
 
 ### Settings (`templates/settings.html` + `public/js/settings.js`)
 - New collapsible card «Экран ведущего» (shown to admin/leader/tech:
