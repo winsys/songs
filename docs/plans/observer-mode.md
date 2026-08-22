@@ -62,15 +62,29 @@ default UI language, fallback to the leader's); history in `sessionStorage`
 
 ### Observer channel (group mode)
 - Table `current_observer` (groupId PK, active, song_id, verse_idx, langs,
-  updated_at). WS event `observer_update` with the compact state
-  `{active, song_id, verse_idx, langs[]}` (group-scoped).
+  text, title, updated_at). WS event `observer_update` with the compact
+  state `{active, song_id, verse_idx, langs[], text, title}` (group-scoped).
+- **Tech console broadcast (added 2026-08-22, Pavel's follow-up):** the same
+  group toggle sits in the tech header (`tech.js` `$scope.observer`, synced by
+  `observer_update`). Hooks in addition to the existing screen commands:
+  song toggle (`prepareText`) → `observer_set_song`; verse on/off
+  (`toggleCurrentTextChapter`, multi-select sends the first index); playlist
+  clear / active-song delete → song 0; Bible verse (`sendBibleText`) and
+  message paragraph (`showMsgParagraph`) → `observer_set_text {text, title}`
+  — a TEXT OVERLAY: while non-empty observers see it auto-fitted with the
+  caption (reference / message title) at the bottom; '' clears it and the
+  song comes back; any song command clears it. Turning the toggle on
+  re-sends what the console shows. Media / wallpapers / video never reach
+  observers (like the notes channel).
 - Trait `app/Ajax_Observer.php` (included in `public/index.php`, `use` in
   `Ajax.php`):
   - `observer_set_active {active}` (leader/admin): the toggle; OFF also
     drops the song.
-  - `observer_set_song {song_id, verse_idx, langs[]}` (leader/admin): no-op
-    while the toggle is off (the DB row is authoritative, like the NULL
-    display target for screens).
+  - `observer_set_song {song_id, verse_idx, langs[]}` (leader/tech/admin):
+    no-op while the toggle is off (the DB row is authoritative, like the
+    NULL display target for screens); clears the text overlay.
+  - `observer_set_text {text, title}` (leader/tech/admin): the text overlay
+    (4-byte characters stripped like `set_slide`); '' = clear.
   - `observer_get_state`: state + the song in the leader-list shape (all
     `TEXT*`, `hasText_*`, `bookName`, `imageName`) + `groups[]` with the
     image per group (`songImageGroups`).

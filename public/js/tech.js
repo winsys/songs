@@ -537,6 +537,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 url: "/ajax",
                 data: { command: 'clear_image', clear_notes: 1 }
             });
+            observerOff();
         } else {
             $scope.showingSong = favoriteItem;
             splitText(favoriteItem);
@@ -547,6 +548,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 data: { command: 'set_tech_image',
                     image_name: $scope.showingSong.imageName }
             });
+            observerSong(favoriteItem, -1);
         }
     };
 
@@ -571,6 +573,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 }).then(function success(){
                     $scope.showingChapter = null;
                 });
+                observerSong($scope.showingSong, -1);
             } else {
                 var verseIndices = $scope.selectedChapters.map(function(chapter) {
                     var match = chapter.match(/\n\((\d+)\)$/);
@@ -601,6 +604,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 }).then(function success(){
                     $scope.showingChapter = combinedText;
                 });
+                // Observers show a single verse: the first selected one.
+                observerSong($scope.showingSong, verseIndices.length ? verseIndices[0] : -1);
             }
         } else {
             $scope.selectedChapters = [];
@@ -614,6 +619,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 }).then(function success(){
                     $scope.showingChapter = null;
                 });
+                observerSong($scope.showingSong, -1);
             } else {
                 $scope.selectedChapters = [chapterText];
                 var cleanText = chapterText.replace(/\n\(\d+\)$/, '');
@@ -630,6 +636,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 }).then(function success(){
                     $scope.showingChapter = chapterText;
                 });
+                observerSong($scope.showingSong, chapterIndex === '' ? -1 : parseInt(chapterIndex));
             }
         }
     };
@@ -696,6 +703,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 $http({method: "POST", url: "/ajax", data: {command: 'clear_favorites'}}).then(
                     function success() {
                         $http({ method: "POST", url: "/ajax", data: { command: 'clear_image', clear_notes: 1 } });
+                        observerOff();
                         $scope.preparedChapters = [];
                         pauseTechAudio();
                         $scope.activeAudioItem = null;
@@ -1119,6 +1127,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                         $scope.selectedChapters  = [];
                         // Deleting the active song switches its notes off too.
                         $http({ method: "POST", url: "/ajax", data: { command: 'clear_image', clear_notes: 1 }});
+                        observerOff();
                     }
                     if (isDeletingActiveMedia) {
                         $scope.activeMediaItem = null;
@@ -1688,15 +1697,18 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             $http({ method: 'POST', url: '/ajax', data: {
                 command: 'set_message_text', text: '', song_name: ''
             }});
+            observerText('', '');
             return;
         }
         $scope.showingMsgParaIdx  = idx;
         $scope.showingMessagePara = $scope.messageParagraphs[idx];
+        var msgTitle = $scope.selectedMessage ? $scope.selectedMessage.TITLE : '';
         $http({ method: 'POST', url: '/ajax', data: {
             command: 'set_message_text',
             text: $scope.messageParagraphs[idx],
-            song_name: $scope.selectedMessage ? $scope.selectedMessage.TITLE : ''
+            song_name: msgTitle
         }});
+        observerText($scope.messageParagraphs[idx], msgTitle);
     }
 
     function scrollMsgParaIntoView(idx, block, delay, smooth) {
@@ -1870,6 +1882,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             data: { command: 'set_bible_text',
                 text: text,
                 song_name: refLabel } });
+        observerText(text, refLabel);
     }
 
 
@@ -2490,6 +2503,81 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // ==========================================================
 
     // Load available targets (own group + approved) and the saved selections.
+    // ==========================================================
+    // OBSERVER CHANNEL (группа наблюдателей, Aug 2026)
+    // ==========================================================
+    // One toggle per GROUP, shared with the leader page (the DB row is
+    // authoritative; observer_update keeps every console in sync). While it
+    // is on, the console ADDITIONALLY tells the observers what it shows:
+    // the song / verse (observer_set_song — observers pick language and
+    // image type themselves) and the Bible verse / message paragraph as a
+    // text overlay (observer_set_text; '' clears it and the song returns).
+    // The existing screen commands are untouched; the server ignores the
+    // observer commands while the toggle is off.
+    $scope.observer = { active: false };
+
+    function observerSong(song, verseIdx) {
+        if (!$scope.observer.active || !song) return;
+        var songId = parseInt(song.SONGID || song.ID) || 0;
+        if (!songId) return;
+        $http({ method: "POST", url: "/ajax",
+            data: { command: 'observer_set_song',
+                song_id: songId,
+                verse_idx: (verseIdx == null || isNaN(verseIdx)) ? -1 : verseIdx,
+                langs: getActiveLangs().map(function(l) { return l.code; }) } });
+    }
+
+    function observerOff() {
+        if (!$scope.observer.active) return;
+        $http({ method: "POST", url: "/ajax",
+            data: { command: 'observer_set_song', song_id: 0, verse_idx: -1, langs: [] } });
+    }
+
+    function observerText(text, title) {
+        if (!$scope.observer.active) return;
+        $http({ method: "POST", url: "/ajax",
+            data: { command: 'observer_set_text', text: text || '', title: title || '' } });
+    }
+
+    // Turning the toggle on pushes what the console shows right now.
+    function observerResend() {
+        if ($scope.showingBibleVerse && $scope.pageMode === 'bible') {
+            var bookName = $scope.getBibleBookName($scope.selectedBibleBook);
+            var text = buildBibleCombinedText($scope.selectedBibleVerses);
+            observerText(text, bookName + ' ' + $scope.selectedBibleChapter);
+            return;
+        }
+        if ($scope.showingMessagePara !== null && $scope.showingMsgParaIdx !== null) {
+            observerText($scope.showingMessagePara, $scope.selectedMessage ? $scope.selectedMessage.TITLE : '');
+            return;
+        }
+        if ($scope.showingSong) {
+            var idx = -1;
+            if ($scope.selectedChapters.length) {
+                var m = String($scope.selectedChapters[0]).match(/\n\((\d+)\)$/);
+                if (m) idx = parseInt(m[1]);
+            }
+            observerSong($scope.showingSong, idx);
+        }
+    }
+
+    $scope.toggleObserver = function() {
+        var next = !$scope.observer.active;
+        $http({ method: "POST", url: "/ajax",
+            data: { command: 'observer_set_active', active: next ? 1 : 0 } }).then(function(r) {
+            var d = r.data || {};
+            if (d.status !== 'ok') return;
+            $scope.observer.active = !!parseInt(d.active);
+            if ($scope.observer.active) observerResend();
+        });
+    };
+
+    function loadObserverState() {
+        $http({ method: "POST", url: "/ajax", data: { command: 'observer_get_state' } }).then(function(r) {
+            $scope.observer.active = !!parseInt((r.data || {}).active);
+        });
+    }
+
     function loadDisplayTargetSettings() {
         $http.post('/ajax', { command: 'get_display_targets' }).then(function (r) {
             if (r.data && r.data.status === 'ok') {
@@ -2624,6 +2712,12 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         } else if (message.type === 'access_response') {
             // Another group approved/rejected our request: refresh the target list.
             loadDisplayTargetSettings();
+        } else if (message.type === 'observer_update') {
+            // Shared group toggle: keep the console's button in sync with
+            // the leader page / other consoles.
+            $scope.$applyAsync(function() {
+                $scope.observer.active = !!parseInt((message.data || {}).active);
+            });
         } else if (message.type === 'leader_song_changed') {
             // The leader opened a song: follow it on the console (select the
             // song and prepare its verses) WITHOUT touching any screen — the
@@ -3005,6 +3099,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.reloadSongList();
     loadPendingAccessRequests();  // Load any existing pending requests on page load
     loadDisplayTargetSettings();  // Load shared display targets (leader/sermon channels)
+    loadObserverState();          // Shared "broadcast to the group" toggle (observer channel)
 
     // Restore state immediately after favorites are loaded
     $scope.reloadFavorites(function() {

@@ -94,6 +94,8 @@ CREATE TABLE IF NOT EXISTS `current_observer` (
   `song_id` int(11) NOT NULL DEFAULT '0' COMMENT 'song_list.ID currently broadcast (0 = nothing)',
   `verse_idx` int(11) NOT NULL DEFAULT '-1' COMMENT 'Verse index from the leader verse mode (-1 = whole song)',
   `langs` varchar(255) NOT NULL DEFAULT '' COMMENT 'Language codes selected by the leader, comma-separated (observer fallback)',
+  `text` text COMMENT 'Text overlay shown to observers (Bible verse / message paragraph); empty = none',
+  `title` varchar(255) NOT NULL DEFAULT '' COMMENT 'Caption of the text overlay (Bible reference / message title)',
   `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`groupId`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;

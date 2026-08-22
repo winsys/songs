@@ -146,7 +146,8 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
                       blocks: [], verses: [], paras: [], imageSrc: '', shownGroupId: null, loadedAt: 0, msg: null };
     $scope.group  = { on: false, fs: false, active: false, songId: 0, verseIdx: -1, leaderLangs: [],
                       song: null, langs: [], groups: [], view: { kind: 'none' },
-                      blocks: [], imageSrc: '', shownGroupId: null, loadedAt: 0, verseText: '' };
+                      blocks: [], imageSrc: '', shownGroupId: null, loadedAt: 0, verseText: '',
+                      text: '', title: '' };   // text overlay from the tech console (Bible verse / message paragraph)
 
     var langsReady = SongsService.getLanguages().then(function (langs) {
         $scope.langList = langs || [];
@@ -242,7 +243,7 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
 
     // ─── Fullscreen (bars hidden + best-effort browser fullscreen) ─
     $scope.toggleFs = function (t, elId) {
-        if (t === $scope.group && !t.song) return;   // waiting screen keeps its buttons
+        if (t === $scope.group && !t.song && !t.text) return;   // waiting screen keeps its buttons
         t.fs = !t.fs;
         if (t.fs) requestFs(document.getElementById(elId)); else exitFs();
         if (t === $scope.group) renderGroupVerse();
@@ -681,15 +682,17 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
         return '';
     }
 
-    // Fit the single verse to the content box (largest font that fits both
-    // dimensions; floor the wrap width — integer scrollWidth vs fractional
-    // box width, see the main screen's adjustTextSize).
+    // Fit the single verse / the text overlay to the content box (largest
+    // font that fits both dimensions; floor the wrap width — integer
+    // scrollWidth vs fractional box width, see the main screen's
+    // adjustTextSize). The text overlay wins over the verse.
     function fitVerse(_retry) {
         $timeout(function () {
-            var inner = document.getElementById('obsGverseInner');
+            var overlay = !!$scope.group.text;
+            var inner = document.getElementById(overlay ? 'obsGtextInner' : 'obsGverseInner');
             if (!inner) return;
             var box = inner.parentElement;
-            var text = $scope.group.verseText;
+            var text = overlay ? $scope.group.text : $scope.group.verseText;
             inner.textContent = text;
             if (!text) { inner.style.fontSize = ''; return; }
             var availW = box.clientWidth * 0.92;
@@ -716,8 +719,8 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
 
     function renderGroupVerse() {
         var g = $scope.group;
-        g.verseText = groupVerseText();
-        if (g.verseText) fitVerse();
+        g.verseText = g.text ? '' : groupVerseText();
+        if (g.verseText || g.text) fitVerse();
     }
 
     function clearGroupSong() {
@@ -725,6 +728,9 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
         g.song = null; g.langs = []; g.groups = []; g.blocks = []; g.imageSrc = '';
         g.shownGroupId = null; g.verseText = ''; g.view = { kind: 'none' };
     }
+
+    // Text overlay (Bible verse / message paragraph from the tech console).
+    $scope.groupShowsText = function () { return !!$scope.group.text; };
 
     function setGroupSong(song) {
         var g = $scope.group;
@@ -751,6 +757,8 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
         // A clear event outranks any fetch still in flight (its response
         // could otherwise resurrect the song the leader just closed).
         if (!full && sid === 0) groupSeq++;
+        g.text  = (sid >= 0 && d.text) ? String(d.text) : '';
+        g.title = g.text ? String(d.title || '') : '';
         g.leaderLangs = Array.isArray(d.langs) ? d.langs : [];
         g.verseIdx = (sid > 0 && d.verse_idx != null) ? parseInt(d.verse_idx) : -1;
         if (sid !== g.songId || (sid > 0 && !g.song)) {
@@ -778,7 +786,7 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
         $scope.closeViewer();
         var g = $scope.group;
         g.on = true; g.fs = false;
-        g.songId = 0; clearGroupSong();
+        g.songId = 0; clearGroupSong(); g.text = ''; g.title = '';
         storageSet('observerGroup', 1);
         fetchGroupState();
     };
@@ -794,7 +802,7 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
     // Re-fit the verse when the viewport changes (debounced: mobile address bar).
     var resizeTimer = null;
     function scheduleRefit() {
-        if (!$scope.group.on || !$scope.group.verseText) return;
+        if (!$scope.group.on || (!$scope.group.verseText && !$scope.group.text)) return;
         if (resizeTimer) clearTimeout(resizeTimer);
         resizeTimer = setTimeout(function () { resizeTimer = null; fitVerse(); }, 200);
     }

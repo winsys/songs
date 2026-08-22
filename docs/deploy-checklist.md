@@ -115,10 +115,12 @@ scenario re-checked.
 - One row per group: `active` (the leader's «📡 Транслировать в группу»
   toggle), `song_id`, `verse_idx` (-1 = whole song), `langs` (leader's
   selection, observer fallback). Separate from `current` / `current_notes`.
-- **Writers:** `observer_set_active`, `observer_set_song` (Ajax_Observer,
-  leader/admin only) — called by `leader.js` IN ADDITION to its existing
-  `set_image` / `set_leader_text` / `clear_image`; `observer_set_song` is a
-  no-op while `active = 0`. Nothing else writes it.
+- **Writers:** `observer_set_active`, `observer_set_song`, `observer_set_text`
+  (Ajax_Observer, leader/tech/admin) — called by `leader.js` and `tech.js` IN
+  ADDITION to their existing `set_image` / `set_tech_image` / `set_text` /
+  `set_leader_text` / `set_bible_text` / `set_message_text` / `clear_image`;
+  all are no-ops while `active = 0`. The toggle is ONE per group (leader
+  page + tech console share it). Nothing else writes the table.
 - **Readers:** `observer_get_state` (observer page: enter group mode,
   reconnect, song change; leader page: restore the toggle).
 - The observer role may only call the whitelist in
@@ -137,7 +139,7 @@ scenario re-checked.
 | `video_seek` | `video_seek` (sermon page: slider seek, seek made inside its YouTube player, periodic position sync every 5 s while playing; dropped server-side when `current.video_src` differs) | main screen (seeks its YouTube iframe via `yt_bridge.js` / `<video>`; explicit seeks always, periodic ones only to catch up when lagging > 2.5 s — never rewinds); streaming ignores |
 | `leader_song_changed` | `set_image` channel `'leader'` | tech console (follow song, prepare verses) |
 | `leader_langs_changed` | `set_leader_langs` (leader verse mode: open + every language switch) | tech console (mirror language toggles, rebuild song chips, re-map highlight by index) |
-| `observer_update` | `observer_set_active`, `observer_set_song` (leader page, observer channel) — payload `{active, song_id, verse_idx, langs}` | observer page (group mode: apply state, fetch `observer_get_state` on song change); leader page (toggle sync across sessions) |
+| `observer_update` | `observer_set_active`, `observer_set_song`, `observer_set_text` (leader page + tech console, observer channel) — payload `{active, song_id, verse_idx, langs, text, title}` | observer page (group mode: apply state, fetch `observer_get_state` on song change, text overlay rendered from the payload); leader page + tech console (toggle sync) |
 | `display_target_changed` | `set_display_target` (tech) | sermon page (local copy), tech selects |
 | `sermon_display_cleared` | `disable_external_display` | sermon page (deactivate UI) |
 | `access_request` / `access_response` | display-access flow | tech console |
@@ -222,7 +224,11 @@ Setup: one browser as ведущий, one as техник (same group), one scre
    открытую ведущим песню (текст/ноты по своему выбору), куплет из режима
    куплетов — крупно, после закрытия — экран ожидания; при выключенной
    кнопке — «трансляция выключена». Музыкант, техстраница и экраны при
-   включённой кнопке ведут себя как раньше.
+   включённой кнопке ведут себя как раньше. **Техстраница:** та же кнопка
+   в шапке (состояние общее с ведущим); песня/куплет техника → у
+   наблюдателя; стих Библии / абзац Послания → текст с подписью поверх
+   песни, снятие стиха возвращает песню; обои/видео наблюдателей не
+   трогают.
 
 Any step fails ⇒ do not leave it "to check later": fix forward or roll back.
 
