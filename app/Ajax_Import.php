@@ -350,13 +350,36 @@ trait Ajax_Import
     private static function imageGroupRow($listId, array $g)
     {
         return [
-            'ID'          => (int)$g['ID'],
-            'LISTID'      => (int)$g['LISTID'],
-            'NAME'        => $g['NAME'],
-            'SORT_ORDER'  => (int)$g['SORT_ORDER'],
-            'IS_MAIN'     => (int)$g['IS_MAIN'],
-            'image_count' => SongImages::countImages($listId, $g),
+            'ID'           => (int)$g['ID'],
+            'LISTID'       => (int)$g['LISTID'],
+            'NAME'         => $g['NAME'],                          // original (as created)
+            'NAMES'        => (object)SongImages::names($g),       // {ui_lang: translation}
+            'display_name' => SongImages::displayName($g),         // in the caller's UI language
+            'SORT_ORDER'   => (int)$g['SORT_ORDER'],
+            'IS_MAIN'      => (int)$g['IS_MAIN'],
+            'image_count'  => SongImages::countImages($listId, $g),
         ];
+    }
+
+    // --------------------------------------------------------
+    // Store the translations of a group name (admin).
+    // Params: id, names = {ru, de, en, lt} (empty = use the original NAME)
+    // --------------------------------------------------------
+    private static function set_image_group_names()
+    {
+        if (!Security::isAdmin()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+        $id = (int)(self::$args['id'] ?? 0);
+        $g  = SongImages::group($id);
+        if (!$g) {
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.groupNotFound')]);
+        }
+        $json = SongImages::encodeNames(self::$args['names'] ?? null);
+        $sql  = $json === null ? 'NULL' : "'" . mysqli_real_escape_string(Info::get('dbh'), $json) . "'";
+        Info::get('db')->exec("UPDATE song_image_groups SET NAMES = {$sql} WHERE ID = {$id}");
+        $g['NAMES'] = $json;
+        return json_encode(['status' => 'success', 'group' => self::imageGroupRow((int)$g['LISTID'], $g)]);
     }
 
     /**
@@ -515,10 +538,11 @@ trait Ajax_Import
                 $pages[] = ['page' => (int)$page, 'url' => $url];
             }
             $out[] = [
-                'id'      => (int)$g['ID'],
-                'name'    => $g['NAME'],
-                'is_main' => (int)$g['IS_MAIN'],
-                'pages'   => $pages,
+                'id'        => (int)$g['ID'],
+                'name'      => SongImages::displayName($g),   // in the caller's UI language
+                'orig_name' => $g['NAME'],
+                'is_main'   => (int)$g['IS_MAIN'],
+                'pages'     => $pages,
             ];
         }
         return $out;

@@ -211,7 +211,8 @@ CREATE TABLE IF NOT EXISTS `song_list` (
 CREATE TABLE IF NOT EXISTS `song_image_groups` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `LISTID` int(11) NOT NULL COMMENT 'list_names.LIST_ID',
-  `NAME` varchar(255) NOT NULL,
+  `NAME` varchar(255) NOT NULL COMMENT 'Name as created (fallback for every UI language)',
+  `NAMES` text COMMENT 'JSON {ui_lang: name}; missing entry falls back to NAME',
   `SORT_ORDER` int(11) NOT NULL DEFAULT '0',
   `IS_MAIN` tinyint(1) NOT NULL DEFAULT '0' COMMENT '1 = page 1 is the legacy main sheet /images/<list>/<num>.jpg',
   PRIMARY KEY (`ID`),
