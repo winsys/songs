@@ -26,21 +26,30 @@
         gap: 10px;
         margin-bottom: 10px;
     }
-    .obs-home-btn {
-        flex-shrink: 0;
-        width: 44px;
-        height: 44px;
-        border-radius: 10px;
-        background: #f4f5f7;
-        border: 1.5px solid #e3e7eb;
-        display: flex;
+    /* Same "← Главная" button as on the leader / pianist pages */
+    .btn-back {
+        display: inline-flex;
         align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        text-decoration: none;
+        gap: 6px;
+        height: 44px;
+        padding: 0 14px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 500;
         color: #5a6272;
+        background: #f4f5f7;
+        border: none;
+        cursor: pointer;
+        transition: all 0.15s;
+        text-decoration: none;
+        flex-shrink: 0;
+        white-space: nowrap;
     }
-    .obs-home-btn:hover, .obs-home-btn:focus { background: #e8eaed; text-decoration: none; color: #2c3e50; }
+    .btn-back:hover {
+        background: #e8eaed;
+        color: #2c3e50;
+        transform: translateX(-1px);
+    }
     .obs-title-block { flex: 1; min-width: 0; }
     .obs-title { font-size: 18px; font-weight: 600; color: #2c3e50; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .obs-subtitle { font-size: 12px; color: #95a5a6; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -316,6 +325,8 @@
     }
     .obs-vbtn:hover, .obs-vbtn:focus { background: #3b5368; color: #fff; text-decoration: none; outline: none; }
     .obs-vbtn.obs-vbtn-danger { background: #7a2a2a; }
+    .obs-vbar-group { flex-wrap: wrap; }
+    .obs-vtitle-group { flex: 1 1 140px; }   /* wraps to its own line when the buttons fill the row */
     .obs-vtitle {
         flex: 1;
         min-width: 0;
@@ -468,7 +479,9 @@
         </div>
 
         <div class="obs-header">
-            <a class="obs-home-btn" href="/index" title="<?php echo T::s('observer.group.home'); ?>">🏠</a>
+            <button class="btn-back" onclick="window.location.href='/index'">
+                <?php echo T::s('common.button.back'); ?>
+            </button>
             <div class="obs-title-block">
                 <div class="obs-title"><?php echo T::s('observer.title'); ?></div>
                 <div class="obs-subtitle"><?php echo T::s('observer.subtitle'); ?></div>
@@ -677,12 +690,14 @@
          Normal screen = content + choice buttons; fullscreen = content only.
          ============================================================ -->
     <div class="obs-group" id="obsGroup" ng-show="group.on">
-        <div class="obs-vbar" ng-show="!group.fs">
+        <!-- Buttons first; the song title comes last so that on a narrow
+             phone it wraps onto its own line instead of squeezing them -->
+        <div class="obs-vbar obs-vbar-group" ng-show="!group.fs">
+            <button class="obs-vbtn" onclick="window.location.href='/index'"><?php echo T::s('common.button.back'); ?></button>
             <button class="obs-vbtn obs-vbtn-danger" ng-click="leaveGroup()"><?php echo T::s('observer.group.leave'); ?></button>
-            <div class="obs-vtitle">{{ group.song ? (group.song.NUM + ' — ' + group.song.NAME) : '' }}</div>
             <button class="obs-vbtn" ng-click="fontStep(-1)" title="<?php echo T::s('common.button.decrease'); ?>">A−</button>
             <button class="obs-vbtn" ng-click="fontStep(1)" title="<?php echo T::s('common.button.increase'); ?>">A+</button>
-            <a class="obs-vbtn" href="/index" title="<?php echo T::s('observer.group.home'); ?>">🏠</a>
+            <div class="obs-vtitle obs-vtitle-group">{{ group.song ? (group.song.NUM + ' — ' + group.song.NAME) : '' }}</div>
         </div>
         <div class="obs-vmodes" ng-show="!group.fs && group.song">
             <button class="obs-mode" ng-repeat="l in group.langs track by l.code"

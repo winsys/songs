@@ -14,7 +14,8 @@ whatever the leader opens (song, lyrics, a verse from the verse mode, the
 notes picture) appears on the screens of all observers who joined the group
 mode. Full screen works like the musician page: full screen = only the
 broadcast content; normal screen = choice buttons (text languages, image
-types), «leave group mode», «main menu».
+types), «leave group mode», the standard «← Главная» button (same
+`common.button.back` as on every page — Pavel's follow-up, no home icon).
 
 Decisions taken with Pavel (2026-08-22): access only through a new
 `observer` role (shared per-group login; admin keeps the button as
