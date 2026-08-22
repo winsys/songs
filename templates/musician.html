@@ -87,6 +87,7 @@
              ng-click="onImageClick()"
              ng-swipe-left="nextPage()"
              ng-swipe-right="prevPage()"
+             onerror="angular.element(this).scope().onImageError()"
              ng-src="{{imgName}}"/>
     </div>
 
@@ -108,4 +109,4 @@
 
 </div>
 
-<script src="/js/musician.min.js?v=10027" type="text/javascript"></script>
+<script src="/js/musician.min.js?v=10028" type="text/javascript"></script>

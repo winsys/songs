@@ -102,6 +102,29 @@ Fullscreen shows only the current image. Formats: JPG and PNG.
 `import.zip.mode*`) + updated `import.hint.zipFormat`, `import.log.zipImported`
 (`{skipped}`).
 
+### Follow-up (same day)
+- **«Нет картинок» placeholders:** `public/no_image/{ru,de,en,lt}.png`
+  (generated with PIL/DejaVu, 1600×1000: «Для этой песни пока нет картинок /
+  Ноты или аккорды ещё не загружены» per UI language). The musician page
+  shows the one for `window.UI_LANG` when a song is on but no group has an
+  image (and as an `onerror` fallback of a listed page); notes OFF keeps the
+  configured placeholder.
+- **Edit dialog (tech page):** block «Группы картинок» — every group of the
+  song's collection with its page thumbnails (click = enlarge), ✕ delete
+  (native confirm), «➕ Добавить картинку» (multi-file, uploaded one by one
+  as the next pages). Commands `get_song_images`, `upload_song_page_image`
+  (next free page or `page` to replace; page 1 of the main group = legacy
+  `<NUM>.jpg`), `delete_song_page_image` — roles admin/leader/tech. Applies
+  immediately, independent of Save; hidden for a not-yet-saved song.
+  `showEnlargedImage()` was a dead reference before — now implemented
+  (`editConfig.enlargedImage`, stacked-modal `modal-open` fix).
+- **Dialog headers:** Bootstrap 3's `.modal-header/.modal-footer`
+  `::before/::after` clearfix pseudo-elements become flex items inside the
+  `display:flex; justify-content:space-between` headers and pushed the title
+  and the close button away from the edges — disabled for the edit dialog,
+  the song-list popups (tech + leader), confirmation and enlarged-image
+  dialogs; `.close` no longer floats (`margin-left:auto` / `order:2`).
+
 ## 4. Regression analysis
 
 - `current_notes` / `notes_update`: no writer changed; `get_notes` gains an

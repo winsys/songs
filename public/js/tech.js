@@ -2055,9 +2055,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             dispName: listItem.dispName,
             currentImage: listItem.imageName,
             previewImage: null,
+            enlargedImage: null,
+            imageGroups: [],
+            imgBuster: '',
             isNewSong: false
         };
         $scope.showEditDialog(true);
+        $scope.loadSongImages();
     };
 
     $scope.addNewSong = function() {
@@ -2074,6 +2078,9 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             dispName: '',
             currentImage: null,
             previewImage: null,
+            enlargedImage: null,
+            imageGroups: [],
+            imgBuster: '',
             isNewSong: true
         };
         $scope.showEditDialog(true);
@@ -2100,6 +2107,120 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.clearImagePreview = function() {
         $scope.editConfig.previewImage = null;
         document.getElementById('imageUpload').value = '';
+    };
+
+    // ── Image groups in the edit dialog (Aug 2026) ─────────────
+    // Every group of the song's collection with the song's page images.
+    // Uploads / deletions apply immediately (they are files, not song
+    // fields); the main sheet (page 1 of the main group) stays available
+    // through the classic "Картинка" row as well.
+
+    $scope.showEnlargedImage = function(src) {
+        if (!src) return;
+        $scope.editConfig.enlargedImage = src;
+        jQuery('#enlarged-image-popup .modal').modal('show');
+    };
+    // Bootstrap 3 drops body.modal-open when the enlarged popup closes even
+    // though the edit dialog below is still open — restore it.
+    jQuery('#enlarged-image-popup .modal').on('hidden.bs.modal', function () {
+        if (jQuery('#edit-song-popup .modal').hasClass('in')) jQuery('body').addClass('modal-open');
+    });
+
+    function applySongImages(groups) {
+        if (!$scope.editConfig) return;
+        $scope.editConfig.imageGroups = groups || [];
+        $scope.editConfig.imgBuster   = '?t=' + new Date().getTime();
+        // The classic main-sheet thumb mirrors page 1 of the main group.
+        var main = null;
+        angular.forEach($scope.editConfig.imageGroups, function(g) { if (!main && g.is_main) main = g; });
+        if (main) {
+            var p1 = null;
+            angular.forEach(main.pages, function(p) { if (p.page === 1) p1 = p; });
+            $scope.editConfig.currentImage = p1 ? p1.url + $scope.editConfig.imgBuster : null;
+        }
+    }
+
+    $scope.loadSongImages = function() {
+        var songId = $scope.editConfig && $scope.editConfig.songId;
+        if (!songId) return;
+        $http({ method: 'POST', url: '/ajax', data: { command: 'get_song_images', song_id: songId } }).then(
+            function(r) {
+                if (!$scope.editConfig || $scope.editConfig.songId !== songId) return;
+                if (r.data && r.data.status === 'success') applySongImages(r.data.groups);
+            }
+        );
+    };
+
+    function findImageGroup(gid) {
+        var groups = ($scope.editConfig && $scope.editConfig.imageGroups) || [];
+        for (var i = 0; i < groups.length; i++) {
+            if (groups[i].id === gid) return groups[i];
+        }
+        return null;
+    }
+
+    // Native onchange of the per-group file input (outside the digest).
+    // Several files are uploaded one after another, each as the next page.
+    $scope.onPageFilesSelected = function(input) {
+        var gid   = parseInt(input.getAttribute('data-gid'), 10);
+        var files = Array.prototype.slice.call(input.files || []);
+        input.value = '';
+        var group = findImageGroup(gid);
+        if (!group || !files.length || group.uploading) return;
+        var songId = $scope.editConfig.songId;
+        $scope.$applyAsync(function() { group.uploading = true; });
+
+        var idx = 0;
+        var finish = function() {
+            group.uploading = false;
+            $scope.loadSongImages();
+            if (group.is_main) $scope.reloadFavorites();   // list thumbs show the main sheet
+        };
+        var uploadNext = function() {
+            if (idx >= files.length) { finish(); return; }
+            var fd = new FormData();
+            fd.append('command',  'upload_song_page_image');
+            fd.append('song_id',  songId);
+            fd.append('group_id', gid);
+            fd.append('image',    files[idx]);
+            idx++;
+            $http.post('/ajax', fd, { transformRequest: angular.identity, headers: { 'Content-Type': undefined } }).then(
+                function(r) {
+                    var d = r.data;
+                    if (!d || d.status !== 'success') {
+                        alert(window.t('settings.alert.imageUploadError') + (d && d.message ? '\n' + d.message : ''));
+                        finish();
+                        return;
+                    }
+                    if (d.groups) applySongImages(d.groups);
+                    uploadNext();
+                },
+                function() {
+                    alert(window.t('settings.alert.imageUploadError'));
+                    finish();
+                }
+            );
+        };
+        uploadNext();
+    };
+
+    $scope.deletePageImage = function(group, p) {
+        if (!confirm(window.t('tech.esp.deletePageConfirm', { group: group.name, page: p.page }))) return;
+        $http({ method: 'POST', url: '/ajax', data: {
+                command: 'delete_song_page_image',
+                song_id: $scope.editConfig.songId,
+                group_id: group.id,
+                page: p.page } }).then(
+            function(r) {
+                var d = r.data;
+                if (!d || d.status !== 'success') {
+                    alert(d && d.message ? d.message : window.t('import.log.serverError'));
+                    return;
+                }
+                applySongImages(d.groups);
+                if (group.is_main) $scope.reloadFavorites();
+            }
+        );
     };
 
     $scope.checkSongNumUniqueness = function() {

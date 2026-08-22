@@ -496,6 +496,160 @@ trait Ajax_Import
         return json_encode(['status' => 'success']);
     }
 
+    // ─── Per-song page images (tech edit dialog) ───────────────────
+
+    /** Roles that may add / delete page images (= who can open the tech page). */
+    private static function canEditSongImages()
+    {
+        return in_array(Security::getRole(), ['admin', 'leader', 'tech'], true);
+    }
+
+    /** Groups of the song's collection with the song's pages: [{id, name, is_main, pages: [{page, url}]}]. */
+    private static function songImageGroups(array $song)
+    {
+        $listId = (int)$song['LISTID'];
+        $out    = [];
+        foreach (SongImages::groups($listId) as $g) {
+            $pages = [];
+            foreach (SongImages::songPagesDetailed($listId, $g, $song['NUM']) as $page => $url) {
+                $pages[] = ['page' => (int)$page, 'url' => $url];
+            }
+            $out[] = [
+                'id'      => (int)$g['ID'],
+                'name'    => $g['NAME'],
+                'is_main' => (int)$g['IS_MAIN'],
+                'pages'   => $pages,
+            ];
+        }
+        return $out;
+    }
+
+    /** Musicians of the caller's group re-pull their notes when the song is the one on their screen. */
+    private static function notifyNotesIfCurrent($listId, $num)
+    {
+        $own   = (int)$_SESSION['curGroupId'];
+        $notes = Info::get('db')->get("SELECT image FROM current_notes WHERE groupId = {$own}");
+        if ($notes && (string)$notes['image'] === SongImages::mainImageUrl($listId, $num)) {
+            self::broadcastToGroup($own, ['type' => 'notes_update']);
+        }
+    }
+
+    // --------------------------------------------------------
+    // All page images of one song, per group of its collection.
+    // Params: song_id
+    // --------------------------------------------------------
+    private static function get_song_images()
+    {
+        $songId = (int)(self::$args['song_id'] ?? 0);
+        $song   = Info::get('db')->get("SELECT ID, LISTID, NUM FROM song_list WHERE ID = {$songId}");
+        if (!$song) {
+            return json_encode(['status' => 'error', 'message' => 'Song not found']);
+        }
+        return json_encode([
+            'status'  => 'success',
+            'list_id' => (int)$song['LISTID'],
+            'num'     => $song['NUM'],
+            'groups'  => self::songImageGroups($song),
+        ]);
+    }
+
+    // --------------------------------------------------------
+    // Upload one page image into a group (multipart).
+    // POST: song_id, group_id, image; optional page (replace that slot).
+    // Default slot = next free page; page 1 of the main group is the legacy
+    // main sheet (<NUM>.jpg), exactly like upload_song_image.
+    // --------------------------------------------------------
+    private static function upload_song_page_image()
+    {
+        if (!self::canEditSongImages()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+        $songId  = (int)($_POST['song_id'] ?? 0);
+        $groupId = (int)($_POST['group_id'] ?? 0);
+        $song    = Info::get('db')->get("SELECT ID, LISTID, NUM FROM song_list WHERE ID = {$songId}");
+        if (!$song) {
+            return json_encode(['status' => 'error', 'message' => 'Song not found']);
+        }
+        $listId = (int)$song['LISTID'];
+        $num    = (string)$song['NUM'];
+        $group  = SongImages::group($groupId);
+        if (!$group || (int)$group['LISTID'] !== $listId) {
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.groupNotFound')]);
+        }
+        if (!SongImages::isSafeNum($num)) {
+            return json_encode(['status' => 'error', 'message' => T::s('import.log.badFileName', ['name' => $num])]);
+        }
+        if (!isset($_FILES['image']) || $_FILES['image']['error'] !== UPLOAD_ERR_OK) {
+            return json_encode(['status' => 'error', 'message' => 'Upload error']);
+        }
+        $ext = strtolower(pathinfo($_FILES['image']['name'], PATHINFO_EXTENSION));
+        if (!in_array($ext, ['jpg', 'jpeg', 'png'], true)) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid extension: ' . $ext]);
+        }
+        if (!self::checkMime($_FILES['image']['tmp_name'], ['image/jpeg', 'image/png'])) {
+            return json_encode(['status' => 'error', 'message' => 'Invalid file type (MIME mismatch)']);
+        }
+        $ext = ($ext === 'png') ? 'png' : 'jpg';
+
+        $existing = SongImages::songPagesDetailed($listId, $group, $num);
+        $page     = (int)($_POST['page'] ?? 0);
+        if ($page < 1) {
+            $page = $existing ? max(array_keys($existing)) + 1 : 1;
+        }
+        list($abs, $url) = SongImages::target($listId, $group, $num, $page, $ext);
+        $dir = dirname($abs);
+        if (!is_dir($dir) && !@mkdir($dir, 0777, true) && !is_dir($dir)) {
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.dirCreateFailed', ['dir' => dirname($url)])]);
+        }
+        foreach (SongImages::slotFiles($listId, $group, $num, $page) as $old) {
+            if ($old !== $abs) {
+                @unlink($old);
+            }
+        }
+        $tmp = $_FILES['image']['tmp_name'];
+        // move_uploaded_file() for real uploads; plain copy only in CLI (tests).
+        $ok = is_uploaded_file($tmp) ? move_uploaded_file($tmp, $abs) : (PHP_SAPI === 'cli' && copy($tmp, $abs));
+        if (!$ok) {
+            return json_encode(['status' => 'error', 'message' => 'Failed to move uploaded file. Check write permissions on: ' . $dir]);
+        }
+        @chmod($abs, 0664);
+        self::notifyNotesIfCurrent($listId, $num);
+        return json_encode([
+            'status' => 'success',
+            'page'   => $page,
+            'path'   => $url,
+            'groups' => self::songImageGroups($song),
+        ]);
+    }
+
+    // --------------------------------------------------------
+    // Delete one page image. Params: song_id, group_id, page
+    // --------------------------------------------------------
+    private static function delete_song_page_image()
+    {
+        if (!self::canEditSongImages()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+        $songId  = (int)(self::$args['song_id'] ?? 0);
+        $groupId = (int)(self::$args['group_id'] ?? 0);
+        $page    = (int)(self::$args['page'] ?? 0);
+        $song    = Info::get('db')->get("SELECT ID, LISTID, NUM FROM song_list WHERE ID = {$songId}");
+        if (!$song) {
+            return json_encode(['status' => 'error', 'message' => 'Song not found']);
+        }
+        $listId = (int)$song['LISTID'];
+        $num    = (string)$song['NUM'];
+        $group  = SongImages::group($groupId);
+        if (!$group || (int)$group['LISTID'] !== $listId || $page < 1 || !SongImages::isSafeNum($num)) {
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.groupNotFound')]);
+        }
+        foreach (SongImages::slotFiles($listId, $group, $num, $page) as $f) {
+            @unlink($f);
+        }
+        self::notifyNotesIfCurrent($listId, $num);
+        return json_encode(['status' => 'success', 'groups' => self::songImageGroups($song)]);
+    }
+
     // --------------------------------------------------------
     // Import messages in SOG format
     // POST file: sogfile

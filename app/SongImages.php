@@ -167,6 +167,15 @@ class SongImages
      */
     public static function songPages($listId, array $group, $num)
     {
+        return array_values(self::songPagesDetailed($listId, $group, $num));
+    }
+
+    /**
+     * Same as songPages() but keyed by page number ([page => web path]) —
+     * the edit dialog needs the numbers to delete / replace a page.
+     */
+    public static function songPagesDetailed($listId, array $group, $num)
+    {
         $listId = (int)$listId;
         if (!self::isSafeNum($num)) {
             return [];
@@ -192,7 +201,7 @@ class SongImages
             }
         }
         ksort($out);
-        return array_values($out);
+        return $out;
     }
 
     /** Number of image files a group holds (all songs of the collection). */

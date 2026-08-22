@@ -93,9 +93,15 @@ scenario re-checked.
   `/images/<L>/<NUM>.jpg`, everything else `/images/<L>/g<ID>/<NUM>_<page>.jpg|png`.
 - **Writers:** `import_song_images_zip` (`group_id`, `mode` replace|add),
   `add/rename/delete/reorder_image_group(s)` (Ajax_Import, admin), the
-  legacy `upload_song_image` (main page 1 only — unchanged).
+  legacy `upload_song_image` (main page 1 only — unchanged),
+  `upload_song_page_image` / `delete_song_page_image` (tech edit dialog,
+  roles admin/leader/tech; next free page, or `page` to replace a slot).
 - **Readers:** `get_notes with_groups` (musician), `get_image_groups` (import
-  page). Leader/tech pages and the screens use the main sheet only.
+  page), `get_song_images` (tech edit dialog, pages per group). Leader/tech
+  lists and the screens use the main sheet only.
+- Musician page with a song on but no image in any group shows
+  `public/no_image/<ui_lang>.png` (also on a load error of a listed page);
+  notes OFF keeps the configured placeholder.
 - Changing file naming or the IS_MAIN rule ⇒ re-check `SongImages::songPages`,
   `parseEntryName`, the musician fallback order and the import log.
 - Production has NO php zip extension: `ZipReader` (pure PHP) is the import
@@ -172,7 +178,10 @@ Setup: one browser as ведущий, one as техник (same group), one scre
    открытой песни и полупрозрачные кнопки «НОТЫ»/«АККОРДЫ»; переключение
    группы без картинки показывает первую найденную (кнопка выбора остаётся);
    в полноэкранном режиме только картинка; на странице импорта у выбранного
-   сборника виден список групп.
+   сборника виден список групп. Песня без картинок → заглушка «Для этой
+   песни пока нет картинок» на языке интерфейса. В окне редактирования
+   песни (техстраница) блок «Группы картинок»: добавление/удаление страниц
+   применяется сразу, заголовок окна — название слева, ✕ справа.
 
 Any step fails ⇒ do not leave it "to check later": fix forward or roll back.
 
