@@ -9,6 +9,7 @@
   "ajax.error.groupsTableMissing": "The image groups table is missing — run the add_song_image_groups migration",
   "ajax.error.invalidLang": "Invalid language",
   "ajax.error.libreOfficeMissing": "LibreOffice is not installed. Run: sudo apt install libreoffice ghostscript",
+  "ajax.error.listNotAllowed": "This collection is not available to your group",
   "ajax.error.noCollection": "No collection specified",
   "ajax.error.noMessageId": "No Message ID specified",
   "ajax.error.songNumberInUse": "Song number is already in use",

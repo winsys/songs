@@ -9,6 +9,7 @@
   "ajax.error.groupsTableMissing": "Таблица групп картинок не создана — выполните миграцию add_song_image_groups",
   "ajax.error.invalidLang": "Неверный язык",
   "ajax.error.libreOfficeMissing": "LibreOffice не установлен. Выполните: sudo apt install libreoffice ghostscript",
+  "ajax.error.listNotAllowed": "Этот сборник недоступен для вашей группы",
   "ajax.error.noCollection": "Не указан сборник",
   "ajax.error.noMessageId": "Не указан ID послания",
   "ajax.error.songNumberInUse": "Номер песни уже используется",

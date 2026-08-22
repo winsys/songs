@@ -112,7 +112,7 @@ trait Ajax_Piano
         }
         $allowed = self::pianoAllowedLists();
         if ($allowed && !in_array((int)$song['LISTID'], $allowed, true)) {
-            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.noCollection')]);
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.listNotAllowed')]);
         }
         $ids = self::pianoIds();
         if (!in_array($id, $ids, true)) {

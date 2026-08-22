@@ -9,6 +9,7 @@
   "ajax.error.groupsTableMissing": "Nėra paveikslėlių grupių lentelės — paleiskite migraciją add_song_image_groups",
   "ajax.error.invalidLang": "Neteisinga kalba",
   "ajax.error.libreOfficeMissing": "LibreOffice neįdiegtas. Įvykdykite: sudo apt install libreoffice ghostscript",
+  "ajax.error.listNotAllowed": "Šis rinkinys jūsų grupei neprieinamas",
   "ajax.error.noCollection": "Nenurodytas rinkinys",
   "ajax.error.noMessageId": "Nenurodytas Žinios ID",
   "ajax.error.songNumberInUse": "Giesmės numeris jau užimtas",
