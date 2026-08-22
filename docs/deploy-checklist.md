@@ -36,7 +36,11 @@ scenario re-checked.
   `set_text` (UPSERT), `set_slide`, `set_message_text`, `set_bible_text`,
   `set_video`, `video_control`, `disable_external_display`,
   `set_display_transform` (UPDATE of `transform` only, on gesture end)
-  (Ajax_Tech).
+  (Ajax_Tech); `set_leader_text` (Ajax_Leader, Aug 2026 — the leader's
+  split-screen verse mode: same UPSERT semantics as `set_text`, but the
+  group is resolved via the LEADER-channel display target, NULL = no-op;
+  text format and `chapter_indices` follow the tech `splitText` contract,
+  so the tech console's highlight restore must keep working).
 - **Readers:** `get_image` (incl. `transform`) → main screen
   `text_layout.html` AND streaming `text_layout_streaming.html` (skips
   `__slide__`, ignores `transform`); `get_current_state` → tech console
@@ -94,8 +98,8 @@ scenario re-checked.
 ### 2.3 Display-target resolution (channels)
 - `resolveDisplayTarget()` gates: `set_image`, `clear_image`,
   `set_tech_image`, `set_message_text`, `set_video`, `video_control`,
-  `video_seek`, `set_slide`. NULL target = command must not touch any
-  screen — but
+  `video_seek`, `set_slide`, `set_leader_text`. NULL target = command must
+  not touch any screen — but
   side-channels (e.g. `leader_song_changed`) must still fire.
 - Tech-page calls WITHOUT `channel` act on the caller's OWN group only.
   A client-supplied `target_group_id` is IGNORED since Aug 2026 (it let
@@ -121,6 +125,11 @@ Setup: one browser as ведущий, one as техник (same group), one scre
 1. **Leader → tech follow:** ведущий открывает песню — на техстранице песня
    выделяется и появляются куплеты (при цели «не транслировать» экран НЕ
    меняется).
+   **Режим «Слова по куплетам» (Aug 2026):** ведущий открывает ¶-режим и
+   кликает куплет — куплет на главном экране И подсвечен на техстранице;
+   свайп вверх/вниз листает куплеты везде; закрытие режима снимает ноты и
+   очищает экран (играющее медиа переживает открытие, но заменяется кликом
+   по куплету — как у техника).
 2. **Tech → screen:** техник кликает куплет — куплет на главном экране;
    повторный клик снимает; стриминговый экран показывает текст песни и
    игнорирует слайды.
