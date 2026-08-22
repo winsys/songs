@@ -111,6 +111,23 @@ scenario re-checked.
 - Production has NO php zip extension: `ZipReader` (pure PHP) is the import
   path there; ZipArchive only on machines that have it (names read RAW).
 
+### 2.1d `current_observer` table — the OBSERVER CHANNEL (Aug 2026)
+- One row per group: `active` (the leader's «📡 Транслировать в группу»
+  toggle), `song_id`, `verse_idx` (-1 = whole song), `langs` (leader's
+  selection, observer fallback). Separate from `current` / `current_notes`.
+- **Writers:** `observer_set_active`, `observer_set_song` (Ajax_Observer,
+  leader/admin only) — called by `leader.js` IN ADDITION to its existing
+  `set_image` / `set_leader_text` / `clear_image`; `observer_set_song` is a
+  no-op while `active = 0`. Nothing else writes it.
+- **Readers:** `observer_get_state` (observer page: enter group mode,
+  reconnect, song change; leader page: restore the toggle).
+- The observer role may only call the whitelist in
+  `Ajax_Observer::$observerCommands` (read-only views + its channel) —
+  adding a command the observer page needs means adding it there.
+- Changing the row shape ⇒ re-check `observer.js` `applyGroupState` and the
+  leader's `observerSend` hooks (song open/close, verse on/off, language
+  switch, toggle on re-send).
+
 ### 2.2 WebSocket message types (group-routed via port 2346)
 | Type | Producers | Consumers |
 |---|---|---|
@@ -120,6 +137,7 @@ scenario re-checked.
 | `video_seek` | `video_seek` (sermon page: slider seek, seek made inside its YouTube player, periodic position sync every 5 s while playing; dropped server-side when `current.video_src` differs) | main screen (seeks its YouTube iframe via `yt_bridge.js` / `<video>`; explicit seeks always, periodic ones only to catch up when lagging > 2.5 s — never rewinds); streaming ignores |
 | `leader_song_changed` | `set_image` channel `'leader'` | tech console (follow song, prepare verses) |
 | `leader_langs_changed` | `set_leader_langs` (leader verse mode: open + every language switch) | tech console (mirror language toggles, rebuild song chips, re-map highlight by index) |
+| `observer_update` | `observer_set_active`, `observer_set_song` (leader page, observer channel) — payload `{active, song_id, verse_idx, langs}` | observer page (group mode: apply state, fetch `observer_get_state` on song change); leader page (toggle sync across sessions) |
 | `display_target_changed` | `set_display_target` (tech) | sermon page (local copy), tech selects |
 | `sermon_display_cleared` | `disable_external_display` | sermon page (deactivate UI) |
 | `access_request` / `access_response` | display-access flow | tech console |
@@ -135,6 +153,9 @@ scenario re-checked.
 - The pianist page (`/piano`, Aug 2026) never broadcasts: its `piano_*`
   commands only touch `$_SESSION['piano_favorites']`; it must stay free of
   `set_image` / `set_tech_image` / `updateSocket` / notes-channel writes.
+- The observer page (`/observer`, Aug 2026) is read-only by construction
+  (role whitelist in `Ajax::execute`); the observer channel is not a display
+  target — `resolveDisplayTarget` is not involved, screens never react to it.
 - Tech-page calls WITHOUT `channel` act on the caller's OWN group only.
   A client-supplied `target_group_id` is IGNORED since Aug 2026 (it let
   stale/crafted clients write into another group's screen row); the same
@@ -189,6 +210,17 @@ Setup: one browser as ведущий, one as техник (same group), one scre
    песни пока нет картинок» на языке интерфейса. В окне редактирования
    песни (техстраница) блок «Группы картинок»: добавление/удаление страниц
    применяется сразу, заголовок окна — название слева, ✕ справа.
+
+9. **Observer mode (Aug 2026):** вход общим логином роли «Наблюдатель» →
+   главная показывает только «Наблюдатель» и «Выйти» (настроек нет);
+   `/observer`: поиск песни по номеру/словам → текст на языках и картинки
+   по типам, тап — полный экран; Библия: перевод → книга → глава, поиск по
+   словам; Послания: список + поиск по тексту; История. Ведущий включает
+   «📡 Транслировать в группу» → наблюдатель в групповом режиме видит
+   открытую ведущим песню (текст/ноты по своему выбору), куплет из режима
+   куплетов — крупно, после закрытия — экран ожидания; при выключенной
+   кнопке — «трансляция выключена». Музыкант, техстраница и экраны при
+   включённой кнопке ведут себя как раньше.
 
 Any step fails ⇒ do not leave it "to check later": fix forward or roll back.
 

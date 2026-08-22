@@ -264,6 +264,12 @@ class Security
         return self::getRole() === 'screen';
     }
 
+    /** Observer (Aug 2026): shared per-group account for any church member — read-only search/view + passive group mode. */
+    public static function isObserver(): bool
+    {
+        return self::getRole() === 'observer';
+    }
+
     private static $roleRoutes = array(
         'admin' => null,
         'leader' => array('index', 'ajax', 'leader', 'tech', 'piano', 'settings'),
@@ -271,6 +277,9 @@ class Security
         'preacher' => array('index', 'ajax', 'sermon_prep', 'sermon', 'settings'),
         'tech' => array('index', 'ajax', 'tech', 'text', 'text_stream', 'piano', 'settings'),
         'screen' => array('index', 'ajax', 'text', 'text_stream', 'settings'),
+        // No settings page: the observer login is shared by the whole church,
+        // so nobody may change its password from the UI.
+        'observer' => array('index', 'ajax', 'observer'),
     );
 
     public static function canAccess(string $route): bool

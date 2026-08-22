@@ -77,6 +77,32 @@
         flex: 1;
     }
 
+    /* "Broadcast to the group" toggle (observer channel) */
+    .btn-observer {
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1.5px solid #dee2e6;
+        background: #f8f9fa;
+        color: #5a6272;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: all 0.15s;
+    }
+    .btn-observer:hover { border-color: #1e7e34; color: #1e7e34; background: #eaf6ec; }
+    .btn-observer.btn-observer-on {
+        background: #1e7e34;
+        border-color: #1e7e34;
+        color: #fff;
+        box-shadow: 0 3px 10px rgba(30,126,52,0.28);
+    }
+    .btn-observer.btn-observer-on:hover { background: #176a2b; }
+    @media (max-width: 480px) {
+        .btn-observer { font-size: 11px; padding: 7px 9px; }
+    }
+
     .leader-page-title {
         font-size: 18px;
         font-weight: 600;
@@ -919,6 +945,15 @@
                 <div class="leader-page-title"><?php echo T::s('leader.title'); ?></div>
                 <div class="leader-page-subtitle"><?php echo T::s('leader.subtitle'); ?></div>
             </div>
+            <!-- Observer channel: while on, everything the leader opens (song,
+                 lyrics, verses) is also shown to observers in group mode -->
+            <button class="btn-observer"
+                    ng-class="{'btn-observer-on': observer.active}"
+                    ng-click="toggleObserver()"
+                    title="<?php echo T::s('leader.observer.hint'); ?>">
+                <span ng-if="!observer.active"><?php echo T::s('leader.observer.off'); ?></span>
+                <span ng-if="observer.active"><?php echo T::s('leader.observer.on'); ?></span>
+            </button>
         </div>
 
         <!-- Song list selector -->
@@ -1238,7 +1273,7 @@
 
     </div><!-- /ng-controller -->
 
-<script src="/js/leader.min.js?v=34" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=35" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}

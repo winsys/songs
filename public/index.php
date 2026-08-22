@@ -18,6 +18,7 @@ include "../app/Ajax_Common.php";
 include "../app/Ajax_Tech.php";
 include "../app/Ajax_Leader.php";
 include "../app/Ajax_Piano.php";
+include "../app/Ajax_Observer.php";
 include "../app/Ajax_Sermon.php";
 include "../app/Ajax_Settings.php";
 include "../app/Ajax_Import.php";

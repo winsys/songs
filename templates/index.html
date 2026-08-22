@@ -154,6 +154,12 @@
         </button>
         <?php endif; ?>
 
+        <?php if ($role === 'admin' || $role === 'observer'): ?>
+        <button class="btn-home btn-blue" onclick="window.location.href='/observer'">
+            <span class="btn-icon">👀</span> <?php echo T::s('home.role.observer'); ?>
+        </button>
+        <?php endif; ?>
+
         <?php if ($role === 'admin' || $role === 'leader' || $role === 'tech'): ?>
         <button class="btn-home btn-blue" onclick="window.location.href='/tech'">
             <span class="btn-icon">🖥️</span> <?php echo T::s('home.role.tech'); ?>
@@ -180,11 +186,13 @@
         </button>
         <?php endif; ?>
 
-        <!-- Settings available to all users -->
+        <!-- Settings available to all users except the shared observer login -->
+        <?php if ($role !== 'observer'): ?>
         <div class="home-section-label"><?php echo T::s($role === 'admin' ? 'home.section.admin' : 'home.label.settings'); ?></div>
         <button class="btn-home btn-purple" onclick="window.location.href='/settings'">
             <span class="btn-icon">⚙️</span> <?php echo T::s('home.label.settings'); ?>
         </button>
+        <?php endif; ?>
 
         <?php if ($role === 'admin'): ?>
         <button class="btn-home btn-red" onclick="window.location.href='/import'">

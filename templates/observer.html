@@ -1,0 +1,727 @@
+<style>
+    /* ============================================================
+       OBSERVER PAGE (Aug 2026) — phone-first: search & read songs, the
+       Bible and the messages; passive group mode following the leader.
+       Light search screen (index.html design), dark full-viewport
+       viewers for the content itself.
+       ============================================================ */
+
+    body {
+        background: #f0f2f5;
+        min-height: 100vh;
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .obs-main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 12px 12px 40px;
+    }
+
+    /* ---- Header ---------------------------------------------- */
+    .obs-header {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 10px;
+    }
+    .obs-home-btn {
+        flex-shrink: 0;
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        background: #f4f5f7;
+        border: 1.5px solid #e3e7eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+        text-decoration: none;
+        color: #5a6272;
+    }
+    .obs-home-btn:hover, .obs-home-btn:focus { background: #e8eaed; text-decoration: none; color: #2c3e50; }
+    .obs-title-block { flex: 1; min-width: 0; }
+    .obs-title { font-size: 18px; font-weight: 600; color: #2c3e50; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .obs-subtitle { font-size: 12px; color: #95a5a6; margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    .obs-group-enter {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        gap: 7px;
+        height: 44px;
+        padding: 0 14px;
+        border-radius: 10px;
+        border: none;
+        background: #1a6db5;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .obs-group-enter:hover { background: #155a99; }
+    .obs-dot {
+        width: 10px; height: 10px; border-radius: 50%;
+        background: rgba(255,255,255,0.35);
+        flex-shrink: 0;
+    }
+    .obs-dot.on { background: #7cf29a; box-shadow: 0 0 0 3px rgba(124,242,154,0.25); }
+
+    /* ---- Tabs ------------------------------------------------ */
+    .obs-tabs {
+        display: flex;
+        gap: 6px;
+        margin-bottom: 12px;
+    }
+    .obs-tab {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        padding: 8px 4px;
+        border-radius: 10px;
+        border: 1.5px solid #e3e7eb;
+        background: #fff;
+        color: #5a6272;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        line-height: 1.2;
+    }
+    .obs-tab-ico { font-size: 20px; line-height: 1; }
+    .obs-tab.on { background: #ebf3fb; border-color: #1a6db5; color: #1a6db5; }
+
+    /* ---- Inputs, chips, lists -------------------------------- */
+    .obs-search {
+        width: 100%;
+        height: 50px;
+        padding: 10px 16px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 12px;
+        font-size: 17px;
+        color: #2c3e50;
+        background: #fff;
+        outline: none;
+        margin-bottom: 10px;
+        -webkit-appearance: none;
+        appearance: none;
+    }
+    .obs-search:focus { border-color: #3498db; box-shadow: 0 0 0 3px rgba(52,152,219,0.12); }
+
+    .obs-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-bottom: 10px;
+    }
+    .obs-chip {
+        padding: 8px 12px;
+        border-radius: 20px;
+        border: 1.5px solid #dee2e6;
+        background: #fff;
+        color: #5a6272;
+        font-size: 13px;
+        font-weight: 500;
+        cursor: pointer;
+        line-height: 1.2;
+    }
+    .obs-chip.on { background: #ebf3fb; border-color: #1a6db5; color: #1a6db5; font-weight: 600; }
+
+    .obs-section {
+        font-size: 11px;
+        font-weight: 600;
+        color: #b0b8c1;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin: 12px 0 8px;
+    }
+    .obs-hint {
+        text-align: center;
+        padding: 26px 16px;
+        color: #95a5a6;
+        font-size: 14px;
+        line-height: 1.45;
+    }
+    .obs-more {
+        text-align: center;
+        padding: 12px;
+        color: #95a5a6;
+        font-size: 12px;
+    }
+
+    .obs-list { display: flex; flex-direction: column; gap: 6px; }
+    .obs-item {
+        background: #fff;
+        border: 1.5px solid #eef1f4;
+        border-radius: 12px;
+        padding: 11px 14px;
+        cursor: pointer;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    .obs-item:active { background: #ebf3fb; border-color: #1a6db5; }
+    .obs-item-main { display: flex; align-items: baseline; gap: 8px; min-width: 0; }
+    .obs-item-num {
+        flex-shrink: 0;
+        font-size: 15px;
+        font-weight: 700;
+        color: #1a6db5;
+        min-width: 36px;
+    }
+    .obs-item-ico { flex-shrink: 0; font-size: 16px; }
+    .obs-item-title { font-size: 16px; font-weight: 500; color: #2c3e50; line-height: 1.3; }
+    .obs-item-sub {
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 3px;
+        font-size: 12px;
+        color: #95a5a6;
+    }
+    .obs-item-snip {
+        margin-top: 5px;
+        font-size: 13px;
+        color: #5a6272;
+        line-height: 1.35;
+        white-space: pre-wrap;
+    }
+    .lang-badge {
+        display: inline-block;
+        font-size: 9px;
+        font-weight: 700;
+        padding: 2px 6px;
+        border-radius: 4px;
+        line-height: 1.4;
+        letter-spacing: 0.3px;
+        background: #eef1f4;
+        color: #5a6272;
+    }
+
+    .obs-grid-books {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+    }
+    .obs-book {
+        padding: 12px 10px;
+        border-radius: 10px;
+        border: 1.5px solid #eef1f4;
+        background: #fff;
+        color: #2c3e50;
+        font-size: 14px;
+        font-weight: 500;
+        text-align: left;
+        cursor: pointer;
+        line-height: 1.25;
+    }
+    .obs-book:active { background: #ebf3fb; border-color: #1a6db5; }
+    .obs-grid-ch {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+        gap: 6px;
+    }
+    .obs-ch {
+        height: 50px;
+        border-radius: 10px;
+        border: 1.5px solid #eef1f4;
+        background: #fff;
+        color: #2c3e50;
+        font-size: 17px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+    .obs-ch.on, .obs-ch:active { background: #ebf3fb; border-color: #1a6db5; color: #1a6db5; }
+    .obs-crumb { display: flex; align-items: center; gap: 10px; margin-bottom: 4px; }
+    .obs-crumb-back {
+        padding: 9px 14px;
+        border-radius: 10px;
+        border: none;
+        background: #f4f5f7;
+        color: #5a6272;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        flex-shrink: 0;
+    }
+    .obs-crumb-title { font-size: 17px; font-weight: 600; color: #2c3e50; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+    .obs-clear {
+        display: block;
+        width: 100%;
+        margin-top: 14px;
+        padding: 11px;
+        border-radius: 10px;
+        border: 1.5px solid #fad7d4;
+        background: #fdecea;
+        color: #c0392b;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+    }
+
+    .ws-disconnect-banner {
+        background: #fff3cd;
+        color: #7a5a00;
+        border: 1px solid #ffe69c;
+        border-radius: 10px;
+        padding: 8px 12px;
+        font-size: 13px;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+
+    /* ---- Dark full-viewport viewers (content + group mode) --- */
+    .obs-viewer, .obs-group {
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: #0f1115;
+        color: #f2f2f2;
+        z-index: 100000;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+    .obs-vbar {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 8px;
+        background: #1a1d23;
+        border-bottom: 1px solid #2a2f38;
+        flex-shrink: 0;
+    }
+    .obs-vbtn {
+        flex-shrink: 0;
+        height: 42px;
+        min-width: 42px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: none;
+        background: #2c3e50;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        white-space: nowrap;
+    }
+    .obs-vbtn:hover, .obs-vbtn:focus { background: #3b5368; color: #fff; text-decoration: none; outline: none; }
+    .obs-vbtn.obs-vbtn-danger { background: #7a2a2a; }
+    .obs-vtitle {
+        flex: 1;
+        min-width: 0;
+        font-size: 14px;
+        font-weight: 600;
+        color: #dfe6ee;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        padding: 0 4px;
+    }
+    .obs-vmodes {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        padding: 8px 8px 6px;
+        background: #1a1d23;
+        flex-shrink: 0;
+    }
+    .obs-mode {
+        height: 44px;
+        padding: 0 16px;
+        border-radius: 10px;
+        border: 1.5px solid #3a4250;
+        background: #242933;
+        color: #e6ebf1;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .obs-mode.on { background: #1a6db5; border-color: #1a6db5; color: #fff; }
+    .obs-mode.shown { box-shadow: inset 0 0 0 2px #fff; }
+    .obs-mode.empty { color: rgba(230,235,241,0.45); }
+    .obs-mode-sep { width: 1px; background: #3a4250; margin: 6px 2px; }
+    .obs-fshint {
+        font-size: 11px;
+        color: #7f8a99;
+        text-align: center;
+        padding: 0 8px 6px;
+        background: #1a1d23;
+        flex-shrink: 0;
+    }
+
+    .obs-vcontent {
+        flex: 1;
+        min-height: 0;
+        position: relative;
+        overflow-y: auto;
+        -webkit-overflow-scrolling: touch;
+        cursor: pointer;
+    }
+    .obs-text {
+        padding: 16px 16px 40px;
+        line-height: 1.35;
+        color: #f4f4f4;
+        font-family: Arial, Helvetica, sans-serif;
+    }
+    .obs-text-song { text-align: center; font-weight: 600; }
+    .obs-text-read { text-align: left; }
+    .obs-verse-block { white-space: pre-wrap; overflow-wrap: anywhere; }
+    .obs-verse-block + .obs-verse-block { margin-top: 0.7em; }
+    .obs-bverse { margin-bottom: 0.45em; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .obs-bnum { color: #8fb8e0; font-weight: 700; font-size: 0.72em; margin-right: 0.45em; vertical-align: 0.25em; }
+    .obs-bverse.hl, .obs-para.hl { background: rgba(26,109,181,0.35); border-radius: 6px; padding: 2px 6px; margin-left: -6px; margin-right: -6px; }
+    .obs-para { margin: 0 0 0.7em; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .obs-img {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        margin: auto;
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        background: #000;
+    }
+    .obs-empty {
+        position: absolute;
+        top: 50%; left: 0; right: 0;
+        transform: translateY(-50%);
+        text-align: center;
+        color: #7f8a99;
+        font-size: 16px;
+        padding: 0 24px;
+    }
+    .obs-vnav {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px;
+        background: #1a1d23;
+        border-top: 1px solid #2a2f38;
+        flex-shrink: 0;
+    }
+    .obs-navbtn {
+        height: 44px;
+        padding: 0 16px;
+        border-radius: 10px;
+        border: none;
+        background: #2c3e50;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .obs-navbtn:disabled { opacity: 0.35; cursor: default; }
+    .obs-navtitle { flex: 1; text-align: center; font-size: 14px; color: #dfe6ee; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+    /* Group mode: waiting screen and the single auto-fitted verse */
+    .obs-wait {
+        position: absolute;
+        top: 50%; left: 0; right: 0;
+        transform: translateY(-50%);
+        text-align: center;
+        padding: 0 28px;
+    }
+    .obs-wait-ico { font-size: 56px; line-height: 1; margin-bottom: 16px; opacity: 0.8; }
+    .obs-wait-title { font-size: 22px; font-weight: 600; color: #e6ebf1; margin-bottom: 8px; }
+    .obs-wait-sub { font-size: 15px; color: #8f9aa9; line-height: 1.45; }
+    .obs-wait-conn { margin-top: 18px; font-size: 13px; color: #e0b34c; }
+    .obs-gverse {
+        position: absolute;
+        top: 0; left: 0; right: 0; bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+    .obs-gverse-inner {
+        color: #fff;
+        font-family: Arial, Helvetica, sans-serif;
+        font-weight: 600;
+        line-height: 1.2;
+        text-align: center;
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+        overflow: hidden;
+    }
+</style>
+
+<div ng-controller="Observer">
+
+    <!-- ============================================================
+         SEARCH SCREEN
+         ============================================================ -->
+    <div class="obs-main" ng-show="!group.on">
+
+        <div class="ws-disconnect-banner" ng-if="wsConnected === false">
+            <?php echo T::s('common.ws.disconnected'); ?>
+        </div>
+
+        <div class="obs-header">
+            <a class="obs-home-btn" href="/index" title="<?php echo T::s('observer.group.home'); ?>">🏠</a>
+            <div class="obs-title-block">
+                <div class="obs-title"><?php echo T::s('observer.title'); ?></div>
+                <div class="obs-subtitle"><?php echo T::s('observer.subtitle'); ?></div>
+            </div>
+            <button class="obs-group-enter" ng-click="enterGroup()" title="<?php echo T::s('observer.group.hint'); ?>">
+                <span class="obs-dot" ng-class="{on: group.active}"></span>📡 <?php echo T::s('observer.group.button'); ?>
+            </button>
+        </div>
+
+        <div class="obs-tabs">
+            <button class="obs-tab" ng-class="{on: tab === 'songs'}" ng-click="setTab('songs')">
+                <span class="obs-tab-ico">🎵</span><span><?php echo T::s('observer.tab.songs'); ?></span>
+            </button>
+            <button class="obs-tab" ng-class="{on: tab === 'bible'}" ng-click="setTab('bible')">
+                <span class="obs-tab-ico">📖</span><span><?php echo T::s('observer.tab.bible'); ?></span>
+            </button>
+            <button class="obs-tab" ng-class="{on: tab === 'messages'}" ng-click="setTab('messages')">
+                <span class="obs-tab-ico">✉️</span><span><?php echo T::s('observer.tab.messages'); ?></span>
+            </button>
+            <button class="obs-tab" ng-class="{on: tab === 'history'}" ng-click="setTab('history')">
+                <span class="obs-tab-ico">🕘</span><span><?php echo T::s('observer.tab.history'); ?></span>
+            </button>
+        </div>
+
+        <!-- ---- Songs ---- -->
+        <div ng-show="tab === 'songs'">
+            <input type="search" class="obs-search"
+                   placeholder="<?php echo T::s('observer.songs.placeholder'); ?>"
+                   ng-model="songs.q" ng-change="songsChanged()" ng-model-options="{debounce: 150}"
+                   autocapitalize="off" autocorrect="off" autocomplete="off">
+            <div class="obs-chips" ng-if="visibleSongLists.length > 1">
+                <button class="obs-chip" ng-class="{on: !songs.listId}" ng-click="setSongList(0)"><?php echo T::s('observer.songs.allLists'); ?></button>
+                <button class="obs-chip" ng-repeat="l in visibleSongLists track by l.LIST_ID"
+                        ng-class="{on: songs.listId == l.LIST_ID}" ng-click="setSongList(l.LIST_ID)">{{ l.LIST_NAME }}</button>
+            </div>
+            <div class="obs-hint" ng-if="!songs.results.length && !songs.q && !songs.listId"><?php echo T::s('observer.songs.hint'); ?></div>
+            <div class="obs-hint" ng-if="!songs.results.length && songs.q && songsLoaded"><?php echo T::s('observer.notFound'); ?></div>
+            <div class="obs-hint" ng-if="!songsLoaded && songs.q"><?php echo T::s('common.loading'); ?></div>
+            <div class="obs-list">
+                <div class="obs-item" ng-repeat="s in songs.results track by s.ID" ng-click="openSong(s)">
+                    <div class="obs-item-main">
+                        <span class="obs-item-num">{{ s.NUM }}</span>
+                        <span class="obs-item-title">{{ s.NAME }}</span>
+                    </div>
+                    <div class="obs-item-sub">
+                        <span ng-if="s.bookName">{{ s.bookName }}</span>
+                        <span class="lang-badge" ng-repeat="lang in langList track by lang.code" ng-if="s['hasText_' + lang.code] == '1'">{{ lang.label }}</span>
+                    </div>
+                    <div class="obs-item-snip" ng-if="s._snip">{{ s._snip }}</div>
+                </div>
+            </div>
+            <div class="obs-more" ng-if="songs.more">{{ moreText(songs.results.length) }}</div>
+        </div>
+
+        <!-- ---- Bible ---- -->
+        <div ng-show="tab === 'bible'">
+            <div class="obs-chips" ng-if="bible.translations.length > 1">
+                <button class="obs-chip" ng-repeat="t in bible.translations track by t.ID"
+                        ng-class="{on: t.ID == bible.trId}" ng-click="setTranslation(t)">{{ t.NAME }}</button>
+            </div>
+            <div class="obs-chips" ng-if="bible.langs.length > 1">
+                <button class="obs-chip" ng-repeat="l in bible.langs track by l.code"
+                        ng-class="{on: l.code === bible.lang}" ng-click="setBibleLang(l.code)">{{ l.label }}</button>
+            </div>
+            <input type="search" class="obs-search"
+                   placeholder="<?php echo T::s('observer.bible.placeholder'); ?>"
+                   ng-model="bible.q" ng-change="bibleSearchChanged()" ng-model-options="{debounce: 300}"
+                   autocapitalize="off" autocorrect="off" autocomplete="off">
+
+            <div ng-if="bible.q.length >= 3">
+                <div class="obs-hint" ng-if="bible.searching"><?php echo T::s('observer.searching'); ?></div>
+                <div class="obs-hint" ng-if="!bible.searching && !bible.results.length"><?php echo T::s('observer.notFound'); ?></div>
+                <div class="obs-list">
+                    <div class="obs-item" ng-repeat="r in bible.results track by r.ID" ng-click="openBibleResult(r)">
+                        <div class="obs-item-main"><span class="obs-item-title">{{ bibleResultRef(r) }}</span></div>
+                        <div class="obs-item-snip">{{ bibleResultText(r) }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-if="bible.q.length < 3">
+                <div class="obs-hint" ng-if="!bible.loaded"><?php echo T::s('common.loading'); ?></div>
+                <div ng-if="bible.loaded && !bible.book">
+                    <div class="obs-section"><?php echo T::s('observer.bible.books'); ?></div>
+                    <div class="obs-grid-books">
+                        <button class="obs-book" ng-repeat="b in bible.books track by b.ID" ng-click="selectBook(b)">{{ bookName(b) }}</button>
+                    </div>
+                </div>
+                <div ng-if="bible.book">
+                    <div class="obs-crumb">
+                        <button class="obs-crumb-back" ng-click="backToBooks()"><?php echo T::s('observer.bible.backToBooks'); ?></button>
+                        <span class="obs-crumb-title">{{ bookName(bible.book) }}</span>
+                    </div>
+                    <div class="obs-section"><?php echo T::s('observer.bible.chapters'); ?></div>
+                    <div class="obs-grid-ch">
+                        <button class="obs-ch" ng-repeat="c in bible.chapters track by c"
+                                ng-class="{on: c === bible.chapter}" ng-click="openChapter(c)">{{ c }}</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ---- Messages ---- -->
+        <div ng-show="tab === 'messages'">
+            <input type="search" class="obs-search"
+                   placeholder="<?php echo T::s('observer.messages.placeholder'); ?>"
+                   ng-model="msgs.q" ng-change="msgsFilter()" ng-model-options="{debounce: 150}"
+                   autocapitalize="off" autocorrect="off" autocomplete="off">
+            <input type="search" class="obs-search"
+                   placeholder="<?php echo T::s('observer.messages.textPlaceholder'); ?>"
+                   ng-model="msgs.tq" ng-change="msgsTextChanged()" ng-model-options="{debounce: 300}"
+                   autocapitalize="off" autocorrect="off" autocomplete="off">
+
+            <div ng-if="msgs.tq.length >= 2">
+                <div class="obs-hint" ng-if="msgs.searching"><?php echo T::s('observer.searching'); ?></div>
+                <div class="obs-hint" ng-if="!msgs.searching && !msgs.paraResults.length"><?php echo T::s('observer.notFound'); ?></div>
+                <div class="obs-list">
+                    <div class="obs-item" ng-repeat="r in msgs.paraResults track by (r.ID + '_' + r.PARA_IDX)" ng-click="openMessage(r.ID, r.PARA_IDX)">
+                        <div class="obs-item-main"><span class="obs-item-title">{{ msgTitle(r) }}</span></div>
+                        <div class="obs-item-snip">{{ r.SNIPPET }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-if="msgs.tq.length < 2">
+                <div class="obs-hint" ng-if="!msgs.loaded"><?php echo T::s('common.loading'); ?></div>
+                <div class="obs-hint" ng-if="msgs.loaded && !msgs.results.length"><?php echo T::s('observer.notFound'); ?></div>
+                <div class="obs-list">
+                    <div class="obs-item" ng-repeat="m in msgs.results track by m.ID" ng-click="openMessage(m.ID, -1)">
+                        <div class="obs-item-main">
+                            <span class="obs-item-num" ng-if="m.CODE">{{ m.CODE }}</span>
+                            <span class="obs-item-title">{{ m.TITLE }}</span>
+                        </div>
+                        <div class="obs-item-sub">
+                            <span ng-if="m.CITY">{{ m.CITY }}</span>
+                            <span class="lang-badge" ng-repeat="lang in langList track by lang.code" ng-if="m['hasText_' + lang.code] == '1'">{{ lang.label }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="obs-more" ng-if="msgs.more">{{ moreText(msgs.results.length) }}</div>
+            </div>
+        </div>
+
+        <!-- ---- History ---- -->
+        <div ng-show="tab === 'history'">
+            <div class="obs-hint" ng-if="!history.length"><?php echo T::s('observer.history.empty'); ?></div>
+            <div class="obs-list">
+                <div class="obs-item" ng-repeat="h in history track by h.key" ng-click="openHistory(h)">
+                    <div class="obs-item-main">
+                        <span class="obs-item-ico">{{ h.ico }}</span>
+                        <span class="obs-item-title">{{ h.title }}</span>
+                    </div>
+                    <div class="obs-item-sub" ng-if="h.sub">{{ h.sub }}</div>
+                </div>
+            </div>
+            <button class="obs-clear" ng-if="history.length" ng-click="clearHistory()"><?php echo T::s('observer.history.clear'); ?></button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         CONTENT VIEWER (song / Bible chapter / message), own screen only.
+         A tap on the content toggles fullscreen (bars hidden).
+         ============================================================ -->
+    <div class="obs-viewer" id="obsViewer" ng-show="viewer.open">
+        <div class="obs-vbar" ng-show="!viewer.fs">
+            <button class="obs-vbtn" ng-click="closeViewer()">✕</button>
+            <div class="obs-vtitle">{{ viewer.title }}</div>
+            <button class="obs-vbtn" ng-click="fontStep(-1)" title="<?php echo T::s('common.button.decrease'); ?>">A−</button>
+            <button class="obs-vbtn" ng-click="fontStep(1)" title="<?php echo T::s('common.button.increase'); ?>">A+</button>
+        </div>
+        <div class="obs-vmodes" ng-show="!viewer.fs && (viewer.langs.length + viewer.groups.length > 1 || viewer.kind === 'song')">
+            <button class="obs-mode" ng-repeat="l in viewer.langs track by l.code"
+                    ng-class="{on: viewer.view.kind === 'text' && viewer.view.lang === l.code}"
+                    ng-click="setView(viewer, 'text', l.code)">{{ l.label }}</button>
+            <div class="obs-mode-sep" ng-if="viewer.langs.length && viewer.groups.length"></div>
+            <button class="obs-mode" ng-repeat="g in viewer.groups track by g.id"
+                    ng-class="{on: viewer.view.kind === 'image' && viewer.view.groupId === g.id,
+                               shown: viewer.view.kind === 'image' && viewer.shownGroupId === g.id && viewer.view.groupId !== g.id,
+                               empty: !g.image}"
+                    ng-click="setView(viewer, 'image', g.id)">{{ g.name }}</button>
+        </div>
+        <div class="obs-fshint" ng-show="!viewer.fs"><?php echo T::s('observer.fsHint'); ?></div>
+        <div class="obs-vcontent" ng-click="toggleFs(viewer, 'obsViewer')">
+            <div class="obs-text obs-text-song" ng-if="viewer.kind === 'song' && viewer.view.kind === 'text'" ng-style="{'font-size': fontPx + 'px'}">
+                <div class="obs-verse-block" ng-repeat="b in viewer.blocks track by $index">{{ b }}</div>
+            </div>
+            <div class="obs-empty" ng-if="viewer.kind === 'song' && viewer.view.kind === 'none'"><?php echo T::s('observer.noContent'); ?></div>
+            <img class="obs-img" ng-if="viewer.view.kind === 'image'" ng-src="{{ viewer.imageSrc }}"
+                 onerror="angular.element(this).scope().onImageError('viewer')">
+            <div class="obs-text obs-text-read" ng-if="viewer.kind === 'bible'" ng-style="{'font-size': fontPx + 'px'}">
+                <div class="obs-bverse" ng-repeat="v in viewer.verses track by v.num" ng-class="{hl: v.num === viewer.hl}" ng-attr-id="{{ 'obsv' + v.num }}"><span class="obs-bnum">{{ v.num }}</span>{{ v.text }}</div>
+            </div>
+            <div class="obs-text obs-text-read" ng-if="viewer.kind === 'message'" ng-style="{'font-size': fontPx + 'px'}">
+                <p class="obs-para" ng-repeat="p in viewer.paras track by $index" ng-class="{hl: $index === viewer.hl}" ng-attr-id="{{ 'obsp' + $index }}">{{ p }}</p>
+            </div>
+        </div>
+        <div class="obs-vnav" ng-show="!viewer.fs && viewer.kind === 'bible'">
+            <button class="obs-navbtn" ng-click="chapterStep(-1)" ng-disabled="!canStep(-1)"><?php echo T::s('observer.bible.prev'); ?></button>
+            <span class="obs-navtitle">{{ viewer.title }}</span>
+            <button class="obs-navbtn" ng-click="chapterStep(1)" ng-disabled="!canStep(1)"><?php echo T::s('observer.bible.next'); ?></button>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         GROUP MODE — passive: shows what the leader broadcasts.
+         Normal screen = content + choice buttons; fullscreen = content only.
+         ============================================================ -->
+    <div class="obs-group" id="obsGroup" ng-show="group.on">
+        <div class="obs-vbar" ng-show="!group.fs">
+            <button class="obs-vbtn obs-vbtn-danger" ng-click="leaveGroup()"><?php echo T::s('observer.group.leave'); ?></button>
+            <div class="obs-vtitle">{{ group.song ? (group.song.NUM + ' — ' + group.song.NAME) : '' }}</div>
+            <button class="obs-vbtn" ng-click="fontStep(-1)" title="<?php echo T::s('common.button.decrease'); ?>">A−</button>
+            <button class="obs-vbtn" ng-click="fontStep(1)" title="<?php echo T::s('common.button.increase'); ?>">A+</button>
+            <a class="obs-vbtn" href="/index" title="<?php echo T::s('observer.group.home'); ?>">🏠</a>
+        </div>
+        <div class="obs-vmodes" ng-show="!group.fs && group.song">
+            <button class="obs-mode" ng-repeat="l in group.langs track by l.code"
+                    ng-class="{on: group.view.kind === 'text' && group.view.lang === l.code}"
+                    ng-click="setView(group, 'text', l.code)">{{ l.label }}</button>
+            <div class="obs-mode-sep" ng-if="group.langs.length && group.groups.length"></div>
+            <button class="obs-mode" ng-repeat="g in group.groups track by g.id"
+                    ng-class="{on: group.view.kind === 'image' && group.view.groupId === g.id,
+                               shown: group.view.kind === 'image' && group.shownGroupId === g.id && group.view.groupId !== g.id,
+                               empty: !g.image}"
+                    ng-click="setView(group, 'image', g.id)">{{ g.name }}</button>
+        </div>
+        <div class="obs-fshint" ng-show="!group.fs && group.song"><?php echo T::s('observer.fsHint'); ?></div>
+        <div class="obs-vcontent" ng-click="toggleFs(group, 'obsGroup')">
+            <div class="obs-wait" ng-if="!group.song">
+                <div class="obs-wait-ico">📡</div>
+                <div ng-if="group.active">
+                    <div class="obs-wait-title"><?php echo T::s('observer.group.waitTitle'); ?></div>
+                    <div class="obs-wait-sub"><?php echo T::s('observer.group.waitSub'); ?></div>
+                </div>
+                <div ng-if="!group.active">
+                    <div class="obs-wait-title"><?php echo T::s('observer.group.offTitle'); ?></div>
+                    <div class="obs-wait-sub"><?php echo T::s('observer.group.offSub'); ?></div>
+                </div>
+                <div class="obs-wait-conn" ng-if="wsConnected === false"><?php echo T::s('common.ws.disconnected'); ?></div>
+            </div>
+            <!-- one verse from the leader's verse mode: auto-fitted to the screen -->
+            <div class="obs-gverse" ng-if="group.song && group.view.kind === 'text' && group.verseIdx >= 0">
+                <div id="obsGverseInner" class="obs-gverse-inner"></div>
+            </div>
+            <div class="obs-text obs-text-song" ng-if="group.song && group.view.kind === 'text' && group.verseIdx < 0" ng-style="{'font-size': fontPx + 'px'}">
+                <div class="obs-verse-block" ng-repeat="b in group.blocks track by $index">{{ b }}</div>
+            </div>
+            <div class="obs-empty" ng-if="group.song && group.view.kind === 'none'"><?php echo T::s('observer.noContent'); ?></div>
+            <img class="obs-img" ng-if="group.song && group.view.kind === 'image'" ng-src="{{ group.imageSrc }}"
+                 onerror="angular.element(this).scope().onImageError('group')">
+        </div>
+    </div>
+
+</div><!-- /ng-controller -->
+
+<script src="/js/observer.min.js?v=1" type="text/javascript"></script>
