@@ -14,36 +14,33 @@
         -webkit-tap-highlight-color: transparent;
     }
 
-    /* Image-group bar (normal window only — the <img> itself goes fullscreen,
-       so nothing else is visible in fullscreen mode). 50% translucent. */
+    /* Image-type (group) bar: top of the screen, centred, 50% translucent.
+       Normal window only — the <img> itself goes fullscreen, so nothing else
+       is visible in fullscreen mode. */
     .mg-bar {
         position: fixed;
+        top: 0;
         left: 0;
         right: 0;
-        bottom: 0;
-        display: flex;
-        justify-content: space-between;
-        align-items: flex-end;
-        gap: 10px;
-        padding: 10px 12px;
-        pointer-events: none;
-        z-index: 5;
-    }
-    .mg-groups {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
+        justify-content: center;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 12px;
+        pointer-events: none;
+        z-index: 5;
     }
     .mg-btn {
         pointer-events: auto;
         opacity: 0.5;
-        min-height: 44px;
-        padding: 0 18px;
+        min-height: 56px;
+        padding: 0 28px;
         border: none;
-        border-radius: 10px;
+        border-radius: 12px;
         background: #2c3e50;
         color: #fff;
-        font-size: 16px;
+        font-size: 20px;
         font-weight: 600;
         cursor: pointer;
         -webkit-tap-highlight-color: transparent;
@@ -54,59 +51,26 @@
     .mg-btn.mg-sel { background: #1a6db5; }
     .mg-btn.mg-shown { box-shadow: inset 0 0 0 2px #fff; }
     .mg-btn.mg-empty { color: rgba(255,255,255,0.55); }
-    .mg-pager {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-    }
-    .mg-pager .mg-btn {
-        min-width: 44px;
-        padding: 0 14px;
-        font-size: 22px;
-        line-height: 1;
-    }
-    .mg-count {
-        opacity: 0.5;
-        min-height: 44px;
-        display: flex;
-        align-items: center;
-        padding: 0 12px;
-        border-radius: 10px;
-        background: #2c3e50;
-        color: #fff;
-        font-size: 15px;
-        font-weight: 600;
-        white-space: nowrap;
-    }
 </style>
 <div ng-controller="Musician" class="container">
 
     <div>
         <img id="img0"
              class="fs"
-             ng-click="onImageClick()"
-             ng-swipe-left="nextPage()"
-             ng-swipe-right="prevPage()"
+             ng-click="toggleFullscreen()"
              onerror="angular.element(this).scope().onImageError()"
              ng-src="{{imgName}}"/>
     </div>
 
     <div class="mg-bar" ng-if="!fullScreen && notes.groups.length">
-        <div class="mg-groups">
-            <button class="mg-btn"
-                    ng-repeat="g in notes.groups track by g.id"
-                    ng-class="{'mg-sel': g.id === selectedGroupId,
-                               'mg-shown': shownGroup && g.id === shownGroup.id && g.id !== selectedGroupId,
-                               'mg-empty': !g.images.length}"
-                    ng-click="selectGroup(g)">{{ g.name }}</button>
-        </div>
-        <div class="mg-pager" ng-if="pages.length > 1">
-            <button class="mg-btn" ng-click="prevPage()">&lsaquo;</button>
-            <span class="mg-count">{{ pageIdx + 1 }} / {{ pages.length }}</span>
-            <button class="mg-btn" ng-click="nextPage()">&rsaquo;</button>
-        </div>
+        <button class="mg-btn"
+                ng-repeat="g in notes.groups track by g.id"
+                ng-class="{'mg-sel': g.id === selectedGroupId,
+                           'mg-shown': shownGroup && g.id === shownGroup.id && g.id !== selectedGroupId,
+                           'mg-empty': !g.image}"
+                ng-click="selectGroup(g)">{{ g.name }}</button>
     </div>
 
 </div>
 
-<script src="/js/musician.min.js?v=10029" type="text/javascript"></script>
+<script src="/js/musician.min.js?v=10030" type="text/javascript"></script>

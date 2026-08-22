@@ -479,8 +479,8 @@ trait Ajax_Common
      * Current notes image for the caller's group ({image: '' when off}).
      *
      * With `with_groups: 1` (musician page) the response also carries the
-     * song's image groups and their pages (see app/SongImages.php):
-     *   list_id, num, groups: [{id, name, is_main, images: ['/images/...']}]
+     * song's image groups, each with its (single) image (see app/SongImages.php):
+     *   list_id, num, groups: [{id, name, orig, is_main, image: '/images/...'|null}]
      * The tech console calls without the flag and keeps the one-field shape.
      * The notes channel itself (current_notes, notes_update) is unchanged —
      * the main sheet path stays the only thing stored there.
@@ -508,7 +508,7 @@ trait Ajax_Common
                         'name'    => SongImages::displayName($g),   // in the musician's UI language
                         'orig'    => $g['NAME'],
                         'is_main' => (int)$g['IS_MAIN'],
-                        'images'  => SongImages::songPages($listId, $g, $num),
+                        'image'   => SongImages::songImage($listId, $g, $num),   // web path or null
                     ];
                 }
             }

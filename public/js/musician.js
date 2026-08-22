@@ -1,15 +1,16 @@
 /**
  * Musician page: sheet music from the NOTES CHANNEL (current_notes +
- * notes_update) with per-collection image groups (Aug 2026).
+ * notes_update) with per-collection image groups ("types", Aug 2026).
  *
- * The server (`get_notes` with `with_groups: 1`) returns the song's groups and
- * their page images. The musician picks a group with the translucent buttons;
- * the choice is remembered per collection for the browser session
- * (sessionStorage). When the chosen group has no image for the current song,
- * the groups are tried in their order and the first one with an image is
- * shown — the selection itself stays untouched. Fullscreen shows only the
- * current image (the <img> element itself goes fullscreen); pages are flipped
- * by horizontal swipe / arrow keys, a tap toggles fullscreen as before.
+ * The server (`get_notes` with `with_groups: 1`) returns the song's groups,
+ * each with at most one image. The musician picks a group with the large
+ * translucent buttons at the top of the screen; the choice is remembered per
+ * collection for the browser session (sessionStorage). When the chosen group
+ * has no image for the current song, the groups are tried in their order and
+ * the first one with an image is shown — the selection itself stays
+ * untouched. A song without any image shows the "no images yet" picture in
+ * the user's UI language. Fullscreen shows only the image (the <img> element
+ * itself goes fullscreen); a tap toggles it, as before.
  */
 app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $http, $timeout)
 {
@@ -27,11 +28,8 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
     // Current song from the notes channel + its image groups
     $scope.notes = { image: '', listId: null, num: '', groups: [] };
     $scope.selectedGroupId = null;  // the musician's choice for the current collection
-    $scope.shownGroup = null;       // group whose pages are on screen (selected or fallback)
-    $scope.pages = [];              // web paths of the shown group's pages
-    $scope.pageIdx = 0;
+    $scope.shownGroup = null;       // group whose image is on screen (selected or fallback)
     var cacheBuster = '';
-    var lastSwipeAt = 0;
 
     // ─── Remembered group selection (per collection, browser session) ───
     var SEL_KEY = 'musicianImageGroup';
@@ -56,9 +54,9 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
         return null;
     }
 
-    function firstWithImages(groups) {
+    function firstWithImage(groups) {
         for (var i = 0; i < groups.length; i++) {
-            if (groups[i].images && groups[i].images.length) return groups[i];
+            if (groups[i].image) return groups[i];
         }
         return null;
     }
@@ -81,41 +79,33 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
         return groups.length ? groups[0] : null;
     }
 
-    function preloadPages() {
-        for (var i = 0; i < $scope.pages.length; i++) {
-            if (i === $scope.pageIdx) continue;
-            var im = new Image();
-            im.src = $scope.pages[i] + cacheBuster;
+    // Warm the cache for the other groups' images so switching is instant.
+    function preloadOthers() {
+        var groups = $scope.notes.groups || [];
+        for (var i = 0; i < groups.length; i++) {
+            if (groups[i].image && groups[i] !== $scope.shownGroup) {
+                var im = new Image();
+                im.src = groups[i].image + cacheBuster;
+            }
         }
     }
 
     function render() {
-        if (!$scope.pages.length) {
-            $scope.imgName = $scope.notes.image ? noImageSrc : $scope.placeholderImage;
+        var shown = $scope.shownGroup;
+        if (shown && shown.image) {
+            $scope.imgName = shown.image + cacheBuster;
+            preloadOthers();
             return;
         }
-        if ($scope.pageIdx < 0 || $scope.pageIdx >= $scope.pages.length) $scope.pageIdx = 0;
-        $scope.imgName = $scope.pages[$scope.pageIdx] + cacheBuster;
-        preloadPages();
+        $scope.imgName = $scope.notes.image ? noImageSrc : $scope.placeholderImage;
     }
 
-    function showGroup(group, keepPage) {
-        var prevPages = $scope.pages;
-        $scope.shownGroup = group;
-        $scope.pages = (group && group.images) ? group.images.slice() : [];
-        var samePages = keepPage && prevPages.length === $scope.pages.length;
-        if (!samePages) $scope.pageIdx = 0;
-        render();
-    }
-
-    // Apply a get_notes response. keepPage: same song re-fetched (reconnect,
-    // re-upload) — stay on the current page when the page set is unchanged.
+    // Apply a get_notes response.
     function applyNotes(data) {
         var image  = (data && data.image) || '';
         var groups = (data && data.groups) || [];
         var listId = (data && data.list_id != null) ? String(data.list_id) : null;
         var num    = (data && data.num) || '';
-        var sameSong = image && image === $scope.notes.image && listId === $scope.notes.listId;
 
         $scope.notes = { image: image, listId: listId, num: num, groups: groups };
         cacheBuster = '?t=' + new Date().getTime();
@@ -123,20 +113,21 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
         if (!image) {
             // Notes off: placeholder, no buttons
             $scope.selectedGroupId = null;
-            showGroup(null, false);
+            $scope.shownGroup = null;
+            render();
             return;
         }
         if (!groups.length) {
             // Server without groups (pre-migration): the main sheet only
             $scope.selectedGroupId = null;
-            showGroup({ id: 0, name: '', images: [image] }, sameSong);
+            $scope.shownGroup = { id: 0, name: '', image: image };
+            render();
             return;
         }
         var selected = resolveSelected(groups, listId);
         $scope.selectedGroupId = selected ? selected.id : null;
-        var shown = (selected && selected.images.length) ? selected : firstWithImages(groups);
-        var sameGroup = sameSong && $scope.shownGroup && shown && $scope.shownGroup.id === shown.id;
-        showGroup(shown, sameGroup);
+        $scope.shownGroup = (selected && selected.image) ? selected : firstWithImage(groups);
+        render();
     }
 
     $scope.selectGroup = function(g) {
@@ -146,21 +137,7 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
         sel.lastOrig = g.orig || '';
         saveSel();
         $scope.selectedGroupId = g.id;
-        var shown = g.images.length ? g : firstWithImages($scope.notes.groups);
-        showGroup(shown, false);
-    };
-
-    $scope.nextPage = function() {
-        if ($scope.pages.length < 2) return;
-        lastSwipeAt = new Date().getTime();
-        $scope.pageIdx = ($scope.pageIdx + 1) % $scope.pages.length;
-        render();
-    };
-
-    $scope.prevPage = function() {
-        if ($scope.pages.length < 2) return;
-        lastSwipeAt = new Date().getTime();
-        $scope.pageIdx = ($scope.pageIdx - 1 + $scope.pages.length) % $scope.pages.length;
+        $scope.shownGroup = g.image ? g : firstWithImage($scope.notes.groups);
         render();
     };
 
@@ -173,7 +150,7 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
                 } else {
                     $scope.placeholderImage = '/field_small.jpg';
                 }
-                if (!$scope.pages.length) $scope.imgName = $scope.placeholderImage;
+                if (!$scope.notes.image) render();
             },
             function error(erespond){
                 $scope.placeholderImage = '/field_small.jpg';
@@ -201,20 +178,14 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
         );
     };
 
-    // A listed page that fails to load (file removed meanwhile, legacy server
-    // without group data) falls back to the "no images" picture.
+    // A listed image that fails to load (file removed meanwhile, legacy
+    // server without group data) falls back to the "no images" picture.
     $scope.onImageError = function() {
         var src = String($scope.imgName || '');
         if (src.indexOf(noImageSrc) === 0 || src === $scope.placeholderImage) return;
         $scope.$applyAsync(function() {
             if ($scope.imgName === src) $scope.imgName = noImageSrc;
         });
-    };
-
-    // A tap toggles fullscreen; a swipe that just flipped a page must not.
-    $scope.onImageClick = function() {
-        if (new Date().getTime() - lastSwipeAt < 500) return;
-        $scope.toggleFullscreen();
     };
 
     $scope.toggleFullscreen = function() {
@@ -245,15 +216,6 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
     }
     document.addEventListener('fullscreenchange', onFsChange);
     document.addEventListener('webkitfullscreenchange', onFsChange);
-
-    // Arrow keys flip pages (desktop / keyboard-equipped tablets)
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'ArrowRight' || e.key === 'PageDown') {
-            $scope.$apply($scope.nextPage);
-        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
-            $scope.$apply($scope.prevPage);
-        }
-    });
 
     function initSocket() {
         // [SECURITY] Use authenticated WebSocket connection

@@ -2342,8 +2342,9 @@
                                 </div>
                             </div>
 
-                            <!-- Image -->
-                            <div class="esp-image-row">
+                            <!-- Main image of a NEW song (uploaded on Save). Saved songs
+                                 manage every group, the main one included, in the block below. -->
+                            <div class="esp-image-row" ng-if="editConfig.isNewSong">
                                 <span class="esp-image-label"><?php echo T::s('tech.esp.image'); ?></span>
                                 <img ng-if="editConfig.previewImage"
                                      class="esp-image-thumb"
@@ -2367,7 +2368,8 @@
                                            onchange="angular.element(this).scope().previewImage()" />
                                     <button class="esp-btn esp-btn-image"
                                             onclick="document.getElementById('imageUpload').click()">
-                                        <?php echo T::s('tech.esp.chooseImage'); ?>
+                                        <span ng-if="!editConfig.previewImage"><?php echo T::s('tech.esp.addImage'); ?></span>
+                                        <span ng-if="editConfig.previewImage"><?php echo T::s('tech.esp.changeImage'); ?></span>
                                     </button>
                                     <button class="esp-btn esp-btn-clear-img"
                                             ng-if="editConfig.previewImage"
@@ -2385,25 +2387,25 @@
                                     <div class="esp-group-head">
                                         <span class="esp-group-name">{{ g.name }}</span>
                                         <span class="esp-group-main" ng-if="g.is_main"><?php echo T::s('import.groups.main'); ?></span>
-                                        <span class="esp-group-empty" ng-if="!g.pages.length"><?php echo T::s('tech.esp.noPages'); ?></span>
                                     </div>
                                     <div class="esp-pages">
-                                        <div class="esp-page" ng-repeat="p in g.pages track by p.page">
+                                        <div class="esp-page" ng-if="g.image">
                                             <img class="esp-page-thumb"
-                                                 ng-src="{{ p.url }}{{ editConfig.imgBuster }}"
-                                                 ng-click="showEnlargedImage(p.url + editConfig.imgBuster)"
+                                                 ng-src="{{ g.image }}{{ editConfig.imgBuster }}"
+                                                 ng-click="showEnlargedImage(g.image + editConfig.imgBuster)"
                                                  title="<?php echo T::s('tech.esp.zoom'); ?>" />
-                                            <span class="esp-page-num">{{ ('<?php echo T::s('tech.esp.page'); ?>').replace('{page}', p.page) }}</span>
                                             <button type="button" class="esp-page-del"
-                                                    ng-click="deletePageImage(g, p)"
+                                                    ng-click="deleteGroupImage(g)"
                                                     title="<?php echo T::s('common.button.delete'); ?>">&times;</button>
                                         </div>
+                                        <!-- one image per group: the button adds it or replaces it -->
                                         <label class="esp-btn esp-btn-image esp-page-add" ng-class="{'esp-busy': g.uploading}">
-                                            <span ng-if="!g.uploading"><?php echo T::s('tech.esp.addPage'); ?></span>
+                                            <span ng-if="!g.uploading && !g.image"><?php echo T::s('tech.esp.addImage'); ?></span>
+                                            <span ng-if="!g.uploading && g.image"><?php echo T::s('tech.esp.changeImage'); ?></span>
                                             <span ng-if="g.uploading"><?php echo T::s('tech.esp.uploadingPage'); ?></span>
-                                            <input type="file" accept="image/jpeg,image/png" multiple style="display:none"
+                                            <input type="file" accept="image/jpeg,image/png" style="display:none"
                                                    ng-attr-data-gid="{{ g.id }}"
-                                                   onchange="angular.element(this).scope().onPageFilesSelected(this)" />
+                                                   onchange="angular.element(this).scope().onGroupFileSelected(this)" />
                                         </label>
                                     </div>
                                 </div>
@@ -2505,5 +2507,5 @@
 
 </div><!-- /ng-controller -->
 
-<script src="/js/tech.min.js?v=46" type="text/javascript"></script>
+<script src="/js/tech.min.js?v=47" type="text/javascript"></script>
 

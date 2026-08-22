@@ -92,16 +92,17 @@ scenario re-checked.
   translations per UI language with fallback to NAME, SORT_ORDER, IS_MAIN);
   every reader must go through `SongImages::displayName()` for user-facing
   names (`set_image_group_names` edits the translations);
-  page files are the source of truth: main-group page 1 = legacy
-  `/images/<L>/<NUM>.jpg`, everything else `/images/<L>/g<ID>/<NUM>_<page>.jpg|png`.
+  image files are the source of truth, ONE image per song and group:
+  main group = legacy `/images/<L>/<NUM>.jpg`, every other group
+  `/images/<L>/g<ID>/<NUM>.jpg|png` (legacy `<NUM>_1.<ext>` still read).
 - **Writers:** `import_song_images_zip` (`group_id`, `mode` replace|add),
   `add/rename/delete/reorder_image_group(s)` (Ajax_Import, admin), the
-  legacy `upload_song_image` (main page 1 only — unchanged),
-  `upload_song_page_image` / `delete_song_page_image` (tech edit dialog,
-  roles admin/leader/tech; next free page, or `page` to replace a slot).
-- **Readers:** `get_notes with_groups` (musician), `get_image_groups` (import
-  page), `get_song_images` (tech edit dialog, pages per group). Leader/tech
-  lists and the screens use the main sheet only.
+  legacy `upload_song_image` (main image only — unchanged),
+  `upload_song_group_image` / `delete_song_group_image` (tech edit dialog,
+  roles admin/leader/tech; replace / remove the group's image).
+- **Readers:** `get_notes with_groups` (musician, `groups[].image`),
+  `get_image_groups` (import page), `get_song_images` (tech edit dialog).
+  Leader/tech lists and the screens use the main sheet only.
 - Musician page with a song on but no image in any group shows
   `public/no_image/<ui_lang>.png` (also on a load error of a listed page);
   notes OFF keeps the configured placeholder.

@@ -2110,10 +2110,10 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     // ── Image groups in the edit dialog (Aug 2026) ─────────────
-    // Every group of the song's collection with the song's page images.
-    // Uploads / deletions apply immediately (they are files, not song
-    // fields); the main sheet (page 1 of the main group) stays available
-    // through the classic "Картинка" row as well.
+    // Every group ("type") of the song's collection with the song's single
+    // image in it. Uploads / deletions apply immediately (they are files,
+    // not song fields). The classic "Картинка" row (deferred upload on
+    // Save) is shown for NEW songs only.
 
     $scope.showEnlargedImage = function(src) {
         if (!src) return;
@@ -2130,13 +2130,11 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         if (!$scope.editConfig) return;
         $scope.editConfig.imageGroups = groups || [];
         $scope.editConfig.imgBuster   = '?t=' + new Date().getTime();
-        // The classic main-sheet thumb mirrors page 1 of the main group.
+        // currentImage mirrors the main group's image (the legacy main sheet).
         var main = null;
         angular.forEach($scope.editConfig.imageGroups, function(g) { if (!main && g.is_main) main = g; });
         if (main) {
-            var p1 = null;
-            angular.forEach(main.pages, function(p) { if (p.page === 1) p1 = p; });
-            $scope.editConfig.currentImage = p1 ? p1.url + $scope.editConfig.imgBuster : null;
+            $scope.editConfig.currentImage = main.image ? main.image + $scope.editConfig.imgBuster : null;
         }
     }
 
@@ -2159,58 +2157,46 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         return null;
     }
 
-    // Native onchange of the per-group file input (outside the digest).
-    // Several files are uploaded one after another, each as the next page.
-    $scope.onPageFilesSelected = function(input) {
-        var gid   = parseInt(input.getAttribute('data-gid'), 10);
-        var files = Array.prototype.slice.call(input.files || []);
+    // Native onchange of the per-group file input (outside the digest):
+    // the chosen file becomes the group's image (adds or replaces it).
+    $scope.onGroupFileSelected = function(input) {
+        var gid  = parseInt(input.getAttribute('data-gid'), 10);
+        var file = input.files && input.files[0];
         input.value = '';
         var group = findImageGroup(gid);
-        if (!group || !files.length || group.uploading) return;
-        var songId = $scope.editConfig.songId;
+        if (!group || !file || group.uploading) return;
         $scope.$applyAsync(function() { group.uploading = true; });
 
-        var idx = 0;
-        var finish = function() {
-            group.uploading = false;
-            $scope.loadSongImages();
-            if (group.is_main) $scope.reloadFavorites();   // list thumbs show the main sheet
-        };
-        var uploadNext = function() {
-            if (idx >= files.length) { finish(); return; }
-            var fd = new FormData();
-            fd.append('command',  'upload_song_page_image');
-            fd.append('song_id',  songId);
-            fd.append('group_id', gid);
-            fd.append('image',    files[idx]);
-            idx++;
-            $http.post('/ajax', fd, { transformRequest: angular.identity, headers: { 'Content-Type': undefined } }).then(
-                function(r) {
-                    var d = r.data;
-                    if (!d || d.status !== 'success') {
-                        alert(window.t('settings.alert.imageUploadError') + (d && d.message ? '\n' + d.message : ''));
-                        finish();
-                        return;
-                    }
-                    if (d.groups) applySongImages(d.groups);
-                    uploadNext();
-                },
-                function() {
-                    alert(window.t('settings.alert.imageUploadError'));
-                    finish();
+        var fd = new FormData();
+        fd.append('command',  'upload_song_group_image');
+        fd.append('song_id',  $scope.editConfig.songId);
+        fd.append('group_id', gid);
+        fd.append('image',    file);
+        $http.post('/ajax', fd, { transformRequest: angular.identity, headers: { 'Content-Type': undefined } }).then(
+            function(r) {
+                group.uploading = false;
+                var d = r.data;
+                if (!d || d.status !== 'success') {
+                    alert(window.t('settings.alert.imageUploadError') + (d && d.message ? '\n' + d.message : ''));
+                    $scope.loadSongImages();
+                    return;
                 }
-            );
-        };
-        uploadNext();
+                applySongImages(d.groups);
+                if (group.is_main) $scope.reloadFavorites();   // list thumbs show the main sheet
+            },
+            function() {
+                group.uploading = false;
+                alert(window.t('settings.alert.imageUploadError'));
+            }
+        );
     };
 
-    $scope.deletePageImage = function(group, p) {
-        if (!confirm(window.t('tech.esp.deletePageConfirm', { group: group.name, page: p.page }))) return;
+    $scope.deleteGroupImage = function(group) {
+        if (!confirm(window.t('tech.esp.deleteImageConfirm', { group: group.name }))) return;
         $http({ method: 'POST', url: '/ajax', data: {
-                command: 'delete_song_page_image',
+                command: 'delete_song_group_image',
                 song_id: $scope.editConfig.songId,
-                group_id: group.id,
-                page: p.page } }).then(
+                group_id: group.id } }).then(
             function(r) {
                 var d = r.data;
                 if (!d || d.status !== 'success') {
@@ -2262,8 +2248,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 function success(response) {
                     $scope.editConfig.songId  = response.data.song_id;
                     $scope.editConfig.songNum = $scope.listId + '/' + response.data.num;
-                    var fileInput = document.getElementById('imageUpload');
-                    if (fileInput.files.length > 0) {
+                    var fileInput = document.getElementById('imageUpload');   // absent for saved songs (groups block instead)
+                    if (fileInput && fileInput.files.length > 0) {
                         $scope.uploadImage(function() {
                             $scope.addSongToFavorites($scope.editConfig.songId);
                             $scope.showEditDialog(false);
@@ -2283,8 +2269,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     id: $scope.editConfig.songId,
                     name: $scope.editConfig.songName }, textData) }).then(
                 function success() {
-                    var fileInput = document.getElementById('imageUpload');
-                    if (fileInput.files.length > 0) {
+                    var fileInput = document.getElementById('imageUpload');   // absent for saved songs (groups block instead)
+                    if (fileInput && fileInput.files.length > 0) {
                         $scope.uploadImage(function() {
                             $scope.reloadFavorites();
                             $scope.showEditDialog(false);
