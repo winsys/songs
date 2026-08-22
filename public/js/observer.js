@@ -54,8 +54,8 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
     }
     // One block per source line (verse), empty lines dropped.
     function textBlocks(raw) {
-        return cleanMarkers(raw).split(/\r?\n/).map(function (l) { return l.replace(/\s+$/, ''); })
-            .filter(function (l) { return l.trim().length > 0; });
+        return cleanMarkers(raw).split(/\r?\n/).map(function (l) { return l.trim(); })
+            .filter(function (l) { return l.length > 0; });
     }
     function findGroup(groups, id) {
         for (var i = 0; i < groups.length; i++) if (groups[i].id === id) return groups[i];
