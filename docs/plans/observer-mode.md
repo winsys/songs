@@ -61,7 +61,9 @@ default UI language, fallback to the leader's); history in `sessionStorage`
   {user_id, regenerate}` (admin only, observer accounts of the own group).
 - **Leader page (added 2026-08-23, Pavel's follow-up):** while the
   «📡 Трансляция в группу» toggle is ON, a «📱 QR-код» button appears next to
-  it (`ng-if="observer.active"`) → the same modal (group name, QR, link,
+  it (`ng-if="observer.active"`; `.observer-controls` wrapper — a row on wide
+  screens, a column with the QR under the toggle at ≤ 480 px, Pavel's
+  follow-up) → the same modal (group name, QR, link,
   «Копировать ссылку», «🖨 Печать», «Закрыть» — no «Новая ссылка»: replacing
   the token stays with the admin). Server: `Ajax_Observer::observer_join_link`
   (no args; leader / tech / admin via `observerCanBroadcast()`): finds the

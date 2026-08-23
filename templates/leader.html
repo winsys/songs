@@ -114,7 +114,16 @@
         transition: all 0.15s;
     }
     .btn-observer-qr:hover { background: #d6e9f8; }
+    /* Toggle + QR button: a row on wide screens, a column (QR under the
+       toggle, same width) on phones */
+    .observer-controls {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-shrink: 0;
+    }
     @media (max-width: 480px) {
+        .observer-controls { flex-direction: column; align-items: stretch; gap: 6px; }
         .btn-observer, .btn-observer-qr { font-size: 11px; padding: 7px 9px; }
     }
 
@@ -1027,23 +1036,26 @@
                 <div class="leader-page-title"><?php echo T::s('leader.title'); ?></div>
                 <div class="leader-page-subtitle"><?php echo T::s('leader.subtitle'); ?></div>
             </div>
-            <!-- Observer channel: while on, everything the leader opens (song,
-                 lyrics, verses) is also shown to observers in group mode -->
-            <button class="btn-observer"
-                    ng-class="{'btn-observer-on': observer.active}"
-                    ng-click="toggleObserver()"
-                    title="<?php echo T::s('leader.observer.hint'); ?>">
-                <span ng-if="!observer.active"><?php echo T::s('leader.observer.off'); ?></span>
-                <span ng-if="observer.active"><?php echo T::s('leader.observer.on'); ?></span>
-            </button>
-            <!-- Join QR code of the group's observer login (password-less
-                 /join/<token>) — only while the broadcast is on -->
-            <button class="btn-observer-qr"
-                    ng-if="observer.active"
-                    ng-click="showJoinQr()"
-                    title="<?php echo T::s('leader.observer.qrHint'); ?>">
-                <?php echo T::s('leader.observer.qr'); ?>
-            </button>
+            <div class="observer-controls">
+                <!-- Observer channel: while on, everything the leader opens (song,
+                     lyrics, verses) is also shown to observers in group mode -->
+                <button class="btn-observer"
+                        ng-class="{'btn-observer-on': observer.active}"
+                        ng-click="toggleObserver()"
+                        title="<?php echo T::s('leader.observer.hint'); ?>">
+                    <span ng-if="!observer.active"><?php echo T::s('leader.observer.off'); ?></span>
+                    <span ng-if="observer.active"><?php echo T::s('leader.observer.on'); ?></span>
+                </button>
+                <!-- Join QR code of the group's observer login (password-less
+                     /join/<token>) — only while the broadcast is on; on phones
+                     it sits under the toggle -->
+                <button class="btn-observer-qr"
+                        ng-if="observer.active"
+                        ng-click="showJoinQr()"
+                        title="<?php echo T::s('leader.observer.qrHint'); ?>">
+                    <?php echo T::s('leader.observer.qr'); ?>
+                </button>
+            </div>
         </div>
 
         <!-- Song list selector -->
