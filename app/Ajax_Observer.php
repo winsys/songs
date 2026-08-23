@@ -247,6 +247,44 @@ trait Ajax_Observer
     }
 
     /**
+     * Join link of the group's shared observer account, for the leader page:
+     * the QR code shown to the congregation while the broadcast is on.
+     * Read-only counterpart of Ajax_Settings::get_join_link — finds the
+     * account itself, issues the token when the account has none yet and
+     * never replaces an existing one (that stays with the admin's
+     * «Новая ссылка» in the settings). Leader / tech / admin.
+     * Returns {status: 'ok', token, group_name} or {status: 'none'} when the
+     * group has no observer account yet.
+     */
+    private static function observer_join_link()
+    {
+        if (!self::observerCanBroadcast()) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+        $groupId = (int)$_SESSION['curGroupId'];
+        $user = Info::get('db')->get(
+            "SELECT ID, JOIN_TOKEN FROM users
+             WHERE ROLE = 'observer' AND (GROUP_ID = {$groupId} OR ID = {$groupId})
+             ORDER BY ID LIMIT 1"
+        );
+        if (!$user) {
+            return json_encode(['status' => 'none']);
+        }
+        $token = isset($user['JOIN_TOKEN']) ? (string)$user['JOIN_TOKEN'] : '';
+        if (!preg_match('/^[a-f0-9]{32}$/', $token)) {
+            $token = bin2hex(random_bytes(16));
+            Info::get('db')->exec("UPDATE users SET JOIN_TOKEN = '{$token}' WHERE ID = " . (int)$user['ID']);
+        }
+        $settings  = Info::get('db')->get("SELECT display_name FROM user_settings WHERE group_id = {$groupId}");
+        $groupName = $settings ? trim((string)$settings['display_name']) : '';
+        if ($groupName === '') {
+            $owner     = Info::get('db')->get("SELECT NAME FROM users WHERE ID = {$groupId}");
+            $groupName = $owner ? (string)$owner['NAME'] : '';
+        }
+        return json_encode(['status' => 'ok', 'token' => $token, 'group_name' => $groupName]);
+    }
+
+    /**
      * All messages for the observer's browsable list (ID, CODE, TITLE, CITY,
      * hasText_<lang> flags); the texts come with get_message when opened.
      */

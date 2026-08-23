@@ -1,4 +1,4 @@
-app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', function ($scope, $http, SongsService, $timeout)
+app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce', function ($scope, $http, SongsService, $timeout, $sce)
 {
     $scope.listId = 1;
     $scope.songList = [];
@@ -159,6 +159,85 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', functio
             $scope.observer.active = !!parseInt((r.data || {}).active);
         });
     }
+
+    // ---- Observer join link / QR code (button shown while the toggle is on) ----
+    // /join/<token> logs a phone in as the group's shared observer account
+    // without a password and opens /observer (users.JOIN_TOKEN). The server
+    // returns the existing token (issues it on first use); replacing it stays
+    // with the admin's «Новая ссылка» on the settings page. Same modal /
+    // print page as there (qrcode-generator, vendored).
+    $scope.joinQr = { visible: false, token: '', url: '', svg: '', groupName: '' };
+
+    function joinQrSvg(url, cellSize, margin) {
+        if (typeof qrcode !== 'function') return '';
+        var code = qrcode(0, 'M');
+        code.addData(url);
+        code.make();
+        return code.createSvgTag({ cellSize: cellSize, margin: margin, scalable: true });
+    }
+
+    $scope.showJoinQr = function() {
+        $http({ method: "POST", url: "/ajax", data: { command: 'observer_join_link' } }).then(function(r) {
+            var d = r.data || {};
+            if (d.status === 'none') {
+                alert(window.t('leader.joinQr.noAccount'));
+                return;
+            }
+            if (d.status !== 'ok' || !d.token) {
+                alert(window.t('settings.joinQr.error'));
+                return;
+            }
+            var q = $scope.joinQr;
+            q.token = d.token;
+            q.groupName = d.group_name || '';
+            q.url = window.location.origin + '/join/' + q.token;
+            q.svg = $sce.trustAsHtml(joinQrSvg(q.url, 4, 2));
+            q.visible = true;
+        }, function() {
+            alert(window.t('settings.joinQr.error'));
+        });
+    };
+
+    $scope.closeJoinQr = function() { $scope.joinQr.visible = false; };
+
+    $scope.copyJoinLink = function() {
+        var text = $scope.joinQr.url;
+        var done = function() { alert(window.t('settings.joinQr.copied')); };
+        var fallback = function() { prompt(window.t('settings.share.copyPrompt'), text); };
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(text).then(done, fallback);
+        } else {
+            fallback();
+        }
+    };
+
+    // Printable page (title, group name, QR, link): Blob + <a target="_blank">
+    // with an onload print script — the reliable print pattern (CLAUDE.md).
+    $scope.printJoinQr = function() {
+        var q = $scope.joinQr;
+        if (!q.token) return;
+        var esc = function(s) {
+            return String(s).replace(/[&<>"]/g, function(c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
+        };
+        var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>' + esc(window.t('settings.joinQr.printTitle')) + '</title>'
+            + '<style>body{font-family:Arial,sans-serif;text-align:center;padding:40px 20px;color:#222}'
+            + 'h1{font-size:28px;margin:0 0 4px}h2{font-size:18px;font-weight:normal;color:#555;margin:0 0 18px}'
+            + 'p{font-size:16px;color:#444;max-width:520px;margin:0 auto 24px;line-height:1.4}'
+            + 'svg{width:320px;max-width:80vw;height:auto}.link{font-family:monospace;font-size:13px;word-break:break-all;margin-top:24px;color:#333}</style>'
+            + '</head><body><h1>' + esc(window.t('settings.joinQr.printTitle')) + '</h1>'
+            + (q.groupName ? '<h2>' + esc(q.groupName) + '</h2>' : '')
+            + '<p>' + esc(window.t('settings.joinQr.printHint')) + '</p>'
+            + joinQrSvg(q.url, 8, 4)
+            + '<div class="link">' + esc(q.url) + '</div>'
+            + '<script>window.onload=function(){window.print();};<\/script></body></html>';
+        var blob = new Blob([html], { type: 'text/html' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.target = '_blank';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    };
 
     // The leader's black text-fullscreen content (null = image mode / off).
     $scope.fullScreenText = null;

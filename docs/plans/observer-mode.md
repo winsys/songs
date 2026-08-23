@@ -59,6 +59,18 @@ default UI language, fallback to the leader's); history in `sessionStorage`
   (regenerates the token → old QR codes stop working). «Поделиться» of the
   observer account appends the link. Server: `Ajax_Settings::get_join_link
   {user_id, regenerate}` (admin only, observer accounts of the own group).
+- **Leader page (added 2026-08-23, Pavel's follow-up):** while the
+  «📡 Трансляция в группу» toggle is ON, a «📱 QR-код» button appears next to
+  it (`ng-if="observer.active"`) → the same modal (group name, QR, link,
+  «Копировать ссылку», «🖨 Печать», «Закрыть» — no «Новая ссылка»: replacing
+  the token stays with the admin). Server: `Ajax_Observer::observer_join_link`
+  (no args; leader / tech / admin via `observerCanBroadcast()`): finds the
+  group's observer account itself, returns its token (issues one when the
+  account has none yet, never replaces an existing one) + `group_name`
+  (`user_settings.display_name`, fallback: the group owner's NAME);
+  `{status:'none'}` when the group has no observer account → alert
+  `leader.joinQr.noAccount`. `leader.html` loads `vendor/qrcode.min.js`
+  (`leader.min.js` v=36).
 
 ### Observer channel (group mode)
 - Table `current_observer` (groupId PK, active, song_id, verse_idx, langs,
