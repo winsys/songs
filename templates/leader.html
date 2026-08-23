@@ -99,9 +99,73 @@
         box-shadow: 0 3px 10px rgba(30,126,52,0.28);
     }
     .btn-observer.btn-observer-on:hover { background: #176a2b; }
-    @media (max-width: 480px) {
-        .btn-observer { font-size: 11px; padding: 7px 9px; }
+    /* Observer join QR code button — shown only while the broadcast is on */
+    .btn-observer-qr {
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1.5px solid #cfe3f7;
+        background: #ebf3fb;
+        color: #1a6db5;
+        cursor: pointer;
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: all 0.15s;
     }
+    .btn-observer-qr:hover { background: #d6e9f8; }
+    @media (max-width: 480px) {
+        .btn-observer, .btn-observer-qr { font-size: 11px; padding: 7px 9px; }
+    }
+
+    /* Observer join link / QR code modal (same as on the settings page) */
+    .qr-overlay {
+        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0,0,0,0.6);
+        z-index: 99999;
+        display: flex; align-items: center; justify-content: center;
+        padding: 12px;
+    }
+    .qr-modal {
+        background: #fff;
+        border-radius: 14px;
+        width: 100%;
+        max-width: 420px;
+        max-height: 96vh;
+        overflow-y: auto;
+        box-shadow: 0 8px 40px rgba(0,0,0,0.3);
+        padding: 18px 18px 16px;
+    }
+    .qr-title { font-size: 16px; font-weight: 600; color: #2c3e50; margin-bottom: 2px; }
+    .qr-user { font-size: 12px; color: #95a5a6; margin-bottom: 12px; }
+    .qr-code { display: flex; justify-content: center; margin: 6px 0 10px; }
+    .qr-code svg { width: 260px; max-width: 100%; height: auto; }
+    .qr-hint { font-size: 12px; color: #5a6272; line-height: 1.45; margin-bottom: 10px; }
+    .qr-link {
+        width: 100%;
+        font-size: 12px;
+        font-family: monospace;
+        padding: 8px 10px;
+        border: 1.5px solid #dee2e6;
+        border-radius: 8px;
+        color: #2c3e50;
+        background: #f8f9fa;
+        margin-bottom: 10px;
+    }
+    .qr-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+    .qr-actions button {
+        flex: 1 1 45%;
+        padding: 8px 12px;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        border: 1.5px solid #dee2e6;
+        background: #fff;
+        color: #5a6272;
+        cursor: pointer;
+        transition: all 0.15s;
+    }
+    .qr-actions button:hover { border-color: #1a6db5; color: #1a6db5; }
 
     .leader-page-title {
         font-size: 18px;
@@ -929,6 +993,24 @@
 </style>
 
 <div ng-controller="Leader">
+
+    <!-- Observer join link / QR code: the phone logs in as the group's
+         observer account without a password and lands on /observer -->
+    <div class="qr-overlay" ng-if="joinQr.visible" ng-click="closeJoinQr()">
+        <div class="qr-modal" ng-click="$event.stopPropagation()">
+            <div class="qr-title"><?php echo T::s('settings.joinQr.title'); ?></div>
+            <div class="qr-user" ng-if="joinQr.groupName">{{ joinQr.groupName }}</div>
+            <div class="qr-code" ng-bind-html="joinQr.svg"></div>
+            <div class="qr-hint"><?php echo T::s('settings.joinQr.hint'); ?></div>
+            <input class="qr-link" type="text" readonly ng-value="joinQr.url" onclick="this.select()">
+            <div class="qr-actions">
+                <button ng-click="copyJoinLink()"><?php echo T::s('settings.joinQr.copy'); ?></button>
+                <button ng-click="printJoinQr()"><?php echo T::s('settings.joinQr.print'); ?></button>
+                <button ng-click="closeJoinQr()"><?php echo T::s('common.button.close'); ?></button>
+            </div>
+        </div>
+    </div>
+
     <div class="leader-wrapper">
 
         <!-- ── WebSocket disconnect banner ────────────────────────── -->
@@ -953,6 +1035,14 @@
                     title="<?php echo T::s('leader.observer.hint'); ?>">
                 <span ng-if="!observer.active"><?php echo T::s('leader.observer.off'); ?></span>
                 <span ng-if="observer.active"><?php echo T::s('leader.observer.on'); ?></span>
+            </button>
+            <!-- Join QR code of the group's observer login (password-less
+                 /join/<token>) — only while the broadcast is on -->
+            <button class="btn-observer-qr"
+                    ng-if="observer.active"
+                    ng-click="showJoinQr()"
+                    title="<?php echo T::s('leader.observer.qrHint'); ?>">
+                <?php echo T::s('leader.observer.qr'); ?>
             </button>
         </div>
 
@@ -1273,7 +1363,8 @@
 
     </div><!-- /ng-controller -->
 
-<script src="/js/leader.min.js?v=35" type="text/javascript"></script>
+<script src="/js/vendor/qrcode.min.js?v=1" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=36" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}
