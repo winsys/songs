@@ -468,6 +468,7 @@
   "settings.placeholder.default": "field_small.jpg (по умолчанию)",
   "settings.placeholder.displayName": "Введите имя для отображения",
   "settings.placeholder.upload": "Или загрузите новое изображение:",
+  "settings.placeholder.uploadBtn": "Выбрать картинку…",
   "settings.previewBibleChip": "📖 Иоанна 3:16",
   "settings.previewMsgChip": "✉ Цитата из послания",
   "settings.scaleChipsLabel": "Масштабировать цитаты",
