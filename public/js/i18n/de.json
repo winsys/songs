@@ -468,6 +468,7 @@
   "settings.placeholder.default": "field_small.jpg (Standard)",
   "settings.placeholder.displayName": "Anzeigenamen eingeben",
   "settings.placeholder.upload": "Oder laden Sie ein neues Bild hoch:",
+  "settings.placeholder.uploadBtn": "Bild auswählen…",
   "settings.previewBibleChip": "📖 Johannes 3:16",
   "settings.previewMsgChip": "✉ Zitat aus der Botschaft",
   "settings.scaleChipsLabel": "Zitate skalieren",

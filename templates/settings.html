@@ -613,9 +613,16 @@
             </div>
             <div class="settings-field">
                 <label class="settings-label"><?php echo T::s('settings.placeholder.upload'); ?></label>
+                <!-- The native file control is hidden: browsers label it themselves
+                     («Bild wählen», «Datei auswählen», …) — the visible button
+                     carries the translatable text instead -->
                 <input type="file" id="placeholderUpload" accept="image/*"
-                       class="settings-input"
+                       style="display:none"
                        onchange="angular.element(this).scope().uploadPlaceholderImage()">
+                <button type="button" class="btn-share-user"
+                        onclick="document.getElementById('placeholderUpload').click()">
+                    🖼 <?php echo T::s('settings.placeholder.uploadBtn'); ?>
+                </button>
             </div>
             </div>
         </div>

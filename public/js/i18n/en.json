@@ -468,6 +468,7 @@
   "settings.placeholder.default": "field_small.jpg (default)",
   "settings.placeholder.displayName": "Enter the display name",
   "settings.placeholder.upload": "Or upload a new image:",
+  "settings.placeholder.uploadBtn": "Choose an image…",
   "settings.previewBibleChip": "📖 John 3:16",
   "settings.previewMsgChip": "✉ Message quote",
   "settings.scaleChipsLabel": "Scale citations",

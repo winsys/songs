@@ -468,6 +468,7 @@
   "settings.placeholder.default": "field_small.jpg (numatytasis)",
   "settings.placeholder.displayName": "Įveskite rodomą pavadinimą",
   "settings.placeholder.upload": "Arba įkelkite naują paveikslėlį:",
+  "settings.placeholder.uploadBtn": "Pasirinkti paveikslėlį…",
   "settings.previewBibleChip": "📖 Jono 3:16",
   "settings.previewMsgChip": "✉ Citata iš Žinios",
   "settings.scaleChipsLabel": "Keisti citatų mastelį",
