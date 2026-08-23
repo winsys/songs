@@ -270,9 +270,11 @@
         width: 100%;
     }
 
-    #ccf6 .angucomplete-input-container input {
+    #ccf6 .angucomplete-holder input {
         width: 100%;
-        height: 60px;                 /* search fields: +25%, peach bg like .btn-action-orange, grey border (Aug 2026) */
+        height: 43px;                 /* search fields: +25% of the 34px Bootstrap .form-control the field really had, peach bg like
+                                         .btn-action-orange, grey border (Aug 2026). The input is a direct child of .angucomplete-holder —
+                                         the former ".angucomplete-input-container input" selector never matched. */
         padding: 10px 16px !important;
         border: 1.5px solid #dee2e6 !important;
         border-radius: 10px !important;
@@ -284,7 +286,7 @@
         -webkit-appearance: none;
     }
 
-    #ccf6 .angucomplete-input-container input:focus {
+    #ccf6 .angucomplete-holder input:focus {
         border-color: #3498db !important;
         box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12) !important;
         outline: none;
