@@ -502,28 +502,40 @@
             <button class="tab-btn" ng-class="{active: tab==='languages'}" ng-click="tab='languages'; loadLanguages()"><?php echo T::s('import.tab.langs'); ?></button>
         </div>
 
-        <!-- Import capabilities + downloadable format samples (the .sog
-             samples are per UI language, the images ZIP is shared) -->
-        <div class="import-section import-help" ng-show="tab==='songs' || tab==='messages'">
+        <!-- Import capabilities + downloadable format samples, split per tab
+             (the .sog samples are per UI language, the images ZIP is shared) -->
+        <div class="import-section import-help" ng-show="tab==='songs'">
             <h4><?php echo T::s('import.help.title'); ?></h4>
-            <p><?php echo T::s('import.help.intro'); ?></p>
+            <p><?php echo T::s('import.help.introSongs'); ?></p>
 
             <div class="help-format">
                 <div class="help-format-title"><?php echo T::s('import.help.songsTitle'); ?></div>
                 <p><?php echo T::s('import.help.songsDesc'); ?></p>
+                <p><?php echo T::s('import.help.uniqueNum'); ?></p>
                 <a class="sample-dl" href="/samples/import/songs_<?php echo T::lang(); ?>.sog" download>⬇ songs_<?php echo T::lang(); ?>.sog</a>
+            </div>
+            <div class="help-format">
+                <div class="help-format-title"><?php echo T::s('import.help.translateTitle'); ?></div>
+                <p><?php echo T::s('import.help.translateDesc'); ?></p>
             </div>
             <div class="help-format">
                 <div class="help-format-title"><?php echo T::s('import.help.imagesTitle'); ?></div>
                 <p><?php echo T::s('import.help.imagesDesc'); ?></p>
                 <a class="sample-dl" href="/samples/import/song_images.zip" download>⬇ song_images.zip</a>
             </div>
+            <p class="help-warn"><?php echo T::s('import.help.testHintSongs'); ?></p>
+        </div>
+
+        <div class="import-section import-help" ng-show="tab==='messages'">
+            <h4><?php echo T::s('import.help.title'); ?></h4>
+            <p><?php echo T::s('import.help.introMsg'); ?></p>
+
             <div class="help-format">
                 <div class="help-format-title"><?php echo T::s('import.help.msgTitle'); ?></div>
                 <p><?php echo T::s('import.help.msgDesc'); ?></p>
                 <a class="sample-dl" href="/samples/import/messages_<?php echo T::lang(); ?>.sog" download>⬇ messages_<?php echo T::lang(); ?>.sog</a>
             </div>
-            <p class="help-warn"><?php echo T::s('import.help.testHint'); ?></p>
+            <p class="help-warn"><?php echo T::s('import.help.testHintMsg'); ?></p>
         </div>
 
         <!-- ===================== SONGS TAB ===================== -->
