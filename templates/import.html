@@ -445,6 +445,43 @@
     }
     .group-name-lang .import-input { margin-bottom: 0; padding: 6px 10px; }
 
+    /* ---- Import capabilities / downloadable format samples ---- */
+    .import-help .help-format {
+        margin: 12px 0;
+        padding: 10px 12px;
+        background: #f8f9fa;
+        border: 1px solid #eef0f3;
+        border-radius: 8px;
+    }
+    .import-help .help-format-title {
+        font-weight: 600;
+        font-size: 13px;
+        color: #2c3e50;
+        margin-bottom: 4px;
+    }
+    .import-help .help-format p { margin: 0 0 8px; }
+    .sample-dl {
+        display: inline-block;
+        padding: 6px 12px;
+        border: 1.5px solid #cfe3f7;
+        background: #ebf3fb;
+        color: #1a6db5;
+        border-radius: 8px;
+        font-size: 12px;
+        font-weight: 600;
+        text-decoration: none;
+    }
+    .sample-dl:hover, .sample-dl:focus { background: #d6e9f8; color: #155a99; text-decoration: none; }
+    .help-warn {
+        font-size: 12px;
+        color: #8a6d3b;
+        background: #fcf8e3;
+        border: 1px solid #faebcc;
+        border-radius: 8px;
+        padding: 8px 12px;
+        margin-top: 10px;
+    }
+
 </style>
 
 <div ng-controller="ImportCtrl">
@@ -463,6 +500,30 @@
             <button class="tab-btn" ng-class="{active: tab==='songs'}"    ng-click="tab='songs'"><?php echo T::s('import.tab.songs'); ?></button>
             <button class="tab-btn" ng-class="{active: tab==='messages'}" ng-click="tab='messages'"><?php echo T::s('import.tab.messages'); ?></button>
             <button class="tab-btn" ng-class="{active: tab==='languages'}" ng-click="tab='languages'; loadLanguages()"><?php echo T::s('import.tab.langs'); ?></button>
+        </div>
+
+        <!-- Import capabilities + downloadable format samples (the .sog
+             samples are per UI language, the images ZIP is shared) -->
+        <div class="import-section import-help" ng-show="tab==='songs' || tab==='messages'">
+            <h4><?php echo T::s('import.help.title'); ?></h4>
+            <p><?php echo T::s('import.help.intro'); ?></p>
+
+            <div class="help-format">
+                <div class="help-format-title"><?php echo T::s('import.help.songsTitle'); ?></div>
+                <p><?php echo T::s('import.help.songsDesc'); ?></p>
+                <a class="sample-dl" href="/samples/import/songs_<?php echo T::lang(); ?>.sog" download>⬇ songs_<?php echo T::lang(); ?>.sog</a>
+            </div>
+            <div class="help-format">
+                <div class="help-format-title"><?php echo T::s('import.help.imagesTitle'); ?></div>
+                <p><?php echo T::s('import.help.imagesDesc'); ?></p>
+                <a class="sample-dl" href="/samples/import/song_images.zip" download>⬇ song_images.zip</a>
+            </div>
+            <div class="help-format">
+                <div class="help-format-title"><?php echo T::s('import.help.msgTitle'); ?></div>
+                <p><?php echo T::s('import.help.msgDesc'); ?></p>
+                <a class="sample-dl" href="/samples/import/messages_<?php echo T::lang(); ?>.sog" download>⬇ messages_<?php echo T::lang(); ?>.sog</a>
+            </div>
+            <p class="help-warn"><?php echo T::s('import.help.testHint'); ?></p>
         </div>
 
         <!-- ===================== SONGS TAB ===================== -->
