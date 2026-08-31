@@ -20,14 +20,19 @@ Sources are skipped (with a notice) if the matching file is not present.
 Supported source loaders:
   - Zefania XML  (<XMLBIBLE><BIBLEBOOK><CHAPTER><VERS>)
   - getBible v2  (https://github.com/getbible/v2 — JSON with books[].chapters[].verses[])
+  - module JSON  ({"__moduleMetaInfo": {…}, "<Book>": {"<chapter>": {"<verse>": text}}},
+                  books in canonical order — the export format of Bible-app modules)
 
 Outputs (overwrites if source available):
   luther1912.sql
   elberfelder1905.sql
   kjv.sql
   lithuanian.sql
+
+Applying on the server (its mysql CLI fails with "Malformed packet"):
+  php database/translations/apply.php lithuanian.sql
 """
-import io, sys, os, json
+import io, sys, os, json, re
 import xml.etree.ElementTree as ET
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
@@ -215,13 +220,56 @@ def load_getbible_json(path, fallback_names):
     return book_names, verses
 
 
-def emit_translation_sql(out_path, *, name, lang, sort_order, source_path, loader, fallback_names):
+def load_module_json(path, fallback_names):
+    """
+    Return (book_names, verses) from a Bible-app "module" JSON export.
+
+    Format:  { "__moduleMetaInfo": { id, language_code, shortname, title,
+               bookshortnames[], … },
+               "<Book name>": { "<chapter>": { "<verse>": "text", … }, … }, … }
+
+    The format carries no book numbers: books are taken in file order and
+    numbered 1-66 (the metadata's bookshortnames array is in the same
+    canonical order). The top-level keys are the book names as the module
+    shows them (Lithuanian genitive: "Pradžios", "Išėjimo", …). Verse text
+    is plain except for occasional <br/> line breaks, which become spaces.
+    fallback_names is used when a book key is empty.
+    """
+    with open(path, 'r', encoding='utf-8') as f:
+        data = json.load(f)
+    data.pop('__moduleMetaInfo', None)
+    if len(data) != 66:
+        raise ValueError(f'{os.path.basename(path)}: expected 66 books, got {len(data)}')
+
+    verses = []
+    book_names = {}
+    for bn, (bname, chapters) in enumerate(data.items(), 1):
+        book_names[bn] = bname.strip() or fallback_names.get(bn) or f'Book {bn}'
+        for ck, vs in chapters.items():
+            cn = int(ck)
+            for vk, txt in vs.items():
+                vn = int(vk)
+                txt = re.sub(r'<br\s*/?>', ' ', txt or '', flags=re.I)
+                txt = ' '.join(txt.split())
+                if txt:
+                    verses.append((bn, cn, vn, txt))
+    return book_names, verses
+
+
+def emit_translation_sql(out_path, *, name, lang, sort_order, source_path, loader, fallback_names,
+                         replace_lang=False, source_note=''):
     """
     Emit a self-contained SQL file that loads one translation. Skips
     silently (with a notice) if source_path is missing.
 
-    loader is one of load_zefania or load_getbible_json — anything
-    returning (book_names_map, [(book_num, chapter_num, verse_num, text), …]).
+    loader is one of load_zefania / load_getbible_json / load_module_json —
+    anything returning (book_names_map, [(book_num, chapter_num, verse_num, text), …]).
+
+    replace_lang=True makes the file delete EVERY existing translation with
+    the same LANG before inserting — for a translation swap, when the new
+    file supersedes the language's previous Bible. The default deletes only
+    a previous import of the same NAME. source_note is an optional
+    provenance line for the file header.
     """
     if not os.path.isfile(source_path):
         print(f'  {os.path.basename(out_path)}: SKIPPED (missing {os.path.basename(source_path)})')
@@ -241,11 +289,20 @@ def emit_translation_sql(out_path, *, name, lang, sort_order, source_path, loade
     parts.append("-- Self-contained: writes its own bible_translations / bible_books /\n")
     parts.append("-- bible_verses rows. Verse text goes to bible_verses.TEXT, book\n")
     parts.append("-- names to bible_books.NAME — no parallel-language columns used.\n")
-    parts.append("-- Idempotency: re-running deletes the existing translation with the same NAME first.\n\n")
+    if source_note:
+        parts.append(f"-- Source: {source_note}\n")
+    if replace_lang:
+        parts.append(f"-- Idempotency: re-running deletes EVERY existing LANG='{lang}' translation first\n")
+        parts.append("-- (this file supersedes the language's previous Bible).\n\n")
+    else:
+        parts.append("-- Idempotency: re-running deletes the existing translation with the same NAME first.\n\n")
     parts.append("START TRANSACTION;\n\n")
 
-    # Remove any previous import of this translation (cascade deletes books and verses).
-    parts.append(f"DELETE FROM bible_translations WHERE NAME = '{sql_escape(name)}' AND LANG = '{lang}';\n\n")
+    # Remove the previous translation(s) — the FK cascade deletes their books and verses.
+    if replace_lang:
+        parts.append(f"DELETE FROM bible_translations WHERE LANG = '{lang}';\n\n")
+    else:
+        parts.append(f"DELETE FROM bible_translations WHERE NAME = '{sql_escape(name)}' AND LANG = '{lang}';\n\n")
 
     # 1. Translation row.
     parts.append(
@@ -316,18 +373,24 @@ def main():
         fallback_names=BOOK_NAMES_EN,
     )
 
-    # Lithuanian — getBible v2 JSON. Source:
-    #   curl -L -o getbible_lithuanian.json https://api.getbible.net/v2/lithuanian.json
-    # Module info: copyrighted by the church "Tikejimo Žodis", redistribution
-    # explicitly permitted via CrossWire / getBible. Versification: NRSV.
+    # Lithuanian — "Karaliaus Jokūbo versija 2016" (LT-KJV): the King James
+    # Version translated into Lithuanian, KJV versification (31 102 verses).
+    # Source: Bible-app module export lt_kjv_2016.json (module id 4,
+    # lastmodified 2021-10-25), git-ignored like the other sources.
+    # Replaces the earlier "Lithuanian Bible" (Tikėjimo Žodis via getBible,
+    # NRSV versification; Apr–Aug 2026): the generated SQL deletes every
+    # LANG='lt' translation before inserting, so the system keeps exactly
+    # one Lithuanian Bible.
     emit_translation_sql(
         os.path.join(OUT_TR_DIR, 'lithuanian.sql'),
-        name='Lithuanian Bible',
+        name='Karaliaus Jokūbo versija 2016',
         lang='lt',
         sort_order=30,
-        source_path=os.path.join(ROOT, 'getbible_lithuanian.json'),
-        loader=load_getbible_json,
+        source_path=os.path.join(ROOT, 'lt_kjv_2016.json'),
+        loader=load_module_json,
         fallback_names=BOOK_NAMES_LT,
+        replace_lang=True,
+        source_note='lt_kjv_2016.json — LT-KJV module (id 4, lastmodified 2021-10-25), KJV versification',
     )
 
     print('Done.')

@@ -174,6 +174,28 @@ scenario re-checked.
 - Any UI string: keys in ALL FOUR dictionaries (ru/de/en/lt), rendered via
   `window.t()` / `T::s()`.
 
+### 2.5 Bible translations (one row per translation)
+- Storage: `bible_translations` (NAME, LANG, SORT_ORDER) → own `bible_books`
+  (BOOK_NUM 1–66 canonical, NAME) → own `bible_verses` (TEXT only; the
+  parallel TEXT_xx / NAME_xx columns are legacy, see
+  `database/migrations/drop_bible_parallel_columns.sql`). A translation's
+  `supported_langs` is derived from its Genesis 1:1 row — an empty first
+  verse hides the translation from the language filter.
+- Pipeline: source file (git-ignored) → `python database/translations/build.py`
+  → tracked `<name>.sql` → on the server
+  `php database/translations/apply.php <name>.sql` (statement by statement
+  over mysqli inside the file's own transaction; prints the translation list
+  with book/verse counts before and after). `--check` only parses the file.
+- Swapping a translation is safe for stored data: nothing persists
+  translation or book IDs — sermon chips resolve by `data-book-num` +
+  chapter/verse, the consoles pick a translation at load time. Cross-
+  translation navigation relies on canonical BOOK_NUM + verse numbering, so
+  a source with another versification shifts a few verses (Psalm headings,
+  Joel 3, Malachi 4 between NRSV- and KJV-numbered Bibles).
+- Aug 2026: Lithuanian = «Karaliaus Jokūbo versija 2016» (LT-KJV, KJV
+  versification, 31 102 verses) replacing «Lithuanian Bible» (Tikėjimo
+  Žodis); `lithuanian.sql` deletes every LANG='lt' translation first.
+
 ## 3. Smoke protocol (≈5 minutes, run on production after deploy)
 
 Setup: one browser as ведущий, one as техник (same group), one screen tab
