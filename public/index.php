@@ -14,6 +14,7 @@ include '../app/Info.php';
 include "../app/Database.php";
 include "../app/ZipReader.php";
 include "../app/SongImages.php";
+include "../app/BibleMap.php";
 include "../app/Ajax_Common.php";
 include "../app/Ajax_Tech.php";
 include "../app/Ajax_Leader.php";

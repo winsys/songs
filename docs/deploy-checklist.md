@@ -192,6 +192,19 @@ scenario re-checked.
   translation navigation relies on canonical BOOK_NUM + verse numbering, so
   a source with another versification shifts a few verses (Psalm headings,
   Joel 3, Malachi 4 between NRSV- and KJV-numbered Bibles).
+- **Parallel Bible display (Sept 2026, `app/BibleMap.php`):** the tech
+  console can add parallel languages (each mapped to one translation of
+  that language) to the Bible verse it projects; `get_bible_parallel`
+  (Ajax_Tech) returns the chapter's texts keyed by the PRIMARY verse
+  number, mapped through `BibleMap` (Synodal LXX ↔ Masoretic Psalms,
+  Hebrew Joel/Malachi chapter splits, psalm-superscription offsets via
+  end-alignment). A translation's tradition is detected FROM THE DATA
+  (Ps 9 max verse > 30 ⇒ LXX; Joel = 4 chapters / Malachi = 3 ⇒ Hebrew),
+  cached per request — importing a re-versified source changes mapping
+  behavior automatically. Books other than 19/29/39 join verse-number to
+  verse-number. The display pipeline is unchanged: the console composes
+  one flat text (language blocks joined with the song separator) and sends
+  it through the untouched `set_bible_text` / `observer_set_text`.
 - Aug 2026: Lithuanian = «Karaliaus Jokūbo versija 2016» (LT-KJV, KJV
   versification, 31 102 verses) replacing «Lithuanian Bible» (Tikėjimo
   Žodis); `lithuanian.sql` deletes every LANG='lt' translation first.
@@ -222,6 +235,12 @@ Setup: one browser as ведущий, one as техник (same group), one scre
    пауза/пуск и ⏹ работают как раньше; обычный видеофайл — то же самое.
 5. **Bible/messages:** техник выводит стих — стих на экране, навигация
    стрелками работает.
+   **Параллельные языки (Sept 2026):** включить язык в «Параллельные языки»
+   (например EN при Синодальном) — стих на экране в двух языках через
+   разделитель; Пс 50:3 Синодального даёт KJV Ps 51:1 («Have mercy»), в
+   подписи обе ссылки; выключение языка возвращает один язык; выбор другого
+   перевода в выпадашке заменяет блок; наблюдатель в групповом режиме видит
+   тот же двуязычный текст.
 6. **Reconnect:** перезагрузить вкладку экрана — актуальное состояние
    восстановилось (включая зум-трансформацию, когда фича появится).
 7. **Auth spot-check:** страница логина открывается, вход работает (CSRF/

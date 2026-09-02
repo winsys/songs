@@ -1633,7 +1633,7 @@
             <div class="section-label"><?php echo T::s('tech.label.translation'); ?></div>
             <div class="btn-row">
                 <button class="btn-list"
-                        ng-repeat="tr in getFilteredBibleTranslations()"
+                        ng-repeat="tr in bibleTranslations"
                         ng-class="bibleTranslationId == tr.ID ? 'btn-selected' : ''"
                         ng-click="setBibleTranslation(tr.ID)">{{ tr.NAME }}</button>
             </div>
@@ -1761,13 +1761,20 @@
                 </div>
             </div>
             <div ng-show="pageMode === 'bible'">
-                <div class="section-label"><?php echo T::s('tech.label.bibleLang'); ?></div>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button class="btn-lang"
-                            ng-repeat="lang in langList"
-                            ng-disabled="!isBibleLangAvailable(lang)"
-                            ng-class="bibleLang === lang.code ? 'lang-active' : ''"
-                            ng-click="setBibleLang(lang.code)">{{lang.label}}</button>
+                <div class="section-label"><?php echo T::s('tech.label.bibleExtraLangs'); ?></div>
+                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
+                    <span ng-repeat="lang in langList"
+                          ng-show="lang.code !== bibleLang && bibleTranslationsForLang(lang.code).length > 0"
+                          style="display: inline-flex; align-items: center; gap: 4px;">
+                        <button class="btn-lang"
+                                ng-class="isBibleExtraOn(lang.code) ? 'lang-active' : ''"
+                                ng-click="toggleBibleExtraLang(lang.code)">{{lang.label}}</button>
+                        <select ng-show="isBibleExtraOn(lang.code) && bibleTranslationsForLang(lang.code).length > 1"
+                                ng-model="bibleExtra[lang.code].trId"
+                                ng-options="tr.ID as tr.NAME for tr in bibleTranslationsForLang(lang.code)"
+                                ng-change="setBibleExtraTranslation(lang.code)"
+                                style="max-width: 160px; height: 26px;"></select>
+                    </span>
                 </div>
             </div>
             <div ng-show="pageMode === 'bible'">
@@ -2544,5 +2551,5 @@
 
 </div><!-- /ng-controller -->
 
-<script src="/js/tech.min.js?v=48" type="text/javascript"></script>
+<script src="/js/tech.min.js?v=49" type="text/javascript"></script>
 
