@@ -24,3 +24,4 @@
 /database/translations/*.xml
 /database/translations/getbible_*.json
 /database/translations/lt_kjv_*.json
+/database/collections/only_believe_module.json
