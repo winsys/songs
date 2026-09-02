@@ -16,7 +16,14 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // ── Bible mode state ──────────────────────────────────────
     $scope.bibleTranslations    = [];
     $scope.bibleTranslationId   = null;
-    $scope.bibleLang            = null;   // single active Bible content language (code)
+    $scope.bibleLang            = null;   // language of the PRIMARY translation (code)
+    // Parallel Bible languages: lang code => {on: bool, trId: translation id}.
+    // Persisted in localStorage; translations resolved when the list loads.
+    $scope.bibleExtra           = {};
+    // Parallel chapter data from get_bible_parallel:
+    // trId => {name, lang, book, verses: {primaryVerseNum: {c, v, t}}}
+    $scope.bibleParallel        = {};
+    var bibleParallelSeq        = 0;
     $scope.bibleBooks           = [];
     $scope.selectedBibleBook    = null;
     $scope.bibleChapters        = [];
@@ -190,17 +197,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         if ($scope.pageMode === 'messages' && $scope.showingMessage) {
             prepareMessageText($scope.showingMessage);
         }
-
-        // In Bible mode, auto-switch to the first translation matching the
-        // (now possibly different) active toggles if the current one is
-        // filtered out. This makes the translation list react to the toggle.
-        if ($scope.pageMode === 'bible' && $scope.bibleTranslations.length > 0) {
-            var filtered = $scope.getFilteredBibleTranslations();
-            var stillValid = filtered.some(function(t) { return t.ID == $scope.bibleTranslationId; });
-            if (!stillValid && filtered.length > 0) {
-                $scope.setBibleTranslation(filtered[0].ID);
-            }
-        }
+        // Bible mode is not affected: its languages are per-translation
+        // (primary translation + bibleExtra parallel selections).
     };
 
     // ── Helpers for dynamic languages ───────────────────────
@@ -212,24 +210,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         });
     }
 
-    /**
-     * Bible translations filtered by the single active Bible language.
-     * A translation is included if its `supported_langs` (server-computed
-     * from non-NULL TEXT* columns) contains $scope.bibleLang. Falls back
-     * to LANG-based matching when supported_langs is missing, and to the
-     * full list when nothing matches so the panel never goes empty.
-     */
-    $scope.getFilteredBibleTranslations = function() {
-        if (!$scope.bibleTranslations || $scope.bibleTranslations.length === 0) return [];
-        if (!$scope.bibleLang) return $scope.bibleTranslations;
-        var filtered = $scope.bibleTranslations.filter(function(t) {
-            var langs = t.supported_langs && t.supported_langs.length ? t.supported_langs : [t.LANG];
-            return langs.indexOf($scope.bibleLang) !== -1;
-        });
-        return filtered.length > 0 ? filtered : $scope.bibleTranslations;
-    };
-
-    /** Returns the langList entry for the currently selected Bible language. */
+    /** Returns the langList entry for the primary Bible language. */
     function getBibleLangObj() {
         if (!$scope.bibleLang) return null;
         for (var i = 0; i < $scope.langList.length; i++) {
@@ -238,58 +219,105 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         return null;
     }
 
-    /**
-     * Whether at least one Bible translation supports the given language.
-     * Used to disable language buttons for which no translation exists.
-     * Translations advertise their supported languages via `supported_langs`
-     * (server-computed from non-NULL TEXT* columns); after the parallel-
-     * column migration this collapses to just the translation's LANG, which
-     * is exactly what we want.
-     */
-    $scope.isBibleLangAvailable = function(lang) {
-        if (!lang) return false;
-        if (!$scope.bibleTranslations || $scope.bibleTranslations.length === 0) return true;
-        return $scope.bibleTranslations.some(function(t) {
-            var langs = t.supported_langs && t.supported_langs.length ? t.supported_langs : [t.LANG];
-            return langs.indexOf(lang.code) !== -1;
+    // ── Parallel Bible languages ─────────────────────────────
+    // The primary translation (row-2 buttons) defines the language of the
+    // books/chapters/verses panels; bibleExtra adds parallel languages,
+    // each mapped to one translation of that language. The display text
+    // gets one block per language, joined like multi-language songs.
+
+    /** Translations whose LANG matches the given language code. */
+    $scope.bibleTranslationsForLang = function(code) {
+        return $scope.bibleTranslations.filter(function(t) { return t.LANG === code; });
+    };
+
+    $scope.isBibleExtraOn = function(code) {
+        return !!($scope.bibleExtra[code] && $scope.bibleExtra[code].on);
+    };
+
+    /** Active parallel selections as [{lang, trId}], in langList order. */
+    function bibleExtraActiveList() {
+        var out = [];
+        $scope.langList.forEach(function(l) {
+            if (l.code === $scope.bibleLang) return;
+            var e = $scope.bibleExtra[l.code];
+            if (e && e.on && e.trId) out.push({ lang: l.code, trId: e.trId });
         });
+        return out;
+    }
+
+    function saveBibleExtra() {
+        try {
+            localStorage.setItem('tech_bible_extra', JSON.stringify($scope.bibleExtra));
+        } catch (e) { /* storage unavailable — selection just won't persist */ }
+    }
+
+    function loadBibleExtraFromStorage() {
+        try {
+            var raw = localStorage.getItem('tech_bible_extra');
+            if (raw) $scope.bibleExtra = JSON.parse(raw) || {};
+        } catch (e) { $scope.bibleExtra = {}; }
+    }
+    loadBibleExtraFromStorage();
+
+    $scope.toggleBibleExtraLang = function(code) {
+        if (code === $scope.bibleLang) return;
+        var e = $scope.bibleExtra[code] || { on: false, trId: null };
+        e.on = !e.on;
+        if (e.on && !e.trId) {
+            var list = $scope.bibleTranslationsForLang(code);
+            e.trId = list.length > 0 ? list[0].ID : null;
+        }
+        $scope.bibleExtra[code] = e;
+        saveBibleExtra();
+        loadBibleParallel();
+    };
+
+    $scope.setBibleExtraTranslation = function(code) {
+        saveBibleExtra();
+        loadBibleParallel();
     };
 
     /**
-     * Switch the single active Bible language. Re-prepares the visible
-     * verses, rebuilds the active-selection text, and auto-switches to a
-     * compatible translation if the current one has no data for the
-     * chosen language.
+     * (Re)load parallel chapter data for the active extra languages and,
+     * once it arrives, upgrade whatever is currently on the display.
+     * With no extras active it clears the data and re-sends primary-only
+     * text so parallel blocks disappear from the screen.
      */
-    $scope.setBibleLang = function(code) {
-        if (!code || $scope.bibleLang === code) return;
-        $scope.bibleLang = code;
+    function loadBibleParallel() {
+        var seq = ++bibleParallelSeq;
+        var extras = bibleExtraActiveList();
 
-        // Re-prepare visible verses in the new language.
-        if ($scope.bibleVerses && $scope.bibleVerses.length > 0) {
-            $scope.biblePreparedVerses = prepareBibleVerses($scope.bibleVerses);
-
-            // Rebuild current selection text (display strings carry indices).
-            if ($scope.selectedBibleVerses.length > 0) {
-                var bookName = $scope.getBibleBookName($scope.selectedBibleBook);
-                var refLabel = bookName + ' ' + $scope.selectedBibleChapter;
-                var combined = buildBibleCombinedText($scope.selectedBibleVerses);
-                $scope.showingBibleVerse = combined;
-                sendBibleText(combined, refLabel);
-            }
+        if (extras.length === 0 || !$scope.selectedBibleBook || !$scope.selectedBibleChapter) {
+            var hadData = Object.keys($scope.bibleParallel).length > 0;
+            $scope.bibleParallel = {};
+            if (hadData) resendCurrentBibleSelection();
+            return;
         }
 
-        // If the current translation does not support the new language,
-        // switch to the first one that does. setBibleTranslation reloads
-        // books/chapters/verses and restores the position.
-        if ($scope.bibleTranslations && $scope.bibleTranslations.length > 0) {
-            var filtered  = $scope.getFilteredBibleTranslations();
-            var stillValid = filtered.some(function(t) { return t.ID == $scope.bibleTranslationId; });
-            if (!stillValid && filtered.length > 0) {
-                $scope.setBibleTranslation(filtered[0].ID);
-            }
-        }
-    };
+        $http({ method: "POST", url: "/ajax",
+            data: { command: 'get_bible_parallel',
+                book_num: parseInt($scope.selectedBibleBook.BOOK_NUM),
+                chapter_num: $scope.selectedBibleChapter,
+                primary_id: $scope.bibleTranslationId,
+                translation_ids: extras.map(function(e) { return e.trId; }) } }).then(
+            function success(respond) {
+                if (seq !== bibleParallelSeq) return; // stale: chapter/extras changed
+                $scope.bibleParallel = (respond.data && respond.data.extras) || {};
+                resendCurrentBibleSelection();
+            },
+            function error(erespond) {
+                console.log('get_bible_parallel error: ', erespond);
+            });
+    }
+
+    /** Re-compose and re-send the current selection (if something is shown). */
+    function resendCurrentBibleSelection() {
+        if (!$scope.showingBibleVerse || $scope.selectedBibleVerses.length === 0) return;
+        var combined = buildBibleCombinedText($scope.selectedBibleVerses);
+        if (!combined) return;
+        $scope.showingBibleVerse = combined;
+        sendBibleText(combined, buildBibleRefLabel($scope.selectedBibleVerses));
+    }
 
     /**
      * Checks if data exists for the language in the current context.
@@ -387,9 +415,9 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 }
                 $scope.languages = newLangs;
 
-                // Initialize the single active Bible language. Bible mode
-                // shows one language at a time; default to UI language if
-                // it is registered, otherwise the system default.
+                // Initial Bible language preference: steers which
+                // translation gets auto-selected as primary. Afterwards
+                // bibleLang always follows the primary translation's LANG.
                 if (!$scope.bibleLang) {
                     var hasUi = list.some(function(l) { return l.code === uiLang; });
                     $scope.bibleLang = hasUi ? uiLang : (defaultCode || (list[0] && list[0].code) || null);
@@ -1173,20 +1201,16 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_translations' } }).then(
             function success(respond) {
                 $scope.bibleTranslations = respond.data;
-                // Auto-select within the filtered list (toggle-aware). Prefer a
-                // translation whose LANG matches window.UI_LANG; otherwise take
-                // the first translation visible under the current toggles.
+                // Auto-select the primary translation: prefer one whose
+                // LANG matches the preferred Bible/UI language, otherwise
+                // take the first one (they come sorted by SORT_ORDER).
                 if ($scope.bibleTranslations.length > 0 && !$scope.bibleTranslationId) {
-                    // Pick a translation that supports the active Bible
-                    // language; prefer one whose LANG matches it exactly.
-                    var filtered = $scope.getFilteredBibleTranslations();
-                    if (filtered.length === 0) filtered = $scope.bibleTranslations;
                     var preferred = $scope.bibleLang || window.UI_LANG || 'ru';
                     var match = null;
-                    for (var i = 0; i < filtered.length; i++) {
-                        if (filtered[i].LANG === preferred) { match = filtered[i]; break; }
+                    for (var i = 0; i < $scope.bibleTranslations.length; i++) {
+                        if ($scope.bibleTranslations[i].LANG === preferred) { match = $scope.bibleTranslations[i]; break; }
                     }
-                    $scope.setBibleTranslation((match || filtered[0]).ID);
+                    $scope.setBibleTranslation((match || $scope.bibleTranslations[0]).ID);
                 }
             },
             function error(erespond) {
@@ -1212,6 +1236,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         }
 
         $scope.bibleTranslationId   = translationId;
+        // The primary language follows the primary translation.
+        for (var ti = 0; ti < $scope.bibleTranslations.length; ti++) {
+            if ($scope.bibleTranslations[ti].ID == translationId) {
+                $scope.bibleLang = $scope.bibleTranslations[ti].LANG;
+                break;
+            }
+        }
         $scope.bibleBooks           = [];
         $scope.selectedBibleBook    = null;
         $scope.bibleChapters        = [];
@@ -1220,6 +1251,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $scope.biblePreparedVerses  = [];
         $scope.selectedBibleVerses  = [];
         $scope.bibleSearchResults   = [];
+        $scope.bibleParallel        = {};
+        bibleParallelSeq++;         // invalidate any in-flight parallel load
 
         $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_books', translation_id: translationId } }).then(
             function(respond) {
@@ -1264,7 +1297,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             $scope.bibleVerses         = resp.data;
             $scope.biblePreparedVerses = prepareBibleVerses($scope.bibleVerses);
 
-            if (prevVerseNums.length === 0) { scrollBiblePanels(); return; }
+            if (prevVerseNums.length === 0) { scrollBiblePanels(); loadBibleParallel(); return; }
 
             // Restore verse selection by matching VERSE_NUM
             var restoredVerses = [];
@@ -1280,10 +1313,11 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 $scope.selectedBibleVerses = restoredVerses;
                 var combinedText = buildBibleCombinedText(restoredVerses);
                 $scope.showingBibleVerse   = combinedText;
-                var bookName = $scope.getBibleBookName($scope.selectedBibleBook);
-                sendBibleText(combinedText, bookName + ' ' + prevChapter);
+                sendBibleText(combinedText, buildBibleRefLabel(restoredVerses));
             }
             scrollBiblePanels();
+            // Parallel data for the new chapter; re-sends with extras when loaded.
+            loadBibleParallel();
         });
     };
 
@@ -1317,6 +1351,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             function success(respond) {
                 $scope.bibleVerses         = respond.data;
                 $scope.biblePreparedVerses = prepareBibleVerses($scope.bibleVerses);
+                loadBibleParallel();
             },
             function error(erespond) {
                 console.log('Ajax call error: ', erespond);
@@ -1395,8 +1430,6 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
 
     $scope.toggleBibleVerse = function(verseText, $event) {
         var ctrlKey = $event.ctrlKey || $event.metaKey;
-        var bookName = $scope.getBibleBookName($scope.selectedBibleBook);
-        var refLabel = bookName + ' ' + $scope.selectedBibleChapter;
 
         if (ctrlKey) {
             var index = $scope.selectedBibleVerses.indexOf(verseText);
@@ -1411,7 +1444,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 $scope.showingBibleVerse = null;
             } else {
                 var combinedText = buildBibleCombinedText($scope.selectedBibleVerses);
-                sendBibleText(combinedText, refLabel);
+                sendBibleText(combinedText, buildBibleRefLabel($scope.selectedBibleVerses));
                 $scope.showingBibleVerse = combinedText;
             }
         } else {
@@ -1423,48 +1456,111 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 $scope.showingBibleVerse = null;
             } else {
                 var count = $scope.bibleVerseCount || 1;
+                var verses;
                 if (count <= 1) {
-                    $scope.selectedBibleVerses = [verseText];
-                    var cleanText = verseText.replace(/\n\(\d+\)$/, '');
-                    sendBibleText(cleanText, refLabel);
-                    $scope.showingBibleVerse = verseText;
+                    verses = [verseText];
                 } else {
                     var startIdx = $scope.biblePreparedVerses.indexOf(verseText);
-                    var verses = [];
+                    verses = [];
                     for (var i = 0; i < count; i++) {
                         var idx = startIdx + i;
                         if (idx < $scope.biblePreparedVerses.length) {
                             verses.push($scope.biblePreparedVerses[idx]);
                         }
                     }
-                    $scope.selectedBibleVerses = verses;
-                    var combinedText = buildBibleCombinedText(verses);
-                    sendBibleText(combinedText, refLabel);
-                    $scope.showingBibleVerse = combinedText;
                 }
+                $scope.selectedBibleVerses = verses;
+                var combined = buildBibleCombinedText(verses);
+                sendBibleText(combined, buildBibleRefLabel(verses));
+                $scope.showingBibleVerse = combined;
             }
         }
     };
 
+    /** Primary verse numbers (ints) for selected verse display strings. */
+    function selectedVerseNums(selectedVerseStrings) {
+        var nums = [];
+        selectedVerseStrings.forEach(function(v) {
+            var match = v.match(/\n\((\d+)\)$/);
+            if (!match) return;
+            var verse = $scope.bibleVerses[parseInt(match[1])];
+            if (verse) nums.push(parseInt(verse.VERSE_NUM));
+        });
+        return nums;
+    }
+
     /**
-     * Build combined multi-verse text from selected verse display strings
-     * in the single active Bible language. Re-collects verse indices and
-     * looks up raw data so the text always matches $scope.bibleLang.
-     * Falls back to verse.TEXT when the language-suffixed column is gone.
+     * Build combined multi-verse text from selected verse display strings:
+     * first the primary-translation block, then one block per active
+     * parallel language (from bibleParallel, mapped by primary verse
+     * number), joined with the same separator multi-language songs use.
+     * Every block carries its own verse numbers, so a versification shift
+     * between translations stays visible.
      */
     function buildBibleCombinedText(selectedVerseStrings) {
         var lang = getBibleLangObj();
         var field = lang ? textCol(lang) : 'TEXT';
         var parts = [];
+        var nums  = [];
         selectedVerseStrings.forEach(function(v) {
             var match = v.match(/\n\((\d+)\)$/);
             if (!match) return;
             var verse = $scope.bibleVerses[parseInt(match[1])];
             if (!verse) return;
             var text = verse[field] || verse.TEXT;
-            if (text) parts.push(verse.VERSE_NUM + '. ' + text);
+            if (text) {
+                parts.push(verse.VERSE_NUM + '. ' + text);
+                nums.push(parseInt(verse.VERSE_NUM));
+            }
         });
-        return parts.join('\r\n');
+
+        var blocks = [];
+        if (parts.length > 0) blocks.push(parts.join('\r\n'));
+
+        bibleExtraActiveList().forEach(function(ex) {
+            var p = $scope.bibleParallel[ex.trId];
+            if (!p || !p.verses) return;
+            var lines = [];
+            nums.forEach(function(vn) {
+                var mv = p.verses[vn];
+                if (mv && mv.t) lines.push(mv.v + '. ' + mv.t);
+            });
+            if (lines.length > 0) blocks.push(lines.join('\r\n'));
+        });
+
+        return blocks.join('\r\n- - - - - - - -\r\n');
+    }
+
+    /**
+     * Reference caption for the current selection: primary "Book Chapter"
+     * (with ":verse" when a single verse is selected), plus the parallel
+     * translations' own references when their numbering diverges — e.g.
+     * "Псалтирь 21:2 / Psalms 22:1". Extras with matching chapter and
+     * verse numbers are omitted to keep the caption short.
+     */
+    function buildBibleRefLabel(selectedVerseStrings) {
+        var nums = selectedVerseNums(selectedVerseStrings);
+        var single = nums.length === 1 ? nums[0] : null;
+        var label = $scope.getBibleBookName($scope.selectedBibleBook) + ' ' + $scope.selectedBibleChapter;
+        if (single !== null) label += ':' + single;
+
+        if (nums.length > 0) {
+            var extraRefs = [];
+            bibleExtraActiveList().forEach(function(ex) {
+                var p = $scope.bibleParallel[ex.trId];
+                if (!p || !p.verses) return;
+                var mv = p.verses[nums[0]];
+                if (!mv) return;
+                var diverges = parseInt(mv.c) !== parseInt($scope.selectedBibleChapter)
+                    || parseInt(mv.v) !== nums[0];
+                if (!diverges) return;
+                var ref = (p.book || p.name) + ' ' + mv.c;
+                if (single !== null) ref += ':' + mv.v;
+                if (extraRefs.indexOf(ref) === -1 && ref !== label) extraRefs.push(ref);
+            });
+            if (extraRefs.length > 0) label += ' / ' + extraRefs.join(' / ');
+        }
+        return label;
     }
 
     /**
@@ -1985,12 +2081,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             if (verseIdx >= 0 && $scope.biblePreparedVerses[verseIdx]) {
                 var verseText = $scope.biblePreparedVerses[verseIdx];
                 $scope.selectedBibleVerses = [verseText];
-                $scope.showingBibleVerse   = verseText;
-                var cleanText  = verseText.replace(/\n\(\d+\)$/, '');
-                var bookName   = $scope.getBibleBookName(book);
-                sendBibleText(cleanText, bookName + ' ' + result.CHAPTER_NUM + ':' + result.VERSE_NUM);
+                var combined = buildBibleCombinedText($scope.selectedBibleVerses);
+                $scope.showingBibleVerse   = combined;
+                sendBibleText(combined, buildBibleRefLabel($scope.selectedBibleVerses));
             }
             scrollBiblePanels();
+            // Parallel data for the navigated chapter; re-sends when loaded.
+            loadBibleParallel();
         });
     };
 
@@ -2542,9 +2639,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // Turning the toggle on pushes what the console shows right now.
     function observerResend() {
         if ($scope.showingBibleVerse && $scope.pageMode === 'bible') {
-            var bookName = $scope.getBibleBookName($scope.selectedBibleBook);
             var text = buildBibleCombinedText($scope.selectedBibleVerses);
-            observerText(text, bookName + ' ' + $scope.selectedBibleChapter);
+            observerText(text, buildBibleRefLabel($scope.selectedBibleVerses));
             return;
         }
         if ($scope.showingMessagePara !== null && $scope.showingMsgParaIdx !== null) {

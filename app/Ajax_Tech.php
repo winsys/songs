@@ -305,6 +305,96 @@ trait Ajax_Tech
     }
 
     // -----------------------------------------------------------
+    // Parallel Bible texts for one chapter of the primary translation.
+    // Params: book_num (canonical 1-66), chapter_num (primary numbering),
+    //         primary_id, translation_ids (array of parallel translation ids).
+    // For each parallel translation returns a map keyed by the PRIMARY
+    // verse number: { c: chapter, v: verse, t: text } in that translation's
+    // own numbering, resolved through BibleMap (LXX/Masoretic Psalms,
+    // Hebrew Joel/Malachi splits, superscription offsets). Translations
+    // lacking the book/chapter yield an empty map.
+    // -----------------------------------------------------------
+    private static function get_bible_parallel()
+    {
+        $bookNum    = (int)self::$args['book_num'];
+        $chapterNum = (int)self::$args['chapter_num'];
+        $primaryId  = (int)self::$args['primary_id'];
+        $trIds      = isset(self::$args['translation_ids']) && is_array(self::$args['translation_ids'])
+            ? array_map('intval', self::$args['translation_ids'])
+            : array();
+
+        $extras = array();
+        foreach ($trIds as $trId) {
+            if ($trId <= 0 || $trId === $primaryId) continue;
+
+            $tr = Info::get('db')->get(
+                "SELECT ID, NAME, LANG FROM bible_translations WHERE ID = {$trId}"
+            );
+            if (!$tr) continue;
+
+            $book = Info::get('db')->get(
+                "SELECT ID, NAME FROM bible_books
+                 WHERE TRANSLATION_ID = {$trId} AND BOOK_NUM = {$bookNum}"
+            );
+
+            $result = array(
+                'name'   => $tr['NAME'],
+                'lang'   => $tr['LANG'],
+                'book'   => $book ? $book['NAME'] : '',
+                'verses' => new stdClass(),
+            );
+
+            if ($book) {
+                $map = BibleMap::buildVerseMap($bookNum, $chapterNum, $primaryId, $trId);
+
+                // Chapters of the parallel translation we need to load.
+                $chapters = array($chapterNum);
+                if ($map !== null) {
+                    $chapters = array();
+                    foreach ($map as $t) $chapters[$t['c']] = true;
+                    $chapters = array_keys($chapters);
+                }
+
+                $verses = array();
+                if (count($chapters) > 0) {
+                    $chList = implode(',', array_map('intval', $chapters));
+                    $rows = Info::get('db')->select(
+                        "SELECT CHAPTER_NUM, VERSE_NUM, TEXT
+                         FROM bible_verses
+                         WHERE BOOK_ID = {$book['ID']} AND CHAPTER_NUM IN ({$chList})
+                         ORDER BY CHAPTER_NUM, VERSE_NUM"
+                    );
+                    $byRef = array();
+                    foreach ($rows as $r) {
+                        $byRef[(int)$r['CHAPTER_NUM']][(int)$r['VERSE_NUM']] = $r['TEXT'];
+                    }
+                    if ($map === null) {
+                        // Same numbering: join verse-number to verse-number.
+                        if (isset($byRef[$chapterNum])) {
+                            foreach ($byRef[$chapterNum] as $v => $text) {
+                                $verses[$v] = array('c' => $chapterNum, 'v' => $v, 't' => $text);
+                            }
+                        }
+                    } else {
+                        foreach ($map as $srcV => $t) {
+                            if (isset($byRef[$t['c']][$t['v']])) {
+                                $verses[$srcV] = array('c' => $t['c'], 'v' => $t['v'], 't' => $byRef[$t['c']][$t['v']]);
+                            }
+                        }
+                    }
+                }
+                if (count($verses) > 0) {
+                    $result['verses'] = $verses;
+                }
+            }
+
+            $extras[$trId] = $result;
+        }
+
+        return json_encode(array('extras' => (object)$extras), JSON_UNESCAPED_UNICODE);
+    }
+
+    // -----------------------------------------------------------
     // Search verses by text
     // Params: translation_id, query
     // -----------------------------------------------------------
