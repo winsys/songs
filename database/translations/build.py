@@ -28,6 +28,7 @@ Outputs (overwrites if source available):
   elberfelder1905.sql
   kjv.sql
   lithuanian.sql
+  lt_kjv_2024.sql
 
 Applying on the server (its mysql CLI fails with "Malformed packet"):
   php database/translations/apply.php lithuanian.sql
@@ -243,17 +244,56 @@ def load_module_json(path, fallback_names):
 
     verses = []
     book_names = {}
+    repaired = []
     for bn, (bname, chapters) in enumerate(data.items(), 1):
-        book_names[bn] = bname.strip() or fallback_names.get(bn) or f'Book {bn}'
+        # Collapse inner whitespace too: module exports carry doubled spaces
+        # in some names ("Laiškas  Hebrajams").
+        book_names[bn] = ' '.join(bname.split()) or fallback_names.get(bn) or f'Book {bn}'
         for ck, vs in chapters.items():
             cn = int(ck)
+            chap = {}
             for vk, txt in vs.items():
-                vn = int(vk)
                 txt = re.sub(r'<br\s*/?>', ' ', txt or '', flags=re.I)
                 txt = ' '.join(txt.split())
                 if txt:
-                    verses.append((bn, cn, vn, txt))
+                    chap[int(vk)] = txt
+            _repair_merged_verses(chap, f'{book_names[bn]} {cn}', repaired)
+            for vn in chap:
+                verses.append((bn, cn, vn, chap[vn]))
+    if repaired:
+        print(f'    repaired merged verses ({len(repaired)}): ' + ', '.join(repaired))
     return book_names, verses
+
+
+def _repair_merged_verses(chap, where, log):
+    """
+    Fix a module-export defect: a missing verse whose text sits inside the
+    previous verse with the verse number as a literal marker ("…sinagogų.
+    11 Ir štai ten buvo moteris…"). Splits verse n at the marker " n+1 "
+    only when verse n+1 is absent, the marker occurs exactly once and both
+    halves are non-empty — Bible text spells numbers out, so a lone digit
+    group is the marker. Handles chains and chapter-trailing merges.
+    chap is {verse_num: cleaned text}, modified in place.
+    """
+    changed = True
+    while changed:
+        changed = False
+        for n in sorted(chap):
+            nxt = n + 1
+            if nxt in chap:
+                continue
+            txt = chap[n]
+            marker = f' {nxt} '
+            first = txt.find(marker)
+            if first == -1 or txt.find(marker, first + 1) != -1:
+                continue
+            p1 = txt[:first].rstrip()
+            p2 = txt[first + len(marker):].lstrip()
+            if not p1 or not p2:
+                continue
+            chap[n], chap[nxt] = p1, p2
+            log.append(f'{where}:{nxt}')
+            changed = True
 
 
 def emit_translation_sql(out_path, *, name, lang, sort_order, source_path, loader, fallback_names,
@@ -377,10 +417,10 @@ def main():
     # Version translated into Lithuanian, KJV versification (31 102 verses).
     # Source: Bible-app module export lt_kjv_2016.json (module id 4,
     # lastmodified 2021-10-25), git-ignored like the other sources.
-    # Replaces the earlier "Lithuanian Bible" (Tikėjimo Žodis via getBible,
-    # NRSV versification; Apr–Aug 2026): the generated SQL deletes every
-    # LANG='lt' translation before inserting, so the system keeps exactly
-    # one Lithuanian Bible.
+    # It replaced the earlier "Lithuanian Bible" (Tikėjimo Žodis via
+    # getBible) on 2026-08-31. replace_lang was dropped in Sep 2026 when
+    # the 2024 edition arrived: the language now carries two translations,
+    # so re-running this file must replace only itself.
     emit_translation_sql(
         os.path.join(OUT_TR_DIR, 'lithuanian.sql'),
         name='Karaliaus Jokūbo versija 2016',
@@ -389,8 +429,25 @@ def main():
         source_path=os.path.join(ROOT, 'lt_kjv_2016.json'),
         loader=load_module_json,
         fallback_names=BOOK_NAMES_LT,
-        replace_lang=True,
         source_note='lt_kjv_2016.json — LT-KJV module (id 4, lastmodified 2021-10-25), KJV versification',
+    )
+
+    # Lithuanian — "Karaliaus Jokūbo versija 2024": the revised edition of
+    # the same LT-KJV module (id 4, lastmodified 2026-04-24), added
+    # ALONGSIDE the 2016 one (Sep 2026). Formal full book names
+    # ("Evangelija Pagal Matą", "Pirmoji Samuelio Knyga", …). The export
+    # carries 11 verses merged into their predecessor with a literal
+    # number marker — load_module_json splits them back (see
+    # _repair_merged_verses), restoring the full 31 102 KJV verses.
+    emit_translation_sql(
+        os.path.join(OUT_TR_DIR, 'lt_kjv_2024.sql'),
+        name='Karaliaus Jokūbo versija 2024',
+        lang='lt',
+        sort_order=31,
+        source_path=os.path.join(ROOT, 'lt_kjv_2024.json'),
+        loader=load_module_json,
+        fallback_names=BOOK_NAMES_LT,
+        source_note='lt_kjv_2024.json — LT-KJV module (id 4, lastmodified 2026-04-24), KJV versification',
     )
 
     print('Done.')
