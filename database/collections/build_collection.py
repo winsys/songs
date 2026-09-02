@@ -196,8 +196,16 @@ def clean_verse(raw):
     return ' '.join(' '.join(lines).split())
 
 
+# Trailing language-list markers in module titles ("Esame kelionėj LT / RU",
+# "Aš noriu būt toks, kaip Tu - LT/ RU/ EN", "… - LT/RU/ENG", "… - RU/LT"):
+# redundant once the languages live in their own columns. Uppercase tokens
+# only, at least two of them joined by "/", at the very end of the title.
+LANG_TAIL = re.compile(r'\s*[-–—]?\s*(LT|RU|EN|ENG)(\s*/\s*(LT|RU|EN|ENG))+\s*$')
+
+
 def song_name(entry_title, key, suffix):
     name = ' '.join((entry_title or '').split())
+    name = LANG_TAIL.sub('', name).rstrip(' -–—')
     k = '/'.join(s.strip() for s in (key or []) if s and s.strip())
     if k:
         name = '(%s) %s' % (k, name)
