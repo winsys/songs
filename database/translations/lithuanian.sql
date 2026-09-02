@@ -3,12 +3,11 @@
 -- bible_verses rows. Verse text goes to bible_verses.TEXT, book
 -- names to bible_books.NAME — no parallel-language columns used.
 -- Source: lt_kjv_2016.json — LT-KJV module (id 4, lastmodified 2021-10-25), KJV versification
--- Idempotency: re-running deletes EVERY existing LANG='lt' translation first
--- (this file supersedes the language's previous Bible).
+-- Idempotency: re-running deletes the existing translation with the same NAME first.
 
 START TRANSACTION;
 
-DELETE FROM bible_translations WHERE LANG = 'lt';
+DELETE FROM bible_translations WHERE NAME = 'Karaliaus Jokūbo versija 2016' AND LANG = 'lt';
 
 INSERT INTO bible_translations (NAME, LANG, SORT_ORDER) VALUES ('Karaliaus Jokūbo versija 2016', 'lt', 30);
 SET @tr := LAST_INSERT_ID();
