@@ -31,7 +31,10 @@
     <script src="/js/angular.min.js" type="text/javascript"></script>
     <script src="/js/i18n.min.js?v=1"></script>
     <script src="/js/csrf_interceptor.min.js"></script>
-    <script src="/js/websocket_auth.min.js"></script>
+    <script src="/js/websocket_auth.min.js?v=2"></script>
+    <?php if ($view !== 'musician'): // no status banner on the on-stage notes page ?>
+    <script src="/js/net_status.min.js?v=1"></script>
+    <?php endif; ?>
     <script src="/js/angular-touch.min.js" type="text/javascript"></script>
     <script src="/js/angucomplete-alt.min.js" type="text/javascript"></script>
     <script type="text/javascript">

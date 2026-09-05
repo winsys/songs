@@ -32,7 +32,7 @@ Capabilities: synchronized setlist management, digital sheet music, sermon prepa
 - **Real-time:** Workerman WebSocket server on port 2345 (browser) / 2346 (internal PHP)
 - **Auth:** Session-based + Google OAuth; WebSocket uses HMAC-SHA256 tokens
 - **Export tools:** TurndownService (Markdown export), Blob + `<a target="_blank">` pattern (PDF export)
-- **Custom JS modules:** `sermon_prep.js`, `sermon_chip_editor.js`, `songs_service.js`, `sermon.js`, `tech.js`, `leader.js`, `csrf_interceptor.js`, `websocket_auth.js`, `drawio_import.js`
+- **Custom JS modules:** `sermon_prep.js`, `sermon_chip_editor.js`, `songs_service.js`, `sermon.js`, `tech.js`, `leader.js`, `csrf_interceptor.js`, `websocket_auth.js`, `drawio_import.js`, `net_status.js` (offline banner: browser online/offline + the global `websocket_status` CustomEvent from `websocket_auth.js`; included everywhere except the musician page and the two screens)
 
 ---
 
