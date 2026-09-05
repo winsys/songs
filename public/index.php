@@ -25,6 +25,7 @@ include "../app/Ajax_Settings.php";
 include "../app/Ajax_Import.php";
 include "../app/Ajax.php";
 include "../app/Security.php";
+include "../app/RememberMe.php";
 include "../app/GoogleAuth.php";
 include "../app/Mailer.php";
 include "../app/Signup.php";

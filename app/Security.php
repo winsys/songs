@@ -151,6 +151,11 @@ class Security
         );
 
         session_regenerate_id(true);
+
+        // Persistent login for the home-screen icon flow: every real login
+        // (password, Google, observer join link) gets a device token.
+        // A no-op while RememberMe::consume() itself starts the session.
+        RememberMe::issue((int)$user['ID']);
     }
 
     /** Returns the saved ui_lang for a group, or 'ru' on any failure. */
@@ -239,6 +244,8 @@ class Security
 
     public static function doLogout(): void
     {
+        // Revoke this device's persistent-login token along with the session.
+        RememberMe::forget();
         $_SESSION = [];
         if (ini_get('session.use_cookies')) {
             $p = session_get_cookie_params();
