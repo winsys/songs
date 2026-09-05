@@ -41,6 +41,12 @@
             if (onStatusChange) {
                 try { onStatusChange(connected); } catch (e) { /* ignore */ }
             }
+            // Global page-agnostic signal (consumed by net_status.js banner),
+            // same pattern as the 'websocket_message' event below.
+            try {
+                window.dispatchEvent(new CustomEvent('websocket_status',
+                    { detail: { connected: connected } }));
+            } catch (e) { /* ignore */ }
         }
 
         // ── Ping / Pong ────────────────────────────────────────────
