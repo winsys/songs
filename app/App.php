@@ -4,6 +4,13 @@ class App
 {
     public function run()
     {
+        // No PHP session (browser restarted, PWA opened from the installed
+        // icon) — transparently log in from the "remember me" cookie before
+        // any routing, so every page and /ajax sees a normal session.
+        if (!Security::isLoggedIn()) {
+            RememberMe::consume();
+        }
+
         if (isset($_REQUEST['route'])) {
             $route = explode('/', $_REQUEST['route']);
         } else {
