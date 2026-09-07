@@ -175,6 +175,13 @@ trait Ajax_Common
     {
         $userId = $_SESSION['curGroupId'];
 
+        // Same ordering semantics as get_favorites_with_text: the drag-n-drop
+        // order lives in favorites.sort_order, latest_top flips the display.
+        $settings = Info::get('db')->get(
+            "SELECT favorites_order FROM user_settings WHERE group_id = " . (int)$userId
+        );
+        $dir = ($settings && $settings['favorites_order'] === 'latest_top') ? 'DESC' : 'ASC';
+
         $langs = self::getLanguages();
         $hasTextFields = '';
         foreach ($langs as $lang) {
@@ -193,9 +200,49 @@ trait Ajax_Common
                 LEFT JOIN song_list l  ON l.ID    = f.SONGID
                 LEFT JOIN list_names n ON n.LIST_ID = l.LISTID
                 WHERE f.groupId = {$userId}
-                ORDER BY FID";
+                ORDER BY f.sort_order {$dir}, FID {$dir}";
         $list = Info::get('db')->select($sql);
         return json_encode($list);
+    }
+
+    /**
+     * Persist the dragged order of the group's playlist (leader page and
+     * tech console). Args: items — [{type: 'song'|'image'|'video'|'audio',
+     * fid}, ...] top-to-bottom AS DISPLAYED. Songs live in `favorites`,
+     * media in `tech_media_favorites`; both share one sort_order sequence.
+     * With favorites_order = 'latest_top' the display direction is DESC,
+     * so positions are assigned in reverse — the stored sequence keeps the
+     * "a new item gets MAX+1" contract of add_to_favorites in both modes.
+     */
+    private static function reorder_favorites()
+    {
+        $groupId = (int)$_SESSION['curGroupId'];
+        $items   = self::$args['items'] ?? [];
+        if (!is_array($items) || count($items) === 0 || count($items) > 500) {
+            return json_encode(['status' => 'error', 'message' => 'Bad items']);
+        }
+        $settings = Info::get('db')->get(
+            "SELECT favorites_order FROM user_settings WHERE group_id = {$groupId}"
+        );
+        $latestTop = $settings && $settings['favorites_order'] === 'latest_top';
+
+        $db  = Info::get('db');
+        $n   = count($items);
+        $pos = $latestTop ? $n : 1;
+        foreach ($items as $it) {
+            $fid  = (int)(isset($it['fid']) ? $it['fid'] : 0);
+            $type = isset($it['type']) ? (string)$it['type'] : 'song';
+            if ($fid > 0) {
+                if ($type === 'song') {
+                    $db->exec("UPDATE favorites SET sort_order = {$pos} WHERE ID = {$fid} AND groupId = {$groupId}");
+                } else {
+                    $db->exec("UPDATE tech_media_favorites SET sort_order = {$pos} WHERE id = {$fid} AND group_id = {$groupId}");
+                }
+            }
+            $pos += $latestTop ? -1 : 1;
+        }
+        self::updateSocket();
+        return json_encode(['status' => 'success']);
     }
 
     private static function get_favorites_with_text()

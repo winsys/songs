@@ -239,6 +239,32 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         document.body.removeChild(a);
     };
 
+    // ---- Drag-n-drop reorder of the favorites list (drag_reorder.js) ----
+    // The handle drags a row, the array is reordered live, the final order
+    // goes to reorder_favorites (server stores favorites.sort_order and
+    // broadcasts update_needed so the tech console follows).
+    var favDrag = (window.createDragReorder && document.querySelector('.favorites-list'))
+        ? window.createDragReorder({
+            container: document.querySelector('.favorites-list'),
+            rowSelector: '.prod-list-item',
+            onMove: function (from, to) {
+                $scope.$apply(function () {
+                    var it = $scope.favorites.splice(from, 1)[0];
+                    $scope.favorites.splice(to, 0, it);
+                });
+            },
+            onDrop: function (moved) {
+                if (!moved) return;
+                $http({ method: 'POST', url: '/ajax', data: {
+                        command: 'reorder_favorites',
+                        items: $scope.favorites.map(function (f) {
+                            return { type: 'song', fid: f.FID };
+                        })
+                    }}).then(null, function () { $scope.reloadFavorites(); });
+            }
+        })
+        : null;
+
     // The leader's black text-fullscreen content (null = image mode / off).
     $scope.fullScreenText = null;
 
@@ -892,7 +918,8 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
             // Handle incoming messages (only after authentication)
             if (data.type === 'update_needed') {
                 // Don't reload favorites while in fullscreen - it removes the DOM element
-                if (!$scope.fullScreen) {
+                // (nor mid-drag: the reload would replace the array under the pointer)
+                if (!$scope.fullScreen && !(favDrag && favDrag.isDragging())) {
                     $scope.$apply(function() {
                         $scope.reloadFavorites();
                     });

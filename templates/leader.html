@@ -334,6 +334,34 @@
         margin-bottom: 8px;
         transition: all 0.15s;
     }
+    /* Drag-n-drop reorder (drag_reorder.js): the handle is the only place
+       where touch starts a drag — everywhere else the page scrolls. */
+    .drag-handle {
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        cursor: grab;
+        border: none;
+        background: transparent;
+        color: #b0b8c1;
+        font-size: 17px;
+        line-height: 1;
+        padding: 0 4px;
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+    .drag-handle:active { cursor: grabbing; color: #5a6272; }
+    .prod-list-item.drag-active {
+        border-color: #1a6db5;
+        box-shadow: 0 6px 18px rgba(26,109,181,0.25);
+        background: #f4f9fe;
+        z-index: 10;
+        position: relative;
+    }
+    body.drag-reorder-busy { user-select: none; -webkit-user-select: none; }
 
     .prod-list-item:hover {
         border-color: #dee2e6;
@@ -1151,7 +1179,11 @@
         <!-- Favorites list -->
         <div class="favorites-list">
             <div class="prod-list-item"
-                 ng-repeat="listItem in favorites">
+                 ng-repeat="listItem in favorites track by listItem.FID">
+
+                <!-- Drag handle: reorder the list (drag_reorder.js) -->
+                <button class="drag-handle" type="button"
+                        title="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
 
                 <!-- Delete button -->
                 <button class="btn-delete"
@@ -1376,7 +1408,8 @@
     </div><!-- /ng-controller -->
 
 <script src="/js/vendor/qrcode.min.js?v=1" type="text/javascript"></script>
-<script src="/js/leader.min.js?v=36" type="text/javascript"></script>
+<script src="/js/drag_reorder.min.js?v=1" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=37" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}
