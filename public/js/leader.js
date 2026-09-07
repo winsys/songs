@@ -959,8 +959,9 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
                         $scope.reloadFavorites();
                     });
                 }
-                // Verse mode follows the verse the tech console put on screen.
-                vmSyncFromScreen();
+                // Verse mode follows the verse the tech console put on screen
+                // (inside a digest: the WS callback runs outside Angular).
+                $scope.$applyAsync(function() { vmSyncFromScreen(); });
             } else if (data.type === 'observer_update') {
                 // Keep the toggle in sync across the group's leader sessions.
                 $scope.$applyAsync(function() {
