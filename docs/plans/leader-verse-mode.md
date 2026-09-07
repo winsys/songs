@@ -113,6 +113,18 @@ selected at once (default: OFF — buttons behave as a radio switch).
   group's screen is ignored (other content, or the leader broadcasting to
   another group's screen), so the leader's own selection is never wiped by an
   unrelated row. A leader click on a highlighted chip turns the verse off.
+- **Song follow (Sept 2026):** the same `update_needed` → `get_current_state`
+  pass also reads `notes_image` (current_notes = the group's current song;
+  Bible/media never touch it). When the leader has a song view open and the
+  console switched to another song, that view follows (`switchShownSong`,
+  leader.js): verse mode rebuilds its chips for the new song (languages kept
+  where available) and then applies the console's verse; the black full-text
+  screen rebuilds the text; the notes fullscreen swaps the `<img>` src inside
+  the element that is already fullscreen (a fresh requestFullscreen would need
+  a user gesture). The item comes from `$scope.favorites`, or from a fresh
+  `get_favorites` fetch when the list is stale (reloads are skipped while
+  fullscreen). The list view and a cleared song (`notes_image` empty) change
+  nothing.
 - `save_user_settings` / `get_user_settings`: additive column only.
 - Smoke after deploy (5 min): leader verse mode → verse on main screen +
   highlighted on tech console; tech verse click still works; leader "Аа" and

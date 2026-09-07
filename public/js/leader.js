@@ -267,6 +267,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
 
     // The leader's black text-fullscreen content (null = image mode / off).
     $scope.fullScreenText = null;
+    var fsSong = null;   // favorites item shown by the notes / text fullscreen (for console follow)
 
     // Broadcast notes to the musician/display target, then put the LEADER's own
     // screen into fullscreen. When textContent is provided, the leader sees the
@@ -328,6 +329,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
             if (document.fullscreenElement) { document.exitFullscreen(); }
             $scope.fullScreen = false;
             $scope.fullScreenText = null;
+            fsSong = null;
         };
 
         // Same as above: the server decides whether any screen is cleared.
@@ -420,6 +422,10 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
 
     $scope.openFullscreen = function(elemId, img_num, list_id, song_id) {
         if (!$scope.fullScreen) {
+            fsSong = null;
+            for (var i = 0; i < $scope.favorites.length; i++) {
+                if ($scope.favorites[i].ID == elemId) { fsSong = $scope.favorites[i]; break; }
+            }
             leaderEnterFullscreen(elemId, img_num, list_id, song_id, null);
         } else {
             leaderLeaveFullscreen();
@@ -431,6 +437,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
     $scope.openFullscreenText = function(listItem) {
         if (!$scope.fullScreen) {
             var text = leaderPickSongText(listItem);
+            fsSong = listItem;
             leaderEnterFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID, text || ' ');
         } else {
             leaderLeaveFullscreen();
@@ -560,24 +567,112 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         vmRenderCurrent();
     }
 
-    // Follow the technician's verse switching while verse mode is open. Both
-    // consoles write current.chapter_indices + text and fire update_needed,
-    // so the leader re-reads the screen row exactly like the tech console's
-    // restoreCurrentState(). Only rows showing THIS song are applied: another
-    // image on the own group's screen (other content, or the leader
-    // broadcasting to a different group) leaves the pane alone.
-    function vmSyncFromScreen() {
+    // ---- Following the tech console -----------------------------------
+    // Both consoles write the same rows and fire update_needed: the notes
+    // channel (current_notes.image = the group's current song; Bible/media
+    // never touch it) and the screen row (current.image/text/chapter_indices).
+    // On every update_needed the leader re-reads them like the tech console's
+    // restoreCurrentState() and, if one of its song views is open, follows:
+    //   - another song in current_notes -> that view switches to it (verse
+    //     chips rebuilt / full text rebuilt / notes image swapped inside the
+    //     element that is already fullscreen — a new requestFullscreen needs
+    //     a user gesture);
+    //   - the screen row of the same song -> verse highlight + right pane.
+    // A screen row showing a different image (other content, or the leader
+    // broadcasting to another group's screen) leaves the verse pane alone.
+
+    // Image of the song the leader's open view shows (null = list view).
+    function leaderShownImage() {
+        if ($scope.verseMode.open && $scope.verseMode.song) return $scope.verseMode.song.imageName;
+        if ($scope.fullScreen && fsSong) return fsSong.imageName;
+        return null;
+    }
+
+    // The favorites item for a sheet path; the list may be stale (reloads are
+    // skipped while fullscreen), so fall back to a fresh fetch that does not
+    // touch the scope array.
+    function findFavoriteByImage(image, cb) {
+        for (var i = 0; i < $scope.favorites.length; i++) {
+            if ($scope.favorites[i].imageName === image) { cb($scope.favorites[i]); return; }
+        }
+        $http({ method: "POST", url: "/ajax", data: { command: 'get_favorites' } }).then(function(r) {
+            var list = r.data || [];
+            for (var j = 0; j < list.length; j++) {
+                if (list[j].imageName === image) { cb(list[j]); return; }
+            }
+            cb(null);
+        }, function() { cb(null); });
+    }
+
+    function applyVerseState(st) {
         var vm = $scope.verseMode;
-        if (!vm.open || !vm.song) return;
+        if (!vm.open || !vm.song || st.image !== vm.song.imageName) return;
+        var idxs = [];
+        if (st.chapter_indices && /^\d+(,\d+)*$/.test(st.chapter_indices)) {
+            idxs = st.chapter_indices.split(',').map(Number);
+        }
+        if (idxs.join(',') === vm.activeIdxs.join(',') && (st.text || '') === (vm.renderText || '')) return;
+        vmSetActive(idxs, st.text || '');
+    }
+
+    // Verse mode moves to another song: languages kept where the song has
+    // them, chips rebuilt, no broadcast (the console already did it).
+    function vmSwitchSong(item) {
+        var vm = $scope.verseMode;
+        var prev = vm.selected || {};
+        vm.song = item;
+        vm.langs = ($scope.langList || []).filter(function(l) {
+            return item['hasText_' + l.code] === '1' && (item[vmTextCol(l)] || '').length;
+        });
+        vm.selected = {};
+        vm.langs.forEach(function(l) { if (prev[l.code]) vm.selected[l.code] = true; });
+        var codes = vmSelectedCodes();
+        if (!codes.length && vm.langs.length) vm.selected[vm.langs[0].code] = true;
+        if (!vm.multi && codes.length > 1) {
+            vm.selected = {};
+            vm.selected[codes[0]] = true;
+        }
+        vmBuildChips();
+        vmSetActive([], null);
+    }
+
+    function switchShownSong(item, st) {
+        if ($scope.verseMode.open) {
+            vmSwitchSong(item);
+            applyVerseState(st);
+            return;
+        }
+        if (!$scope.fullScreen) return;
+        fsSong = item;
+        if ($scope.fullScreenText != null) {
+            var text = leaderPickSongText(item) || ' ';
+            $scope.fullScreenText = text;
+            buildLeaderText(text);
+            fitLeaderText();
+            $timeout(fitLeaderText, 400);
+        } else {
+            var fsEl = document.fullscreenElement;
+            var img = fsEl && fsEl.querySelector ? fsEl.querySelector('img') : null;
+            if (img) img.src = item.imageName;
+        }
+    }
+
+    function syncFromScreen() {
+        var mine = leaderShownImage();
+        if (!mine) return;
         $http({ method: "POST", url: "/ajax", data: { command: 'get_current_state' } }).then(function(r) {
             var st = r.data || {};
-            if (!vm.open || !vm.song || st.image !== vm.song.imageName) return;
-            var idxs = [];
-            if (st.chapter_indices && /^\d+(,\d+)*$/.test(st.chapter_indices)) {
-                idxs = st.chapter_indices.split(',').map(Number);
+            var shown = leaderShownImage();
+            if (!shown) return;
+            var songImage = st.notes_image || '';
+            if (songImage && songImage !== shown) {
+                findFavoriteByImage(songImage, function(item) {
+                    if (!item || leaderShownImage() !== shown) return;   // view changed meanwhile
+                    switchShownSong(item, st);
+                });
+                return;
             }
-            if (idxs.join(',') === vm.activeIdxs.join(',') && (st.text || '') === (vm.renderText || '')) return;
-            vmSetActive(idxs, st.text || '');
+            applyVerseState(st);
         });
     }
 
@@ -959,9 +1054,10 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
                         $scope.reloadFavorites();
                     });
                 }
-                // Verse mode follows the verse the tech console put on screen
-                // (inside a digest: the WS callback runs outside Angular).
-                $scope.$applyAsync(function() { vmSyncFromScreen(); });
+                // The open song view follows the tech console: its song switch
+                // and its verse choice (inside a digest: the WS callback runs
+                // outside Angular).
+                $scope.$applyAsync(function() { syncFromScreen(); });
             } else if (data.type === 'observer_update') {
                 // Keep the toggle in sync across the group's leader sessions.
                 $scope.$applyAsync(function() {
@@ -991,6 +1087,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
             if (!document.fullscreenElement) {
                 $scope.fullScreen = false;
                 $scope.fullScreenText = null;
+                fsSong = null;
                 $scope.reloadFavorites();
             } else if ($scope.fullScreenText != null) {
                 // Entered real fullscreen with text — re-fit to the new size.
