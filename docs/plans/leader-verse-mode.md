@@ -104,6 +104,15 @@ selected at once (default: OFF — buttons behave as a radio switch).
   contract untouched.
 - `leader_song_changed`, `update_needed`: no changes; the tech console follows
   the new mode through the same events it already consumes.
+- **Reverse direction (Sept 2026, Pavel's follow-up):** the leader's verse mode
+  follows the tech console too. On every `update_needed` the leader page
+  calls `get_current_state` (`vmSyncFromScreen`, leader.js); when the screen
+  row's `image` is the verse-mode song, `chapter_indices` becomes the chip
+  highlight (`verseMode.activeIdxs` — the console may select several) and the
+  right pane shows the row's `text` verbatim. A different image on the own
+  group's screen is ignored (other content, or the leader broadcasting to
+  another group's screen), so the leader's own selection is never wiped by an
+  unrelated row. A leader click on a highlighted chip turns the verse off.
 - `save_user_settings` / `get_user_settings`: additive column only.
 - Smoke after deploy (5 min): leader verse mode → verse on main screen +
   highlighted on tech console; tech verse click still works; leader "Аа" and
