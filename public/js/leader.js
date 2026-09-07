@@ -636,6 +636,47 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         vmSetActive([], null);
     }
 
+    // The verse text for several verse indices in the selected languages —
+    // the tech console's composition (per language the verses joined by
+    // \r\n, languages joined by the dash separator); one index gives the
+    // chip's own text.
+    function vmComposeText(idxs) {
+        var vm = $scope.verseMode;
+        var parts = [];
+        vm.langs.forEach(function(lang) {
+            if (!vm.selected[lang.code]) return;
+            var verses = (vm.song[vmTextCol(lang)] || '').split('\r\n');
+            var vs = idxs.map(function(i) { return verses[i]; })
+                         .filter(function(v) { return v && v.trim(); });
+            if (vs.length) parts.push(vs.join('\r\n'));
+        });
+        return parts.join('\r\n- - - - - - - -\r\n');
+    }
+
+    // The tech console switched its song-mode languages (tech_langs_changed):
+    // apply them to the open verse mode — languages the song has, one of them
+    // in single-language mode — rebuild the chips and re-render the active
+    // verse in the new set. Nothing is broadcast back (no ping-pong); the
+    // screen row changes only when the console clicks a verse again.
+    function vmApplyLangs(codes) {
+        var vm = $scope.verseMode;
+        if (!vm.open || !vm.song) return;
+        var wanted = vm.langs.filter(function(l) { return codes.indexOf(l.code) !== -1; });
+        if (!wanted.length) return;
+        if (!vm.multi) wanted = [wanted[0]];
+        var next = {};
+        wanted.forEach(function(l) { next[l.code] = true; });
+        var same = vm.langs.every(function(l) { return !!vm.selected[l.code] === !!next[l.code]; });
+        if (same) return;
+        vm.selected = next;
+        vmBuildChips();
+        if (vm.activeIdxs.length) {
+            vmSetActive(vm.activeIdxs, vmComposeText(vm.activeIdxs));
+        } else {
+            vmRenderCurrent();
+        }
+    }
+
     function switchShownSong(item, st) {
         if ($scope.verseMode.open) {
             vmSwitchSong(item);
@@ -1063,6 +1104,11 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
                 // and its verse choice (inside a digest: the WS callback runs
                 // outside Angular).
                 $scope.$applyAsync(function() { syncFromScreen(); });
+            } else if (data.type === 'tech_langs_changed') {
+                // The console's language toggles — the verse mode follows.
+                $scope.$applyAsync(function() {
+                    vmApplyLangs(((data.data || {}).langs) || []);
+                });
             } else if (data.type === 'observer_update') {
                 // Keep the toggle in sync across the group's leader sessions.
                 $scope.$applyAsync(function() {
