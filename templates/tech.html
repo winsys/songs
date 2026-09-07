@@ -502,6 +502,34 @@
         flex-shrink: 0;
     }
 
+    /* Drag-n-drop reorder (drag_reorder.js): the handle is the only place
+       where touch starts a drag — everywhere else the page scrolls. */
+    .drag-handle {
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        cursor: grab;
+        border: none;
+        background: transparent;
+        color: #b0b8c1;
+        font-size: 16px;
+        line-height: 1;
+        padding: 0 2px;
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+        flex-shrink: 0;
+    }
+    .drag-handle:active { cursor: grabbing; color: #5a6272; }
+    .fav-row.drag-active .song-name,
+    .fav-row.drag-active .media-fav-card {
+        border-color: #1a6db5;
+        box-shadow: 0 6px 18px rgba(26,109,181,0.25);
+        background: #f4f9fe;
+    }
+    body.drag-reorder-busy { user-select: none; -webkit-user-select: none; }
+
     .song-del {
         position: absolute;
         top: 8px;
@@ -1872,7 +1900,7 @@
             <div class="row">
 
                 <!-- Left: song list -->
-                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6" style="overflow: hidden;">
+                <div id="techPlaylist" class="col-xs-6 col-sm-6 col-md-6 col-lg-6" style="overflow: hidden;">
 
                     <!-- Empty state -->
                     <div ng-if="favorites.length === 0"
@@ -1886,7 +1914,7 @@
                          mp3 <audio> below is destroyed mid-playback. Songs and
                          media come from different tables, so the type prefix
                          keeps the keys unique. -->
-                    <div class="row" style="position: relative; margin-bottom: 12px;"
+                    <div class="row fav-row" style="position: relative; margin-bottom: 12px;"
                          ng-repeat="listItem in favorites track by (listItem.itemType + '-' + listItem.FID)">
 
                         <!-- Clickable card: whole area triggers prepareText -->
@@ -1894,6 +1922,10 @@
                              class="song-name col-xs-12 col-sm-12 col-md-12 col-lg-12"
                              ng-class="{'box-selected': showingSong === listItem}"
                              ng-click="prepareText(listItem.TEXT, listItem)">
+
+                            <!-- Drag handle: reorder the playlist (drag_reorder.js) -->
+                            <button class="drag-handle" type="button"
+                                    title="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
 
                             <button class="song-del"
                                     ng-click="$event.stopPropagation(); deleteFavoriteItem(listItem.FID, listItem.dispName, listItem.itemType)"
@@ -1938,6 +1970,10 @@
                                                || (activeAudioItem && activeAudioItem.FID === listItem.FID && listItem.itemType === 'audio')
                              }"
                              ng-click="activateMediaItem(listItem)">
+
+                            <!-- Drag handle: reorder the playlist (drag_reorder.js) -->
+                            <button class="drag-handle" type="button"
+                                    title="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
 
                             <!-- Preview (images only) -->
                             <img ng-if="listItem.itemType === 'image'"
@@ -2554,5 +2590,6 @@
 
 </div><!-- /ng-controller -->
 
-<script src="/js/tech.min.js?v=49" type="text/javascript"></script>
+<script src="/js/drag_reorder.min.js?v=1" type="text/javascript"></script>
+<script src="/js/tech.min.js?v=50" type="text/javascript"></script>
 

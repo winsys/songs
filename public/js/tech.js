@@ -512,6 +512,32 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     }
 
 
+    // ---- Drag-n-drop reorder of the playlist (drag_reorder.js) ----
+    // Songs and media rows share one list; the dragged order goes to
+    // reorder_favorites ({type, fid} per row — songs live in `favorites`,
+    // media in `tech_media_favorites`), which broadcasts update_needed.
+    var favDrag = (window.createDragReorder && document.getElementById('techPlaylist'))
+        ? window.createDragReorder({
+            container: document.getElementById('techPlaylist'),
+            rowSelector: '.fav-row',
+            onMove: function (from, to) {
+                $scope.$apply(function () {
+                    var it = $scope.favorites.splice(from, 1)[0];
+                    $scope.favorites.splice(to, 0, it);
+                });
+            },
+            onDrop: function (moved) {
+                if (!moved) return;
+                $http({ method: 'POST', url: '/ajax', data: {
+                        command: 'reorder_favorites',
+                        items: $scope.favorites.map(function (f) {
+                            return { type: f.itemType, fid: f.FID };
+                        })
+                    }}).then(null, function () { $scope.reloadFavorites(); });
+            }
+        })
+        : null;
+
     $scope.reloadFavorites = function (callback) {
         $http({ method: "POST", url: "/ajax", data: { command: 'get_favorites_with_text' }}).then(
             function success(respond) {
@@ -2445,6 +2471,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         function(data) {
             // Handle incoming messages (only after authentication)
             if (data.type === 'update_needed') {
+                // Mid-drag the reload would replace the array under the pointer.
+                if (favDrag && favDrag.isDragging()) return;
                 $scope.$apply(function() {
                     // Restore state immediately after favorites are reloaded
                     $scope.reloadFavorites(function() {

@@ -32,7 +32,7 @@ Capabilities: synchronized setlist management, digital sheet music, sermon prepa
 - **Real-time:** Workerman WebSocket server on port 2345 (browser) / 2346 (internal PHP)
 - **Auth:** Session-based + Google OAuth; WebSocket uses HMAC-SHA256 tokens
 - **Export tools:** TurndownService (Markdown export), Blob + `<a target="_blank">` pattern (PDF export)
-- **Custom JS modules:** `sermon_prep.js`, `sermon_chip_editor.js`, `songs_service.js`, `sermon.js`, `tech.js`, `leader.js`, `csrf_interceptor.js`, `websocket_auth.js`, `drawio_import.js`, `net_status.js` (offline banner: browser online/offline + the global `websocket_status` CustomEvent from `websocket_auth.js`; included everywhere except the musician page and the two screens)
+- **Custom JS modules:** `sermon_prep.js`, `sermon_chip_editor.js`, `songs_service.js`, `sermon.js`, `tech.js`, `leader.js`, `csrf_interceptor.js`, `websocket_auth.js`, `drawio_import.js`, `drag_reorder.js` (pointer-events drag-n-drop of playlist rows on the leader page and tech console — handle `.drag-handle`, array reorder via callbacks, order persisted by `reorder_favorites`), `net_status.js` (offline banner: browser online/offline + the global `websocket_status` CustomEvent from `websocket_auth.js`; included everywhere except the musician page and the two screens)
 
 ---
 
@@ -57,7 +57,7 @@ All requests go through `public/index.php` via `.htaccess` rewrite (`?route=<pat
 ## 5. AJAX Architecture
 
 `app/Ajax.php` dispatches commands by method name using traits:
-- `Ajax_Common` — songs, favorites, user settings, languages; exposes `getLanguages()` static helper (cached per request)
+- `Ajax_Common` — songs, favorites (incl. `reorder_favorites`: drag-n-drop order — writes the shared `sort_order` of `favorites` + `tech_media_favorites`, positions reversed for `favorites_order='latest_top'`; `get_favorites` and `get_favorites_with_text` both honor it), user settings, languages; exposes `getLanguages()` static helper (cached per request)
 - `Ajax_Tech` — display control (`set_slide`, media, Bible, messages)
 - `Ajax_Sermon` — sermon CRUD, audio uploads
 - `Ajax_Settings` — display customization, user management, wallpapers
@@ -187,6 +187,7 @@ public/js/
   sermon_prep.js             # sermon prep editor
   sermon_chip_editor.js      # citation chip editor (self-contained, injects own CSS/HTML)
   drawio_import.js           # draw.io (.drawio) → SVG converter; sermon prep imports pages as slides
+  drag_reorder.js            # drag-n-drop reorder of playlist rows (leader + tech), pointer events
   settings.js                # user/group/Google settings
   import.js                  # import controller
   *.min.js                   # AUTO-GENERATED, never edit
