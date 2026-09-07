@@ -657,14 +657,19 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         }
     }
 
+    // Sheet path of the song currently ON in the group (current_notes) —
+    // the list view pulses that row, so the leader sees which song the
+    // console switched on (the musicians already have its notes) and only
+    // has to pick a display mode for it.
+    $scope.activeSongImage = '';
+
     function syncFromScreen() {
-        var mine = leaderShownImage();
-        if (!mine) return;
         $http({ method: "POST", url: "/ajax", data: { command: 'get_current_state' } }).then(function(r) {
             var st = r.data || {};
+            var songImage = st.notes_image || '';
+            $scope.activeSongImage = songImage;
             var shown = leaderShownImage();
             if (!shown) return;
-            var songImage = st.notes_image || '';
             if (songImage && songImage !== shown) {
                 findFavoriteByImage(songImage, function(item) {
                     if (!item || leaderShownImage() !== shown) return;   // view changed meanwhile
@@ -1100,5 +1105,6 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
     SongsService.getLanguages().then(function (langs) { $scope.langList = langs; });
     $scope.reloadFavorites();
     loadObserverState();
+    syncFromScreen();   // which song is on right now (list-view highlight)
 }]);
 
