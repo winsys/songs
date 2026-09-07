@@ -1393,7 +1393,7 @@
                 <div class="lvm-chip"
                      ng-attr-id="{{ 'lvm-chip-' + chip.idx }}"
                      ng-repeat="chip in verseMode.chips"
-                     ng-class="{'lvm-chip-active': verseMode.activeIdx === chip.idx}"
+                     ng-class="{'lvm-chip-active': verseMode.activeIdxs.indexOf(chip.idx) !== -1}"
                      ng-click="vmToggleVerse(chip)">{{ chip.preview }}</div>
             </div>
         </div>
@@ -1409,7 +1409,7 @@
 
 <script src="/js/vendor/qrcode.min.js?v=1" type="text/javascript"></script>
 <script src="/js/drag_reorder.min.js?v=1" type="text/javascript"></script>
-<script src="/js/leader.min.js?v=37" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=38" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}

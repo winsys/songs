@@ -459,7 +459,10 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         selected: {},     // lang code -> true
         multi: false,     // user_settings.leader_text_multilang
         chips: [],        // [{idx, text, preview}] — idx = base-skeleton index
-        activeIdx: null   // verse currently on screen (null = off)
+        activeIdx: null,  // first verse currently on screen (null = off)
+        activeIdxs: [],   // every verse on screen (the tech console can select several)
+        renderText: null  // what the right pane shows: the leader's own chip
+                          // text, or the screen row's text when synced from the console
     };
 
     var vmSettings = null;   // group user_settings (main-screen colors/font)
@@ -544,9 +547,38 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         var el = document.getElementById('lvmText');
         if (!el) return;
         var vm = $scope.verseMode;
-        var chip = (vm.activeIdx !== null) ? vmChipByIdx(vm.activeIdx) : null;
-        el.textContent = chip ? vmCleanMarkers(chip.text) : '';
+        el.textContent = (vm.activeIdxs.length && vm.renderText) ? vmCleanMarkers(vm.renderText) : '';
         vmFitText();
+    }
+
+    // Selection helpers keep activeIdx (first verse) and activeIdxs in step.
+    function vmSetActive(idxs, text) {
+        var vm = $scope.verseMode;
+        vm.activeIdxs = idxs.slice();
+        vm.activeIdx = idxs.length ? idxs[0] : null;
+        vm.renderText = idxs.length ? text : null;
+        vmRenderCurrent();
+    }
+
+    // Follow the technician's verse switching while verse mode is open. Both
+    // consoles write current.chapter_indices + text and fire update_needed,
+    // so the leader re-reads the screen row exactly like the tech console's
+    // restoreCurrentState(). Only rows showing THIS song are applied: another
+    // image on the own group's screen (other content, or the leader
+    // broadcasting to a different group) leaves the pane alone.
+    function vmSyncFromScreen() {
+        var vm = $scope.verseMode;
+        if (!vm.open || !vm.song) return;
+        $http({ method: "POST", url: "/ajax", data: { command: 'get_current_state' } }).then(function(r) {
+            var st = r.data || {};
+            if (!vm.open || !vm.song || st.image !== vm.song.imageName) return;
+            var idxs = [];
+            if (st.chapter_indices && /^\d+(,\d+)*$/.test(st.chapter_indices)) {
+                idxs = st.chapter_indices.split(',').map(Number);
+            }
+            if (idxs.join(',') === vm.activeIdxs.join(',') && (st.text || '') === (vm.renderText || '')) return;
+            vmSetActive(idxs, st.text || '');
+        });
     }
 
     function vmFitText(_retry) {
@@ -592,8 +624,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
     // the technician-set target (NULL = do not broadcast).
     function vmSend(chip) {
         var vm = $scope.verseMode;
-        vm.activeIdx = chip.idx;
-        vmRenderCurrent();
+        vmSetActive([chip.idx], chip.text);
         $http({ method: "POST", url: "/ajax",
                 data: { command: 'set_leader_text',
                         channel: 'leader',
@@ -620,8 +651,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
     // console's verse toggle-off).
     function vmSendOff() {
         var vm = $scope.verseMode;
-        vm.activeIdx = null;
-        vmRenderCurrent();
+        vmSetActive([], null);
         $http({ method: "POST", url: "/ajax",
                 data: { command: 'set_leader_text',
                         channel: 'leader',
@@ -641,6 +671,8 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         vm.selected = {};
         if (vm.langs.length) vm.selected[vm.langs[0].code] = true;
         vm.activeIdx = null;
+        vm.activeIdxs = [];
+        vm.renderText = null;
         vm.open = true;
 
         // The multi-language toggle and main-screen rendering settings may
@@ -684,6 +716,8 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
     $scope.vmClose = function() {
         $scope.verseMode.open = false;
         $scope.verseMode.activeIdx = null;
+        $scope.verseMode.activeIdxs = [];
+        $scope.verseMode.renderText = null;
         if (document.fullscreenElement) { document.exitFullscreen(); }
         $http({ method: "POST", url: "/ajax",
                 data: { command: 'clear_image', channel: 'leader' } });
@@ -721,7 +755,8 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
     };
 
     $scope.vmToggleVerse = function(chip) {
-        if ($scope.verseMode.activeIdx === chip.idx) {
+        // Off when the chip is on screen (also inside the console's multi-selection).
+        if ($scope.verseMode.activeIdxs.indexOf(chip.idx) !== -1) {
             vmSendOff();
         } else {
             vmSend(chip);
@@ -924,6 +959,8 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
                         $scope.reloadFavorites();
                     });
                 }
+                // Verse mode follows the verse the tech console put on screen.
+                vmSyncFromScreen();
             } else if (data.type === 'observer_update') {
                 // Keep the toggle in sync across the group's leader sessions.
                 $scope.$applyAsync(function() {
