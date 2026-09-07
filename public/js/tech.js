@@ -191,6 +191,16 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         if ($scope.pageMode === 'songs' && $scope.showingSong) {
             splitText($scope.showingSong);
         }
+        // Song mode: mirror the toggles to the leader's verse mode
+        // (tech_langs_changed side channel — the counterpart of
+        // leader_langs_changed; no screen write, the console still has to
+        // click a verse to change what the screen shows).
+        if ($scope.pageMode === 'songs') {
+            var codes = getActiveLangs().map(function(l) { return l.code; });
+            if (codes.length) {
+                $http({ method: "POST", url: "/ajax", data: { command: 'set_tech_langs', langs: codes } });
+            }
+        }
         if ($scope.pageMode === 'bible' && $scope.bibleVerses.length > 0) {
             $scope.biblePreparedVerses = prepareBibleVerses($scope.bibleVerses);
         }

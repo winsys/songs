@@ -69,6 +69,24 @@ trait Ajax_Leader
      */
     private static function set_leader_langs()
     {
+        self::broadcastConsoleLangs('leader_langs_changed');
+        return '';
+    }
+
+    /**
+     * The mirror image of set_leader_langs: the tech console's song-mode
+     * language toggles, broadcast as `tech_langs_changed` so the leader's
+     * verse mode follows them. Same args, same no-DB side channel.
+     */
+    private static function set_tech_langs()
+    {
+        self::broadcastConsoleLangs('tech_langs_changed');
+        return '';
+    }
+
+    /** Broadcast the caller's language selection to the own group as $type. */
+    private static function broadcastConsoleLangs($type)
+    {
         $userId = (int)$_SESSION['curGroupId'];
         $langs  = self::$args['langs'] ?? [];
         if (!is_array($langs)) $langs = [];
@@ -79,10 +97,9 @@ trait Ajax_Leader
         }
         if (!empty($clean)) {
             self::broadcastToGroup($userId, [
-                'type' => 'leader_langs_changed',
+                'type' => $type,
                 'data' => ['langs' => $clean],
             ]);
         }
-        return '';
     }
 }
