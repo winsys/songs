@@ -131,8 +131,12 @@ selected at once (default: OFF — buttons behave as a radio switch).
   leader's verse mode applies the languages the song has (one in
   single-language mode), rebuilds the chips and re-renders the active verse
   in the new set (`vmApplyLangs` / `vmComposeText` — the console's text
-  composition). Nothing is broadcast back, so no ping-pong; the screen row
-  itself still changes only when the console clicks a verse.
+  composition). Nothing is broadcast back, so no ping-pong. Since the same
+  day the console also re-sends the verse(s) on screen at once on its
+  language toggle (`resendSelectedVerses`: selection re-mapped by index over
+  the rebuilt chips, then the usual `set_text`), so the main screen, the
+  leader's pane and the observers all switch language immediately — the
+  same behaviour the leader's toggle always had.
 - `save_user_settings` / `get_user_settings`: additive column only.
 - Smoke after deploy (5 min): leader verse mode → verse on main screen +
   highlighted on tech console; tech verse click still works; leader "Аа" and
