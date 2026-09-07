@@ -363,6 +363,21 @@
     }
     body.drag-reorder-busy { user-select: none; -webkit-user-select: none; }
 
+    /* Song currently ON in the group (current_notes — switched on by the tech
+       console or the leader): pulsing green outline (the broadcast-toggle
+       green) so the leader sees which song the musicians already have. */
+    @keyframes leaderSongPulse {
+        0%, 100% { box-shadow: 0 0 0 0 rgba(30,126,52,0);    border-color: #1e7e34; }
+        50%      { box-shadow: 0 0 0 6px rgba(30,126,52,0.3); border-color: #34c759; }
+    }
+    .prod-list-item.song-on {
+        border-color: #1e7e34;
+        animation: leaderSongPulse 1.4s ease-in-out infinite;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .prod-list-item.song-on { animation: none; box-shadow: 0 0 0 3px rgba(30,126,52,0.3); }
+    }
+
     .prod-list-item:hover {
         border-color: #dee2e6;
         background: #fafbfc;
@@ -1179,6 +1194,7 @@
         <!-- Favorites list -->
         <div class="favorites-list">
             <div class="prod-list-item"
+                 ng-class="{'song-on': activeSongImage && listItem.imageName === activeSongImage}"
                  ng-repeat="listItem in favorites track by listItem.FID">
 
                 <!-- Drag handle: reorder the list (drag_reorder.js) -->
@@ -1409,7 +1425,7 @@
 
 <script src="/js/vendor/qrcode.min.js?v=1" type="text/javascript"></script>
 <script src="/js/drag_reorder.min.js?v=1" type="text/javascript"></script>
-<script src="/js/leader.min.js?v=40" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=41" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}
