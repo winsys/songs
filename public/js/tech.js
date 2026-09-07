@@ -187,9 +187,20 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             $scope.languages[$scope.langList[0].code] = true;
         }
 
-        // Update display (these lines remain unchanged)
+        // Song mode: rebuild the chips and keep the verse(s) on screen —
+        // re-map the selection by index over the new chips and re-send them
+        // in the new language set at once (the leader's verse mode does the
+        // same on its language toggle).
         if ($scope.pageMode === 'songs' && $scope.showingSong) {
+            var selIdx = $scope.selectedChapters.map(function(ch) {
+                var m = ch.match(/\((\d+)\)$/);
+                return m ? parseInt(m[1]) : -1;
+            }).filter(function(x) { return x >= 0; });
             splitText($scope.showingSong);
+            if (selIdx.length) {
+                $scope.restoreChaptersFromSongName(selIdx.join(','), $scope.showingSong);
+                resendSelectedVerses(selIdx);
+            }
         }
         // Song mode: mirror the toggles to the leader's verse mode
         // (tech_langs_changed side channel — the counterpart of
@@ -616,6 +627,43 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         }
     };
 
+    // Screen text for verse indices in the active languages: per language the
+    // verses joined by \r\n, languages joined by the dash separator (the
+    // format the main screen, the leader's verse mode and observers expect).
+    function composeVerseText(verseIndices) {
+        var languageParts = [];
+        getActiveLangs().forEach(function(lang) {
+            var field    = textCol(lang);
+            var chapters = $scope.showingSong[field] ? $scope.showingSong[field].split('\r\n') : [];
+            var verses   = verseIndices
+                .map(function(idx) { return chapters[idx]; })
+                .filter(function(v) { return v; });
+            if (verses.length > 0) languageParts.push(verses.join('\r\n'));
+        });
+        return languageParts.join('\r\n- - - - - - - -\r\n');
+    }
+
+    // Re-send the verse(s) currently on screen (after a language toggle):
+    // same set_text as a verse click; showingChapter keeps the contract of
+    // the click paths (the raw chip for a single verse, the combined text
+    // for a multi-selection) so the next click on that chip still toggles off.
+    function resendSelectedVerses(verseIndices) {
+        var combinedText = composeVerseText(verseIndices);
+        $http({ method: "POST",
+            url: "/ajax",
+            data: { command: 'set_text',
+                image_name: $scope.showingSong.imageName,
+                text: combinedText,
+                song_name: $scope.showingSong.NAME,
+                chapter_indices: verseIndices.join(',') }
+        }).then(function success(){
+            $scope.showingChapter = (verseIndices.length === 1 && $scope.selectedChapters.length === 1)
+                ? $scope.selectedChapters[0]
+                : combinedText;
+        });
+        observerSong($scope.showingSong, verseIndices.length ? verseIndices[0] : -1);
+    }
+
     $scope.toggleCurrentTextChapter = function(chapterText, $event) {
         var ctrlKey = $event.ctrlKey || $event.metaKey;
 
@@ -644,17 +692,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     return match ? parseInt(match[1]) : -1;
                 }).filter(function(idx) { return idx >= 0; });
 
-                var languageParts = [];
-                getActiveLangs().forEach(function(lang) {
-                    var field    = textCol(lang);
-                    var chapters = $scope.showingSong[field] ? $scope.showingSong[field].split('\r\n') : [];
-                    var verses   = verseIndices
-                        .map(function(idx) { return chapters[idx]; })
-                        .filter(function(v) { return v; });
-                    if (verses.length > 0) languageParts.push(verses.join('\r\n'));
-                });
-
-                var combinedText = languageParts.join('\r\n- - - - - - - -\r\n');
+                var combinedText = composeVerseText(verseIndices);
                 // Save verse indices to chapter_indices field
                 var chapterIndices = verseIndices.join(',');
 
