@@ -395,6 +395,14 @@
         font-family: Arial, Helvetica, sans-serif;
     }
     .obs-text-song { text-align: center; font-weight: 600; }
+    /* Wide screens: the whole song text auto-fitted by fitSongText() fills the box and is centred */
+    .obs-text-fit {
+        min-height: 100%;
+        box-sizing: border-box;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
     .obs-text-read { text-align: left; }
     .obs-verse-block { white-space: pre-wrap; overflow-wrap: anywhere; }
     .obs-verse-block + .obs-verse-block { margin-top: 0.7em; }
@@ -695,7 +703,8 @@
         </div>
         <div class="obs-fshint" ng-show="!viewer.fs"><?php echo T::s('observer.fsHint'); ?></div>
         <div class="obs-vcontent" ng-click="toggleFs(viewer, 'obsViewer')">
-            <div class="obs-text obs-text-song" ng-if="viewer.kind === 'song' && viewer.view.kind === 'text'" ng-style="{'font-size': fontPx + 'px'}">
+            <div class="obs-text obs-text-song" id="obsVsong" ng-if="viewer.kind === 'song' && viewer.view.kind === 'text'"
+                 ng-class="{'obs-text-fit': viewer.fitPx}" ng-style="{'font-size': (viewer.fitPx || fontPx) + 'px'}">
                 <div class="obs-verse-block" ng-repeat="b in viewer.blocks track by $index">{{ b }}</div>
             </div>
             <div class="obs-empty" ng-if="viewer.kind === 'song' && viewer.view.kind === 'none'"><?php echo T::s('observer.noContent'); ?></div>
@@ -763,7 +772,8 @@
             <div class="obs-gverse" ng-if="!group.text && group.song && group.view.kind === 'text' && group.verseText">
                 <div id="obsGverseInner" class="obs-gverse-inner"></div>
             </div>
-            <div class="obs-text obs-text-song" ng-if="!group.text && group.song && group.view.kind === 'text' && !group.verseText" ng-style="{'font-size': fontPx + 'px'}">
+            <div class="obs-text obs-text-song" id="obsGsong" ng-if="!group.text && group.song && group.view.kind === 'text' && !group.verseText"
+                 ng-class="{'obs-text-fit': group.fitPx}" ng-style="{'font-size': (group.fitPx || fontPx) + 'px'}">
                 <div class="obs-verse-block" ng-repeat="b in group.blocks track by $index">{{ b }}</div>
             </div>
             <div class="obs-empty" ng-if="!group.text && group.song && group.view.kind === 'none'"><?php echo T::s('observer.noContent'); ?></div>
@@ -774,4 +784,4 @@
 
 </div><!-- /ng-controller -->
 
-<script src="/js/observer.min.js?v=4" type="text/javascript"></script>
+<script src="/js/observer.min.js?v=5" type="text/javascript"></script>
