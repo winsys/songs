@@ -125,7 +125,7 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
 
     $scope.songs = { q: '', listId: 0, results: [], more: false };
     $scope.bible = { translations: [], tr: null, trId: null, langs: [], lang: null,
-                     books: [], book: null, chapters: [], chapter: null, loaded: false,
+                     books: [], booksOT: [], booksNT: [], book: null, chapters: [], chapter: null, loaded: false,
                      q: '', results: [], searching: false };
     $scope.msgs  = { all: [], loaded: false, q: '', results: [], more: false,
                      tq: '', paraResults: [], searching: false };
@@ -442,10 +442,13 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
                    : (hasLang(b.langs, String(t.LANG).toLowerCase()) ? String(t.LANG).toLowerCase()
                    : (b.langs[0] ? b.langs[0].code : null));
         }
-        b.books = []; b.book = null; b.chapters = []; b.chapter = null; b.results = []; b.loaded = false;
+        b.books = []; b.booksOT = []; b.booksNT = []; b.book = null; b.chapters = []; b.chapter = null; b.results = []; b.loaded = false;
         return $http({ method: 'POST', url: '/ajax', data: { command: 'get_bible_books', translation_id: t.ID } }).then(function (r) {
             if (b.trId !== t.ID) return;
             b.books = r.data || [];
+            // Canonical BOOK_NUM: 1-39 Old Testament, 40-66 New Testament (two columns on the page)
+            b.booksOT = b.books.filter(function (bk) { return parseInt(bk.BOOK_NUM) < 40; });
+            b.booksNT = b.books.filter(function (bk) { return parseInt(bk.BOOK_NUM) >= 40; });
             b.loaded = true;
             if (b.q.length >= 3) bibleSearch();
         });

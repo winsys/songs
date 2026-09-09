@@ -255,6 +255,8 @@
   "observer.bible.backToBooks": "← Knygos",
   "observer.bible.books": "Knygos",
   "observer.bible.chapters": "Skyriai",
+  "observer.bible.newTestament": "Naujasis Testamentas",
+  "observer.bible.oldTestament": "Senasis Testamentas",
   "observer.bible.next": "Kitas ›",
   "observer.bible.placeholder": "Paieška Biblijoje pagal žodžius",
   "observer.bible.prev": "‹ Ankstesnis",
