@@ -137,17 +137,18 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
     $scope.fontStep = function (dir) {
         $scope.fontPx = Math.max(14, Math.min(44, $scope.fontPx + dir * 2));
         storageSet('observerFontPx', $scope.fontPx);
+        refitAll();   // wide screens: A+ above the fitting size switches to the manual size
     };
 
     // Content viewer (search mode) and the group-mode screen share the song
     // view logic: .song, .langs (with text), .groups, .view, .blocks, .imageSrc.
     $scope.viewer = { open: false, fs: false, kind: '', title: '', hl: null,
                       song: null, langs: [], groups: [], view: { kind: 'none' },
-                      blocks: [], verses: [], paras: [], imageSrc: '', shownGroupId: null, loadedAt: 0, msg: null };
+                      blocks: [], verses: [], paras: [], imageSrc: '', shownGroupId: null, loadedAt: 0, msg: null, fitPx: null };
     $scope.group  = { on: false, fs: false, active: false, songId: 0, verseIdx: -1, leaderLangs: [],
                       song: null, langs: [], groups: [], view: { kind: 'none' },
                       blocks: [], imageSrc: '', shownGroupId: null, loadedAt: 0, verseText: '',
-                      text: '', title: '' };   // text overlay from the tech console (Bible verse / message paragraph)
+                      text: '', title: '', fitPx: null };   // text overlay from the tech console (Bible verse / message paragraph)
 
     var langsReady = SongsService.getLanguages().then(function (langs) {
         $scope.langList = langs || [];
@@ -212,12 +213,52 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
         if (view.kind === 'text') {
             var lang = langByCode(view.lang);
             t.blocks = textBlocks(lang ? t.song[textCol(lang)] : '');
+            if (t === $scope.viewer) fitSongText(t);   // the group refits in renderGroupVerse
         } else if (view.kind === 'image') {
             var g = findGroup(t.groups, view.groupId);
             var shown = (g && g.image) ? g : firstWithImage(t.groups);
             t.shownGroupId = shown ? shown.id : null;
             t.imageSrc = (shown && shown.image) ? shown.image + '?t=' + t.loadedAt : noImageSrc;
+            t.fitPx = null;
+        } else {
+            t.fitPx = null;
         }
+    }
+
+    // Wide screens only (a computer / TV, a tablet in landscape): the whole
+    // song text is scaled up to fill the content box and centred, the way
+    // the main screen shows a song. The manual A-/A+ size with scrolling
+    // stays for phones (untouched), for a text too long to fit even at the
+    // manual size, and when A+ was pushed above the fitting size.
+    function wideScreen() {
+        return !!(window.matchMedia && window.matchMedia('(min-width: 900px) and (min-height: 600px)').matches);
+    }
+    function fitSongText(t, _retry) {
+        var elId = (t === $scope.group) ? 'obsGsong' : 'obsVsong';
+        $timeout(function () {
+            var el = document.getElementById(elId);
+            if (!el) return;                       // not rendered (verse / image / closed)
+            if (!wideScreen()) { t.fitPx = null; el.style.fontSize = $scope.fontPx + 'px'; return; }
+            var box = el.parentElement;
+            if (box.clientHeight <= 20 || box.clientWidth <= 20) {
+                if ((_retry || 0) < 10) fitSongText(t, (_retry || 0) + 1);
+                return;
+            }
+            // Measure as plain content: the fit class stretches the element
+            // to the box (min-height:100%), which would hide the overflow.
+            el.style.minHeight = '0';
+            var maxH = box.clientHeight;
+            var lo = 8, hi = 300, best = 0;
+            for (var i = 0; i < 18; i++) {
+                var mid = (lo + hi) / 2;
+                el.style.fontSize = mid + 'px';
+                if (el.scrollHeight <= maxH && el.scrollWidth <= box.clientWidth + 2) { best = mid; lo = mid; }
+                else { hi = mid; }
+            }
+            el.style.minHeight = '';
+            t.fitPx = (best >= $scope.fontPx) ? Math.floor(best) : null;
+            el.style.fontSize = (t.fitPx || $scope.fontPx) + 'px';
+        }, 30);
     }
 
     $scope.setView = function (t, kind, val) {
@@ -724,12 +765,13 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
         var g = $scope.group;
         g.verseText = g.text ? '' : groupVerseText();
         if (g.verseText || g.text) fitVerse();
+        else if (g.song && g.view && g.view.kind === 'text') fitSongText(g);
     }
 
     function clearGroupSong() {
         var g = $scope.group;
         g.song = null; g.langs = []; g.groups = []; g.blocks = []; g.imageSrc = '';
-        g.shownGroupId = null; g.verseText = ''; g.view = { kind: 'none' };
+        g.shownGroupId = null; g.verseText = ''; g.view = { kind: 'none' }; g.fitPx = null;
     }
 
     // Text overlay (Bible verse / message paragraph from the tech console).
@@ -804,10 +846,20 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
 
     // Re-fit the verse when the viewport changes (debounced: mobile address bar).
     var resizeTimer = null;
+    function refitAll() {
+        var g = $scope.group, v = $scope.viewer;
+        var groupVerse = g.on && (g.verseText || g.text);
+        var groupSong  = g.on && !groupVerse && g.song && g.view && g.view.kind === 'text';
+        var viewerSong = v.open && v.kind === 'song' && v.view && v.view.kind === 'text';
+        if (groupVerse) fitVerse();
+        if (groupSong)  fitSongText(g);
+        if (viewerSong) fitSongText(v);
+    }
     function scheduleRefit() {
-        if (!$scope.group.on || (!$scope.group.verseText && !$scope.group.text)) return;
+        var g = $scope.group, v = $scope.viewer;
+        if (!(g.on && (g.verseText || g.text || g.song)) && !(v.open && v.kind === 'song')) return;
         if (resizeTimer) clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(function () { resizeTimer = null; fitVerse(); }, 200);
+        resizeTimer = setTimeout(function () { resizeTimer = null; refitAll(); }, 200);
     }
     window.addEventListener('resize', scheduleRefit);
     window.addEventListener('orientationchange', scheduleRefit);
