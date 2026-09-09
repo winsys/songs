@@ -255,6 +255,8 @@
   "observer.bible.backToBooks": "← Books",
   "observer.bible.books": "Books",
   "observer.bible.chapters": "Chapters",
+  "observer.bible.newTestament": "New Testament",
+  "observer.bible.oldTestament": "Old Testament",
   "observer.bible.next": "Next ›",
   "observer.bible.placeholder": "Search the Bible by words",
   "observer.bible.prev": "‹ Previous",

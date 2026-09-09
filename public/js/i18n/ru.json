@@ -255,6 +255,8 @@
   "observer.bible.backToBooks": "← Книги",
   "observer.bible.books": "Книги",
   "observer.bible.chapters": "Главы",
+  "observer.bible.newTestament": "Новый Завет",
+  "observer.bible.oldTestament": "Ветхий Завет",
   "observer.bible.next": "След. глава ›",
   "observer.bible.placeholder": "Поиск по словам в Библии",
   "observer.bible.prev": "‹ Пред. глава",

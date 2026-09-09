@@ -212,11 +212,20 @@
         color: #5a6272;
     }
 
+    /* Books: two columns, Old Testament on the left, New Testament on the right */
     .obs-grid-books {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 6px;
+        gap: 6px 10px;
+        align-items: start;
     }
+    .obs-testament {
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-width: 0;
+    }
+    .obs-testament .obs-section { margin: 12px 0 2px; }
     .obs-book {
         padding: 12px 10px;
         border-radius: 10px;
@@ -580,9 +589,15 @@
             <div ng-if="bible.q.length < 3">
                 <div class="obs-hint" ng-if="!bible.loaded"><?php echo T::s('common.loading'); ?></div>
                 <div ng-if="bible.loaded && !bible.book">
-                    <div class="obs-section"><?php echo T::s('observer.bible.books'); ?></div>
                     <div class="obs-grid-books">
-                        <button class="obs-book" ng-repeat="b in bible.books track by b.ID" ng-click="selectBook(b)">{{ bookName(b) }}</button>
+                        <div class="obs-testament">
+                            <div class="obs-section"><?php echo T::s('observer.bible.oldTestament'); ?></div>
+                            <button class="obs-book" ng-repeat="b in bible.booksOT track by b.ID" ng-click="selectBook(b)">{{ bookName(b) }}</button>
+                        </div>
+                        <div class="obs-testament">
+                            <div class="obs-section"><?php echo T::s('observer.bible.newTestament'); ?></div>
+                            <button class="obs-book" ng-repeat="b in bible.booksNT track by b.ID" ng-click="selectBook(b)">{{ bookName(b) }}</button>
+                        </div>
                     </div>
                 </div>
                 <div ng-if="bible.book">
@@ -759,4 +774,4 @@
 
 </div><!-- /ng-controller -->
 
-<script src="/js/observer.min.js?v=3" type="text/javascript"></script>
+<script src="/js/observer.min.js?v=4" type="text/javascript"></script>
