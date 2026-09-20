@@ -299,6 +299,7 @@ CREATE TABLE IF NOT EXISTS `user_settings` (
   `streaming_font` varchar(100) DEFAULT 'Arial',
   `streaming_font_color` varchar(20) DEFAULT '#FFFFFF',
   `streaming_height_percent` int(11) DEFAULT '100',
+  `streaming_font_max_size` tinyint(3) unsigned NOT NULL DEFAULT '64' COMMENT 'Max auto-fit font size px for streaming text display (20-200)',
   `sermon_notes_bg_color` varchar(20) NOT NULL DEFAULT '#2b2b2b' COMMENT 'Left panel (notes) background colour',
   `sermon_bible_base_color` varchar(20) NOT NULL DEFAULT '#7ec8f8' COMMENT 'Base (header text) colour for Bible-verse chips',
   `sermon_msg_base_color` varchar(20) NOT NULL DEFAULT '#ce93d8' COMMENT 'Base (header text) colour for Epistle/Message chips',

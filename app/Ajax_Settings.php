@@ -30,6 +30,8 @@ trait Ajax_Settings
         $streamingFont           = mysqli_escape_string(Info::get('dbh'), $settings['streaming_font']);
         $streamingFontColor      = mysqli_escape_string(Info::get('dbh'), $settings['streaming_font_color']);
         $streamingHeightPercent  = intval($settings['streaming_height_percent']);
+        $streamingFontMaxSize    = isset($settings['streaming_font_max_size']) ? intval($settings['streaming_font_max_size']) : 64;
+        $streamingFontMaxSize    = max(20, min(200, $streamingFontMaxSize));
         $sermonNotesBgColor      = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_notes_bg_color'])   ? $settings['sermon_notes_bg_color']   : '#2b2b2b');
         $sermonBibleBaseColor    = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_bible_base_color']) ? $settings['sermon_bible_base_color'] : '#1565c0');
         $sermonMsgBaseColor      = mysqli_escape_string(Info::get('dbh'), isset($settings['sermon_msg_base_color'])   ? $settings['sermon_msg_base_color']   : '#6a1b9a');
@@ -64,6 +66,7 @@ trait Ajax_Settings
                     streaming_font           = '{$streamingFont}',
                     streaming_font_color     = '{$streamingFontColor}',
                     streaming_height_percent = {$streamingHeightPercent},
+                    streaming_font_max_size  = {$streamingFontMaxSize},
                     sermon_notes_bg_color    = '{$sermonNotesBgColor}',
                     sermon_bible_base_color  = '{$sermonBibleBaseColor}',
                     sermon_msg_base_color    = '{$sermonMsgBaseColor}',
@@ -82,14 +85,14 @@ trait Ajax_Settings
                 INSERT INTO user_settings (
                     group_id, display_name, favorites_order, available_lists, available_languages, placeholder_image,
                     main_bg_color, main_font, main_font_color,
-                    streaming_bg_color, streaming_font, streaming_font_color, streaming_height_percent,
+                    streaming_bg_color, streaming_font, streaming_font_color, streaming_height_percent, streaming_font_max_size,
                     sermon_notes_bg_color, sermon_bible_base_color, sermon_msg_base_color,
                     sermon_prep_font_size, sermon_notes_font_size, sermon_scale_chips,
                     slide_bg_color, main_font_max_size, slide_font_max_size, ui_lang, leader_text_multilang
                 ) VALUES (
                     {$userId}, '{$displayName}', '{$favoritesOrder}', '{$availableLists}', " . ($availableLanguages === null ? 'NULL' : "'{$availableLanguages}'") . ", '{$placeholderImage}',
                     '{$mainBgColor}', '{$mainFont}', '{$mainFontColor}',
-                    '{$streamingBgColor}', '{$streamingFont}', '{$streamingFontColor}', {$streamingHeightPercent},
+                    '{$streamingBgColor}', '{$streamingFont}', '{$streamingFontColor}', {$streamingHeightPercent}, {$streamingFontMaxSize},
                     '{$sermonNotesBgColor}', '{$sermonBibleBaseColor}', '{$sermonMsgBaseColor}',
                     {$sermonPrepFontSize}, {$sermonNotesFontSize}, {$sermonScaleChips},
                     '{$slideBgColor}', {$mainFontMaxSize}, {$slideFontMaxSize}, '{$uiLang}', {$leaderTextMultilang}

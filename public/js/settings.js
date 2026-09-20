@@ -22,6 +22,7 @@ app.controller('Settings', function ($scope, $http, $sce)
         streaming_font: 'Arial',
         streaming_font_color: '#FFFFFF',
         streaming_height_percent: 100,
+        streaming_font_max_size: 64,
         sermon_notes_bg_color:   '#2b2b2b',
         sermon_bible_base_color: '#1565c0',
         sermon_msg_base_color:   '#6a1b9a',
@@ -153,6 +154,7 @@ app.controller('Settings', function ($scope, $http, $sce)
                     angular.extend($scope.settings, r.data);
                     if ($scope.settings.streaming_height_percent)
                         $scope.settings.streaming_height_percent = parseInt($scope.settings.streaming_height_percent, 10);
+                    $scope.settings.streaming_font_max_size = parseInt($scope.settings.streaming_font_max_size, 10) || 64;
                     if (!$scope.settings.sermon_notes_bg_color)   $scope.settings.sermon_notes_bg_color   = '#2b2b2b';
                     if (!$scope.settings.sermon_bible_base_color)  $scope.settings.sermon_bible_base_color  = '#1565c0';
                     if (!$scope.settings.sermon_msg_base_color)    $scope.settings.sermon_msg_base_color    = '#6a1b9a';

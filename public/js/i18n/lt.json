@@ -455,6 +455,7 @@
   "settings.hint.lists": "Pasirinkti rinkiniai bus prieinami Vedėjo ir Techniko režimuose. Tvarką nustatykite mygtukais ↑↓ — pirmasis sąraše atsidarys pagal nutylėjimą.",
   "settings.hint.maxFontSizeMain": "Viršutinė automatinio teksto mastelio riba pagrindiniame ekrane.",
   "settings.hint.maxFontSizeSlide": "Viršutinė automatinio skaidrių teksto mastelio riba pagrindiniame ekrane.",
+  "settings.hint.maxFontSizeStreaming": "Viršutinė automatinio teksto mastelio riba transliacijos ekrane.",
   "settings.hint.notesBg": "Užrašų skydelio fonas. Antraštės ir rėmelio spalvos apskaičiuojamos automatiškai.",
   "settings.hint.notesFont": "Teksto mastelis kairiajame Pamokslo režimo skydelyje. 100% — standartinis dydis.",
   "settings.hint.scaleChips": "Biblijos ir Žinios citatų šriftai keičiami kartu su užrašais",

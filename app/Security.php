@@ -304,7 +304,7 @@ class Security
         'admin' => null,
         'leader' => array('index', 'ajax', 'leader', 'tech', 'piano', 'settings'),
         'musician' => array('index', 'ajax', 'musician', 'piano', 'settings'),
-        'preacher' => array('index', 'ajax', 'sermon_prep', 'sermon', 'settings'),
+        'preacher' => array('index', 'ajax', 'sermon_prep', 'sermon', 'settings', 'observer'),
         'tech' => array('index', 'ajax', 'tech', 'text', 'text_stream', 'piano', 'settings'),
         'screen' => array('index', 'ajax', 'text', 'text_stream', 'settings'),
         // No settings page: the observer login is shared by the whole church,
