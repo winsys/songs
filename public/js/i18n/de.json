@@ -455,6 +455,7 @@
   "settings.hint.lists": "Die ausgewählten Sammlungen sind im Einleiter- und Techniker-Modus verfügbar. Reihenfolge mit ↑↓ — die erste wird als Standard geöffnet.",
   "settings.hint.maxFontSizeMain": "Obergrenze der automatischen Textgrößenanpassung auf dem Hauptbildschirm.",
   "settings.hint.maxFontSizeSlide": "Obergrenze der automatischen Textgrößenanpassung der Folien auf dem Hauptbildschirm.",
+  "settings.hint.maxFontSizeStreaming": "Obergrenze der automatischen Textgrößenanpassung auf dem Streaming-Bildschirm.",
   "settings.hint.notesBg": "Hintergrund des Notizen-Panels. Kopf- und Randfarbe werden automatisch berechnet.",
   "settings.hint.notesFont": "Skalierung des Textes im linken Predigtmodus-Panel. 100% — Standardgröße.",
   "settings.hint.scaleChips": "Schriftgrößen der Bibel- und Botschafts-Chips werden mit den Notizen mitskaliert",

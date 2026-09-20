@@ -455,6 +455,7 @@
   "settings.hint.lists": "Selected collections will be available in Leader and Tech modes. Set the order with ↑↓ — the first one opens by default.",
   "settings.hint.maxFontSizeMain": "Upper bound for the auto-fit text on the main display.",
   "settings.hint.maxFontSizeSlide": "Upper bound for the auto-fit slide text on the main display.",
+  "settings.hint.maxFontSizeStreaming": "Upper bound for the auto-fit text on the streaming display.",
   "settings.hint.notesBg": "Notes panel background. Header and border colors are computed automatically.",
   "settings.hint.notesFont": "Text scale in the left Sermon-mode panel. 100% — standard size.",
   "settings.hint.scaleChips": "Bible and Message chip fonts scale together with the notes",

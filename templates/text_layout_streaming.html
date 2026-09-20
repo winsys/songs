@@ -103,9 +103,16 @@
                     if (textElement) {
                         textElement.style.fontFamily = settings.streaming_font || 'Arial';
                     }
+                    // Upper bound of the auto-fit (settings field 13)
+                    $scope.fontMaxSize = parseInt(settings.streaming_font_max_size) || 64;
+
                     // Set container height based on percentage (subtract title height ~60px = ~6vh)
                     var titleHeightVh = 6; // Approximate title height in vh
                     $scope.containerHeight = Math.min(settings.streaming_height_percent || 30, 100 - titleHeightVh);
+
+                    // Settings arrive after the first fit — redo it with the
+                    // new cap / container height.
+                    adjustTextSize();
                 }
             }
 
@@ -116,7 +123,7 @@
 
                     if (!container || !textElement) return;
 
-                    let maxSize = 100, currentSize = 10;
+                    let maxSize = $scope.fontMaxSize, currentSize = 10;
                     textElement.style.fontSize = currentSize + "px";
 
                     // Increase font size until text no longer fits
