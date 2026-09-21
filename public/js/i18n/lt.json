@@ -412,6 +412,8 @@
   "sermon.error.requestSendFailed": "Nepavyko išsiųsti užklausos",
   "sermon.errorPrefix": "Klaida: {message}",
   "sermon.fullscreen": "⛶ Visas ekranas",
+  "sermon.clearDisplay": "Išvalyti ekraną",
+  "sermon.rotate": "Pasukite įrenginį horizontaliai",
   "sermon.label.font": "Šriftas",
   "sermon.label.sermon": "Pamokslas",
   "sermon.page.title": "Pamokslas",

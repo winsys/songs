@@ -1264,6 +1264,15 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
             else { document.exitFullscreen(); }
         };
 
+        // "Clear" action of the phone dock: a thin wrapper around the existing
+        // paths — a video goes through stopVideo(), everything else through the
+        // same steps as tapping the active item again.
+        $scope.clearDisplay = function () {
+            if ($scope.videoActive) { $scope.stopVideo(); return; }
+            deactivateAll();
+            $timeout(function () { clearDisplayScope(); sendImageToDisplay(''); });
+        };
+
         // ==========================================================
         // DISPLAY TARGET MANAGEMENT
         // ==========================================================

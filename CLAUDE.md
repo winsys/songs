@@ -135,6 +135,7 @@ All AJAX responses are JSON. CSRF token is validated from `X-CSRF-Token` header 
 - Notes font scaling: 50–300% in 10% steps, default 100%, stored per sermon.
 - Bible/message chips can scale together with notes (toggle in settings).
 - Compact 44px header with `⋮` dropdown for secondary controls.
+- Layout per `docs/ui-redesign-sermon-display.md` (Sept 2026): landscape-only, always fills the viewport (`100dvh`), CSS grid with `--sd-notes` (58% tablets, 55% from 1366px); phone landscape (`max-height: 540px`) = notes 62% | 50px control dock `#sermon-dock` (Back, sermon selector, A−, A+, Clear; Fullscreen pinned to the bottom behind a divider) | preview. Tablet toolbar lives in the notes pane only (Back, title/date, A−/A+, the ONE `#sermon-select` — the same element becomes an overlay over the notes pane on phones); fullscreen is a quiet overlay in the preview's lower-right corner. `clearDisplay()` is a thin wrapper over the existing toggle-off / `stopVideo()` paths. Portrait + touch shows a rotate request. The overrides are appended LAST in the page `<style>`; notes colours still come from the runtime `--sn-*` variables.
 
 ---
 

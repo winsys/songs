@@ -412,6 +412,8 @@
   "sermon.error.requestSendFailed": "Failed to send request",
   "sermon.errorPrefix": "Error: {message}",
   "sermon.fullscreen": "⛶ Fullscreen",
+  "sermon.clearDisplay": "Clear the display",
+  "sermon.rotate": "Please rotate the device to landscape",
   "sermon.label.font": "Font",
   "sermon.label.sermon": "Sermon",
   "sermon.page.title": "Sermon",

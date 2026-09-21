@@ -412,6 +412,8 @@
   "sermon.error.requestSendFailed": "Ошибка отправки запроса",
   "sermon.errorPrefix": "Ошибка: {message}",
   "sermon.fullscreen": "⛶ Полный экран",
+  "sermon.clearDisplay": "Очистить экран",
+  "sermon.rotate": "Поверните устройство горизонтально",
   "sermon.label.font": "Шрифт",
   "sermon.label.sermon": "Проповедь",
   "sermon.page.title": "Проповедь",
