@@ -1415,20 +1415,33 @@
 
             <!-- Songs: collections -->
             <span class="cx-ctx-label" ng-show="pageMode === 'songs'"><?php echo T::s('tech.label.collection'); ?></span>
-            <div class="cx-scroll-x tc-grow" ng-show="pageMode === 'songs'">
-                <button class="cx-btn btn-list"
-                        ng-repeat="list in visibleSongLists"
-                        ng-class="listId == list.LIST_ID ? 'btn-selected' : ''"
-                        ng-click="setList(list.LIST_ID)">{{ list.LIST_NAME }}</button>
+            <!-- Never wraps and never pushes its neighbours away: arrows + mouse wheel (cx_scroll.js) -->
+            <div class="cx-scroller tc-grow" ng-show="pageMode === 'songs'">
+                <button type="button" class="cx-scroll-btn cx-scroll-left" tabindex="-1"
+                        title="<?php echo T::s('common.scrollLeft'); ?>" aria-label="<?php echo T::s('common.scrollLeft'); ?>">‹</button>
+                <div class="cx-scroll-x" data-cx-scroll>
+                    <button class="cx-btn btn-list"
+                            ng-repeat="list in visibleSongLists"
+                            ng-class="listId == list.LIST_ID ? 'btn-selected' : ''"
+                            ng-click="setList(list.LIST_ID)">{{ list.LIST_NAME }}</button>
+                </div>
+                <button type="button" class="cx-scroll-btn cx-scroll-right" tabindex="-1"
+                        title="<?php echo T::s('common.scrollRight'); ?>" aria-label="<?php echo T::s('common.scrollRight'); ?>">›</button>
             </div>
 
             <!-- Bible: primary translation -->
             <span class="cx-ctx-label" ng-show="pageMode === 'bible'"><?php echo T::s('tech.label.translation'); ?></span>
-            <div class="cx-scroll-x tc-grow" ng-show="pageMode === 'bible'">
-                <button class="cx-btn btn-list"
-                        ng-repeat="tr in bibleTranslations"
-                        ng-class="bibleTranslationId == tr.ID ? 'btn-selected' : ''"
-                        ng-click="setBibleTranslation(tr.ID)">{{ tr.NAME }}</button>
+            <div class="cx-scroller tc-grow" ng-show="pageMode === 'bible'">
+                <button type="button" class="cx-scroll-btn cx-scroll-left" tabindex="-1"
+                        title="<?php echo T::s('common.scrollLeft'); ?>" aria-label="<?php echo T::s('common.scrollLeft'); ?>">‹</button>
+                <div class="cx-scroll-x" data-cx-scroll>
+                    <button class="cx-btn btn-list"
+                            ng-repeat="tr in bibleTranslations"
+                            ng-class="bibleTranslationId == tr.ID ? 'btn-selected' : ''"
+                            ng-click="setBibleTranslation(tr.ID)">{{ tr.NAME }}</button>
+                </div>
+                <button type="button" class="cx-scroll-btn cx-scroll-right" tabindex="-1"
+                        title="<?php echo T::s('common.scrollRight'); ?>" aria-label="<?php echo T::s('common.scrollRight'); ?>">›</button>
             </div>
 
             <span class="cx-spacer" ng-show="pageMode === 'messages'"></span>
@@ -1491,7 +1504,10 @@
              off the screen by a long list of translations above it. ── -->
         <div class="cx-ctx tc-ctx tc-ctx-parallel" ng-show="pageMode === 'bible'">
             <span class="cx-ctx-label"><?php echo T::s('tech.label.bibleExtraLangs'); ?></span>
-            <div class="cx-scroll-x tc-grow">
+            <div class="cx-scroller tc-grow">
+                <button type="button" class="cx-scroll-btn cx-scroll-left" tabindex="-1"
+                        title="<?php echo T::s('common.scrollLeft'); ?>" aria-label="<?php echo T::s('common.scrollLeft'); ?>">‹</button>
+                <div class="cx-scroll-x" data-cx-scroll>
                 <span class="cx-group" ng-repeat="lang in langList"
                       ng-show="lang.code !== bibleLang && bibleTranslationsForLang(lang.code).length > 0">
                     <button class="cx-btn btn-lang"
@@ -1503,6 +1519,9 @@
                             ng-options="tr.ID as tr.NAME for tr in bibleTranslationsForLang(lang.code)"
                             ng-change="setBibleExtraTranslation(lang.code)"></select>
                 </span>
+                </div>
+                <button type="button" class="cx-scroll-btn cx-scroll-right" tabindex="-1"
+                        title="<?php echo T::s('common.scrollRight'); ?>" aria-label="<?php echo T::s('common.scrollRight'); ?>">›</button>
             </div>
         </div>
 
@@ -2360,5 +2379,6 @@
 </div><!-- /ng-controller -->
 
 <script src="/js/drag_reorder.min.js?v=1" type="text/javascript"></script>
+<script src="/js/cx_scroll.min.js?v=1" type="text/javascript"></script>
 <script src="/js/tech.min.js?v=53" type="text/javascript"></script>
 
