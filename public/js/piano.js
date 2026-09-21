@@ -213,6 +213,24 @@ app.controller('Piano', ['$scope', '$http', 'SongsService', '$timeout', function
         });
     };
 
+    // ---- Swipe-to-delete (swipe_delete.js), same as on the leader page ----
+    // A row swiped sideways uncovers a red "delete" button; that button is
+    // the confirmation (deleteFavoriteNow), so no dialog is involved.
+    var favSwipe = (window.createSwipeDelete && document.querySelector('.favorites-list'))
+        ? window.createSwipeDelete({
+            container: document.querySelector('.favorites-list'),
+            rowSelector: '.swipe-row',
+            slideSelector: '.prod-list-item'
+        })
+        : null;
+
+    $scope.deleteFavoriteNow = function (fav_id) {
+        if (favSwipe) favSwipe.close();
+        $http({ method: "POST", url: "/ajax", data: { command: 'piano_delete_favorite', id: fav_id } }).then(
+            function success() { $scope.reloadFavorites(); }
+        );
+    };
+
     // Confirmation dialog (same markup as the leader page)
     $scope.confirmationDialogConfig = {};
     $scope.confirmationDialog = function (msg, callback) {

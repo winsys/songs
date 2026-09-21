@@ -122,6 +122,9 @@
         function onClickCapture(e) {
             if (!suppressClick) return;
             suppressClick = false;
+            // Only the click produced by the swipe gesture itself is swallowed;
+            // a quick tap on the uncovered action button must always work.
+            if (e.target.closest && e.target.closest('.swipe-action')) return;
             e.stopPropagation();
             e.preventDefault();
         }
