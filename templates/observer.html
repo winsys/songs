@@ -497,6 +497,62 @@
         text-overflow: ellipsis;
         padding: 0 12px;
     }
+
+    /* ============================================================
+       COMPACT UI SKIN (docs/ui-redesign-tech-leader.md) — the search /
+       list part of the page in the tokens of the working pages
+       (/css/compact.css). The dark full-viewport viewers above are
+       deliberately NOT touched. Comes last on purpose.
+       ============================================================ */
+    body { background: #EDF1F4; font-family: "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif; color: #17212B; }
+
+    /* Header = sticky application bar, full bleed inside .obs-main */
+    .obs-header {
+        position: sticky;
+        top: 0;
+        z-index: 20;
+        min-height: 50px;
+        margin: -12px -12px 10px;
+        padding: 3px 12px;
+        background: #fff;
+        border-bottom: 1px solid #DCE3E8;
+    }
+    .btn-back { border-radius: 6px; border: 1px solid #DCE3E8; background: #fff; color: #17212B; }
+    .btn-back:hover { background: #fff; border-color: #176B87; color: #176B87; }
+    .obs-title { font-size: 15px; color: #17212B; }
+    .obs-subtitle { color: #6E7883; }
+    /* Group mode = the broadcast: broadcast green */
+    .obs-group-enter { border-radius: 6px; background: #1E7E34; }
+    .obs-group-enter:hover { background: #176a2b; }
+
+    .obs-tab { border-radius: 6px; border: 1px solid #DCE3E8; color: #6E7883; }
+    .obs-tab.on { background: #E6F1F4; border-color: #176B87; color: #176B87; }
+
+    .obs-search { border: 1px solid #DCE3E8; border-radius: 6px; background: #fff; color: #17212B; }
+    .obs-search:focus { border-color: #176B87; box-shadow: 0 0 0 3px rgba(23,107,135,0.14); }
+    .obs-chip { border-radius: 6px; border: 1px solid #DCE3E8; color: #17212B; }
+    .obs-chip.on { background: #E6F1F4; border-color: #176B87; color: #176B87; }
+    .obs-section { color: #6E7883; text-transform: none; letter-spacing: 0; font-size: 13px; font-weight: 600; }
+    .obs-hint, .obs-more, .obs-item-sub { color: #6E7883; }
+
+    /* Lists: one continuous surface with thin separators */
+    .obs-list { gap: 0; }
+    .obs-item { border: 1px solid #DCE3E8; border-top-width: 0; border-radius: 0; }
+    .obs-item:first-child { border-top-width: 1px; border-radius: 6px 6px 0 0; }
+    .obs-item:last-child { border-radius: 0 0 6px 6px; }
+    .obs-item:first-child:last-child { border-radius: 6px; }
+    .obs-item:active { background: #E6F1F4; }
+    .obs-item-num { color: #176B87; }
+    .obs-item-title { color: #17212B; }
+    .obs-item-snip { color: #6E7883; }
+    .lang-badge { background: #EDF1F4; color: #6E7883; }
+
+    .obs-book, .obs-ch { border-radius: 6px; border: 1px solid #DCE3E8; color: #17212B; }
+    .obs-book:active, .obs-ch.on, .obs-ch:active { background: #E6F1F4; border-color: #176B87; color: #176B87; }
+    .obs-crumb-back { border-radius: 6px; border: 1px solid #DCE3E8; background: #fff; color: #17212B; }
+    .obs-crumb-title { color: #17212B; }
+    .obs-clear { border-radius: 6px; border: 1px solid transparent; background: #FBECEA; color: #C4473A; }
+    .obs-main button:focus-visible, .obs-main input:focus-visible { outline: 2px solid #176B87; outline-offset: 2px; }
 </style>
 
 <div ng-controller="Observer">

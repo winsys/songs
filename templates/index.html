@@ -1,127 +1,108 @@
 <?php $role = isset($_SESSION['userRole']) ? $_SESSION['userRole'] : 'musician'; ?>
 
 <style>
+    /* ============================================================
+       HOME / ROLE HUB — compact UI tokens (/css/compact.css, --cx-*).
+       Clarity over density: sections with plain labels, every destination
+       is one large tile (icon + name) in a responsive grid.
+       ============================================================ */
     body {
-        background: #f0f2f5;
+        background: #EDF1F4;
         min-height: 100vh;
+        font-family: "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif;
+        color: #17212B;
     }
 
     .home-wrapper {
-        display: flex;
-        align-items: center;
-        justify-content: center;
         min-height: 100vh;
-        padding: 24px 16px;
+        display: flex;
+        align-items: flex-start;
+        justify-content: center;
+        padding: 40px 16px;
     }
 
+    /* The card itself is the grid: labels and the header span all columns,
+       the buttons flow into it as tiles. */
     .home-card {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
-        padding: 36px 32px 32px;
         width: 100%;
-        max-width: 420px;
+        max-width: 760px;
+        background: #fff;
+        border: 1px solid #DCE3E8;
+        border-radius: 10px;
+        padding: 28px 28px 20px;
+        box-shadow: 0 10px 30px rgba(23,33,43,0.08);
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 10px;
     }
+    .home-logo, .home-title, .home-church, .home-section-label, .btn-logout { grid-column: 1 / -1; }
 
-    .home-logo {
-        text-align: center;
-        font-size: 44px;
-        line-height: 1;
-        margin-bottom: 6px;
-    }
-
-    .home-title {
-        text-align: center;
-        font-size: 20px;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 4px;
-    }
-
-    .home-church {
-        text-align: center;
-        font-size: 13px;
-        color: #95a5a6;
-        margin-bottom: 28px;
-    }
+    .home-logo   { font-size: 36px; line-height: 1; text-align: center; }
+    .home-title  { font-size: 24px; font-weight: 600; text-align: center; letter-spacing: -0.2px; margin-top: -4px; }
+    .home-church { font-size: 14px; color: #6E7883; text-align: center; margin-top: -6px; }
 
     .home-section-label {
-        font-size: 11px;
+        margin-top: 14px;
+        padding-bottom: 6px;
+        border-bottom: 1px solid #DCE3E8;
+        font-size: 13px;
         font-weight: 600;
-        color: #b0b8c1;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        margin: 20px 0 8px;
+        color: #6E7883;
     }
 
     .btn-home {
         display: flex;
         align-items: center;
+        gap: 12px;
         width: 100%;
-        padding: 12px 16px;
-        margin-bottom: 8px;
-        border-radius: 8px;
+        min-height: 60px;
+        margin: 0;
+        padding: 10px 14px;
+        border: 1px solid #DCE3E8;
+        border-left: 3px solid #176B87;
+        border-radius: 6px;
+        background: #fff;
+        color: #17212B;
         font-size: 15px;
-        font-weight: 500;
+        font-weight: 600;
+        line-height: 1.25;
         text-align: left;
-        border: none;
         cursor: pointer;
-        transition: all 0.15s;
+        transition: background 0.12s, border-color 0.12s;
     }
+    .btn-home:hover, .btn-home:focus { background: #E6F1F4; border-color: #176B87; outline: none; }
+    .btn-home:focus-visible, .btn-logout:focus-visible { outline: 2px solid #176B87; outline-offset: 2px; }
+    .btn-icon { font-size: 24px; line-height: 1; width: 30px; text-align: center; flex-shrink: 0; }
 
-    .btn-home .btn-icon {
-        font-size: 20px;
-        margin-right: 12px;
-        width: 28px;
-        text-align: center;
-        flex-shrink: 0;
-    }
-
-    .btn-home:hover {
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.12);
-    }
-
-    .btn-home:active {
-        transform: translateY(0);
-    }
-
-    .btn-blue  { background: #ebf3fb; color: #1a6db5; }
-    .btn-blue:hover  { background: #d6e9f8; color: #1a6db5; }
-
-    .btn-green { background: #eaf6ec; color: #1e7e34; }
-    .btn-green:hover { background: #d4edda; color: #1e7e34; }
-
-    .btn-purple { background: #f3eafb; color: #6f42c1; }
-    .btn-purple:hover { background: #e8d5f5; color: #6f42c1; }
-
-    .btn-gray  { background: #f4f5f7; color: #5a6272; }
-    .btn-gray:hover  { background: #e8eaed; color: #5a6272; }
-
-    .btn-red   { background: #fdecea; color: #c0392b; }
-    .btn-red:hover   { background: #fad7d4; color: #c0392b; }
+    /* One quiet accent per section — state/meaning, not decoration */
+    .btn-home.btn-green  { border-left-color: #1E7E34; }
+    .btn-home.btn-green:hover,  .btn-home.btn-green:focus  { background: #E7F4EA; border-color: #1E7E34; }
+    .btn-home.btn-gray   { border-left-color: #6E7883; }
+    .btn-home.btn-gray:hover,   .btn-home.btn-gray:focus   { background: #EDF1F4; border-color: #6E7883; }
+    .btn-home.btn-purple { border-left-color: #765276; }
+    .btn-home.btn-purple:hover, .btn-home.btn-purple:focus { background: #F3ECF3; border-color: #765276; }
+    .btn-home.btn-red    { border-left-color: #C4473A; }
+    .btn-home.btn-red:hover,    .btn-home.btn-red:focus    { background: #FBECEA; border-color: #C4473A; }
 
     .btn-logout {
-        display: flex;
-        align-items: center;
-        width: 100%;
-        padding: 11px 16px;
-        margin-top: 16px;
-        border-radius: 8px;
+        justify-self: end;
+        margin-top: 18px;
+        height: 40px;
+        padding: 0 18px;
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        background: #fff;
+        color: #6E7883;
         font-size: 14px;
         font-weight: 500;
-        border: 1.5px solid #e0e0e0;
-        background: transparent;
-        color: #95a5a6;
         cursor: pointer;
-        transition: all 0.15s;
-        justify-content: center;
     }
+    .btn-logout:hover { border-color: #C4473A; color: #C4473A; }
 
-    .btn-logout:hover {
-        border-color: #c0392b;
-        color: #c0392b;
-        background: #fdecea;
+    @media (max-width: 480px) {
+        .home-wrapper { padding: 16px 10px; }
+        .home-card { padding: 20px 14px 16px; grid-template-columns: 1fr; }
+        .btn-logout { justify-self: stretch; }
     }
 </style>
 

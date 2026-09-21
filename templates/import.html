@@ -482,18 +482,85 @@
         margin-top: 10px;
     }
 
+
+    /* ============================================================
+       COMPACT UI SKIN (docs/ui-redesign-tech-leader.md) — same tokens and
+       chrome as the working pages (/css/compact.css). Comes last on purpose:
+       it restyles the components defined above, the markup is unchanged
+       except for the sticky application bar.
+       ============================================================ */
+    body { background: #EDF1F4; font-family: "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif; color: #17212B; }
+    .import-wrapper { padding-top: 16px; }
+
+    /* Tabs: one segmented switch */
+    .tab-bar {
+        display: inline-flex;
+        gap: 0;
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        overflow: hidden;
+        background: #fff;
+        padding: 0;
+        margin-bottom: 16px;
+        max-width: 100%;
+    }
+    .tab-btn {
+        flex: 0 1 auto;
+        height: 38px;
+        padding: 0 18px;
+        border: none;
+        border-right: 1px solid #DCE3E8;
+        border-radius: 0;
+        background: transparent;
+        color: #6E7883;
+        font-size: 13px;
+        font-weight: 600;
+        box-shadow: none;
+    }
+    .tab-btn:last-child { border-right: none; }
+    .tab-btn:hover { color: #176B87; background: transparent; }
+    .tab-btn.active { background: #176B87; color: #fff; box-shadow: none; }
+    .msg-sub-tabs { gap: 6px; }
+    .msg-sub-btn { border: 1px solid #DCE3E8; border-radius: 6px; background: #fff; color: #17212B; }
+    .msg-sub-btn.active { background: #F3ECF3; border-color: #765276; color: #765276; }
+
+    .import-section { border: 1px solid #DCE3E8; border-radius: 8px; box-shadow: none; }
+    .import-label { color: #6E7883; text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 600; }
+    .import-input { border: 1px solid #DCE3E8; border-radius: 6px; background: #fff; color: #17212B; box-shadow: none; }
+    .import-input:focus { border-color: #176B87; box-shadow: 0 0 0 3px rgba(23,107,135,0.14); outline: none; }
+
+    .btn-import-primary, .btn-import-success, .btn-import-sm, .btn-lang-delete { border-radius: 6px; box-shadow: none; transform: none; font-weight: 600; }
+    .btn-import-primary { background: #176B87; border-color: #176B87; color: #fff; }
+    .btn-import-primary:hover:not([disabled]) { background: #125a72; transform: none; box-shadow: none; }
+    .btn-import-success { background: #1E7E34; border-color: #1E7E34; color: #fff; }
+    .btn-import-success:hover:not([disabled]) { background: #176a2b; transform: none; box-shadow: none; }
+    .btn-lang-delete { background: #FBECEA; border: 1px solid transparent; color: #C4473A; }
+    .btn-lang-delete:hover { border-color: #C4473A; }
+
+    .status-ok { border-radius: 6px; }
+    .progress-bar-wrap { border-radius: 4px; background: #EDF1F4; }
+    .progress-bar-inner { background: #176B87; border-radius: 4px; }
+    .import-log { border: 1px solid #DCE3E8; border-radius: 6px; }
+    .code-suggest-dropdown { border: 1px solid #DCE3E8; border-radius: 6px; box-shadow: 0 10px 30px rgba(23,33,43,0.22); }
+    .lang-row, .group-row, .group-names-panel, .lang-delete-panel { border-radius: 6px; }
+    .sample-dl { color: #176B87; }
+    .help-warn { color: #C4473A; }
+    .import-wrapper button:focus-visible, .import-wrapper input:focus-visible, .import-wrapper select:focus-visible {
+        outline: 2px solid #176B87; outline-offset: 2px;
+    }
 </style>
 
-<div ng-controller="ImportCtrl">
-    <div class="import-wrapper">
+<div ng-controller="ImportCtrl" class="cx-page">
 
-        <!-- Header -->
-        <div class="import-header">
-            <button class="btn-back" onclick="window.location.href='/index'">
-                <?php echo T::s('common.button.back'); ?>
-            </button>
-            <div class="import-page-title"><?php echo T::s('import.title'); ?></div>
-        </div>
+    <!-- Application bar -->
+    <header class="cx-bar">
+        <button class="cx-btn" onclick="window.location.href='/index'">
+            <?php echo T::s('common.button.back'); ?>
+        </button>
+        <div class="cx-bar-title"><?php echo T::s('import.title'); ?></div>
+    </header>
+
+    <div class="import-wrapper">
 
         <!-- Tab bar -->
         <div class="tab-bar">
