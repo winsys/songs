@@ -208,6 +208,31 @@
     max-width: 200px;
 }
 
+/* Search field with a "clear" button: <span class="cx-clearable"><input><button class="cx-clear"> */
+.cx-clearable { position: relative; display: block; min-width: 0; }
+.cx-clearable > input { padding-right: 30px !important; }
+.cx-clear {
+    position: absolute;
+    right: 4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    color: var(--cx-secondary);
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+}
+.cx-clear:hover { background: var(--cx-canvas); color: var(--cx-ink); }
+
 /* ---- Work panes ---------------------------------------------- */
 .cx-pane {
     display: flex;

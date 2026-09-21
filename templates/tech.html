@@ -1007,8 +1007,11 @@
     .tc-grow { flex: 1 1 0; }
     .tc-ctx .cx-seg > button { height: 30px; padding: 0 12px; }
     .tc-ctx .cx-btn { height: 30px; }
-    .tc-parallel { min-width: 0; }
-    .tc-parallel .cx-select { max-width: 150px; height: 30px; }
+    /* Row 2 of the context bar (Bible): parallel languages */
+    .tc-ctx-parallel { min-height: 38px; }
+    .tc-ctx-parallel .cx-select { max-width: 240px; height: 30px; }
+    .tc-ctx-parallel .cx-group { margin-right: 6px; }
+    #ccf6 .angucomplete-holder input { padding-right: 34px !important; }
     .btn-lang[disabled] { opacity: 0.4; cursor: default; }
 
     /* Popovers of the context bar */
@@ -1442,22 +1445,6 @@
                 </div>
             </div>
 
-            <!-- Bible: parallel languages + their translation selectors -->
-            <div class="cx-group tc-parallel" ng-show="pageMode === 'bible'">
-                <span class="cx-ctx-label"><?php echo T::s('tech.label.bibleExtraLangs'); ?></span>
-                <span class="cx-group" ng-repeat="lang in langList"
-                      ng-show="lang.code !== bibleLang && bibleTranslationsForLang(lang.code).length > 0">
-                    <button class="cx-btn btn-lang"
-                            ng-class="isBibleExtraOn(lang.code) ? 'lang-active' : ''"
-                            ng-click="toggleBibleExtraLang(lang.code)">{{lang.label}}</button>
-                    <select class="cx-select"
-                            ng-show="isBibleExtraOn(lang.code) && bibleTranslationsForLang(lang.code).length > 1"
-                            ng-model="bibleExtra[lang.code].trId"
-                            ng-options="tr.ID as tr.NAME for tr in bibleTranslationsForLang(lang.code)"
-                            ng-change="setBibleExtraTranslation(lang.code)"></select>
-                </span>
-            </div>
-
             <!-- Bible: verses per screen -->
             <div class="cx-group" ng-show="pageMode === 'bible'">
                 <span class="cx-ctx-label"><?php echo T::s('tech.label.versesPerPage'); ?></span>
@@ -1496,6 +1483,26 @@
                         title="<?php echo T::s('tech.button.standardWallpapers'); ?>">
                     <?php echo T::s('tech.button.wallpapersShort'); ?>
                 </button>
+            </div>
+        </div>
+
+        <!-- ── Context bar, row 2 (Bible only): parallel languages, each with its
+             translation selector. A row of its own, so it can never be pushed
+             off the screen by a long list of translations above it. ── -->
+        <div class="cx-ctx tc-ctx tc-ctx-parallel" ng-show="pageMode === 'bible'">
+            <span class="cx-ctx-label"><?php echo T::s('tech.label.bibleExtraLangs'); ?></span>
+            <div class="cx-scroll-x tc-grow">
+                <span class="cx-group" ng-repeat="lang in langList"
+                      ng-show="lang.code !== bibleLang && bibleTranslationsForLang(lang.code).length > 0">
+                    <button class="cx-btn btn-lang"
+                            ng-class="isBibleExtraOn(lang.code) ? 'lang-active' : ''"
+                            ng-click="toggleBibleExtraLang(lang.code)">{{lang.label}}</button>
+                    <select class="cx-select"
+                            ng-show="isBibleExtraOn(lang.code) && bibleTranslationsForLang(lang.code).length > 1"
+                            ng-model="bibleExtra[lang.code].trId"
+                            ng-options="tr.ID as tr.NAME for tr in bibleTranslationsForLang(lang.code)"
+                            ng-change="setBibleExtraTranslation(lang.code)"></select>
+                </span>
             </div>
         </div>
 
@@ -1598,7 +1605,11 @@
         <main class="tc-work" ng-show="pageMode === 'songs'">
 
             <!-- Search: one full-width field -->
-            <div class="tc-search-row">
+            <div class="tc-search-row cx-clearable">
+                <button type="button" class="cx-clear" ng-show="songSearchText"
+                        ng-click="clearSongSearch()"
+                        title="<?php echo T::s('common.clearSearch'); ?>"
+                            aria-label="<?php echo T::s('common.clearSearch'); ?>">×</button>
 
                 <script type="text/ng-template" id="song-row-tmpl.html">
                     <div class="angucomplete-holder" ng-class="{'angucomplete-dropdown-visible': showDropdown}">
@@ -1651,6 +1662,7 @@
                                   image-field="imageName"
                                   selected-object="selectedItem"
                                   minlength="2"
+                                  input-changed="songSearchChanged"
                                   input-class="form-control"
                                   template-url="song-row-tmpl.html">
                 </angucomplete-alt>
@@ -1820,19 +1832,27 @@
 
             <!-- Two search boxes in one row — widths match the panes below -->
             <div class="tc-search-row tc-split-msg">
-                <div>
+                <div class="cx-clearable">
                     <input type="text"
                            class="cx-input search-input"
                            placeholder="<?php echo T::s('prep.placeholder.msgSearchTitle'); ?>"
                            ng-model="messageTitleQuery"
                            ng-change="searchMessages()" />
+                    <button type="button" class="cx-clear" ng-show="messageTitleQuery"
+                            ng-click="messageTitleQuery = ''; searchMessages()"
+                            title="<?php echo T::s('common.clearSearch'); ?>"
+                            aria-label="<?php echo T::s('common.clearSearch'); ?>">×</button>
                 </div>
-                <div class="tc-rel">
+                <div class="tc-rel cx-clearable">
                     <input type="text"
                            class="cx-input search-input"
                            placeholder="<?php echo T::s('prep.placeholder.msgSearchText'); ?>"
                            ng-model="messageTextQuery"
                            ng-change="searchMessages()" />
+                    <button type="button" class="cx-clear" ng-show="messageTextQuery"
+                            ng-click="messageTextQuery = ''; searchMessages()"
+                            title="<?php echo T::s('common.clearSearch'); ?>"
+                            aria-label="<?php echo T::s('common.clearSearch'); ?>">×</button>
                     <!-- Quick paragraph results: click scrolls to the paragraph and shows it -->
                     <div class="msg-quick-results" ng-show="messageParaResults.length > 0">
                         <div class="msg-quick-item"
@@ -1931,15 +1951,27 @@
 
             <!-- Book search + full-text search share one row -->
             <div class="tc-search-row tc-split-biblesearch">
-                <input type="text"
-                       class="cx-input search-input"
-                       placeholder="<?php echo T::s('prep.placeholder.bookSearch'); ?>"
-                       ng-model="bibleBookSearchQuery" />
-                <input type="text"
-                       class="cx-input search-input"
-                       placeholder="<?php echo T::s('tech.search.bibleText'); ?>"
-                       ng-model="bibleSearchQuery"
-                       ng-change="searchBible(); bibleBookSearchQuery=''" />
+                <span class="cx-clearable">
+                    <input type="text"
+                           class="cx-input search-input"
+                           placeholder="<?php echo T::s('prep.placeholder.bookSearch'); ?>"
+                           ng-model="bibleBookSearchQuery" />
+                    <button type="button" class="cx-clear" ng-show="bibleBookSearchQuery"
+                            ng-click="bibleBookSearchQuery = ''"
+                            title="<?php echo T::s('common.clearSearch'); ?>"
+                            aria-label="<?php echo T::s('common.clearSearch'); ?>">×</button>
+                </span>
+                <span class="cx-clearable">
+                    <input type="text"
+                           class="cx-input search-input"
+                           placeholder="<?php echo T::s('tech.search.bibleText'); ?>"
+                           ng-model="bibleSearchQuery"
+                           ng-change="searchBible(); bibleBookSearchQuery=''" />
+                    <button type="button" class="cx-clear" ng-show="bibleSearchQuery"
+                            ng-click="bibleSearchQuery = ''; searchBible()"
+                            title="<?php echo T::s('common.clearSearch'); ?>"
+                            aria-label="<?php echo T::s('common.clearSearch'); ?>">×</button>
+                </span>
             </div>
 
             <!-- Bible full-text search results: replace the navigator body -->
@@ -2328,5 +2360,5 @@
 </div><!-- /ng-controller -->
 
 <script src="/js/drag_reorder.min.js?v=1" type="text/javascript"></script>
-<script src="/js/tech.min.js?v=52" type="text/javascript"></script>
+<script src="/js/tech.min.js?v=53" type="text/javascript"></script>
 

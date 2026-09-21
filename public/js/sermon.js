@@ -579,6 +579,15 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                     var verseNum   = el.getAttribute('data-verse-nums');
                     var refLabel   = el.getAttribute('data-ref-label') || '';
                     var colSuffix  = el.getAttribute('data-col-suffix') || '';
+                    // Two-language chips carry their ready-made display text (one
+                    // block per language, separated like the tech console's
+                    // parallel Bible) — show it as is instead of re-fetching.
+                    var readyText  = el.getAttribute('data-display-text');
+                    if (readyText) {
+                        var readyTitle = el.getAttribute('data-display-title') || refLabel;
+                        $timeout(function () { showReadyVerse(readyText, readyTitle); });
+                        return;
+                    }
                     $timeout(function () { fetchAndShowVerse(colSuffix, bookNum, chapter, verseNum, refLabel); });
                 };
             });
@@ -808,6 +817,18 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                         }});
                     }
                 });
+        }
+
+        // Show a ready-made verse text (two-language chips) locally and on the
+        // sermon-channel target — same command as fetchAndShowVerse.
+        function showReadyVerse(text, refLabel) {
+            showText(text, refLabel);
+            $http({ method: "POST", url: "/ajax", data: {
+                command: 'set_message_text',
+                channel: 'sermon',
+                text: text,
+                song_name: refLabel
+            }});
         }
 
         // ==========================================================

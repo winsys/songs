@@ -1168,9 +1168,9 @@
         align-items: stretch;
     }
     .prep-bible-col {
-        width: 272px;
+        width: 544px;
         min-width: 0;
-        flex: 0 0 272px;
+        flex: 0 0 544px;
         display: flex;
         flex-direction: column;
         min-height: 0;
@@ -1211,22 +1211,57 @@
     .tr-btn, .lang-toggle-btn { border-radius: 6px; }
     .tr-btn.active-tr, .lang-toggle-btn.lang-active { background: #E6F1F4; border-color: #176B87; color: #176B87; }
 
-    .sp-crumbs { display: flex; align-items: center; gap: 2px; min-height: 30px; margin-bottom: 6px; font-size: 13px; min-width: 0; }
+    /* Breadcrumb: one level per line, small type, long book names wrap */
+    .sp-crumbs { display: flex; flex-direction: column; align-items: flex-start; gap: 0; margin-bottom: 6px; font-size: 12px; min-width: 0; }
     .sp-crumb {
         border: none;
         background: transparent;
         color: #176B87;
-        padding: 4px 6px;
+        padding: 2px 6px;
         border-radius: 6px;
         cursor: pointer;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        min-width: 0;
+        text-align: left;
+        white-space: normal;
+        line-height: 1.3;
+        max-width: 100%;
     }
+    .sp-crumb-l2 { margin-left: 10px; }
+    .sp-crumb-l3 { margin-left: 20px; }
     .sp-crumb:hover { background: #E6F1F4; }
     .sp-crumb.sp-crumb-current { color: #17212B; font-weight: 600; }
-    .sp-crumb-sep { color: #6E7883; flex-shrink: 0; }
+
+    /* Second citation language */
+    .sp-second-row { margin-top: -2px; }
+    .sp-second-label { font-size: 12px; color: #6E7883; margin-right: 4px; }
+    .sp-second-item { display: inline-flex; align-items: center; gap: 4px; }
+    .sp-second-select { height: 26px; font-size: 12px; max-width: 220px; }
+    .cite-lang2 { opacity: 0.85; font-style: italic; }
+
+    /* Search row: book filter + full-text search, side by side */
+    .sp-search-row { display: grid; grid-template-columns: 2fr 3fr; gap: 6px; flex-shrink: 0; }
+    .sp-search-row .prep-bible-search { width: 100%; margin: 0; }
+    .sp-selected-count { color: #176B87; font-weight: 400; margin-left: 6px; }
+    .sp-bible-result { padding: 7px 12px; border-bottom: 1px solid #EDF1F4; font-size: 13px; line-height: 1.4; cursor: pointer; color: #17212B; }
+    .sp-bible-result:hover { background: #F6F8FA; }
+    .sp-bible-result-ref { display: block; font-size: 11px; font-weight: 600; color: #176B87; }
+    .sp-quick-results {
+        position: absolute;
+        z-index: 50;
+        top: calc(100% + 2px);
+        left: 0; right: 0;
+        max-height: 320px;
+        overflow-y: auto;
+        background: #fff;
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        box-shadow: 0 10px 30px rgba(23,33,43,0.22);
+    }
+    .sp-quick-item { padding: 7px 10px; border-bottom: 1px solid #EDF1F4; font-size: 12px; line-height: 1.4; cursor: pointer; color: #17212B; }
+    .sp-quick-item:last-child { border-bottom: none; }
+    .sp-quick-item:hover { background: #F3ECF3; }
+    /* Books in two columns — the panel is wide enough */
+    #prep-books-panel { column-count: 2; column-gap: 0; }
+    #prep-books-panel .prep-list-item { break-inside: avoid; }
 
     .prep-bible-search { border: 1px solid #DCE3E8; border-radius: 6px; height: 34px; }
     .prep-bible-search:focus { border-color: #176B87; box-shadow: 0 0 0 3px rgba(23,107,135,0.14); outline: none; }
@@ -1236,7 +1271,8 @@
        (The ids are needed to outrank the ":not(#prep-verses-panel)" rule above.) */
     .prep-bible-inner > #prep-books-panel,
     .prep-bible-inner > #prep-chapters-panel,
-    .prep-bible-inner > #prep-verses-panel { flex: 1 1 0; min-height: 0; height: auto; margin-top: 6px; }
+    .prep-bible-inner > #prep-verses-panel,
+    .prep-bible-inner > #prep-bible-results-panel { flex: 1 1 0; min-height: 0; height: auto; margin-top: 6px; }
     .sp-chapter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 4px; padding: 8px; }
     .sp-chapter-grid .prep-chapter-btn { height: 32px; margin: 0; border: 1px solid #DCE3E8; border-radius: 6px; background: #fff; color: #17212B; }
     .sp-chapter-grid .prep-chapter-btn.btn-success { background: #176B87; border-color: #176B87; color: #fff; }
@@ -1306,7 +1342,7 @@
     #sermon-editor {
         border: none;
         border-radius: 0;
-        padding: 28px max(32px, calc((100% - 860px) / 2)) 80px;   /* ~860px readable column, centred */
+        padding: 24px max(28px, calc((100% - 860px) / 2)) 80px;   /* ~860px readable column, centred */
         font-family: Georgia, "Times New Roman", serif;
         color: #17212B;
     }
@@ -1416,7 +1452,7 @@
         <div class="prep-two-col">
 
             <!-- ===== Source panel: Bible / Messages tabs ===== -->
-            <div class="prep-bible-col" ng-class="{collapsed: biblePanelCollapsed}" ng-init="nav = {up: 0}">
+            <div class="prep-bible-col" ng-class="{collapsed: biblePanelCollapsed}">
 
                 <!-- Tab buttons -->
                 <div class="left-panel-tabs">
@@ -1437,8 +1473,9 @@
 
                     <!-- ── BIBLE TAB ── progressive navigation: books › chapters › verses.
                          Presentation only: the state is still selectedBook / selectedChapter;
-                         nav.up (0 = deepest level, 1 = chapters, 2 = books) is a view-only
-                         override used by the breadcrumb. -->
+                         nav.up (0 = deepest level, 1 = chapters, 2 = books; set up in
+                         sermon_prep.js) is a view-only override used by the breadcrumb.
+                         A full-text query (>= 2 chars) replaces the navigator with results. -->
                     <div ng-show="leftPanelTab === 'bible'" class="prep-bible-inner">
 
                         <!-- Translation buttons + language toggles -->
@@ -1461,27 +1498,80 @@
                         </div>
                         </div>
 
-                        <!-- Breadcrumb: Books › Book › chapter -->
-                        <div class="sp-crumbs" ng-show="selectedBook">
-                            <button class="sp-crumb" ng-click="nav.up = 2"><?php echo T::s('prep.panel.books'); ?></button>
-                            <span class="sp-crumb-sep">›</span>
-                            <button class="sp-crumb" ng-click="nav.up = 1"
-                                    ng-class="{'sp-crumb-current': !selectedChapter || nav.up === 1}">{{ getBookName(selectedBook) }}</button>
-                            <span class="sp-crumb-sep" ng-show="selectedChapter">›</span>
-                            <button class="sp-crumb sp-crumb-current" ng-show="selectedChapter"
-                                    ng-click="nav.up = 0">{{ selectedChapter }}</button>
+                        <!-- Second language of the citation chips (optional): the chip then
+                             carries the verses in two languages at once -->
+                        <div class="sp-tr-row sp-second-row">
+                            <span class="sp-second-label"><?php echo T::s('prep.label.secondLang'); ?></span>
+                            <span class="sp-second-item" ng-repeat="lang in prepLangList"
+                                  ng-show="lang.code !== bibleLangPrep && bibleTranslationsForLangPrep(lang.code).length > 0">
+                                <button class="lang-toggle-btn"
+                                        ng-class="{'lang-active': isBibleSecondOn(lang.code)}"
+                                        ng-click="toggleBibleSecond(lang.code)"
+                                        title="{{ lang.label }}">{{ lang.label }}</button>
+                                <select class="cx-select sp-second-select"
+                                        ng-if="isBibleSecondOn(lang.code) && bibleTranslationsForLangPrep(lang.code).length > 1"
+                                        ng-model="bibleSecond.trId"
+                                        ng-options="tr.ID as tr.NAME for tr in bibleTranslationsForLangPrep(lang.code)"
+                                        ng-change="setBibleSecondTranslation()"></select>
+                            </span>
                         </div>
 
-                        <!-- Book search (books level only) -->
-                        <input type="text"
-                               class="prep-bible-search"
-                               ng-show="!selectedBook || nav.up === 2"
-                               placeholder="<?php echo T::s('prep.placeholder.bookSearch'); ?>"
-                               ng-model="bookSearchQuery" />
+                        <!-- Book filter + full-text search (same modes as the tech console) -->
+                        <div class="sp-search-row">
+                            <span class="cx-clearable sp-search-book">
+                                <input type="text"
+                                       class="prep-bible-search"
+                                       placeholder="<?php echo T::s('prep.placeholder.bookSearch'); ?>"
+                                       ng-model="bookSearchQuery"
+                                       ng-change="nav.up = 2" />
+                                <button type="button" class="cx-clear" ng-show="bookSearchQuery"
+                                        ng-click="bookSearchQuery = ''"
+                                        title="<?php echo T::s('common.clearSearch'); ?>"
+                                        aria-label="<?php echo T::s('common.clearSearch'); ?>">×</button>
+                            </span>
+                            <span class="cx-clearable sp-search-text">
+                                <input type="text"
+                                       class="prep-bible-search"
+                                       placeholder="<?php echo T::s('tech.search.bibleText'); ?>"
+                                       ng-model="prepBibleSearchQuery"
+                                       ng-change="searchBiblePrep(); bookSearchQuery = ''" />
+                                <button type="button" class="cx-clear" ng-show="prepBibleSearchQuery"
+                                        ng-click="prepBibleSearchQuery = ''; searchBiblePrep()"
+                                        title="<?php echo T::s('common.clearSearch'); ?>"
+                                        aria-label="<?php echo T::s('common.clearSearch'); ?>">×</button>
+                            </span>
+                        </div>
+
+                        <!-- Full-text results: replace the navigator while a query is typed -->
+                        <div class="prep-panel sp-level" id="prep-bible-results-panel"
+                             ng-show="prepBibleSearchQuery.length >= 2">
+                            <div class="prep-panel-title">
+                                {{ ('<?php echo T::s('tech.label.searchResultsCount'); ?>').replace('{count}', prepBibleSearchResults.length) }}
+                            </div>
+                            <div class="sp-bible-result"
+                                 ng-repeat="r in prepBibleSearchResults"
+                                 ng-click="selectBibleSearchResultPrep(r)">
+                                <span class="sp-bible-result-ref">{{ r.BOOK_NAME }} {{ r.CHAPTER_NUM }}:{{ r.VERSE_NUM }}</span>
+                                {{ getBibleVerseDisplayPrep(r) }}
+                            </div>
+                            <div ng-show="prepBibleSearchResults.length === 0"
+                                 style="padding:10px; color:#6E7883; font-size:11px;">
+                                <?php echo T::s('prep.empty.results'); ?>
+                            </div>
+                        </div>
+
+                        <!-- Breadcrumb, one level per line: Books / Book / chapter -->
+                        <div class="sp-crumbs" ng-show="selectedBook && prepBibleSearchQuery.length < 2">
+                            <button class="sp-crumb" ng-click="nav.up = 2"><?php echo T::s('prep.panel.books'); ?></button>
+                            <button class="sp-crumb sp-crumb-l2" ng-click="nav.up = 1"
+                                    ng-class="{'sp-crumb-current': !selectedChapter || nav.up === 1}">› {{ getBookName(selectedBook) }}</button>
+                            <button class="sp-crumb sp-crumb-l3 sp-crumb-current" ng-show="selectedChapter"
+                                    ng-click="nav.up = 0">› <?php echo T::s('prep.panel.chapter'); ?> {{ selectedChapter }}</button>
+                        </div>
 
                         <!-- Books level -->
                         <div class="prep-panel sp-level" id="prep-books-panel"
-                             ng-show="!selectedBook || nav.up === 2">
+                             ng-show="prepBibleSearchQuery.length < 2 && (!selectedBook || nav.up === 2)">
                             <div class="prep-list-item"
                                  ng-repeat="book in getFilteredBooks()"
                                  ng-class="{selected: selectedBook && selectedBook.ID === book.ID}"
@@ -1493,7 +1583,7 @@
 
                         <!-- Chapters level -->
                         <div class="prep-panel sp-level" id="prep-chapters-panel"
-                             ng-show="selectedBook && nav.up !== 2 && (!selectedChapter || nav.up === 1)">
+                             ng-show="prepBibleSearchQuery.length < 2 && selectedBook && nav.up !== 2 && (!selectedChapter || nav.up === 1)">
                             <div class="sp-chapter-grid">
                                 <button class="prep-chapter-btn btn btn-xs"
                                         ng-repeat="ch in bibleChapters"
@@ -1504,15 +1594,21 @@
 
                         <!-- Verses level -->
                         <div class="prep-panel sp-level" id="prep-verses-panel"
-                             ng-show="selectedBook && selectedChapter && nav.up === 0">
-                            <div class="prep-panel-title" ng-show="selectedBibleVerseNums.length > 0">
-                                {{ ('<?php echo T::s('prep.versesSelectedSuffix'); ?>').replace('{count}', selectedBibleVerseNums.length) }}
+                             ng-show="prepBibleSearchQuery.length < 2 && selectedBook && selectedChapter && nav.up === 0">
+                            <!-- Always rendered: a title that appears on the first click would
+                                 shift the list and break the double-click insertion -->
+                            <div class="prep-panel-title">
+                                <?php echo T::s('prep.panel.verses'); ?>
+                                <span class="sp-selected-count" ng-show="selectedBibleVerseNums.length > 0">
+                                    {{ ('<?php echo T::s('prep.versesSelectedSuffix'); ?>').replace('{count}', selectedBibleVerseNums.length) }}
+                                </span>
                             </div>
                             <span class="prep-verse-item"
                                   ng-repeat="v in preparedVerses"
                                   ng-class="{'verse-selected': selectedBibleVerseNums.indexOf(v.num) > -1}"
                                   ng-click="toggleVerse(v, $event)"
-                                  ng-dblclick="toggleVerse(v, $event); insertBibleCitation()">{{ v.display }}</span>
+                                  ng-dblclick="toggleVerse(v, $event); insertBibleCitation()"
+                                  ng-bind-html="highlightPrepVerse(v.display)"></span>
                             <div ng-show="preparedVerses.length === 0 && selectedChapter"
                                  style="padding:10px; color:#b0b8c1; font-size:11px;">
                                 <?php echo T::s('common.loading'); ?>
@@ -1533,17 +1629,39 @@
 
                         <!-- Search inputs + hints + results: hidden when expanded -->
                         <div ng-hide="prepMsgParaExpanded" style="flex-shrink:0;">
-                            <input type="text"
-                                   class="prep-bible-search"
-                                   placeholder="<?php echo T::s('prep.placeholder.msgSearchTitle'); ?>"
-                                   ng-model="prepMsgTitleQuery"
-                                   ng-change="searchMessagesPrep()" />
-                            <input type="text"
-                                   class="prep-bible-search"
-                                   placeholder="<?php echo T::s('prep.placeholder.msgSearchText'); ?>"
-                                   ng-model="prepMsgTextQuery"
-                                   ng-change="searchMessagesPrep()"
-                                   style="margin-top:4px;" />
+                            <div class="sp-search-row">
+                                <span class="cx-clearable sp-search-book">
+                                    <input type="text"
+                                           class="prep-bible-search"
+                                           placeholder="<?php echo T::s('prep.placeholder.msgSearchTitle'); ?>"
+                                           ng-model="prepMsgTitleQuery"
+                                           ng-change="searchMessagesPrep()" />
+                                    <button type="button" class="cx-clear" ng-show="prepMsgTitleQuery"
+                                            ng-click="prepMsgTitleQuery = ''; searchMessagesPrep()"
+                                            title="<?php echo T::s('common.clearSearch'); ?>"
+                                            aria-label="<?php echo T::s('common.clearSearch'); ?>">×</button>
+                                </span>
+                                <span class="cx-clearable sp-search-text">
+                                    <input type="text"
+                                           class="prep-bible-search"
+                                           placeholder="<?php echo T::s('prep.placeholder.msgSearchText'); ?>"
+                                           ng-model="prepMsgTextQuery"
+                                           ng-change="searchMessagesPrep()" />
+                                    <button type="button" class="cx-clear" ng-show="prepMsgTextQuery"
+                                            ng-click="prepMsgTextQuery = ''; searchMessagesPrep()"
+                                            title="<?php echo T::s('common.clearSearch'); ?>"
+                                            aria-label="<?php echo T::s('common.clearSearch'); ?>">×</button>
+                                    <!-- Quick paragraph results: click opens the message at that paragraph -->
+                                    <div class="sp-quick-results" ng-show="prepMsgParaResults.length > 0">
+                                        <div class="sp-quick-item"
+                                             ng-repeat="item in prepMsgParaResults"
+                                             ng-click="selectParaResultPrep(item)">
+                                            <span class="sp-msg-code">{{ item.CODE }} — {{ item.TITLE }}</span>
+                                            <span ng-bind-html="highlightPrepMsg(item.SNIPPET)"></span>
+                                        </div>
+                                    </div>
+                                </span>
+                            </div>
 
                             <div style="color:#6E7883; font-size:11px; padding: 4px 2px 6px;"
                                  ng-show="prepMsgTitleQuery.length < 2 && prepMsgTextQuery.length < 2">
@@ -1806,4 +1924,4 @@
 <script src="/js/vendor/turndown.min.js?v=1"></script>
 <script src="/js/sermon_chip_editor.min.js?v=15"></script>
 <script src="/js/drawio_import.min.js?v=1"></script>
-<script src="/js/sermon_prep.min.js?v=28" type="text/javascript"></script>
+<script src="/js/sermon_prep.min.js?v=29" type="text/javascript"></script>

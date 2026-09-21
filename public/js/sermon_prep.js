@@ -62,6 +62,30 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.prepLangList = [];   // [{code, label, col_suffix, is_default}, ...]
     $scope.bibleLangPrep = null;   // single active Bible content language (code)
 
+    // Quick paragraph results of the message text search (same as the tech console)
+    $scope.prepMsgParaResults  = [];
+    $scope.prepQuickParaActive = null;
+    var pendingPrepQuickPara   = null;   // {id, pos} applied once the message is loaded
+
+    // Bible full-text search (same as the tech console)
+    $scope.prepBibleSearchQuery    = '';
+    $scope.prepBibleSearchResults  = [];
+    $scope.prepBibleHighlightQuery = '';
+    var prepBibleSearchTimer       = null;
+
+    // View-only navigation override of the source panel breadcrumb:
+    // 0 = deepest available level, 1 = chapters, 2 = books.
+    $scope.nav = { up: 0 };
+
+    // Optional SECOND language of Bible citation chips: one translation of
+    // another language; its text comes from get_bible_parallel (verse numbers
+    // mapped through BibleMap). Persisted per browser.
+    $scope.bibleSecond = { code: null, trId: null };
+    try {
+        var rawSecond = localStorage.getItem('prep_bible_second');
+        if (rawSecond) $scope.bibleSecond = JSON.parse(rawSecond) || { code: null, trId: null };
+    } catch (e) { $scope.bibleSecond = { code: null, trId: null }; }
+
     // ── VIDEO state ──────────────────────────────────────────
     $scope.showVideoPanel  = false;   // toolbar dropdown open
     $scope.videoUrlInput   = '';      // URL field value
@@ -1726,6 +1750,10 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     $scope.setBibleLangPrep = function (code) {
         if (!code || $scope.bibleLangPrep === code) return;
         $scope.bibleLangPrep = code;
+        if ($scope.bibleSecond.code === code) {
+            $scope.bibleSecond = { code: null, trId: null };
+            saveBibleSecond();
+        }
 
         // Re-render verses in the new language using already-loaded raw
         // data. Falls back to v.TEXT when the language-suffixed column
@@ -1747,6 +1775,117 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 $scope.setBibleTranslation(filtered[0].ID);
             }
         }
+    };
+
+    // ── Second citation language ──────────────────────────────
+    function saveBibleSecond() {
+        try { localStorage.setItem('prep_bible_second', JSON.stringify($scope.bibleSecond)); }
+        catch (e) { /* storage unavailable — the choice just won't persist */ }
+    }
+
+    /** Translations whose LANG matches the given language code. */
+    $scope.bibleTranslationsForLangPrep = function (code) {
+        return ($scope.bibleTranslations || []).filter(function (t) { return t.LANG === code; });
+    };
+
+    $scope.isBibleSecondOn = function (code) {
+        return $scope.bibleSecond.code === code && !!$scope.bibleSecond.trId;
+    };
+
+    $scope.toggleBibleSecond = function (code) {
+        if (code === $scope.bibleLangPrep) return;
+        if ($scope.bibleSecond.code === code) {
+            $scope.bibleSecond = { code: null, trId: null };
+        } else {
+            var list = $scope.bibleTranslationsForLangPrep(code);
+            $scope.bibleSecond = { code: code, trId: list.length > 0 ? list[0].ID : null };
+        }
+        saveBibleSecond();
+    };
+
+    $scope.setBibleSecondTranslation = function () { saveBibleSecond(); };
+
+    /** {code, trId} when a usable second language is selected, else null. */
+    function getActiveBibleSecond() {
+        var s = $scope.bibleSecond;
+        if (!s || !s.code || !s.trId) return null;
+        if (s.code === $scope.bibleLangPrep) return null;
+        if (String(s.trId) === String($scope.bibleTranslationId)) return null;
+        return s;
+    }
+
+    // ── Bible full-text search ────────────────────────────────
+    $scope.searchBiblePrep = function () {
+        if (prepBibleSearchTimer) $timeout.cancel(prepBibleSearchTimer);
+        if (!$scope.prepBibleSearchQuery || $scope.prepBibleSearchQuery.length < 2) {
+            $scope.prepBibleSearchResults = [];
+            return;
+        }
+        prepBibleSearchTimer = $timeout(function () {
+            $http({ method: "POST", url: "/ajax",
+                data: { command: 'search_bible_verses',
+                    translation_id: $scope.bibleTranslationId || 1,
+                    query: $scope.prepBibleSearchQuery } }).then(
+                function (r) { $scope.prepBibleSearchResults = r.data; }
+            );
+        }, 400);
+    };
+
+    /** Text of a search result row in the active Bible language. */
+    $scope.getBibleVerseDisplayPrep = function (row) {
+        var lang = getBibleLangPrepObj();
+        var col  = lang ? ('TEXT' + lang.col_suffix) : 'TEXT';
+        return row[col] || row.TEXT || '';
+    };
+
+    /** Verse line with the last full-text query highlighted. */
+    $scope.highlightPrepVerse = function (text) {
+        var q = ($scope.prepBibleHighlightQuery || '').trim();
+        var html = hlEscapeHtml(text);
+        if (q.length >= 2) {
+            html = html.replace(new RegExp('(' + hlEscapeRe(hlEscapeHtml(q)) + ')', 'gi'),
+                '<mark class="search-hl">$1</mark>');
+        }
+        return $sce.trustAsHtml(html);
+    };
+
+    /**
+     * Click on a full-text result: open its book / chapter and select the
+     * verse (promise chain instead of selectBook/selectChapter so the verse
+     * can be selected once the chapter has arrived).
+     */
+    $scope.selectBibleSearchResultPrep = function (result) {
+        var book = null;
+        angular.forEach($scope.bibleBooks, function (b) { if (b.ID === result.BOOK_ID) book = b; });
+        if (!book) return;
+
+        $scope.prepBibleHighlightQuery = $scope.prepBibleSearchQuery;
+        $scope.prepBibleSearchQuery    = '';   // close the result list
+        $scope.prepBibleSearchResults  = [];
+        $scope.nav.up                  = 0;
+
+        $scope.selectedBook           = book;
+        $scope.selectedChapter        = null;
+        $scope.bibleChapters          = [];
+        $scope.rawVerses              = [];
+        $scope.preparedVerses         = [];
+        $scope.selectedBibleVerseNums = [];
+
+        $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_chapters', book_id: book.ID } }).then(function (r) {
+            $scope.bibleChapters   = r.data;
+            $scope.selectedChapter = parseInt(result.CHAPTER_NUM);
+            return $http({ method: "POST", url: "/ajax",
+                data: { command: 'get_bible_verses', book_id: book.ID, chapter_num: result.CHAPTER_NUM } });
+        }).then(function (r) {
+            $scope.rawVerses = r.data;
+            var lang = getBibleLangPrepObj();
+            var col  = lang ? ('TEXT' + lang.col_suffix) : 'TEXT';
+            $scope.preparedVerses = r.data.map(function (v) {
+                return { num: parseInt(v.VERSE_NUM), display: v.VERSE_NUM + '. ' + (v[col] || v.TEXT || '') };
+            });
+            $scope.selectedBibleVerseNums = [parseInt(result.VERSE_NUM)];
+            scrollPrepBiblePanels();
+        });
     };
 
     /**
@@ -2001,9 +2140,52 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 : langBookName + ' ' + $scope.selectedChapter + ':' + nums.join(',');
         }
 
-        // Refresh raw verses (no-op for already-loaded data) and insert.
-        $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_verses', book_id: book.ID, chapter_num: $scope.selectedChapter } }).then(
-            function () {
+        // Primary block in the display format of the tech console ("16. text" per line)
+        var displayLines = [];
+        nums.forEach(function (n) {
+            for (var di = 0; di < $scope.rawVerses.length; di++) {
+                if (parseInt($scope.rawVerses[di].VERSE_NUM) === n) {
+                    displayLines.push(n + '. ' + ($scope.rawVerses[di][textCol] || $scope.rawVerses[di].TEXT || ''));
+                    break;
+                }
+            }
+        });
+
+        // Second language (optional): the mapped verses of one more translation.
+        var second  = getActiveBibleSecond();
+        var chapter = $scope.selectedChapter;
+        var request = second
+            ? $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_parallel',
+                    book_num: parseInt(book.BOOK_NUM), chapter_num: chapter,
+                    primary_id: $scope.bibleTranslationId, translation_ids: [second.trId] } })
+            // Refresh raw verses (no-op for already-loaded data) and insert.
+            : $http({ method: "POST", url: "/ajax", data: { command: 'get_bible_verses', book_id: book.ID, chapter_num: chapter } });
+
+        request.then(
+            function (resp) {
+                // Compose the second-language block, if any
+                var secondText = '', secondRef = '', secondLines = [];
+                if (second && resp && resp.data && resp.data.extras) {
+                    var p = resp.data.extras[second.trId];
+                    if (p && p.verses) {
+                        var mapped = [];
+                        nums.forEach(function (n) {
+                            var mv = p.verses[n];
+                            if (mv && mv.t) {
+                                secondText += (secondText ? ' / ' : '') + mv.t;
+                                secondLines.push(mv.v + '. ' + mv.t);
+                                mapped.push(mv);
+                            }
+                        });
+                        if (mapped.length > 0) {
+                            var first = mapped[0], last = mapped[mapped.length - 1];
+                            secondRef = (p.book || langBookName) + ' ' + first.c + ':' + first.v +
+                                (mapped.length > 1 ? ((last.c !== first.c ? ('-' + last.c + ':') : '-') + last.v) : '');
+                        }
+                    }
+                }
+                var bilingual = secondText !== '';
+
                 var span = document.createElement('span');
                 span.className       = 'bible-cite';
                 span.contentEditable = 'false';
@@ -2016,13 +2198,24 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 span.setAttribute('data-verse-nums',     nums.join(','));
                 span.setAttribute('data-ref-label',      refLabel);
                 span.setAttribute('data-lang',           langCode);
-                span.setAttribute('data-verse-text',     verseText);
+                span.setAttribute('data-verse-text',     bilingual ? (verseText + '\n' + secondText) : verseText);
                 span.setAttribute('data-verse-html',     '');
                 span.setAttribute('data-verse-comments', '[]');
+                if (bilingual) {
+                    // Two-language chip: the presentation page shows this ready-made
+                    // text (one block per language, the tech console's separator)
+                    // instead of re-fetching a single verse.
+                    span.setAttribute('data-lang2',           second.code);
+                    span.setAttribute('data-translation-id2', second.trId);
+                    span.setAttribute('data-display-title',   refLabel + ' / ' + secondRef);
+                    span.setAttribute('data-display-text',
+                        displayLines.join('\r\n') + '\r\n- - - - - - - -\r\n' + secondLines.join('\r\n'));
+                }
                 span.innerHTML =
                     '<span class="cite-body">' +
-                        '<span class="cite-ref">📖 ' + refLabel + '</span>' +
-                        (verseText ? '<span class="cite-verse-text">' + verseText + '</span>' : '') +
+                        '<span class="cite-ref">📖 ' + refLabel + (bilingual ? ' / ' + secondRef : '') + '</span>' +
+                        (verseText ? '<span class="cite-verse-text">' + verseText +
+                            (bilingual ? '<br><span class="cite-lang2">' + secondText + '</span>' : '') + '</span>' : '') +
                     '</span>' +
                     '<span class="cite-remove" title="' + window.t('common.button.delete') + '">×</span>';
 
@@ -2061,12 +2254,53 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         if (prepMsgSearchTimer) $timeout.cancel(prepMsgSearchTimer);
         var titleQ = $scope.prepMsgTitleQuery || '';
         var textQ  = $scope.prepMsgTextQuery  || '';
-        if (titleQ.length < 2 && textQ.length < 2) { $scope.prepMsgResults = []; return; }
+        if (titleQ.length < 2 && textQ.length < 2) {
+            $scope.prepMsgResults = [];
+            $scope.prepMsgParaResults = [];
+            return;
+        }
+        if (textQ.trim().length < 2) {
+            $scope.prepMsgParaResults  = [];
+            $scope.prepQuickParaActive = null;
+        }
         prepMsgSearchTimer = $timeout(function () {
             $http({ method:"POST", url:"/ajax", data:{ command:'search_messages', title_query:titleQ, text_query:textQ }}).then(
                 function (r) { $scope.prepMsgResults = r.data; }
             );
+            // Quick paragraph results (only when searching by text) — same as the tech console
+            if (textQ.trim().length >= 2) {
+                $http({ method:"POST", url:"/ajax", data:{ command:'search_message_paragraphs', title_query:titleQ, text_query:textQ }}).then(
+                    function (r) { $scope.prepMsgParaResults = r.data; $scope.prepQuickParaActive = null; }
+                );
+            }
         }, 400);
+    };
+
+    /** Select the paragraph at array position `pos` and scroll the panel to it. */
+    function activatePrepParaByPos(pos) {
+        var para = $scope.prepMsgParagraphs[pos];
+        if (!para) return;
+        $scope.prepSelectedParaIdx = para.idx;
+        $scope.prepMsgParaExpanded = true;
+        $timeout(function () {
+            var panel = document.getElementById('prep-msg-para-panel');
+            var el = panel && panel.querySelectorAll('.prep-verse-item')[pos];
+            if (el) el.scrollIntoView({ block: 'center' });
+        }, 80);
+    }
+
+    // Quick result click: load the message if needed, then select the matched
+    // paragraph. PARA_IDX counts non-empty paragraphs = position in prepMsgParagraphs.
+    $scope.selectParaResultPrep = function (item) {
+        $scope.prepQuickParaActive = item;
+        $scope.prepMsgParaResults  = [];   // close the overlay
+        if ($scope.prepSelectedMessage && String($scope.prepSelectedMessage.ID) === String(item.ID) &&
+            $scope.prepMsgParagraphs.length > 0) {
+            activatePrepParaByPos(item.PARA_IDX);
+        } else {
+            pendingPrepQuickPara = { id: item.ID, pos: item.PARA_IDX };
+            $scope.selectMessagePrep({ ID: item.ID, CODE: item.CODE, TITLE: item.TITLE, CITY: item.CITY });
+        }
     };
     $scope.selectMessagePrep = function (msg) {
         $scope.prepSelectedMessage = msg;
@@ -2079,6 +2313,12 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                     var paras = [];
                     lines.forEach(function (line, i) { if (line.trim().length>0) paras.push({idx:i,text:line.trim()}); });
                     $scope.prepMsgParagraphs = paras;
+                    if (pendingPrepQuickPara && String(pendingPrepQuickPara.id) === String(msg.ID)) {
+                        var pos = pendingPrepQuickPara.pos;
+                        pendingPrepQuickPara = null;
+                        activatePrepParaByPos(pos);
+                        return;
+                    }
                     var q = ($scope.prepMsgTextQuery || '').trim().toLowerCase();
                     if (q.length >= 2) {
                         $timeout(function () {
