@@ -364,6 +364,7 @@
   "prep.tool.importDrawio": "Importuoti skaidres iš draw.io (.drawio)",
   "prep.tool.importPpt": "Importuoti skaidres iš PowerPoint",
   "prep.tool.insertImg": "Įterpti paveikslėlį",
+  "prep.tool.insertMenu": "＋ Įterpti",
   "prep.tool.insertVideo": "Įterpti vaizdo įrašą (failas arba URL)",
   "prep.tool.italic": "Kursyvas (Ctrl+I)",
   "prep.tool.newSlide": "Įterpti naują skaidrę",

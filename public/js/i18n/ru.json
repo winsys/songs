@@ -364,6 +364,7 @@
   "prep.tool.importDrawio": "Импортировать слайды из draw.io (.drawio)",
   "prep.tool.importPpt": "Импортировать слайды из PowerPoint",
   "prep.tool.insertImg": "Вставить изображение",
+  "prep.tool.insertMenu": "＋ Вставить",
   "prep.tool.insertVideo": "Вставить видео (файл или URL)",
   "prep.tool.italic": "Курсив (Ctrl+I)",
   "prep.tool.newSlide": "Вставить новый слайд",

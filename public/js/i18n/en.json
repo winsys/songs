@@ -364,6 +364,7 @@
   "prep.tool.importDrawio": "Import slides from draw.io (.drawio)",
   "prep.tool.importPpt": "Import slides from PowerPoint",
   "prep.tool.insertImg": "Insert image",
+  "prep.tool.insertMenu": "＋ Insert",
   "prep.tool.insertVideo": "Insert video (file or URL)",
   "prep.tool.italic": "Italic (Ctrl+I)",
   "prep.tool.newSlide": "Insert a new slide",
