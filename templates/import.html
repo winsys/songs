@@ -637,6 +637,58 @@
     @media (prefers-reduced-motion: reduce) { .imp-aside { transition: none; } }
     .or-divider, .import-section h4 { text-transform: none; letter-spacing: 0; }
     .tab-btn.active { box-shadow: inset 0 -3px 0 #0f4a5e; }   /* state is not colour-only */
+
+    /* ---- Form content (docs/ui-redesign-main-observer-settings-import.md) ----
+       Aligned, compact fields: every form is a two-column grid — label column +
+       control column; headings, hints, lists, progress and logs span the form;
+       the primary action sits at the end of the form, on the right. Field-group
+       wrappers (.imp-fields, an ng-show group of fields) repeat the same grid. */
+    .imp-main .import-section,
+    .imp-main .import-section > .imp-fields {
+        display: grid;
+        grid-template-columns: minmax(150px, 30%) minmax(0, 1fr);
+        gap: 10px 16px;
+        align-items: center;
+    }
+    .imp-main .import-section { padding: 18px 20px; }
+    .imp-main .import-section > *,
+    .imp-main .import-section > .imp-fields > * { grid-column: 1 / -1; min-width: 0; margin: 0; }
+    .imp-main .import-section .import-label { grid-column: 1; align-self: center; font-size: 13px; color: #17212B; line-height: 1.35; }
+    .imp-main .import-section .import-label + * { grid-column: 2; }
+    .imp-main .import-section > h4 { font-size: 15px; font-weight: 600; color: #17212B; padding-bottom: 10px; border-bottom: 1px solid #DCE3E8; }
+    .imp-main .import-section > p,
+    .imp-main .import-section > .imp-fields > p { font-size: 13px; color: #6E7883; line-height: 1.45; }
+
+    .imp-main .import-input { width: 100%; min-height: 40px; margin: 0; }
+    .imp-main select.import-input, .imp-main input.import-input { height: 40px; }
+    .imp-main input[type=file].import-input { height: auto; padding: 7px 8px; min-height: 44px; }
+    .imp-main textarea.import-input { min-height: 180px; line-height: 1.45; }
+    .imp-main .radio-group { display: flex; flex-wrap: wrap; gap: 4px 18px; margin: 0; }
+    .imp-main .radio-group label { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; margin: 0; font-weight: 500; }
+    .imp-main .new-list-row { display: flex; gap: 8px; align-items: center; }
+    .imp-main .new-list-row .import-input { flex: 1 1 0; }
+    .imp-main .or-divider { color: #6E7883; font-size: 12px; margin: 2px 0; }
+    .imp-main .char-counter { justify-self: end; font-size: 12px; color: #6E7883; }
+    .imp-main .progress-bar-wrap { margin: 0; }
+    .imp-main .status-ok { margin: 0; }
+
+    /* Primary action: end of the form, right-aligned, 44px */
+    .imp-main .btn-import-primary, .imp-main .btn-import-success {
+        justify-self: end;
+        min-width: 200px;
+        height: 44px;
+        margin: 6px 0 0;
+        padding: 0 22px;
+    }
+    .imp-main .new-list-row .btn-import-success, .imp-main .new-list-row .btn-import-primary { min-width: 0; margin: 0; height: 40px; }
+    .imp-main .btn-import-sm { min-height: 36px; }
+
+    @media (max-width: 699px) {
+        .imp-main .import-section,
+        .imp-main .import-section > .imp-fields { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+        .imp-main .import-section .import-label + * { grid-column: 1; }
+        .imp-main .btn-import-primary, .imp-main .btn-import-success { justify-self: stretch; }
+    }
 </style>
 
 <div ng-controller="ImportCtrl" class="cx-page">
@@ -950,7 +1002,7 @@
                     </div>
                 </div>
 
-                <div ng-show="txtMode === 'new' || txtMode === 'edit'">
+                <div class="imp-fields" ng-show="txtMode === 'new' || txtMode === 'edit'">
                     <label class="import-label"><?php echo T::s('import.field.msgTitle'); ?></label>
                     <input type="text" class="import-input" ng-model="txtTitle"
                            placeholder="<?php echo T::s('import.placeholder.msgTitle'); ?>" />
