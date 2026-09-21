@@ -99,6 +99,17 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     }
 
     // ── Tech Media state ──────────────────────────────────────
+    // Song search text, tracked through angucomplete's input-changed so the
+    // "clear" button of the search field knows when to show up.
+    $scope.songSearchText = '';
+    $scope.songSearchChanged = function (str) { $scope.songSearchText = str || ''; };
+    $scope.clearSongSearch = function () {
+        $scope.$broadcast('angucomplete-alt:clearInput', 'ccf6');
+        $scope.songSearchText = '';
+        var input = document.getElementById('ccf6_value');
+        if (input) input.focus();
+    };
+
     $scope.showMediaAddPanel  = false;   // media add panel
     $scope.mediaUrlInput      = '';      // URL input field
     $scope.mediaUrlType       = 'video'; // 'image' | 'video'
@@ -771,6 +782,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 function success() {
                     $scope.reloadFavorites();
                     $scope.$broadcast('angucomplete-alt:clearInput');
+                    $scope.songSearchText = '';
                 },
                 function error(erespond) {
                     console.log('Ajax call error: ', erespond);
@@ -793,6 +805,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 $scope.reloadFavorites();
                 $scope.songPreview.visible = false;
                 $scope.$broadcast('angucomplete-alt:clearInput');
+                $scope.songSearchText = '';
             },
             function error(erespond) {
                 console.log('Ajax call error: ', erespond);
