@@ -412,6 +412,8 @@
   "sermon.error.requestSendFailed": "Fehler beim Senden der Anfrage",
   "sermon.errorPrefix": "Fehler: {message}",
   "sermon.fullscreen": "⛶ Vollbild",
+  "sermon.clearDisplay": "Bildschirm leeren",
+  "sermon.rotate": "Bitte drehen Sie das Gerät ins Querformat",
   "sermon.label.font": "Schrift",
   "sermon.label.sermon": "Predigt",
   "sermon.page.title": "Predigt",
