@@ -9,155 +9,6 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     }
 
-    /* ---- Page layout (same max-width as sermon_prep) ----------- */
-    .tech-wrapper {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 20px 15px 64px;
-    }
-
-    @media (max-width: 768px) {
-        .tech-wrapper { padding: 14px 10px 48px; }
-    }
-    @media (max-width: 480px) {
-        .tech-wrapper { padding: 10px 8px 40px; }
-    }
-
-    /* ---- Header ----------------------------------------------- */
-    .tech-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        padding-top: 8px;
-        padding-bottom: 10px;
-        margin-bottom: 20px;
-        /* Keep the header (and the display-target panel) pinned at the top
-           of the viewport while the page scrolls. */
-        position: sticky;
-        top: 0;
-        z-index: 50;
-        background: #fff;
-        box-shadow: 0 4px 10px -4px rgba(0,0,0,0.12);
-    }
-
-    .btn-back {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 7px 14px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        color: #5a6272;
-        background: #f4f5f7;
-        border: none;
-        cursor: pointer;
-        transition: all 0.15s;
-        flex-shrink: 0;
-        text-decoration: none;
-    }
-    .btn-back:hover {
-        background: #e8eaed;
-        color: #2c3e50;
-        transform: translateX(-1px);
-    }
-
-    .btn-disable-screen {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        gap: 6px;
-        height: 34px;
-        padding: 0 16px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #fff;
-        background: #e74c3c;
-        border: none;
-        cursor: pointer;
-        flex-shrink: 0;
-        box-shadow: 0 2px 8px rgba(231, 76, 60, 0.35);
-        transition: background 0.15s, box-shadow 0.15s;
-    }
-    .btn-disable-screen:hover {
-        background: #c0392b;
-        box-shadow: 0 3px 10px rgba(192, 57, 43, 0.45);
-    }
-    .btn-disable-screen:active {
-        background: #a93226;
-    }
-
-    /* ── Shared display targets (technician-controlled) ───────── */
-    .display-targets-box {
-        display: flex;
-        flex-direction: row;
-        align-items: flex-end;
-        gap: 10px;
-        flex-shrink: 0;
-        padding: 8px 12px;
-        border: 1.5px solid #dee2e6;
-        border-radius: 10px;
-        background: #fafbfc;
-    }
-    /* One channel = label on top, dropdown below */
-    .dt-channel {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-    .dt-label {
-        font-size: 11px;
-        font-weight: 600;
-        color: #7f8c8d;
-        text-transform: uppercase;
-        letter-spacing: 0.4px;
-        white-space: nowrap;
-    }
-    .dt-select {
-        background: #fff;
-        color: #2c3e50;
-        border: 1.5px solid #dee2e6;
-        border-radius: 8px;
-        padding: 5px 8px;
-        font-size: 12px;
-        cursor: pointer;
-        min-width: 160px;
-        height: 34px;
-        transition: all 0.15s;
-    }
-    .dt-select:hover  { border-color: #1a6db5; }
-    .dt-select:focus  { border-color: #1a6db5; outline: none; }
-    /* Highlighted state when a target is actually selected (broadcasting) */
-    .dt-select.dt-active {
-        background: #1a6db5;
-        color: #fff;
-        border-color: #155a99;
-        font-weight: 700;
-        box-shadow: 0 2px 10px rgba(26,109,181,0.4);
-    }
-    .display-targets-box .btn-request-access {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 34px;
-        height: 34px;
-        padding: 0;
-        border-radius: 8px;
-        font-size: 18px;
-        line-height: 1;
-        border: 1.5px solid #dee2e6;
-        background: #f8f9fa;
-        color: #1a6db5;
-        cursor: pointer;
-        transition: all 0.15s;
-        flex-shrink: 0;
-    }
-    .display-targets-box .btn-request-access:hover {
-        border-color: #1a6db5;
-        background: #ebf3fb;
-    }
-
     /* ── Request-access modal ─────────────────────────────────── */
     .dt-modal-overlay {
         position: fixed;
@@ -203,375 +54,6 @@
     .dt-modal-btn-primary:hover { background: #155a99; }
     .dt-modal-btn-primary:disabled { opacity: 0.5; cursor: default; }
 
-    .tech-title-block { flex: 1; }
-
-    /* "Broadcast to the group" toggle (observer channel) — same as the leader page */
-    .btn-observer {
-        padding: 8px 12px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 600;
-        border: 1.5px solid #dee2e6;
-        background: #f8f9fa;
-        color: #5a6272;
-        cursor: pointer;
-        white-space: nowrap;
-        flex-shrink: 0;
-        transition: all 0.15s;
-    }
-    .btn-observer:hover { border-color: #1e7e34; color: #1e7e34; background: #eaf6ec; }
-    .btn-observer.btn-observer-on {
-        background: #1e7e34;
-        border-color: #1e7e34;
-        color: #fff;
-        box-shadow: 0 3px 10px rgba(30,126,52,0.28);
-    }
-    .btn-observer.btn-observer-on:hover { background: #176a2b; }
-    @media (max-width: 480px) {
-        .btn-observer { font-size: 11px; padding: 7px 9px; }
-    }
-    .tech-page-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #2c3e50;
-        margin: 0;
-        line-height: 1.2;
-    }
-    .tech-page-subtitle {
-        font-size: 12px;
-        color: #95a5a6;
-        margin: 2px 0 0;
-    }
-
-    /* ---- Section labels --------------------------------------- */
-    .section-label {
-        font-size: 11px;
-        font-weight: 600;
-        color: #b0b8c1;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        margin: 16px 0 8px;
-    }
-
-    /* ---- Mode / list / action buttons row --------------------- */
-    .btn-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 4px;
-    }
-
-    .btn-mode {
-        flex: 1;
-        min-width: 80px;
-        padding: 9px 12px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        text-align: center;
-        border: 1.5px solid #dee2e6;
-        background: #f8f9fa;
-        color: #5a6272;
-        cursor: pointer;
-        transition: all 0.15s;
-        line-height: 1.3;
-        white-space: nowrap;
-    }
-    .btn-mode:hover {
-        border-color: #1a6db5;
-        color: #1a6db5;
-        background: #ebf3fb;
-    }
-    .mode-btn-active {
-        background: #1a6db5 !important;
-        border-color: #1a6db5 !important;
-        color: #fff !important;
-        font-weight: 600;
-    }
-
-    .btn-list {
-        flex: 1;
-        min-width: 70px;
-        padding: 7px 10px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 500;
-        text-align: center;
-        border: 1.5px solid #dee2e6;
-        background: #f8f9fa;
-        color: #5a6272;
-        cursor: pointer;
-        transition: all 0.15s;
-        white-space: normal;
-        line-height: 1.3;
-    }
-    .btn-list:hover, .btn-list:focus {
-        border-color: #1a6db5;
-        color: #1a6db5;
-        background: #ebf3fb;
-        outline: none;
-    }
-    .btn-selected {
-        background: #ebf3fb !important;
-        border-color: #1a6db5 !important;
-        color: #1a6db5 !important;
-        font-weight: 600;
-    }
-
-    .btn-action-blue {
-        padding: 7px 14px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 500;
-        border: none;
-        background: #1a6db5;
-        color: #fff;
-        cursor: pointer;
-        transition: all 0.15s;
-        white-space: nowrap;
-    }
-    .btn-action-blue:hover {
-        background: #155a99;
-        transform: translateY(-1px);
-        box-shadow: 0 3px 10px rgba(26,109,181,0.28);
-    }
-
-    .btn-action-orange {
-        padding: 7px 14px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 500;
-        border: none;
-        background: #fff3e0;
-        color: #e65100;
-        cursor: pointer;
-        transition: all 0.15s;
-        white-space: nowrap;
-        border: 1.5px solid #ffe0b2;
-    }
-    .btn-action-orange:hover {
-        background: #ffe0b2;
-        transform: translateY(-1px);
-    }
-
-    /* Language toggle buttons */
-    .btn-lang {
-        padding: 6px 16px;
-        border-radius: 7px;
-        font-size: 12px;
-        font-weight: 700;
-        border: 1.5px solid #dee2e6;
-        background: #f8f9fa;
-        color: #5a6272;
-        cursor: pointer;
-        transition: all 0.15s;
-        letter-spacing: 0.5px;
-    }
-    .btn-lang:hover { border-color: #1a6db5; color: #1a6db5; }
-    .btn-lang.lang-active {
-        background: #1a6db5;
-        border-color: #1a6db5;
-        color: #fff;
-    }
-
-    .btn-lang:disabled,
-    .btn-lang[disabled] {
-        opacity: 1;                   /* don't dim — just change color */
-        cursor: not-allowed;
-        pointer-events: none;
-        background: #f0f2f5;
-        color: #b0b8c1;
-        border-color: #d8dce3;
-        box-shadow: none;
-        transform: none;
-    }
-    /* An active (enabled) button never looks grey, even if AngularJS
-       toggles `disabled` — race-condition guard. */
-    .btn-lang.lang-active:disabled,
-    .btn-lang.lang-active[disabled] {
-        opacity: 1;
-        background: #1a6db5;
-        color: #fff;
-        border-color: #1a6db5;
-        cursor: default;
-    }
-
-    /* ---- Search inputs ---------------------------------------- */
-    .search-input {
-        width: 100%;
-        height: 44px;                 /* search fields: 44px on every page, peach bg like .btn-action-orange, grey border (Aug 2026) */
-        padding: 8px 14px;
-        border: 1.5px solid #dee2e6;
-        border-radius: 10px;
-        font-size: 14px;
-        color: #2c3e50;
-        background: #fff5e6;
-        box-shadow: none;
-        transition: border-color 0.15s, box-shadow 0.15s;
-        -webkit-appearance: none;
-    }
-    .search-input:focus {
-        border-color: #3498db;
-        box-shadow: 0 0 0 3px rgba(52,152,219,0.12);
-        outline: none;
-    }
-    .search-input::placeholder { color: #aab; font-size: 13px; }
-
-    /* angucomplete override */
-    #ccf6 .angucomplete-holder input {
-        width: 100%;
-        height: 44px;                 /* search fields: 44px on every page, peach bg like .btn-action-orange, grey border (Aug 2026) */
-        padding: 8px 14px !important;
-        border: 1.5px solid #dee2e6 !important;
-        border-radius: 10px !important;
-        font-size: 14px;
-        color: #2c3e50;
-        background: #fff5e6 !important;
-        box-shadow: none !important;
-        transition: border-color 0.15s;
-        -webkit-appearance: none;
-    }
-    #ccf6 .angucomplete-holder input:focus {
-        border-color: #3498db !important;
-        box-shadow: 0 0 0 3px rgba(52,152,219,0.12) !important;
-        outline: none;
-    }
-    .angucomplete-dropdown {
-        border: 1.5px solid #dee2e6;
-        border-radius: 10px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.10);
-        overflow: hidden;
-        margin-top: 4px;
-    }
-    .angucomplete-row {
-        padding: 10px 14px !important;
-        font-size: 13px !important;
-        color: #2c3e50;
-        border-bottom: 1px solid #f0f2f5;
-    }
-    .angucomplete-row:hover,
-    .angucomplete-selected-row { background: #ebf3fb !important; }
-    .angucomplete-description { font-size: 10px !important; color: #95a5a6 !important; }
-
-    /* ---- Songs mode: favorites list --------------------------- */
-    .song-name {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        width: 97%;
-        padding: 14px 14px 14px 16px;
-        border: 1.5px solid #d0d7e2;
-        border-radius: 12px;
-        background: #fff;
-        cursor: pointer;
-        margin-bottom: 4px;
-        transition: background 0.15s, border-color 0.15s, box-shadow 0.15s;
-        user-select: none;
-    }
-    .song-name:hover {
-        border-color: #a0b4c8;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.07);
-    }
-    .box-selected {
-        background: #fff8ee !important;
-        border-color: #f0a832 !important;
-        box-shadow: 0 2px 10px rgba(240,168,50,0.18) !important;
-    }
-
-    .song-name .text-container { flex: 1; min-width: 0; }
-    .item-text {
-        font-size: 14px;
-        font-weight: 600;
-        color: #2c3e50;
-        display: block;
-        line-height: 1.3;
-    }
-    .book-name {
-        font-size: 11px;
-        color: #95a5a6;
-        display: block;
-        margin-top: 3px;
-    }
-
-    /* Right block: thumb only on desktop, thumb+edit on mobile */
-    .song-right-block {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 6px;
-        flex-shrink: 0;
-    }
-
-    /* Drag-n-drop reorder (drag_reorder.js): the handle is the only place
-       where touch starts a drag — everywhere else the page scrolls. */
-    .drag-handle {
-        touch-action: none;
-        user-select: none;
-        -webkit-user-select: none;
-        -webkit-touch-callout: none;
-        cursor: grab;
-        border: none;
-        background: transparent;
-        color: #b0b8c1;
-        font-size: 16px;
-        line-height: 1;
-        padding: 0 2px;
-        align-self: stretch;
-        display: flex;
-        align-items: center;
-        flex-shrink: 0;
-    }
-    .drag-handle:active { cursor: grabbing; color: #5a6272; }
-    .fav-row.drag-active .song-name,
-    .fav-row.drag-active .media-fav-card {
-        border-color: #1a6db5;
-        box-shadow: 0 6px 18px rgba(26,109,181,0.25);
-        background: #f4f9fe;
-    }
-    body.drag-reorder-busy { user-select: none; -webkit-user-select: none; }
-
-    .song-del {
-        position: absolute;
-        top: 8px;
-        right: 8px;
-        flex-shrink: 0;
-        color: #c0392b;
-        font-size: 12px;
-        background: #fdecea;
-        border: 1.5px solid #fad7d4;
-        border-radius: 6px;
-        padding: 3px 7px;
-        cursor: pointer;
-        white-space: nowrap;
-        transition: background .12s;
-        z-index: 2;
-        line-height: 1.5;
-    }
-    .song-del:hover { background: #fad7d4; }
-
-    /* Desktop: edit button inside text-container (right-aligned), hidden from right block */
-    @media (min-width: 769px) {
-        .song-right-block .btn-edit { display: none; }
-        .song-text-edit { display: flex; }
-    }
-    /* Mobile: edit under image in right block, hidden from text-container */
-    @media (max-width: 768px) {
-        .song-right-block .btn-edit { display: block; }
-        .song-text-edit { display: none; }
-    }
-    .song-text-edit {
-        justify-content: flex-end;
-        margin-top: 6px;
-    }
-
-    .song-image {
-        width: 64px;
-        height: 64px;
-        object-fit: cover;
-        border-radius: 8px;
-        border: 1.5px solid #8fa3b8;
-        display: block;
-    }
     /* fullscreen reset */
     .song-image:-webkit-full-screen { width:100vw!important; height:100vh!important; object-fit:contain!important; border-radius:0!important; background:#000; }
     .song-image:-moz-full-screen    { width:100vw!important; height:100vh!important; object-fit:contain!important; border-radius:0!important; background:#000; }
@@ -591,96 +73,6 @@
     }
     .btn-edit:hover { background: #e8d5f5; border-color: #a07ad0; }
 
-    /* ---- Text chapters (right column, songs mode) ------------- */
-    .text-chapter {
-        display: block;
-        padding: 12px 16px;
-        border: 1.5px solid #dee2e6;
-        border-radius: 10px;
-        margin-bottom: 8px;
-        cursor: pointer;
-        font-size: 13px;
-        color: #2c3e50;
-        background: #fff;
-        transition: all 0.15s;
-        user-select: none;
-        line-height: 1.5;
-        white-space: pre-wrap;
-        word-break: break-word;
-    }
-    .text-chapter:hover { background: #f8f9fa; border-color: #c8d0db; }
-    .chapter-selected {
-        background: #eaf6ec !important;
-        border-color: #4caf50 !important;
-        font-weight: 600;
-        color: #1e7e34;
-    }
-
-    /* ---- Bible panels ----------------------------------------- */
-    .bible-panel {
-        border: 1.5px solid #dee2e6;
-        border-radius: 10px;
-        background: #fff;
-        height: 68vh;
-        overflow-y: auto;
-    }
-    .bible-panel-title {
-        font-size: 11px;
-        font-weight: 700;
-        color: #7f8c8d;
-        text-transform: uppercase;
-        letter-spacing: 0.6px;
-        padding: 10px 12px 8px;
-        border-bottom: 1px solid #f0f2f5;
-        background: #fafbfc;
-        border-radius: 10px 10px 0 0;
-        position: sticky;
-        top: 0;
-        z-index: 1;
-    }
-    .bible-list-item {
-        padding: 9px 12px;
-        cursor: pointer;
-        font-size: 13px;
-        color: #34495e;
-        border-bottom: 1px solid #f5f6f8;
-        transition: background-color 0.12s;
-        user-select: none;
-    }
-    .bible-list-item:hover { background-color: #f0f4f8; }
-    .bible-list-item.selected {
-        background-color: #eaf6ec;
-        font-weight: 700;
-        color: #1e7e34;
-    }
-    .bible-verse-item {
-        display: block;
-        box-sizing: border-box;
-        width: calc(100% - 16px);
-        padding: 10px 12px;
-        border: 1.5px solid #dee2e6;
-        border-radius: 8px;
-        margin: 6px 8px;
-        cursor: pointer;
-        font-size: 16px;
-        color: #2c3e50;
-        transition: all 0.15s;
-        user-select: none;
-        white-space: pre-wrap;
-        word-break: break-word;
-        line-height: 1.5;
-    }
-    .bible-verse-item:hover { background: #f0f4f8; border-color: #c8d0db; }
-    .bible-verse-item.chapter-selected {
-        background: #eaf6ec;
-        border-color: #4caf50;
-        font-weight: 600;
-        color: #1e7e34;
-    }
-    /* End-of-playback stop marker: red accent on the right edge */
-    .bible-verse-item.msg-stop-marker {
-        border-right: 4px solid #c0392b;
-    }
     mark.search-hl {
         background: #fff176;
         color: inherit;
@@ -1098,13 +490,6 @@
     input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; }
     input[type=number] { -moz-appearance: textfield; appearance: textfield; margin: 0; }
 
-    /* ---- Mobile tweaks ---------------------------------------- */
-    @media (max-width: 480px) {
-        .tech-page-title { font-size: 16px; }
-        .item-text { font-size: 13px; }
-        .bible-panel { height: 55vh; }
-        .btn-mode { font-size: 12px; padding: 8px 6px; }
-    }
     /* ── Media card in the playlist ──────────────────────────────── */
     .media-fav-card {
         display: flex;
@@ -1570,40 +955,429 @@
         padding: 10px 16px 12px; flex-shrink: 0;
         border-top: 1px solid #f0f2f5;
     }
+
+    /* ============================================================
+       COMPACT CONSOLE LAYOUT (docs/ui-redesign-tech-leader.md)
+       Desktop only (>= 1366x768): application bar + context bar, then
+       independently scrolling work panes — the page itself never scrolls.
+       Shared tokens / components: /css/compact.css (.cx-*).
+       This block comes last on purpose: it restyles the playlist, media,
+       Bible and message components defined above.
+       ============================================================ */
+    body { background: #EDF1F4; overflow: hidden; }
+
+    .tech-shell {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        min-width: 1100px;
+    }
+
+    /* ---- Application bar -------------------------------------- */
+    .tc-bar { gap: 10px; }
+    .tc-titles { min-width: 0; flex: 0 1 auto; display: flex; flex-direction: column; justify-content: center; }
+    .tc-narrow { display: none; }
+    .display-targets-box { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .dt-channel { display: flex; align-items: center; gap: 6px; margin: 0; font-weight: normal; }
+    .dt-label { font-size: 12px; color: #6E7883; white-space: nowrap; }
+    .dt-select {
+        height: 32px;
+        width: 150px;
+        padding: 0 6px;
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        background: #fff;
+        color: #17212B;
+        font-size: 12px;
+        cursor: pointer;
+    }
+    .dt-select:hover, .dt-select:focus { border-color: #176B87; }
+    /* A selected target = the channel is broadcasting: strong active fill */
+    .dt-select.dt-active { background: #176B87; border-color: #125a72; color: #fff; font-weight: 600; }
+    .dt-select.dt-active option { background: #fff; color: #17212B; font-weight: normal; }
+    .btn-request-access { font-size: 16px; font-weight: 600; }
+    @media (max-width: 1599px) {
+        .tc-wide { display: none; }
+        .tc-narrow { display: inline; }
+        .tc-titles .cx-bar-meta { display: none; }
+        .dt-select { width: 132px; }
+    }
+
+    /* ---- Context bar ------------------------------------------ */
+    .tc-grow { flex: 1 1 0; }
+    .tc-ctx .cx-seg > button { height: 30px; padding: 0 12px; }
+    .tc-ctx .cx-btn { height: 30px; }
+    .tc-parallel { min-width: 0; }
+    .tc-parallel .cx-select { max-width: 150px; height: 30px; }
+    .btn-lang[disabled] { opacity: 0.4; cursor: default; }
+
+    /* Popovers of the context bar */
+    .tc-pop-anchor { position: relative; height: 0; z-index: 95; }
+    .tc-pop-anchor .media-add-panel,
+    .tc-pop-anchor .wallpapers-panel {
+        position: absolute;
+        top: 4px;
+        right: 12px;
+        width: 400px;
+        max-height: 70vh;
+        overflow-y: auto;
+        margin: 0;
+        background: #fff;
+        border: 1px solid #DCE3E8;
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(23,33,43,0.22);
+    }
+
+    /* ---- Work area -------------------------------------------- */
+    .tc-work {
+        flex: 1 1 0;
+        min-height: 0;
+        display: flex;
+        flex-direction: column;
+        padding: 8px 12px 12px;
+        gap: 8px;
+    }
+    .tc-search-row { flex-shrink: 0; }
+    .tc-split {
+        flex: 1 1 0;
+        min-height: 0;
+        display: grid;
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        overflow: hidden;
+        background: #fff;
+    }
+    .tc-split > .cx-pane { min-height: 0; }
+    .tc-split-songs       { grid-template-columns: 38fr 62fr; }
+    .tc-split-msg         { grid-template-columns: 34fr 66fr; }
+    .tc-split-bible       { grid-template-columns: 24fr 14fr 62fr; }
+    .tc-split-one         { grid-template-columns: 1fr; }
+    .tc-search-row.tc-split-msg,
+    .tc-search-row.tc-split-biblesearch { display: grid; gap: 8px; }
+    .tc-split-biblesearch { grid-template-columns: 24fr 76fr; }
+    .tc-rel { position: relative; }
+    .tc-ellipsis { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+    .tc-count {
+        background: #E6F1F4; color: #176B87; border-radius: 10px;
+        padding: 1px 8px; font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums;
+    }
+    .cx-pane-head .cx-btn { height: 26px; font-size: 12px; padding: 0 10px; }
+
+    /* Bootstrap-era class still referenced by the preview modal */
+    .btn-action-blue {
+        padding: 8px 16px; border-radius: 6px; font-size: 13px; font-weight: 600;
+        border: none; background: #176B87; color: #fff; cursor: pointer; white-space: nowrap;
+    }
+    .btn-action-blue:hover { background: #125a72; }
+
+    /* ---- Search ------------------------------------------------ */
+    #ccf6 .angucomplete-holder { width: 100%; }
+    #ccf6 .angucomplete-holder input {
+        width: 100%;
+        height: 36px;
+        padding: 0 12px !important;
+        border: 1px solid #DCE3E8 !important;
+        border-radius: 6px !important;
+        font-size: 14px;
+        color: #17212B;
+        background: #fff !important;
+        box-shadow: none !important;
+    }
+    #ccf6 .angucomplete-holder input:focus {
+        border-color: #176B87 !important;
+        box-shadow: 0 0 0 3px rgba(23,107,135,0.14) !important;
+        outline: none;
+    }
+    .angucomplete-dropdown {
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        box-shadow: 0 10px 30px rgba(23,33,43,0.22);
+        margin-top: 4px;
+        padding: 0;
+        width: 100%;
+        max-height: 70vh;
+        overflow-y: auto;
+        z-index: 200;
+    }
+    .angucomplete-row { font-size: 14px !important; color: #17212B; border-bottom: 1px solid #DCE3E8; }
+    .angucomplete-row:hover,
+    .angucomplete-selected-row { background: #E6F1F4 !important; color: #176B87 !important; }
+    .msg-quick-results { left: 0; right: 0; border: 1px solid #DCE3E8; border-radius: 6px; }
+
+    /* ---- Playlist: continuous rows, 52-58px --------------------- */
+    .fav-row { border-bottom: 1px solid #DCE3E8; }
+    .song-name,
+    .media-fav-card {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        width: auto;
+        min-height: 54px;
+        margin: 0;
+        padding: 4px 8px 4px 0;
+        border: none;
+        border-left: 3px solid transparent;
+        border-radius: 0;
+        background: #fff;
+        cursor: pointer;
+        user-select: none;
+        position: relative;
+        box-shadow: none;
+    }
+    .song-name:hover,
+    .media-fav-card:hover { background: #F6F8FA; box-shadow: none; }
+    /* Song being prepared (selected): active rail + light tint */
+    .song-name.box-selected { background: #E6F1F4 !important; border-left-color: #176B87 !important; box-shadow: none !important; }
+    /* Media currently on the screen / audio playing: broadcast green */
+    .media-fav-card.mfc-image,
+    .media-fav-card.mfc-video,
+    .media-fav-card.mfc-audio { border-left: 3px solid transparent; }
+    .media-fav-card.mfc-active { background: #E7F4EA; border-left-color: #1E7E34; }
+    .song-name .text-container, .mfc-info { flex: 1 1 0; min-width: 0; }
+    .item-text, .mfc-name {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        color: #17212B;
+        line-height: 1.25;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .tc-meta { display: flex; align-items: center; gap: 6px; margin-top: 2px; min-width: 0; }
+    .book-name, .mfc-src {
+        display: block; margin: 0; font-size: 11px; color: #6E7883;
+        white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .mfc-icon { width: 28px; text-align: center; font-size: 18px; flex-shrink: 0; }
+    .drag-handle {
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        cursor: grab;
+        border: none;
+        background: transparent;
+        color: #6E7883;
+        font-size: 16px;
+        line-height: 1;
+        width: 28px;
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .drag-handle:active { cursor: grabbing; color: #17212B; }
+    .fav-row.drag-active .song-name,
+    .fav-row.drag-active .media-fav-card { background: #E6F1F4; box-shadow: 0 6px 18px rgba(23,33,43,0.25); z-index: 10; }
+    body.drag-reorder-busy { user-select: none; -webkit-user-select: none; }
+
+    .btn-edit, .song-del, .mfc-del, .mfc-wallpaper-btn {
+        position: static;
+        height: 28px;
+        min-width: 28px;
+        padding: 0 8px;
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        background: #fff;
+        color: #6E7883;
+        font-size: 12px;
+        line-height: 1;
+        cursor: pointer;
+        flex-shrink: 0;
+        white-space: nowrap;
+    }
+    .btn-edit:hover, .mfc-wallpaper-btn:hover { border-color: #176B87; color: #176B87; background: #fff; }
+    .song-del, .mfc-del { color: #C4473A; }
+    .song-del:hover, .mfc-del:hover { border-color: #C4473A; background: #FBECEA; }
+    .song-image, .mfc-thumb {
+        width: 44px;
+        height: 44px;
+        object-fit: cover;
+        object-position: top center;
+        border-radius: 4px;
+        border: 1px solid #b9c4cd;
+        display: block;
+        flex-shrink: 0;
+    }
+    .tech-video-controls { width: auto; margin: 0; padding: 6px 8px 8px 31px; background: #E7F4EA; }
+    .tech-audio-player { margin: 0; padding: 6px 8px 8px 31px; background: #E7F4EA; }
+    .tech-audio-player audio { width: 100%; height: 34px; }
+    .btn-clear, .btn-clear:hover { margin: 0; padding: 0 10px; border-radius: 6px; transform: none; box-shadow: none; }
+
+    /* ---- Verses / Bible verses / message paragraphs -------------- */
+    .tc-verses { counter-reset: verse; }
+    .text-chapter,
+    .bible-verse-item {
+        display: block;
+        width: auto;
+        margin: 0;
+        padding: 10px 14px 10px 13px;
+        border: none;
+        border-left: 3px solid transparent;
+        border-bottom: 1px solid #DCE3E8;
+        border-radius: 0;
+        background: #fff;
+        color: #17212B;
+        cursor: pointer;
+        user-select: none;
+        white-space: pre-wrap;
+        word-break: break-word;
+        line-height: 1.45;
+    }
+    .text-chapter { font-size: 14px; position: relative; padding-left: 44px; counter-increment: verse; }
+    .text-chapter::before {
+        content: counter(verse);
+        position: absolute;
+        left: 10px;
+        top: 10px;
+        width: 24px;
+        text-align: right;
+        font-size: 12px;
+        color: #6E7883;
+        font-variant-numeric: tabular-nums;
+    }
+    /* Keep the measure readable on very wide monitors: the block stays fully
+       clickable, only the text column is capped (~95 characters). */
+    .bible-verse-item { font-size: 16px; padding-right: max(14px, calc(100% - 95ch)); }
+    .bible-verse-item.tc-para { padding-right: 14px; }
+    .text-chapter:hover,
+    .bible-verse-item:hover { background: #F6F8FA; border-color: transparent transparent #DCE3E8 transparent; }
+    /* On the screen now: broadcast green. Adjacent selected blocks have no gap
+       between them, so a continuous selection reads as one range. */
+    .text-chapter.chapter-selected,
+    .bible-verse-item.chapter-selected {
+        background: #E7F4EA !important;
+        border-left-color: #1E7E34 !important;
+        border-bottom-color: #cfe6d4 !important;
+        color: #17212B;
+        font-weight: 600;
+    }
+    .bible-verse-item.msg-stop-marker { border-right: 4px solid #C4473A; }
+
+    /* Message paragraphs: time gutter · text · stop marker */
+    .bible-verse-item.tc-para { display: flex; align-items: flex-start; gap: 10px; }
+    .tc-gutter {
+        flex: 0 0 7ch;
+        text-align: right;
+        font-family: Consolas, "Courier New", monospace;
+        font-size: 11px;
+        line-height: 23px;
+        color: #176B87;
+        opacity: 0.75;
+    }
+    .tc-gutter.tc-gutter-unset { color: #C4473A; font-weight: bold; opacity: 1; }
+    .tc-para-text { flex: 1 1 0; min-width: 0; max-width: 90ch; }
+    .tc-stop-btn {
+        flex-shrink: 0;
+        height: 24px;
+        padding: 0 6px;
+        border: 1px solid #DCE3E8;
+        border-radius: 5px;
+        background: #fff;
+        font-size: 13px;
+        line-height: 1;
+        cursor: pointer;
+        opacity: 0.4;
+    }
+    .tc-stop-btn:hover { opacity: 0.8; }
+    .tc-stop-btn.tc-stop-on { opacity: 1; border-color: #C4473A; background: #FBECEA; }
+    .tc-timecode { font-family: Consolas, "Courier New", monospace; font-size: 13px; color: #176B87; min-width: 5ch; text-align: center; }
+    .tc-audio-btn { border-color: #176B87; color: #176B87; background: #E6F1F4; }
+    .cx-btn.tc-calibrating { border-color: #e67e22; background: #fef3e2; color: #c0580a; }
+
+    /* Bible / message list panes: the scroller keeps its id (tech.js scrolls it) */
+    .bible-panel { position: relative; height: auto; border: none; border-radius: 0; background: #fff; }
+    .bible-list-item {
+        padding: 8px 12px 8px 9px;
+        border-left: 3px solid transparent;
+        border-bottom: 1px solid #EDF1F4;
+        font-size: 13px;
+        color: #17212B;
+        cursor: pointer;
+        user-select: none;
+    }
+    .bible-list-item:hover { background: #F6F8FA; }
+    .bible-list-item.selected { background: #E6F1F4; border-left-color: #176B87; color: #176B87; font-weight: 600; }
+    .tc-msg-code  { display: block; font-size: 11px; font-weight: 700; color: #765276; }
+    .tc-msg-title { display: block; line-height: 1.3; }
+    .tc-msg-city  { display: block; font-size: 11px; color: #6E7883; margin-top: 1px; }
+    .tc-msg-result.selected { background: #F3ECF3; border-left-color: #765276; color: #17212B; }
+
+    /* Chapters: compact number grid */
+    .tc-chapters {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(40px, 1fr));
+        grid-auto-rows: 34px;
+        gap: 4px;
+        padding: 8px;
+        align-content: start;
+    }
+    .tc-chapters .bible-list-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        font-variant-numeric: tabular-nums;
+    }
+    .tc-chapters .bible-list-item.selected { background: #176B87; border-color: #176B87; color: #fff; }
+    .tc-chapters .cx-empty { grid-column: 1 / -1; }
+
+    .bible-search-result { padding: 8px 14px; border-bottom: 1px solid #DCE3E8; font-size: 16px; color: #17212B; cursor: pointer; line-height: 1.45; }
+    .bible-search-result:hover { background: #F6F8FA; }
+    .bible-search-result .ref { display: block; font-size: 11px; font-weight: 600; color: #176B87; margin-bottom: 2px; }
 </style>
 
-<div ng-controller="Tech">
-    <div class="tech-wrapper">
+<div ng-controller="Tech" class="cx-page">
+    <div class="tech-shell">
 
         <!-- ── WebSocket disconnect banner ────────────────────────── -->
         <div class="ws-disconnect-banner" ng-if="wsConnected === false">
             <?php echo T::s('common.ws.disconnected'); ?>
         </div>
 
-        <!-- ── Header ─────────────────────────────────────────────── -->
-        <div class="tech-header">
-            <button class="btn-back" onclick="window.location.href='/index'">
+        <!-- ── Application bar: back · title · mode switch · broadcast · display targets ── -->
+        <header class="cx-bar tc-bar">
+            <button class="cx-btn" onclick="window.location.href='/index'">
                 <?php echo T::s('common.button.back'); ?>
             </button>
-            <div class="tech-title-block">
-                <div class="tech-page-title"><?php echo T::s('tech.title'); ?></div>
-                <div class="tech-page-subtitle"><?php echo htmlspecialchars($_SESSION['userName']) ?></div>
+            <div class="tc-titles">
+                <div class="cx-bar-title"><?php echo T::s('tech.titleShort'); ?></div>
+                <div class="cx-bar-meta"><?php echo htmlspecialchars($_SESSION['userName']) ?></div>
             </div>
+
+            <span class="cx-spacer"></span>
+
+            <!-- Mode switch -->
+            <div class="cx-seg" role="group" aria-label="<?php echo T::s('tech.label.mode'); ?>">
+                <button ng-class="pageMode === 'songs'    ? 'mode-btn-active' : ''"
+                        ng-click="songMode()"><?php echo T::s('tech.mode.songs'); ?></button>
+                <button ng-class="pageMode === 'bible'    ? 'mode-btn-active' : ''"
+                        ng-click="bibleMode()"><?php echo T::s('tech.mode.bible'); ?></button>
+                <button ng-class="pageMode === 'messages' ? 'mode-btn-active' : ''"
+                        ng-click="messagesMode()"><?php echo T::s('tech.mode.message'); ?></button>
+            </div>
+
+            <span class="cx-spacer"></span>
 
             <!-- Observer channel (shared group toggle, same as on the leader
                  page): songs / verses, Bible verses and message paragraphs
                  shown here also reach observers in group mode -->
-            <button class="btn-observer"
+            <button class="cx-btn cx-broadcast btn-observer"
                     ng-class="{'btn-observer-on': observer.active}"
                     ng-click="toggleObserver()"
+                    aria-pressed="{{ observer.active ? 'true' : 'false' }}"
                     title="<?php echo T::s('leader.observer.hint'); ?>">
-                <span ng-if="!observer.active"><?php echo T::s('leader.observer.off'); ?></span>
-                <span ng-if="observer.active"><?php echo T::s('leader.observer.on'); ?></span>
+                <span class="tc-wide" ng-if="!observer.active"><?php echo T::s('leader.observer.off'); ?></span>
+                <span class="tc-wide" ng-if="observer.active"><?php echo T::s('leader.observer.on'); ?></span>
+                <span class="tc-narrow"><?php echo T::s('leader.observer.short'); ?></span>
             </button>
 
             <!-- Shared display targets controlled by the technician (leader + sermon channels) -->
             <div class="display-targets-box">
-                <div class="dt-channel">
+                <label class="dt-channel">
                     <span class="dt-label"><?php echo T::s('tech.dt.leader'); ?></span>
                     <select class="dt-select"
                             ng-class="{ 'dt-active': leaderDisplayTarget !== null }"
@@ -1611,8 +1385,8 @@
                             ng-change="setDisplayTarget('leader')"
                             ng-options="t.group_id as t.display_name for t in displayTargets">
                     </select>
-                </div>
-                <div class="dt-channel">
+                </label>
+                <label class="dt-channel">
                     <span class="dt-label"><?php echo T::s('tech.dt.sermon'); ?></span>
                     <select class="dt-select"
                             ng-class="{ 'dt-active': sermonDisplayTarget !== null }"
@@ -1620,73 +1394,114 @@
                             ng-change="setDisplayTarget('sermon')"
                             ng-options="t.group_id as t.display_name for t in displayTargets">
                     </select>
-                </div>
-                <button class="btn-request-access"
+                </label>
+                <button class="cx-btn cx-btn-icon btn-request-access"
                         ng-click="showAccessRequestModal = true"
-                        title="<?php echo T::s('sermon.requestAccessTitle'); ?>">+</button>
-                <button class="btn-disable-screen"
+                        title="<?php echo T::s('sermon.requestAccessTitle'); ?>"
+                        aria-label="<?php echo T::s('sermon.requestAccessTitle'); ?>">+</button>
+                <button class="cx-btn cx-btn-danger-solid btn-disable-screen"
                         ng-show="externalContentActive"
                         ng-click="disableExternalDisplay()">
                     <?php echo T::s('tech.button.disableScreen'); ?>
                 </button>
             </div>
-        </div>
+        </header>
 
-        <!-- ── Row 1: mode switch ─────────────────────────────────── -->
-        <div class="section-label"><?php echo T::s('tech.label.mode'); ?></div>
-        <div class="btn-row">
-            <button class="btn-mode"
-                    ng-class="pageMode === 'songs'    ? 'mode-btn-active' : ''"
-                    ng-click="songMode()"><?php echo T::s('tech.mode.songs'); ?></button>
-            <button class="btn-mode"
-                    ng-class="pageMode === 'bible'    ? 'mode-btn-active' : ''"
-                    ng-click="bibleMode()"><?php echo T::s('tech.mode.bible'); ?></button>
-            <button class="btn-mode"
-                    ng-class="pageMode === 'messages' ? 'mode-btn-active' : ''"
-                    ng-click="messagesMode()"><?php echo T::s('tech.mode.message'); ?></button>
-        </div>
+        <!-- ── Context bar: controls of the current mode only ───────── -->
+        <div class="cx-ctx tc-ctx">
 
-        <!-- ── Row 2: collections (Songs) / translations (Bible) ──── -->
-        <div ng-show="pageMode === 'songs'">
-            <div class="section-label"><?php echo T::s('tech.label.collection'); ?></div>
-            <div class="btn-row">
-                <button class="btn-list"
+            <!-- Songs: collections -->
+            <span class="cx-ctx-label" ng-show="pageMode === 'songs'"><?php echo T::s('tech.label.collection'); ?></span>
+            <div class="cx-scroll-x tc-grow" ng-show="pageMode === 'songs'">
+                <button class="cx-btn btn-list"
                         ng-repeat="list in visibleSongLists"
                         ng-class="listId == list.LIST_ID ? 'btn-selected' : ''"
                         ng-click="setList(list.LIST_ID)">{{ list.LIST_NAME }}</button>
             </div>
-        </div>
 
-        <div ng-show="pageMode === 'bible'">
-            <div class="section-label"><?php echo T::s('tech.label.translation'); ?></div>
-            <div class="btn-row">
-                <button class="btn-list"
+            <!-- Bible: primary translation -->
+            <span class="cx-ctx-label" ng-show="pageMode === 'bible'"><?php echo T::s('tech.label.translation'); ?></span>
+            <div class="cx-scroll-x tc-grow" ng-show="pageMode === 'bible'">
+                <button class="cx-btn btn-list"
                         ng-repeat="tr in bibleTranslations"
                         ng-class="bibleTranslationId == tr.ID ? 'btn-selected' : ''"
                         ng-click="setBibleTranslation(tr.ID)">{{ tr.NAME }}</button>
             </div>
+
+            <span class="cx-spacer" ng-show="pageMode === 'messages'"></span>
+
+            <!-- Content languages (songs + messages) -->
+            <div class="cx-group" ng-show="pageMode !== 'bible'">
+                <span class="cx-ctx-label"><?php echo T::s('tech.label.languages'); ?></span>
+                <div class="cx-seg">
+                    <button class="btn-lang"
+                            ng-repeat="lang in langList"
+                            ng-disabled="!isLangAvailable(lang)"
+                            ng-class="languages[lang.code] ? 'lang-active' : ''"
+                            ng-click="toggleLanguage(lang.code)">{{lang.label}}</button>
+                </div>
+            </div>
+
+            <!-- Bible: parallel languages + their translation selectors -->
+            <div class="cx-group tc-parallel" ng-show="pageMode === 'bible'">
+                <span class="cx-ctx-label"><?php echo T::s('tech.label.bibleExtraLangs'); ?></span>
+                <span class="cx-group" ng-repeat="lang in langList"
+                      ng-show="lang.code !== bibleLang && bibleTranslationsForLang(lang.code).length > 0">
+                    <button class="cx-btn btn-lang"
+                            ng-class="isBibleExtraOn(lang.code) ? 'lang-active' : ''"
+                            ng-click="toggleBibleExtraLang(lang.code)">{{lang.label}}</button>
+                    <select class="cx-select"
+                            ng-show="isBibleExtraOn(lang.code) && bibleTranslationsForLang(lang.code).length > 1"
+                            ng-model="bibleExtra[lang.code].trId"
+                            ng-options="tr.ID as tr.NAME for tr in bibleTranslationsForLang(lang.code)"
+                            ng-change="setBibleExtraTranslation(lang.code)"></select>
+                </span>
+            </div>
+
+            <!-- Bible: verses per screen -->
+            <div class="cx-group" ng-show="pageMode === 'bible'">
+                <span class="cx-ctx-label"><?php echo T::s('tech.label.versesPerPage'); ?></span>
+                <div class="cx-seg">
+                    <button class="btn-lang"
+                            ng-class="bibleVerseCount === 1 ? 'lang-active' : ''"
+                            ng-click="bibleVerseCount = 1">1</button>
+                    <button class="btn-lang"
+                            ng-class="bibleVerseCount === 2 ? 'lang-active' : ''"
+                            ng-click="bibleVerseCount = 2">2</button>
+                    <button class="btn-lang"
+                            ng-class="bibleVerseCount === 3 ? 'lang-active' : ''"
+                            ng-click="bibleVerseCount = 3">3</button>
+                </div>
+            </div>
+
+            <!-- Songs: list actions + media / wallpapers (popovers below) -->
+            <div class="cx-group" ng-show="pageMode === 'songs'">
+                <button class="cx-btn cx-btn-primary" ng-click="openList()"
+                        title="<?php echo T::s('leader.button.showAll'); ?>{{ currentListName() ? ': ' + currentListName() : '' }}">
+                    <?php echo T::s('leader.button.allSongs'); ?>
+                </button>
+                <button class="cx-btn" ng-click="addNewSong()"
+                        title="<?php echo T::s('tech.songs.addNew'); ?>{{ currentListName() ? ': ' + currentListName() : '' }}">
+                    <?php echo T::s('tech.songs.addShort'); ?>
+                </button>
+                <button class="cx-btn"
+                        ng-click="toggleMediaAddPanel()"
+                        ng-class="showMediaAddPanel ? 'is-active' : ''"
+                        title="<?php echo T::s('tech.button.photosMedia'); ?>">
+                    <?php echo T::s('tech.button.mediaShort'); ?>
+                </button>
+                <button class="cx-btn"
+                        ng-click="toggleWallpapersPanel()"
+                        ng-class="showWallpapersPanel ? 'is-active' : ''"
+                        title="<?php echo T::s('tech.button.standardWallpapers'); ?>">
+                    <?php echo T::s('tech.button.wallpapersShort'); ?>
+                </button>
+            </div>
         </div>
 
-        <!-- ── Row 3: extra actions (Songs only) ────────────────────── -->
-        <div ng-show="pageMode === 'songs'">
-            <div class="btn-row" style="margin-top: 8px;">
-                <button class="btn-action-blue" ng-click="openList()"><?php echo T::s('leader.button.showAll'); ?><span ng-if="currentListName()">: {{ currentListName() }}</span></button>
-                <button class="btn-action-orange" ng-click="addNewSong()"><?php echo T::s('tech.songs.addNew'); ?><span ng-if="currentListName()">: {{ currentListName() }}</span></button>
-            </div>
-            <div class="section-label" style="margin-top: 16px;"><?php echo T::s('tech.label.extras'); ?></div>
-            <div class="btn-row" style="margin-top: 8px;">
-                <button class="btn-action-blue"
-                        ng-click="toggleMediaAddPanel()"
-                        ng-class="showMediaAddPanel ? 'mode-btn-active' : ''">
-                    <?php echo T::s('tech.button.photosMedia'); ?>
-                </button>
-                <button class="btn-action-blue"
-                        ng-click="toggleWallpapersPanel()"
-                        ng-class="showWallpapersPanel ? 'mode-btn-active' : ''">
-                    <?php echo T::s('tech.button.standardWallpapers'); ?>
-                </button>
-            </div>
-        </div>
+        <!-- Popovers of the context bar: they float over the work area and
+             never push it down -->
+        <div class="tc-pop-anchor">
 
         <!-- Add-media-to-playlist panel -->
         <div class="media-add-panel" ng-show="showMediaAddPanel">
@@ -1746,8 +1561,7 @@
             </div>
 
             <!-- Wallpapers list -->
-            <div ng-if="standardWallpapers.length === 0"
-                 style="text-align:center; padding:16px; color:#b0b8c1; font-size:12px;">
+            <div ng-if="standardWallpapers.length === 0" class="cx-empty">
                 <?php echo T::s('tech.add.empty'); ?>
             </div>
 
@@ -1768,6 +1582,8 @@
             </div>
         </div>
 
+        </div><!-- /tc-pop-anchor -->
+
         <!-- Hidden file inputs (place anywhere inside the controller) -->
         <input type="file" id="techMediaImageInput" accept="image/*" style="display:none"
                onchange="angular.element(this).scope().onMediaImageSelected(this)">
@@ -1776,59 +1592,13 @@
         <input type="file" id="techMediaAudioInput" accept=".mp3,audio/mpeg" style="display:none"
                onchange="angular.element(this).scope().onMediaAudioSelected(this)">
 
-        <!-- ── Languages (all modes) + Verses-per-page (Bible) ──────── -->
-        <div style="display: flex; gap: 24px; align-items: flex-start; margin-top: 16px; flex-wrap: wrap;">
-            <div ng-show="pageMode !== 'bible'">
-                <div class="section-label"><?php echo T::s('tech.label.languages'); ?></div>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
-                    <button class="btn-lang"
-                            ng-repeat="lang in langList"
-                            ng-disabled="!isLangAvailable(lang)"
-                            ng-class="languages[lang.code] ? 'lang-active' : ''"
-                            ng-click="toggleLanguage(lang.code)">{{lang.label}}</button>
-                </div>
-            </div>
-            <div ng-show="pageMode === 'bible'">
-                <div class="section-label"><?php echo T::s('tech.label.bibleExtraLangs'); ?></div>
-                <div style="display: flex; gap: 8px; flex-wrap: wrap; align-items: center;">
-                    <span ng-repeat="lang in langList"
-                          ng-show="lang.code !== bibleLang && bibleTranslationsForLang(lang.code).length > 0"
-                          style="display: inline-flex; align-items: center; gap: 4px;">
-                        <button class="btn-lang"
-                                ng-class="isBibleExtraOn(lang.code) ? 'lang-active' : ''"
-                                ng-click="toggleBibleExtraLang(lang.code)">{{lang.label}}</button>
-                        <select ng-show="isBibleExtraOn(lang.code) && bibleTranslationsForLang(lang.code).length > 1"
-                                ng-model="bibleExtra[lang.code].trId"
-                                ng-options="tr.ID as tr.NAME for tr in bibleTranslationsForLang(lang.code)"
-                                ng-change="setBibleExtraTranslation(lang.code)"
-                                style="max-width: 160px; height: 26px;"></select>
-                    </span>
-                </div>
-            </div>
-            <div ng-show="pageMode === 'bible'">
-                <div class="section-label"><?php echo T::s('tech.label.versesPerPage'); ?></div>
-                <div style="display: flex; gap: 6px;">
-                    <button class="btn-lang"
-                            ng-class="bibleVerseCount === 1 ? 'lang-active' : ''"
-                            ng-click="bibleVerseCount = 1">1</button>
-                    <button class="btn-lang"
-                            ng-class="bibleVerseCount === 2 ? 'lang-active' : ''"
-                            ng-click="bibleVerseCount = 2">2</button>
-                    <button class="btn-lang"
-                            ng-class="bibleVerseCount === 3 ? 'lang-active' : ''"
-                            ng-click="bibleVerseCount = 3">3</button>
-                </div>
-            </div>
-        </div>
-
         <!-- ══════════════════════════════════════════════════════════
              SONGS MODE
              ══════════════════════════════════════════════════════════ -->
-        <div ng-show="pageMode === 'songs'">
+        <main class="tc-work" ng-show="pageMode === 'songs'">
 
-            <!-- Search -->
-            <div style="margin-top: 16px; margin-bottom: 12px;">
-                <div class="section-label" style="margin-bottom: 6px;"><?php echo T::s('leader.section.search'); ?></div>
+            <!-- Search: one full-width field -->
+            <div class="tc-search-row">
 
                 <script type="text/ng-template" id="song-row-tmpl.html">
                     <div class="angucomplete-holder" ng-class="{'angucomplete-dropdown-visible': showDropdown}">
@@ -1886,181 +1656,180 @@
                 </angucomplete-alt>
             </div>
 
-            <!-- Two columns: favorites + chapters -->
-            <!-- Shared header row — keeps both labels at the same height -->
-            <div class="row" style="margin-bottom: 4px;">
-                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                    <div class="section-label" style="margin-top: 16px; margin-bottom: 0;"><?php echo T::s('leader.section.selected'); ?></div>
-                </div>
-                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                    <div class="section-label" style="margin-top: 16px; margin-bottom: 0;"><?php echo T::s('tech.label.verses'); ?></div>
-                </div>
-            </div>
+            <!-- 38 / 62 split: playlist + verses, each scrolls on its own -->
+            <div class="tc-split tc-split-songs">
 
-            <div class="row">
-
-                <!-- Left: song list -->
-                <div id="techPlaylist" class="col-xs-6 col-sm-6 col-md-6 col-lg-6" style="overflow: hidden;">
-
-                    <!-- Empty state -->
-                    <div ng-if="favorites.length === 0"
-                         style="text-align:center; padding: 24px 8px; color: #b0b8c1;">
-                        <div style="font-size:28px; margin-bottom:6px;">🎵</div>
-                        <div style="font-size:12px;"><?php echo T::s('tech.empty.songs'); ?></div>
+                <!-- Left: playlist -->
+                <section class="cx-pane">
+                    <div class="cx-pane-head">
+                        <span><?php echo T::s('leader.section.selected'); ?></span>
+                        <span class="tc-count" ng-if="favorites.length > 0">{{ favorites.length }}</span>
+                        <span class="cx-spacer"></span>
+                        <button class="cx-btn cx-btn-danger btn-clear" ng-if="favorites.length > 0" ng-click="clearFavorites()">
+                            <?php echo T::s('leader.button.clear'); ?>
+                        </button>
                     </div>
+                    <div id="techPlaylist" class="cx-pane-body">
 
-                    <!-- track by keeps DOM rows alive across reloadFavorites()
-                         (fired on every update_needed): without it the local
-                         mp3 <audio> below is destroyed mid-playback. Songs and
-                         media come from different tables, so the type prefix
-                         keeps the keys unique. -->
-                    <div class="row fav-row" style="position: relative; margin-bottom: 12px;"
-                         ng-repeat="listItem in favorites track by (listItem.itemType + '-' + listItem.FID)">
+                        <!-- Empty state -->
+                        <div ng-if="favorites.length === 0" class="cx-empty">
+                            <div style="font-size:28px; margin-bottom:6px;">🎵</div>
+                            <div><?php echo T::s('tech.empty.songs'); ?></div>
+                        </div>
 
-                        <!-- Clickable card: whole area triggers prepareText -->
-                        <div ng-if="listItem.itemType === 'song'"
-                             class="song-name col-xs-12 col-sm-12 col-md-12 col-lg-12"
-                             ng-class="{'box-selected': showingSong === listItem}"
-                             ng-click="prepareText(listItem.TEXT, listItem)">
+                        <!-- track by keeps DOM rows alive across reloadFavorites()
+                             (fired on every update_needed): without it the local
+                             mp3 <audio> below is destroyed mid-playback. Songs and
+                             media come from different tables, so the type prefix
+                             keeps the keys unique. -->
+                        <div class="fav-row"
+                             ng-repeat="listItem in favorites track by (listItem.itemType + '-' + listItem.FID)">
 
-                            <!-- Drag handle: reorder the playlist (drag_reorder.js) -->
-                            <button class="drag-handle" type="button"
-                                    title="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
+                            <!-- Clickable row: whole area triggers prepareText -->
+                            <div ng-if="listItem.itemType === 'song'"
+                                 class="song-name"
+                                 ng-class="{'box-selected': showingSong === listItem}"
+                                 ng-click="prepareText(listItem.TEXT, listItem)">
 
-                            <button class="song-del"
-                                    ng-click="$event.stopPropagation(); deleteFavoriteItem(listItem.FID, listItem.dispName, listItem.itemType)"
-                                    title="<?php echo T::s('tech.tooltip.removeFromPlaylist'); ?>">✕</button>
+                                <!-- Drag handle: reorder the playlist (drag_reorder.js) -->
+                                <button class="drag-handle" type="button"
+                                        title="<?php echo T::s('common.dragReorder'); ?>"
+                                        aria-label="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
 
-                            <!-- Left: title + meta -->
-                            <div class="text-container">
-                                <span class="item-text">{{ listItem.dispName }}</span>
-                                <!-- book-name row: name left, edit button right -->
-                                <div style="display:flex; align-items:center; justify-content:space-between; margin-top:3px;">
-                                    <span class="book-name" style="margin-top:0;">{{ listItem.bookName }}</span>
-                                    <!-- Desktop: edit button -->
-                                    <div class="song-text-edit" ng-click="$event.stopPropagation()" style="margin-top:0;">
-                                        <button class="btn-edit" ng-click="editFavorite(listItem)"><?php echo T::s('tech.button.edit'); ?></button>
-                                    </div>
+                                <div class="text-container">
+                                    <span class="item-text">{{ listItem.dispName }}</span>
+                                    <span class="tc-meta">
+                                        <span class="book-name">{{ listItem.bookName }}</span>
+                                        <span class="song-lang-badges">
+                                            <span class="lang-badge lang-{{lang.code}}"
+                                                  ng-repeat="lang in langList"
+                                                  ng-if="listItem['TEXT' + lang.col_suffix] && listItem['TEXT' + lang.col_suffix] != ''">{{lang.label}}</span>
+                                        </span>
+                                    </span>
                                 </div>
-                                <span class="song-lang-badges" style="margin-top: 4px;">
-                                <span class="lang-badge lang-{{lang.code}}"
-                                      ng-repeat="lang in langList"
-                                      ng-if="listItem['TEXT' + lang.col_suffix] && listItem['TEXT' + lang.col_suffix] != ''">{{lang.label}}</span>
-                            </span>
-                            </div>
 
-                            <!-- Right: image + edit button -->
-                            <div class="song-right-block" ng-click="$event.stopPropagation()">
+                                <button class="btn-edit"
+                                        ng-click="$event.stopPropagation(); editFavorite(listItem)"><?php echo T::s('tech.button.edit'); ?></button>
+
+                                <button class="song-del"
+                                        ng-click="$event.stopPropagation(); deleteFavoriteItem(listItem.FID, listItem.dispName, listItem.itemType)"
+                                        title="<?php echo T::s('tech.tooltip.removeFromPlaylist'); ?>"
+                                        aria-label="<?php echo T::s('tech.tooltip.removeFromPlaylist'); ?>">✕</button>
+
                                 <img class="song-image"
+                                     ng-click="$event.stopPropagation()"
                                      ng-attr-id="{{ 'img' + listItem.ID }}"
                                      ng-src="{{ listItem.imageName }}" />
-                                <button class="btn-edit"
-                                        ng-click="editFavorite(listItem)"<?php echo T::s('tech.button.edit'); ?></button>
-                            </div>
-                        </div>
-
-                        <!-- ── Media card (image, video or audio) ── -->
-                        <div ng-if="listItem.itemType === 'image' || listItem.itemType === 'video' || listItem.itemType === 'audio'"
-                             class="media-fav-card"
-                             ng-class="{
-                                 'mfc-image':  listItem.itemType === 'image',
-                                 'mfc-video':  listItem.itemType === 'video',
-                                 'mfc-audio':  listItem.itemType === 'audio',
-                                 'mfc-active': (activeMediaItem && activeMediaItem.FID === listItem.FID && listItem.itemType !== 'audio')
-                                               || (activeAudioItem && activeAudioItem.FID === listItem.FID && listItem.itemType === 'audio')
-                             }"
-                             ng-click="activateMediaItem(listItem)">
-
-                            <!-- Drag handle: reorder the playlist (drag_reorder.js) -->
-                            <button class="drag-handle" type="button"
-                                    title="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
-
-                            <!-- Preview (images only) -->
-                            <img ng-if="listItem.itemType === 'image'"
-                                 class="mfc-thumb"
-                                 ng-src="{{ listItem.src }}"
-                                 onerror="this.style.visibility='hidden'">
-
-                            <!-- Icon for video / audio -->
-                            <span ng-if="listItem.itemType === 'video'"
-                                  class="mfc-icon">🎬</span>
-                            <span ng-if="listItem.itemType === 'audio'"
-                                  class="mfc-icon">🎵</span>
-
-                            <div class="mfc-info">
-                                <div class="mfc-name">{{ listItem.NAME || listItem.dispName }}</div>
-                                <div class="mfc-src">{{ listItem.src }}</div>
                             </div>
 
-                            <!-- "Add to wallpapers" button for images and mp3 -->
-                            <button ng-if="listItem.itemType === 'image' || listItem.itemType === 'audio'"
-                                    class="mfc-wallpaper-btn"
-                                    ng-click="$event.stopPropagation(); addToWallpapers(listItem)"
-                                    title="<?php echo T::s('tech.tooltip.addToWallpapers'); ?>">📌</button>
+                            <!-- ── Media row (image, video or audio) ── -->
+                            <div ng-if="listItem.itemType === 'image' || listItem.itemType === 'video' || listItem.itemType === 'audio'"
+                                 class="media-fav-card"
+                                 ng-class="{
+                                     'mfc-image':  listItem.itemType === 'image',
+                                     'mfc-video':  listItem.itemType === 'video',
+                                     'mfc-audio':  listItem.itemType === 'audio',
+                                     'mfc-active': (activeMediaItem && activeMediaItem.FID === listItem.FID && listItem.itemType !== 'audio')
+                                                   || (activeAudioItem && activeAudioItem.FID === listItem.FID && listItem.itemType === 'audio')
+                                 }"
+                                 ng-click="activateMediaItem(listItem)">
 
-                            <!-- Delete button -->
-                            <button class="mfc-del"
-                                    ng-click="$event.stopPropagation(); deleteFavoriteItem(listItem.FID, listItem.NAME || listItem.dispName, listItem.itemType)"
-                                    title="<?php echo T::s('tech.tooltip.removeFromPlaylist'); ?>">✕</button>
+                                <!-- Drag handle: reorder the playlist (drag_reorder.js) -->
+                                <button class="drag-handle" type="button"
+                                        title="<?php echo T::s('common.dragReorder'); ?>"
+                                        aria-label="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
+
+                                <!-- Icon for video / audio -->
+                                <span ng-if="listItem.itemType === 'video'"
+                                      class="mfc-icon">🎬</span>
+                                <span ng-if="listItem.itemType === 'audio'"
+                                      class="mfc-icon">🎵</span>
+                                <span ng-if="listItem.itemType === 'image'"
+                                      class="mfc-icon">🖼️</span>
+
+                                <div class="mfc-info">
+                                    <div class="mfc-name">{{ listItem.NAME || listItem.dispName }}</div>
+                                    <div class="mfc-src">{{ listItem.src }}</div>
+                                </div>
+
+                                <!-- "Add to wallpapers" button for images and mp3 -->
+                                <button ng-if="listItem.itemType === 'image' || listItem.itemType === 'audio'"
+                                        class="mfc-wallpaper-btn"
+                                        ng-click="$event.stopPropagation(); addToWallpapers(listItem)"
+                                        title="<?php echo T::s('tech.tooltip.addToWallpapers'); ?>"
+                                        aria-label="<?php echo T::s('tech.tooltip.addToWallpapers'); ?>">📌</button>
+
+                                <!-- Delete button -->
+                                <button class="mfc-del"
+                                        ng-click="$event.stopPropagation(); deleteFavoriteItem(listItem.FID, listItem.NAME || listItem.dispName, listItem.itemType)"
+                                        title="<?php echo T::s('tech.tooltip.removeFromPlaylist'); ?>"
+                                        aria-label="<?php echo T::s('tech.tooltip.removeFromPlaylist'); ?>">✕</button>
+
+                                <!-- Preview (images only) -->
+                                <img ng-if="listItem.itemType === 'image'"
+                                     class="mfc-thumb"
+                                     ng-src="{{ listItem.src }}"
+                                     onerror="this.style.visibility='hidden'">
+                            </div>
+
+                            <!-- Video controls under the active video row -->
+                            <div ng-if="listItem.itemType === 'video' && activeMediaItem && activeMediaItem.FID === listItem.FID"
+                                 class="tech-video-controls">
+                                <button class="tvc-btn tvc-play" ng-click="techToggleVideo()">
+                                    {{ techVideoPlaying ? ('<?php echo T::s('sermon.video.pause'); ?>') : ('<?php echo T::s('sermon.video.play'); ?>') }}
+                                </button>
+                                <button class="tvc-btn tvc-stop" ng-click="techStopVideo()"><?php echo T::s('tech.video.stop'); ?></button>
+                            </div>
+
+                            <!-- Local mp3 player under the active audio row.
+                                 Plays on the tech console only — the main display
+                                 and the musician's notes are never affected. -->
+                            <div ng-if="listItem.itemType === 'audio' && activeAudioItem && activeAudioItem.FID === listItem.FID"
+                                 class="tech-audio-player">
+                                <audio id="techAudioEl" controls preload="metadata" ng-src="{{ listItem.src }}"></audio>
+                            </div>
+
                         </div>
+                    </div>
+                </section>
 
-                        <!-- Video controls under the active video chip -->
-                        <div ng-if="listItem.itemType === 'video' && activeMediaItem && activeMediaItem.FID === listItem.FID"
-                             class="tech-video-controls">
-                            <button class="tvc-btn tvc-play" ng-click="techToggleVideo()">
-                                {{ techVideoPlaying ? ('<?php echo T::s('sermon.video.pause'); ?>') : ('<?php echo T::s('sermon.video.play'); ?>') }}
-                            </button>
-                            <button class="tvc-btn tvc-stop" ng-click="techStopVideo()"><?php echo T::s('tech.video.stop'); ?></button>
+                <!-- Right: song verses -->
+                <section class="cx-pane">
+                    <div class="cx-pane-head">
+                        <span><?php echo T::s('tech.label.verses'); ?></span>
+                        <strong ng-if="showingSong">— {{ showingSong.dispName }}</strong>
+                    </div>
+                    <div class="cx-pane-body tc-verses">
+                        <div ng-if="preparedChapters.length === 0" class="cx-empty">
+                            <?php echo T::s('tech.empty.song'); ?>
                         </div>
-
-                        <!-- Local mp3 player under the active audio chip.
-                             Plays on the tech console only — the main display
-                             and the musician's notes are never affected. -->
-                        <div ng-if="listItem.itemType === 'audio' && activeAudioItem && activeAudioItem.FID === listItem.FID"
-                             class="tech-audio-player">
-                            <audio id="techAudioEl" controls preload="metadata" ng-src="{{ listItem.src }}"></audio>
-                        </div>
-
+                        <div class="text-chapter"
+                             ng-repeat="chapter in preparedChapters"
+                             ng-class="{'chapter-selected': selectedChapters.indexOf(chapter) > -1}"
+                             ng-click="toggleCurrentTextChapter(chapter, $event)">{{ chapter }}</div>
                     </div>
-
-                    <button class="btn-clear" ng-if="favorites.length > 0" ng-click="clearFavorites()">
-                        <?php echo T::s('leader.button.clear'); ?>
-                    </button>
-                </div>
-
-                <!-- Right: text chapters -->
-                <div class="col-xs-6 col-sm-6 col-md-6 col-lg-6">
-                    <div ng-if="preparedChapters.length === 0"
-                         style="text-align:center; padding: 24px 8px; color: #b0b8c1; font-size:12px;">
-                        <?php echo T::s('tech.empty.song'); ?>
-                    </div>
-                    <div ng-repeat="chapter in preparedChapters">
-                    <span class="text-chapter"
-                          ng-class="{'chapter-selected': selectedChapters.indexOf(chapter) > -1}"
-                          ng-click="toggleCurrentTextChapter(chapter, $event)">{{ chapter }}</span>
-                    </div>
-                </div>
+                </section>
             </div>
 
-        </div><!-- /songs mode -->
+        </main><!-- /songs mode -->
 
         <!-- ══════════════════════════════════════════════════════════
-             EPISTLE MODE
+             MESSAGE MODE
              ══════════════════════════════════════════════════════════ -->
-        <div ng-show="pageMode === 'messages'">
+        <main class="tc-work" ng-show="pageMode === 'messages'">
 
-            <!-- Two search boxes — widths match the panels below -->
-            <div class="row" style="margin-top: 16px;">
-                <div class="col-sm-5 col-xs-5" style="margin-bottom: 10px; padding-right: 5px;">
+            <!-- Two search boxes in one row — widths match the panes below -->
+            <div class="tc-search-row tc-split-msg">
+                <div>
                     <input type="text"
-                           class="search-input"
+                           class="cx-input search-input"
                            placeholder="<?php echo T::s('prep.placeholder.msgSearchTitle'); ?>"
                            ng-model="messageTitleQuery"
                            ng-change="searchMessages()" />
                 </div>
-                <div class="col-sm-7 col-xs-7" style="margin-bottom: 10px; padding-left: 5px;">
+                <div class="tc-rel">
                     <input type="text"
-                           class="search-input"
+                           class="cx-input search-input"
                            placeholder="<?php echo T::s('prep.placeholder.msgSearchText'); ?>"
                            ng-model="messageTextQuery"
                            ng-change="searchMessages()" />
@@ -2077,203 +1846,171 @@
                 </div>
             </div>
 
-            <div class="row">
+            <div class="tc-split tc-split-msg">
                 <!-- Left: search results -->
-                <div class="col-sm-5 col-xs-5">
-                    <div class="bible-panel" id="messages-list-panel">
-                        <div class="bible-panel-title"><?php echo T::s('tech.label.searchResults'); ?></div>
-                        <div class="bible-list-item"
+                <section class="cx-pane">
+                    <div class="cx-pane-head"><?php echo T::s('tech.label.searchResults'); ?></div>
+                    <div class="cx-pane-body bible-panel" id="messages-list-panel">
+                        <div class="bible-list-item tc-msg-result"
                              ng-repeat="msg in messageSearchResults"
                              ng-class="{'selected': selectedMessage && selectedMessage.ID === msg.ID}"
                              ng-click="selectMessage(msg)">
-                            <span style="color: #1a6db5; font-size: 11px; font-weight: 700; display: block; letter-spacing: 0.3px;">{{ msg.CODE }}</span>
-                            <span style="display: block; line-height: 1.3;">{{ msg.TITLE }}</span>
-                            <span ng-if="msg.CITY" style="color: #95a5a6; font-size: 11px; display: block; margin-top: 1px;">{{ msg.CITY }}</span>
+                            <span class="tc-msg-code">{{ msg.CODE }}</span>
+                            <span class="tc-msg-title">{{ msg.TITLE }}</span>
+                            <span class="tc-msg-city" ng-if="msg.CITY">{{ msg.CITY }}</span>
                         </div>
-                        <div ng-show="messageSearchResults.length === 0"
-                             style="padding: 12px; color: #b0b8c1; font-size: 12px;">
+                        <div ng-show="messageSearchResults.length === 0" class="cx-empty">
                             <?php echo T::s('prep.empty.results'); ?>
                         </div>
-                        <div ng-show="messageTitleQuery.length < 2 && messageTextQuery.length < 2"
-                             style="padding: 12px; color: #b0b8c1; font-size: 12px;">
+                        <div ng-show="messageTitleQuery.length < 2 && messageTextQuery.length < 2" class="cx-empty">
                             <?php echo T::s('tech.hint.minChars'); ?>
                         </div>
                     </div>
-                </div>
+                </section>
 
-                <!-- Right: paragraphs -->
-                <div class="col-sm-7 col-xs-7">
-                    <div class="bible-panel" id="messages-para-panel">
-                        <div class="bible-panel-title" style="display:flex;align-items:center;justify-content:space-between;gap:6px;">
-                            <span>
-                                <?php echo T::s('tech.label.paragraphs'); ?>
-                                <span ng-show="selectedMessage" style="color:#1a6db5;font-weight:600;text-transform:none;">
-                                    — {{ selectedMessage.TITLE }}
-                                </span>
-                            </span>
-                            <!-- Audio controls: shown only when message has audio + timecodes -->
-                            <span ng-show="selectedMessage && selectedMessage.AUDIO_SRC && msgTimecodes.length > 0"
-                                  style="display:inline-flex;align-items:center;gap:4px;flex-shrink:0;">
-                                <button ng-click="toggleMsgAudio()"
-                                        style="padding:3px 10px;border-radius:6px;font-size:12px;border:1.5px solid #1a6db5;background:#ebf3fb;color:#1a6db5;cursor:pointer;line-height:1.4;">
-                                    <span ng-if="!msgAudioPlaying"><?php echo T::s('tech.audio.listen'); ?></span>
-                                    <span ng-if="msgAudioPlaying"><?php echo T::s('sermon.video.pause'); ?></span>
-                                </button>
-                                <span ng-show="msgAudioPlaying"
-                                      style="font-family:monospace;font-size:13px;color:#1a6db5;min-width:5ch;display:inline-block;text-align:center;">{{formatMsgTimecode(msgCurrentTime)}}</span>
-                                <button ng-show="msgAudioLoaded"
-                                        ng-click="stopMsgAudio()"
-                                        style="padding:3px 8px;border-radius:6px;font-size:12px;border:1.5px solid #ccc;background:#f4f5f7;color:#666;cursor:pointer;line-height:1.4;">
-                                    ⏹
-                                </button>
-                                <!-- Rewind 2s (calibration mode only) -->
-                                <button ng-show="msgCalibrating && msgAudioLoaded"
-                                        ng-click="rewindMsgAudio()"
-                                        title="<?php echo T::s('tech.tooltip.rewind'); ?>"
-                                        style="padding:3px 8px;border-radius:6px;font-size:12px;border:1.5px solid #e67e22;background:#fef3e2;color:#c0580a;cursor:pointer;line-height:1.4;font-family:monospace;">
-                                    «&nbsp;2s
-                                </button>
-                                <!-- Calibration mode toggle -->
-                                <button ng-show="msgAudioLoaded"
-                                        ng-click="msgCalibrating = !msgCalibrating"
-                                        title="<?php echo T::s('tech.tooltip.calibration'); ?>"
-                                        ng-style="msgCalibrating ? {'border-color':'#e67e22','background':'#fef3e2','color':'#c0580a'} : {'border-color':'#ccc','background':'#f4f5f7','color':'#666'}"
-                                        style="padding:3px 8px;border-radius:6px;font-size:12px;border:1.5px solid;cursor:pointer;line-height:1.4;">
-                                    <?php echo T::s('tech.audio.calibrate'); ?>
-                                </button>
-                            </span>
-                        </div>
-                        <audio id="msgAudioEl" style="display:none;"></audio>
-                        <div class="bible-verse-item"
+                <!-- Right: paragraphs; the pane header (audio controls) never scrolls away -->
+                <section class="cx-pane">
+                    <div class="cx-pane-head">
+                        <span><?php echo T::s('tech.label.paragraphs'); ?></span>
+                        <strong class="tc-ellipsis" ng-show="selectedMessage">— {{ selectedMessage.TITLE }}</strong>
+                        <span class="cx-spacer"></span>
+                        <!-- Audio controls: shown only when message has audio + timecodes -->
+                        <span class="cx-group" ng-show="selectedMessage && selectedMessage.AUDIO_SRC && msgTimecodes.length > 0">
+                            <button class="cx-btn tc-audio-btn" ng-click="toggleMsgAudio()">
+                                <span ng-if="!msgAudioPlaying"><?php echo T::s('tech.audio.listen'); ?></span>
+                                <span ng-if="msgAudioPlaying"><?php echo T::s('sermon.video.pause'); ?></span>
+                            </button>
+                            <span class="tc-timecode" ng-show="msgAudioPlaying">{{formatMsgTimecode(msgCurrentTime)}}</span>
+                            <button class="cx-btn cx-btn-icon"
+                                    ng-show="msgAudioLoaded"
+                                    ng-click="stopMsgAudio()">⏹</button>
+                            <!-- Rewind 2s (calibration mode only) -->
+                            <button class="cx-btn tc-calibrating"
+                                    ng-show="msgCalibrating && msgAudioLoaded"
+                                    ng-click="rewindMsgAudio()"
+                                    title="<?php echo T::s('tech.tooltip.rewind'); ?>">«&nbsp;2s</button>
+                            <!-- Calibration mode toggle -->
+                            <button class="cx-btn"
+                                    ng-show="msgAudioLoaded"
+                                    ng-click="msgCalibrating = !msgCalibrating"
+                                    ng-class="{'tc-calibrating': msgCalibrating}"
+                                    title="<?php echo T::s('tech.tooltip.calibration'); ?>">
+                                <?php echo T::s('tech.audio.calibrate'); ?>
+                            </button>
+                        </span>
+                    </div>
+                    <audio id="msgAudioEl" style="display:none;"></audio>
+                    <div class="cx-pane-body bible-panel" id="messages-para-panel">
+                        <div class="bible-verse-item tc-para"
                              ng-repeat="(msgParaIdx, para) in messageParagraphs"
                              ng-class="{'chapter-selected': showingMsgParaIdx === msgParaIdx, 'msg-stop-marker': msgStopMarkerIdx === msgParaIdx}"
-                             ng-click="onMsgParaClick(msgParaIdx, para)"><button
-                                              ng-show="msgTimecodes.length > 0"
-                                              ng-click="toggleMsgStopMarker(msgParaIdx, $event)"
-                                              title="<?php echo T::s('tech.tooltip.stopMarker'); ?>"
-                                              ng-style="msgStopMarkerIdx === msgParaIdx ? {'border-color':'#c0392b','background':'#fdecea','opacity':'1'} : {'border-color':'#dfe3e8','background':'#fff','opacity':'0.4'}"
-                                              style="float:right;margin-left:6px;padding:0 6px;border-radius:5px;font-size:13px;line-height:1.6;cursor:pointer;border:1.5px solid;">🏁</button><span ng-show="msgTimecodes.length > msgParaIdx"
-                                              ng-style="msgTimecodes[msgParaIdx] === 0 ? {'color':'#c0392b','font-weight':'bold','opacity':'1'} : {'color':'#1a6db5','opacity':'0.6'}"
-                                              style="font-size:10px;font-family:monospace;margin-right:5px;display:inline-block;min-width:7ch;text-align:right;">{{formatMsgTimecode(msgTimecodes[msgParaIdx])}}</span><span ng-bind-html="highlightMsg(para)"></span></div>
-                        <div ng-show="messageParagraphs.length === 0 && selectedMessage"
-                             style="padding: 12px; color: #b0b8c1; font-size: 12px;">
+                             ng-click="onMsgParaClick(msgParaIdx, para)"><span class="tc-gutter"
+                                  ng-show="msgTimecodes.length > msgParaIdx"
+                                  ng-class="{'tc-gutter-unset': msgTimecodes[msgParaIdx] === 0}">{{formatMsgTimecode(msgTimecodes[msgParaIdx])}}</span><span class="tc-para-text" ng-bind-html="highlightMsg(para)"></span><button
+                                  class="tc-stop-btn"
+                                  ng-show="msgTimecodes.length > 0"
+                                  ng-click="toggleMsgStopMarker(msgParaIdx, $event)"
+                                  ng-class="{'tc-stop-on': msgStopMarkerIdx === msgParaIdx}"
+                                  title="<?php echo T::s('tech.tooltip.stopMarker'); ?>"
+                                  aria-label="<?php echo T::s('tech.tooltip.stopMarker'); ?>">🏁</button></div>
+                        <div ng-show="messageParagraphs.length === 0 && selectedMessage" class="cx-empty">
                             <?php echo T::s('tech.empty.noText'); ?>
                         </div>
-                        <div ng-show="!selectedMessage"
-                             style="padding: 12px; color: #b0b8c1; font-size: 12px;">
+                        <div ng-show="!selectedMessage" class="cx-empty">
                             <?php echo T::s('tech.empty.message'); ?>
                         </div>
                     </div>
-                </div>
+                </section>
             </div>
-
-            <div style="margin-bottom: 60px"></div>
-        </div><!-- /messages mode -->
+        </main><!-- /messages mode -->
 
         <!-- ══════════════════════════════════════════════════════════
              BIBLE MODE
              ══════════════════════════════════════════════════════════ -->
-        <div ng-show="pageMode === 'bible'">
+        <main class="tc-work" ng-show="pageMode === 'bible'">
 
-            <!-- Search row -->
-            <div class="row" style="margin-top: 16px;">
-                <div class="col-sm-3 col-xs-4" style="margin-bottom: 10px; padding-right: 5px;">
-                    <input type="text"
-                           class="search-input"
-                           placeholder="<?php echo T::s('prep.placeholder.bookSearch'); ?>"
-                           ng-model="bibleBookSearchQuery" />
-                </div>
-                <div class="col-sm-9 col-xs-8" style="margin-bottom: 10px; padding-left: 5px;">
-                    <input type="text"
-                           class="search-input"
-                           placeholder="<?php echo T::s('tech.search.bibleText'); ?>"
-                           ng-model="bibleSearchQuery"
-                           ng-change="searchBible(); bibleBookSearchQuery=''" />
-                </div>
+            <!-- Book search + full-text search share one row -->
+            <div class="tc-search-row tc-split-biblesearch">
+                <input type="text"
+                       class="cx-input search-input"
+                       placeholder="<?php echo T::s('prep.placeholder.bookSearch'); ?>"
+                       ng-model="bibleBookSearchQuery" />
+                <input type="text"
+                       class="cx-input search-input"
+                       placeholder="<?php echo T::s('tech.search.bibleText'); ?>"
+                       ng-model="bibleSearchQuery"
+                       ng-change="searchBible(); bibleBookSearchQuery=''" />
             </div>
 
-            <!-- Bible full-text search results -->
-            <div ng-show="bibleSearchQuery.length >= 2">
-                <div style="border: 1.5px solid #dee2e6; border-radius: 10px; max-height: 300px; overflow-y: auto; margin-bottom: 12px; background:#fff;">
-                    <div class="bible-panel-title">
+            <!-- Bible full-text search results: replace the navigator body -->
+            <div class="tc-split tc-split-one" ng-show="bibleSearchQuery.length >= 2">
+                <section class="cx-pane">
+                    <div class="cx-pane-head">
                         {{ ('<?php echo T::s('tech.label.searchResultsCount'); ?>').replace('{count}', bibleSearchResults.length) }}
                     </div>
-                    <div class="bible-search-result"
-                         ng-repeat="r in bibleSearchResults"
-                         ng-click="selectSearchResult(r)">
-                        <span class="ref">{{ r.BOOK_NAME }} {{ r.CHAPTER_NUM }}:{{ r.VERSE_NUM }}</span>
-                        {{ getBibleVerseDisplay(r) }}
+                    <div class="cx-pane-body">
+                        <div class="bible-search-result"
+                             ng-repeat="r in bibleSearchResults"
+                             ng-click="selectSearchResult(r)">
+                            <span class="ref">{{ r.BOOK_NAME }} {{ r.CHAPTER_NUM }}:{{ r.VERSE_NUM }}</span>
+                            {{ getBibleVerseDisplay(r) }}
+                        </div>
+                        <div ng-show="bibleSearchResults.length === 0" class="cx-empty">
+                            <?php echo T::s('prep.empty.results'); ?>
+                        </div>
                     </div>
-                    <div ng-show="bibleSearchResults.length === 0"
-                         style="padding: 12px; color: #b0b8c1; font-size: 12px;">
-                        <?php echo T::s('prep.empty.results'); ?>
-                    </div>
-                </div>
+                </section>
             </div>
 
-            <!-- 3-panel navigator -->
-            <div ng-show="!bibleSearchQuery || bibleSearchQuery.length < 2">
-                <div class="row">
+            <!-- 3-pane navigator: books 24% · chapters 14% · verses 62% -->
+            <div class="tc-split tc-split-bible" ng-show="!bibleSearchQuery || bibleSearchQuery.length < 2">
 
-                    <!-- Books -->
-                    <div class="col-sm-3 col-xs-4">
-                        <div class="bible-panel" id="bible-books-panel">
-                            <div class="bible-panel-title"><?php echo T::s('tech.bible.books'); ?></div>
-                            <div class="bible-list-item"
-                                 ng-repeat="book in getFilteredBibleBooks()"
-                                 ng-class="{'selected': selectedBibleBook && selectedBibleBook.ID === book.ID}"
-                                 ng-click="selectBibleBook(book)">
-                                {{ getBibleBookName(book) }}
-                            </div>
-                            <div ng-show="bibleBooks.length === 0 && bibleTranslationId"
-                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;"><?php echo T::s('common.loading'); ?></div>
-                            <div ng-show="!bibleTranslationId"
-                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;"><?php echo T::s('prep.choosTranslation'); ?></div>
+                <!-- Books -->
+                <section class="cx-pane">
+                    <div class="cx-pane-head"><?php echo T::s('tech.bible.books'); ?></div>
+                    <div class="cx-pane-body bible-panel" id="bible-books-panel">
+                        <div class="bible-list-item"
+                             ng-repeat="book in getFilteredBibleBooks()"
+                             ng-class="{'selected': selectedBibleBook && selectedBibleBook.ID === book.ID}"
+                             ng-click="selectBibleBook(book)">
+                            {{ getBibleBookName(book) }}
                         </div>
+                        <div ng-show="bibleBooks.length === 0 && bibleTranslationId" class="cx-empty"><?php echo T::s('common.loading'); ?></div>
+                        <div ng-show="!bibleTranslationId" class="cx-empty"><?php echo T::s('prep.choosTranslation'); ?></div>
                     </div>
+                </section>
 
-                    <!-- Chapters -->
-                    <div class="col-sm-2 col-xs-3">
-                        <div class="bible-panel" id="bible-chapters-panel">
-                            <div class="bible-panel-title"><?php echo T::s('tech.bible.chapters'); ?></div>
-                            <div class="bible-list-item"
-                                 ng-repeat="ch in bibleChapters"
-                                 ng-class="{'selected': selectedBibleChapter === ch}"
-                                 ng-click="selectBibleChapter(ch)"
-                                 style="text-align: center;">{{ ch }}</div>
-                            <div ng-show="bibleChapters.length === 0 && selectedBibleBook"
-                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;"><?php echo T::s('common.loading'); ?></div>
-                            <div ng-show="!selectedBibleBook"
-                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;"><?php echo T::s('tech.empty.book'); ?></div>
-                        </div>
+                <!-- Chapters: compact number grid -->
+                <section class="cx-pane">
+                    <div class="cx-pane-head"><?php echo T::s('tech.bible.chapters'); ?></div>
+                    <div class="cx-pane-body bible-panel tc-chapters" id="bible-chapters-panel">
+                        <div class="bible-list-item"
+                             ng-repeat="ch in bibleChapters"
+                             ng-class="{'selected': selectedBibleChapter === ch}"
+                             ng-click="selectBibleChapter(ch)">{{ ch }}</div>
+                        <div ng-show="bibleChapters.length === 0 && selectedBibleBook" class="cx-empty"><?php echo T::s('common.loading'); ?></div>
+                        <div ng-show="!selectedBibleBook" class="cx-empty"><?php echo T::s('tech.empty.book'); ?></div>
                     </div>
+                </section>
 
-                    <!-- Verses -->
-                    <div class="col-sm-7 col-xs-5">
-                        <div class="bible-panel" id="bible-verses-panel">
-                            <div class="bible-panel-title">
-                                <?php echo T::s('tech.label.versesHeader'); ?>
-                                <span ng-show="selectedBibleBook && selectedBibleChapter"
-                                      style="color: #1a6db5; font-weight: 600; text-transform: none;">
-                                — {{ getBibleBookName(selectedBibleBook) }} {{ selectedBibleChapter }}
-                            </span>
-                            </div>
-                            <div class="bible-verse-item"
-                                 ng-repeat="verse in biblePreparedVerses"
-                                 ng-class="{'chapter-selected': selectedBibleVerses.indexOf(verse) > -1}"
-                                 ng-click="toggleBibleVerse(verse, $event)"
-                                 ng-bind-html="highlightBibleVerse(verse)"></div>
-                            <div ng-show="biblePreparedVerses.length === 0 && selectedBibleChapter"
-                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;"><?php echo T::s('common.loading'); ?></div>
-                            <div ng-show="!selectedBibleChapter"
-                                 style="padding: 12px; color: #b0b8c1; font-size: 12px;"><?php echo T::s('tech.empty.chapter'); ?></div>
-                        </div>
+                <!-- Verses -->
+                <section class="cx-pane">
+                    <div class="cx-pane-head">
+                        <span><?php echo T::s('tech.label.versesHeader'); ?></span>
+                        <strong ng-show="selectedBibleBook && selectedBibleChapter">— {{ getBibleBookName(selectedBibleBook) }} {{ selectedBibleChapter }}</strong>
                     </div>
-                </div>
+                    <div class="cx-pane-body bible-panel" id="bible-verses-panel">
+                        <div class="bible-verse-item"
+                             ng-repeat="verse in biblePreparedVerses"
+                             ng-class="{'chapter-selected': selectedBibleVerses.indexOf(verse) > -1}"
+                             ng-click="toggleBibleVerse(verse, $event)"
+                             ng-bind-html="highlightBibleVerse(verse)"></div>
+                        <div ng-show="biblePreparedVerses.length === 0 && selectedBibleChapter" class="cx-empty"><?php echo T::s('common.loading'); ?></div>
+                        <div ng-show="!selectedBibleChapter" class="cx-empty"><?php echo T::s('tech.empty.chapter'); ?></div>
+                    </div>
+                </section>
             </div>
-
-            <div style="margin-bottom: 60px"></div>
-        </div><!-- /bible mode -->
+        </main><!-- /bible mode -->
 
 
         <!-- ══════════════════════════════════════════════════════════
@@ -2545,7 +2282,7 @@
             </div>
         </div>
 
-    </div><!-- /tech-wrapper -->
+    </div><!-- /tech-shell -->
 
     <!-- Song preview modal -->
     <div class="song-preview-overlay" ng-if="songPreview.visible" ng-click="closeSongPreview()">
