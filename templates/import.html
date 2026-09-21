@@ -548,6 +548,95 @@
     .import-wrapper button:focus-visible, .import-wrapper input:focus-visible, .import-wrapper select:focus-visible {
         outline: 2px solid #176B87; outline-offset: 2px;
     }
+
+    /* ---- Workbench layout (docs/ui-redesign-main-observer-settings-import.md) ----
+       >= 1200px: task rail | main form | help & protocol pane.
+       700-1199px: rail + form, help & protocol is a right drawer (bar button).
+       < 700px: the rail collapses to a compact task selector row above the form.
+       impUi is view-only state; import.js is unchanged. */
+    .import-wrapper { max-width: none; padding: 12px 16px 40px; }
+    .msg-sub-tabs { display: none; }            /* the task rail drives msgSubTab now */
+    .imp-bench { display: grid; grid-template-columns: 210px minmax(0, 1fr) 320px; gap: 16px; align-items: start; }
+    .imp-rail { position: sticky; top: 62px; display: flex; flex-direction: column; }
+    .imp-rail > div { display: flex; flex-direction: column; gap: 2px; }
+    .imp-task {
+        min-height: 44px;
+        padding: 6px 10px 6px 9px;
+        border: none;
+        border-left: 3px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        color: #17212B;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.25;
+        text-align: left;
+        cursor: pointer;
+    }
+    .imp-task:hover:not([disabled]) { background: #fff; }
+    .imp-task.on { background: #E6F1F4; border-left-color: #176B87; color: #176B87; }
+    .imp-task[disabled] { color: #6E7883; opacity: 0.6; cursor: default; }
+    .imp-task:focus-visible { outline: 2px solid #176B87; outline-offset: 2px; }
+    .imp-rail-hint { padding: 8px 12px; font-size: 12px; color: #6E7883; line-height: 1.4; }
+    .imp-main { min-width: 0; max-width: 860px; }
+    .imp-main .import-section:last-child { margin-bottom: 0; }
+
+    .imp-aside { position: sticky; top: 62px; max-height: calc(100vh - 74px); overflow-y: auto; min-width: 0; }
+    .imp-aside-head, .imp-drawer-btn, .imp-backdrop { display: none; }
+    .imp-aside .import-section { margin-bottom: 12px; }
+    .imp-aside .import-log { max-height: 40vh; }
+    .imp-aside-empty { padding: 12px; font-size: 12px; color: #6E7883; }
+
+    @media (max-width: 1199px) {
+        .imp-bench { grid-template-columns: 210px minmax(0, 1fr); }
+        .imp-drawer-btn { display: inline-flex; }
+        .imp-aside {
+            position: fixed;
+            top: 0; right: 0; bottom: 0;
+            z-index: 210;
+            width: min(360px, 92vw);
+            max-height: none;
+            padding: 0 12px 16px;
+            background: #EDF1F4;
+            border-left: 1px solid #DCE3E8;
+            box-shadow: -10px 0 30px rgba(23,33,43,0.22);
+            transform: translateX(105%);
+            transition: transform 0.18s ease-out;
+        }
+        .imp-aside.open { transform: none; }
+        .imp-aside-head {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            min-height: 52px;
+            margin: 0 -12px 8px;
+            padding: 0 12px;
+            background: #fff;
+            border-bottom: 1px solid #DCE3E8;
+            font-size: 15px;
+            font-weight: 600;
+        }
+        .imp-aside-close { height: 40px; }
+        .imp-backdrop { display: block; position: fixed; inset: 0; z-index: 205; background: rgba(23,33,43,0.35); }
+    }
+    @media (max-width: 699px) {
+        .import-wrapper { padding: 8px 10px 32px; }
+        .imp-bench { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+        .imp-rail { position: static; }
+        .imp-rail > div { flex-direction: row; gap: 6px; overflow-x: auto; scrollbar-width: none; }
+        .imp-rail > div::-webkit-scrollbar { display: none; }
+        .imp-task { flex-shrink: 0; border: 1px solid #DCE3E8; border-radius: 6px; background: #fff; padding: 0 14px; white-space: nowrap; }
+        .imp-task.on { border-color: #176B87; }
+        .imp-rail-hint { display: none; }
+        .imp-drawer-txt { display: none; }
+        .imp-drawer-btn { width: 44px; height: 44px; padding: 0; font-size: 18px; }
+    }
+    @media (prefers-reduced-motion: reduce) { .imp-aside { transition: none; } }
+    .or-divider, .import-section h4 { text-transform: none; letter-spacing: 0; }
+    .tab-btn.active { box-shadow: inset 0 -3px 0 #0f4a5e; }   /* state is not colour-only */
 </style>
 
 <div ng-controller="ImportCtrl" class="cx-page">
@@ -558,9 +647,16 @@
             <?php echo T::s('common.button.back'); ?>
         </button>
         <div class="cx-bar-title"><?php echo T::s('import.title'); ?></div>
+        <span class="cx-spacer"></span>
+        <button class="cx-btn imp-drawer-btn" ng-click="impUi.drawer = !impUi.drawer"
+                ng-class="impUi.drawer ? 'is-active' : ''"
+                title="<?php echo T::s('import.aside.title'); ?>" aria-label="<?php echo T::s('import.aside.title'); ?>">
+            <span aria-hidden="true">ℹ</span> <span class="imp-drawer-txt"><?php echo T::s('import.aside.title'); ?></span>
+        </button>
     </header>
 
-    <div class="import-wrapper">
+    <!-- impUi: view-only state of the workbench (selected task per mode, drawer) -->
+    <div class="import-wrapper" ng-init="impUi = {songs: 'list', langs: 'list', drawer: false}">
 
         <!-- Tab bar -->
         <div class="tab-bar">
@@ -571,45 +667,36 @@
 
         <!-- Import capabilities + downloadable format samples, split per tab
              (the .sog samples are per UI language, the images ZIP is shared) -->
-        <div class="import-section import-help" ng-show="tab==='songs'">
-            <h4><?php echo T::s('import.help.title'); ?></h4>
-            <p><?php echo T::s('import.help.introSongs'); ?></p>
 
-            <div class="help-format">
-                <div class="help-format-title"><?php echo T::s('import.help.songsTitle'); ?></div>
-                <p><?php echo T::s('import.help.songsDesc'); ?></p>
-                <p><?php echo T::s('import.help.uniqueNum'); ?></p>
-                <a class="sample-dl" href="/samples/import/songs_<?php echo T::lang(); ?>.sog" download>⬇ songs_<?php echo T::lang(); ?>.sog</a>
-            </div>
-            <div class="help-format">
-                <div class="help-format-title"><?php echo T::s('import.help.translateTitle'); ?></div>
-                <p><?php echo T::s('import.help.translateDesc'); ?></p>
-            </div>
-            <div class="help-format">
-                <div class="help-format-title"><?php echo T::s('import.help.imagesTitle'); ?></div>
-                <p><?php echo T::s('import.help.imagesDesc'); ?></p>
-                <a class="sample-dl" href="/samples/import/song_images.zip" download>⬇ song_images.zip</a>
-            </div>
-            <p class="help-warn"><?php echo T::s('import.help.testHintSongs'); ?></p>
-        </div>
 
-        <div class="import-section import-help" ng-show="tab==='messages'">
-            <h4><?php echo T::s('import.help.title'); ?></h4>
-            <p><?php echo T::s('import.help.introMsg'); ?></p>
 
-            <div class="help-format">
-                <div class="help-format-title"><?php echo T::s('import.help.msgTitle'); ?></div>
-                <p><?php echo T::s('import.help.msgDesc'); ?></p>
-                <a class="sample-dl" href="/samples/import/messages_<?php echo T::lang(); ?>.sog" download>⬇ messages_<?php echo T::lang(); ?>.sog</a>
+        <div class="imp-bench">
+
+        <!-- Task rail: navigation over the operations of the active mode (not a wizard) -->
+        <nav class="imp-rail" aria-label="<?php echo T::s('import.title'); ?>">
+            <div ng-show="tab==='songs'">
+                <button class="imp-task" ng-class="{on: impUi.songs === 'list'}" ng-click="impUi.songs = 'list'"><?php echo T::s('import.section.songList'); ?></button>
+                <button class="imp-task" ng-class="{on: impUi.songs === 'texts'}" ng-click="impUi.songs = 'texts'" ng-disabled="!songListId"><?php echo T::s('import.section.songTexts'); ?></button>
+                <button class="imp-task" ng-class="{on: impUi.songs === 'images'}" ng-click="impUi.songs = 'images'" ng-disabled="!songListId"><?php echo T::s('import.section.images'); ?></button>
+                <div class="imp-rail-hint" ng-show="!songListId"><?php echo T::s('import.rail.pickList'); ?></div>
             </div>
-            <p class="help-warn"><?php echo T::s('import.help.testHintMsg'); ?></p>
-        </div>
+            <div ng-show="tab==='messages'">
+                <button class="imp-task" ng-class="{on: msgSubTab === 'sog'}" ng-click="msgSubTab = 'sog'"><?php echo T::s('import.msg.title'); ?></button>
+                <button class="imp-task" ng-class="{on: msgSubTab === 'manual'}" ng-click="msgSubTab = 'manual'"><?php echo T::s('import.msg.titleManual'); ?></button>
+            </div>
+            <div ng-show="tab==='languages'">
+                <button class="imp-task" ng-class="{on: impUi.langs === 'list'}" ng-click="impUi.langs = 'list'"><?php echo T::s('import.langs.title'); ?></button>
+                <button class="imp-task" ng-class="{on: impUi.langs === 'add'}" ng-click="impUi.langs = 'add'"><?php echo T::s('import.langs.add'); ?></button>
+            </div>
+        </nav>
 
+        <!-- Main form / editor: only the form of the selected operation -->
+        <div class="imp-main">
         <!-- ===================== SONGS TAB ===================== -->
         <div ng-show="tab==='songs'">
 
             <!-- 1. Collection selection -->
-            <div class="import-section">
+            <div class="import-section" ng-show="impUi.songs === 'list'">
                 <h4><?php echo T::s('import.section.songList'); ?></h4>
 
                 <label class="import-label"><?php echo T::s('import.label.existingList'); ?></label>
@@ -635,7 +722,7 @@
             </div>
 
             <!-- 2. Language -->
-            <div class="import-section" ng-show="songListId">
+            <div class="import-section" ng-show="(songListId) && impUi.songs === 'texts'">
                 <h4><?php echo T::s('import.section.langImport'); ?></h4>
                 <select class="import-select" ng-model="songLang"
                         ng-options="l.code as (l.label + ' (TEXT' + l.col_suffix + ')') for l in langList">
@@ -643,7 +730,7 @@
             </div>
 
             <!-- 3. SOG lyrics -->
-            <div class="import-section" ng-show="songListId">
+            <div class="import-section" ng-show="(songListId) && impUi.songs === 'texts'">
                 <h4><?php echo T::s('import.section.songTexts'); ?></h4>
                 <p><?php echo T::s('import.hint.songFormat'); ?></p>
 
@@ -665,7 +752,7 @@
             </div>
 
             <!-- 4. Image groups + ZIP images -->
-            <div class="import-section" ng-show="songListId">
+            <div class="import-section" ng-show="(songListId) && impUi.songs === 'images'">
                 <h4><?php echo T::s('import.section.images'); ?></h4>
                 <p><?php echo T::s('import.hint.imageGroups'); ?></p>
 
@@ -780,13 +867,6 @@
                 </button>
             </div>
 
-            <!-- Song log -->
-            <div class="import-section" ng-show="songLog.length">
-                <h4><?php echo T::s('import.label.protocol'); ?></h4>
-                <div class="import-log" id="songLogEl">
-                    <div ng-repeat="entry in songLog" ng-class="'log-' + entry.type">{{entry.msg}}</div>
-                </div>
-            </div>
 
         </div><!-- /songs tab -->
 
@@ -920,13 +1000,6 @@
                 </button>
             </div>
 
-            <!-- Message log -->
-            <div class="import-section" ng-show="msgLog.length">
-                <h4><?php echo T::s('import.label.protocol'); ?></h4>
-                <div class="import-log" id="msgLogEl">
-                    <div ng-repeat="entry in msgLog" ng-class="'log-' + entry.type">{{entry.msg}}</div>
-                </div>
-            </div>
 
         </div><!-- /messages tab -->
 
@@ -934,7 +1007,7 @@
         <div ng-show="tab==='languages'">
 
             <!-- Current languages -->
-            <div class="import-section">
+            <div class="import-section" ng-show="impUi.langs === 'list'">
                 <h4><?php echo T::s('import.langs.title'); ?></h4>
 
                 <div ng-if="langLoading" style="color:#aab; font-size:13px; padding:8px 0;"><?php echo T::s('import.langs.loading'); ?></div>
@@ -986,7 +1059,7 @@
             </div>
 
             <!-- Add a language -->
-            <div class="import-section">
+            <div class="import-section" ng-show="impUi.langs === 'add'">
                 <h4><?php echo T::s('import.langs.add'); ?></h4>
                 <p style="font-size:12px; color:#7f8c8d; margin-bottom:14px;">
                     <?php echo T::s('import.hint.langAdd'); ?>
@@ -1021,17 +1094,75 @@
                 </button>
             </div>
 
-            <!-- Language operations log -->
-            <div class="import-section" ng-show="langLog.length">
+
+        </div><!-- /languages tab -->
+
+        <div style="margin-bottom:80px;"></div>
+        </div><!-- /imp-main -->
+
+        <!-- Help and protocol: contextual help + sample downloads, then the operation
+             log of the active mode. A right pane on wide screens, a drawer otherwise
+             (closing it never touches the running operation). -->
+        <aside class="imp-aside" ng-class="{open: impUi.drawer}">
+            <div class="imp-aside-head">
+                <span><?php echo T::s('import.aside.title'); ?></span>
+                <button class="cx-btn imp-aside-close" ng-click="impUi.drawer = false"><?php echo T::s('common.button.close'); ?></button>
+            </div>
+        <div class="import-section import-help" ng-show="tab==='songs'">
+            <h4><?php echo T::s('import.help.title'); ?></h4>
+            <p><?php echo T::s('import.help.introSongs'); ?></p>
+
+            <div class="help-format">
+                <div class="help-format-title"><?php echo T::s('import.help.songsTitle'); ?></div>
+                <p><?php echo T::s('import.help.songsDesc'); ?></p>
+                <p><?php echo T::s('import.help.uniqueNum'); ?></p>
+                <a class="sample-dl" href="/samples/import/songs_<?php echo T::lang(); ?>.sog" download>⬇ songs_<?php echo T::lang(); ?>.sog</a>
+            </div>
+            <div class="help-format">
+                <div class="help-format-title"><?php echo T::s('import.help.translateTitle'); ?></div>
+                <p><?php echo T::s('import.help.translateDesc'); ?></p>
+            </div>
+            <div class="help-format">
+                <div class="help-format-title"><?php echo T::s('import.help.imagesTitle'); ?></div>
+                <p><?php echo T::s('import.help.imagesDesc'); ?></p>
+                <a class="sample-dl" href="/samples/import/song_images.zip" download>⬇ song_images.zip</a>
+            </div>
+            <p class="help-warn"><?php echo T::s('import.help.testHintSongs'); ?></p>
+        </div>
+        <div class="import-section import-help" ng-show="tab==='messages'">
+            <h4><?php echo T::s('import.help.title'); ?></h4>
+            <p><?php echo T::s('import.help.introMsg'); ?></p>
+
+            <div class="help-format">
+                <div class="help-format-title"><?php echo T::s('import.help.msgTitle'); ?></div>
+                <p><?php echo T::s('import.help.msgDesc'); ?></p>
+                <a class="sample-dl" href="/samples/import/messages_<?php echo T::lang(); ?>.sog" download>⬇ messages_<?php echo T::lang(); ?>.sog</a>
+            </div>
+            <p class="help-warn"><?php echo T::s('import.help.testHintMsg'); ?></p>
+        </div>
+            <div class="import-section" ng-show="tab==='songs' && songLog.length">
+                <h4><?php echo T::s('import.label.protocol'); ?></h4>
+                <div class="import-log" id="songLogEl">
+                    <div ng-repeat="entry in songLog" ng-class="'log-' + entry.type">{{entry.msg}}</div>
+                </div>
+            </div>
+            <div class="import-section" ng-show="tab==='messages' && msgLog.length">
+                <h4><?php echo T::s('import.label.protocol'); ?></h4>
+                <div class="import-log" id="msgLogEl">
+                    <div ng-repeat="entry in msgLog" ng-class="'log-' + entry.type">{{entry.msg}}</div>
+                </div>
+            </div>
+            <div class="import-section" ng-show="tab==='languages' && langLog.length">
                 <h4><?php echo T::s('import.langs.protocol'); ?></h4>
                 <div class="import-log" id="langLogEl">
                     <div ng-repeat="entry in langLog" ng-class="'log-' + entry.type">{{entry.msg}}</div>
                 </div>
             </div>
+            <div class="imp-aside-empty" ng-show="tab==='languages' && !langLog.length"><?php echo T::s('import.aside.noLog'); ?></div>
+        </aside>
+        <div class="imp-backdrop" ng-show="impUi.drawer" ng-click="impUi.drawer = false"></div>
 
-        </div><!-- /languages tab -->
-
-        <div style="margin-bottom:80px;"></div>
+        </div><!-- /imp-bench -->
     </div>
 </div>
 
