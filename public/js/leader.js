@@ -265,6 +265,17 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         })
         : null;
 
+    // ---- Swipe-to-delete (swipe_delete.js) ----
+    // A row swiped sideways uncovers a red "delete" button; that button is
+    // the confirmation (deleteFavoriteNow), so no dialog is involved.
+    var favSwipe = (window.createSwipeDelete && document.querySelector('.favorites-list'))
+        ? window.createSwipeDelete({
+            container: document.querySelector('.favorites-list'),
+            rowSelector: '.swipe-row',
+            slideSelector: '.prod-list-item'
+        })
+        : null;
+
     // The leader's black text-fullscreen content (null = image mode / off).
     $scope.fullScreenText = null;
     var fsSong = null;   // favorites item shown by the notes / text fullscreen (for console follow)
@@ -984,6 +995,16 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
             );
             $scope.showDialog(false);
         });
+    };
+
+    // Deletion confirmed by the red button of a swiped row — no dialog.
+    $scope.deleteFavoriteNow = function(fav_id){
+        if (favSwipe) favSwipe.close();
+        $http({ method: "POST", url: "/ajax", data: {command: 'delete_favorite_item', id: fav_id } }).then(
+            function success(){
+                $scope.reloadFavorites();
+            }
+        );
     };
 
     /**

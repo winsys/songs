@@ -1,339 +1,171 @@
 <style>
     /* ============================================================
-       LEADER PAGE — design consistent with index.html / login.html
+       LEADER PAGE — compact UI (docs/ui-redesign-tech-leader.md).
+       Shared tokens / chrome components: /css/compact.css (.cx-*).
+       Three portrait layouts: phone <= 540px, medium tablet 541-899px
+       (one column), large >= 900px (utility rail + service-order pane).
+       Invariant: the sheet-music thumbnail is always the LAST (rightmost)
+       element of a song row — in the list and in the search results.
        ============================================================ */
 
     body {
-        background: #f0f2f5;
+        background: #EDF1F4;
         min-height: 100vh;
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     }
 
-    /* ---- Page layout: container like sermon_prep (max 1100px) --- */
-    .leader-wrapper {
-        max-width: 1100px;
-        margin: 0 auto;
-        padding: 20px 15px 48px;
-    }
-
-    @media (max-width: 768px) {
-        .leader-wrapper { padding: 14px 10px 40px; }
-    }
-
-    @media (max-width: 480px) {
-        .leader-wrapper { padding: 10px 8px 32px; }
-    }
+    .ld-shell { max-width: 1400px; margin: 0 auto; }
 
     /* ---- Header ---------------------------------------------- */
-    .leader-header {
-        display: flex;
-        align-items: center;
-        margin-bottom: 24px;
-        gap: 12px;
+    .ld-back .ld-back-ico { display: none; }
+    .ld-titles { min-width: 0; flex: 1 1 0; display: flex; flex-direction: column; justify-content: center; }
+    .ld-titles .cx-bar-meta { margin-top: 1px; }
+    .observer-controls { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .ld-bar .cx-btn { height: 44px; }
+    .ld-short { display: none; }
+
+    /* ---- Tools: collections, "all songs", search --------------- */
+    .ld-tools { padding: 8px 12px 0; }
+    .ld-collections { display: flex; align-items: center; gap: 8px; }
+    .ld-chips { flex: 1 1 0; }
+    .ld-chips .cx-btn, .ld-all { height: 44px; padding: 0 14px; font-size: 14px; }
+    .ld-search {
+        position: sticky;
+        top: 50px;
+        z-index: 90;
+        margin: 0 -12px;
+        padding: 8px 12px;
+        background: #EDF1F4;
     }
 
+    /* Bootstrap-era classes still referenced by the modals below */
     .btn-action-blue {
-        padding: 7px 14px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 500;
+        padding: 9px 16px;
+        border-radius: 6px;
+        font-size: 13px;
+        font-weight: 600;
         border: none;
-        background: #1a6db5;
+        background: #176B87;
         color: #fff;
         cursor: pointer;
-        transition: all 0.15s;
         white-space: nowrap;
     }
-    .btn-action-blue:hover {
-        background: #155a99;
-        transform: translateY(-1px);
-        box-shadow: 0 3px 10px rgba(26,109,181,0.28);
-    }
-
-    .btn-back {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 7px 14px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        color: #5a6272;
-        background: #f4f5f7;
-        border: none;
-        cursor: pointer;
-        transition: all 0.15s;
-        text-decoration: none;
-        flex-shrink: 0;
-    }
-
-    .btn-back:hover {
-        background: #e8eaed;
-        color: #2c3e50;
-        transform: translateX(-1px);
-    }
-
-    .leader-title-block {
-        flex: 1;
-    }
-
-    /* "Broadcast to the group" toggle (observer channel) */
-    .btn-observer {
-        padding: 8px 12px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 600;
-        border: 1.5px solid #dee2e6;
-        background: #f8f9fa;
-        color: #5a6272;
-        cursor: pointer;
-        white-space: nowrap;
-        flex-shrink: 0;
-        transition: all 0.15s;
-    }
-    .btn-observer:hover { border-color: #1e7e34; color: #1e7e34; background: #eaf6ec; }
-    .btn-observer.btn-observer-on {
-        background: #1e7e34;
-        border-color: #1e7e34;
-        color: #fff;
-        box-shadow: 0 3px 10px rgba(30,126,52,0.28);
-    }
-    .btn-observer.btn-observer-on:hover { background: #176a2b; }
-    /* Observer join QR code button — shown only while the broadcast is on */
-    .btn-observer-qr {
-        padding: 8px 12px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 600;
-        border: 1.5px solid #cfe3f7;
-        background: #ebf3fb;
-        color: #1a6db5;
-        cursor: pointer;
-        white-space: nowrap;
-        flex-shrink: 0;
-        transition: all 0.15s;
-    }
-    .btn-observer-qr:hover { background: #d6e9f8; }
-    /* Toggle + QR button: a row on wide screens, a column (QR under the
-       toggle, same width) on phones */
-    .observer-controls {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        flex-shrink: 0;
-    }
-    @media (max-width: 480px) {
-        .observer-controls { flex-direction: column; align-items: stretch; gap: 6px; }
-        .btn-observer, .btn-observer-qr { font-size: 11px; padding: 7px 9px; }
-    }
-
-    /* Observer join link / QR code modal (same as on the settings page) */
-    .qr-overlay {
-        position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-        background: rgba(0,0,0,0.6);
-        z-index: 99999;
-        display: flex; align-items: center; justify-content: center;
-        padding: 12px;
-    }
-    .qr-modal {
-        background: #fff;
-        border-radius: 14px;
-        width: 100%;
-        max-width: 420px;
-        max-height: 96vh;
-        overflow-y: auto;
-        box-shadow: 0 8px 40px rgba(0,0,0,0.3);
-        padding: 18px 18px 16px;
-    }
-    .qr-title { font-size: 16px; font-weight: 600; color: #2c3e50; margin-bottom: 2px; }
-    .qr-user { font-size: 12px; color: #95a5a6; margin-bottom: 12px; }
-    .qr-code { display: flex; justify-content: center; margin: 6px 0 10px; }
-    .qr-code svg { width: 260px; max-width: 100%; height: auto; }
-    .qr-hint { font-size: 12px; color: #5a6272; line-height: 1.45; margin-bottom: 10px; }
-    .qr-link {
-        width: 100%;
-        font-size: 12px;
-        font-family: monospace;
-        padding: 8px 10px;
-        border: 1.5px solid #dee2e6;
-        border-radius: 8px;
-        color: #2c3e50;
-        background: #f8f9fa;
-        margin-bottom: 10px;
-    }
-    .qr-actions { display: flex; flex-wrap: wrap; gap: 8px; }
-    .qr-actions button {
-        flex: 1 1 45%;
-        padding: 8px 12px;
-        border-radius: 8px;
-        font-size: 12px;
-        font-weight: 600;
-        border: 1.5px solid #dee2e6;
-        background: #fff;
-        color: #5a6272;
-        cursor: pointer;
-        transition: all 0.15s;
-    }
-    .qr-actions button:hover { border-color: #1a6db5; color: #1a6db5; }
-
-    .leader-page-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #2c3e50;
-        margin: 0;
-        line-height: 1.2;
-    }
-
-    .leader-page-subtitle {
-        font-size: 12px;
-        color: #95a5a6;
-        margin: 2px 0 0;
-    }
-
-    .leader-logo {
-        font-size: 28px;
-        line-height: 1;
-    }
-
-    /* ---- Section labels (same as index.html) ----------------- */
-    .section-label {
-        font-size: 11px;
-        font-weight: 600;
-        color: #b0b8c1;
-        text-transform: uppercase;
-        letter-spacing: 0.8px;
-        margin: 20px 0 10px;
-    }
-
-    /* ---- Song list buttons ----------------------------------- */
-    .songlist-row {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-bottom: 4px;
-    }
-
-    .btn-list {
-        flex: 1;
-        min-width: 80px;
-        padding: 8px 12px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        text-align: center;
-        border: 1.5px solid #dee2e6;
-        background: #f8f9fa;
-        color: #5a6272;
-        cursor: pointer;
-        transition: all 0.15s;
-        white-space: normal;
-        word-wrap: break-word;
-        line-height: 1.3;
-    }
-
-    .btn-list:hover, .btn-list:focus {
-        border-color: #1a6db5;
-        color: #1a6db5;
-        background: #ebf3fb;
-        outline: none;
-    }
-
-    .btn-selected {
-        background: #ebf3fb !important;
-        border-color: #1a6db5 !important;
-        color: #1a6db5 !important;
-        font-weight: 600;
-    }
-
-    .btn-show-all {
-        padding: 8px 16px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        border: none;
-        background: #1a6db5;
-        color: #fff;
-        cursor: pointer;
-        transition: all 0.15s;
-        white-space: nowrap;
-        flex-shrink: 0;
-    }
-
-    .btn-show-all:hover {
-        background: #155a99;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 12px rgba(26, 109, 181, 0.30);
-    }
+    .btn-action-blue:hover { background: #125a72; }
 
     /* ---- Search input / angucomplete override ----------------- */
-    #ccf6 .angucomplete-holder {
-        width: 100%;
-    }
-
+    #ccf6 .angucomplete-holder { width: 100%; }
     #ccf6 .angucomplete-holder input {
         width: 100%;
-        height: 44px;                 /* search fields: 44px on every page, peach bg like .btn-action-orange, grey border (Aug 2026) */
-        padding: 10px 16px !important;
-        border: 1.5px solid #dee2e6 !important;
-        border-radius: 10px !important;
+        height: 44px;
+        padding: 0 14px !important;
+        border: 1px solid #DCE3E8 !important;
+        border-radius: 6px !important;
         font-size: 15px;
-        color: #2c3e50;
-        background: #fff5e6 !important;
+        color: #17212B;
+        background: #fff !important;
         box-shadow: none !important;
-        transition: border-color 0.15s;
         -webkit-appearance: none;
     }
-
     #ccf6 .angucomplete-holder input:focus {
-        border-color: #3498db !important;
-        box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.12) !important;
+        border-color: #176B87 !important;
+        box-shadow: 0 0 0 3px rgba(23,107,135,0.14) !important;
         outline: none;
     }
-
     .angucomplete-dropdown {
-        border: 1.5px solid #dee2e6;
-        border-radius: 10px;
-        box-shadow: 0 4px 16px rgba(0,0,0,0.10);
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        box-shadow: 0 6px 20px rgba(23,33,43,0.16);
         overflow: hidden;
         margin-top: 4px;
+        padding: 0;
+        width: 100%;
+        max-height: 60vh;
+        overflow-y: auto;
     }
-
     .angucomplete-row {
-        padding: 12px 16px !important;
         font-size: 14px !important;
-        color: #2c3e50;
-        border-bottom: 1px solid #f0f2f5;
-        transition: background 0.1s;
+        color: #17212B;
+        border-bottom: 1px solid #DCE3E8;
     }
-
     .angucomplete-row:hover,
     .angucomplete-selected-row {
-        background: #ebf3fb !important;
-        color: #1a6db5 !important;
+        background: #E6F1F4 !important;
+        color: #176B87 !important;
     }
 
-    .angucomplete-description {
-        font-size: 11px !important;
-        color: #95a5a6 !important;
-        margin-top: 2px;
-    }
-
-    /* ---- Favorites list -------------------------------------- */
-    .favorites-list {
-        margin-top: 8px;
-    }
-
-    .prod-list-item {
+    /* ---- Selected songs ---------------------------------------- */
+    .ld-list { padding: 0 12px 32px; }
+    .ld-list-head {
         display: flex;
         align-items: center;
-        gap: 10px;
-        padding: 10px 12px;
-        border-radius: 10px;
-        border: 1.5px solid #f0f2f5;
-        background: #fff;
-        margin-bottom: 8px;
-        transition: all 0.15s;
+        gap: 8px;
+        min-height: 44px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #6E7883;
     }
+    .ld-h-large { display: none; }
+    .ld-count {
+        background: #E6F1F4;
+        color: #176B87;
+        border-radius: 10px;
+        padding: 1px 8px;
+        font-size: 12px;
+        font-weight: 700;
+        font-variant-numeric: tabular-nums;
+    }
+    .btn-clear { height: 36px; }
+    .ld-empty { text-align: center; padding: 32px 16px; color: #6E7883; font-size: 13px; }
+    .ld-empty-ico { font-size: 30px; margin-bottom: 8px; }
+    .ld-hint { padding: 10px 4px 0; font-size: 12px; color: #6E7883; }
+
+    /* One continuous surface with thin separators, not detached cards */
+    .favorites-list {
+        background: #fff;
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        overflow: hidden;
+    }
+    .favorites-list:empty { display: none; }
+
+    /* Swipe-to-delete (swipe_delete.js): the row wrapper holds the two red
+       action buttons, the sliding surface (.prod-list-item) covers them. */
+    .swipe-row { position: relative; border-bottom: 1px solid #DCE3E8; background: #fff; }
+    .swipe-row:last-child { border-bottom: none; }
+    .swipe-action {
+        position: absolute;
+        top: 0; bottom: 0;
+        width: 104px;
+        border: none;
+        background: #C4473A;
+        color: #fff;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        visibility: hidden;
+        transition: visibility 0s linear 0.18s;   /* stay painted while the surface slides back */
+    }
+    .swipe-action-l { left: 0; }
+    .swipe-action-r { right: 0; }
+    .swipe-row.swipe-right .swipe-action-l,
+    .swipe-row.swipe-left .swipe-action-r { visibility: visible; transition-delay: 0s; }
+    .swipe-action:active { background: #a93a2f; }
+
+    .prod-list-item {
+        position: relative;
+        z-index: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 84px;
+        padding: 8px 8px 8px 0;
+        background: #fff;
+        touch-action: pan-y;            /* horizontal movement belongs to swipe_delete.js */
+        user-select: none;
+        -webkit-user-select: none;
+    }
+    .swipe-row.swiping .prod-list-item,
+    .swipe-row.swipe-open .prod-list-item { box-shadow: 0 0 12px rgba(23,33,43,0.22); }
+
     /* Drag-n-drop reorder (drag_reorder.js): the handle is the only place
        where touch starts a drag — everywhere else the page scrolls. */
     .drag-handle {
@@ -344,139 +176,177 @@
         cursor: grab;
         border: none;
         background: transparent;
-        color: #b0b8c1;
-        font-size: 17px;
+        color: #6E7883;
+        font-size: 18px;
         line-height: 1;
-        padding: 0 4px;
+        width: 36px;
+        min-height: 44px;
         align-self: stretch;
         display: flex;
         align-items: center;
+        justify-content: center;
         flex-shrink: 0;
     }
-    .drag-handle:active { cursor: grabbing; color: #5a6272; }
+    .drag-handle:active { cursor: grabbing; color: #17212B; }
     .prod-list-item.drag-active {
-        border-color: #1a6db5;
-        box-shadow: 0 6px 18px rgba(26,109,181,0.25);
-        background: #f4f9fe;
+        background: #E6F1F4;
+        box-shadow: 0 6px 18px rgba(23,33,43,0.25);
         z-index: 10;
-        position: relative;
     }
     body.drag-reorder-busy { user-select: none; -webkit-user-select: none; }
 
+    .ld-seq {
+        display: none;
+        width: 22px;
+        text-align: right;
+        font-size: 13px;
+        color: #6E7883;
+        font-variant-numeric: tabular-nums;
+        flex-shrink: 0;
+    }
+
     /* Song currently ON in the group (current_notes — switched on by the tech
-       console or the leader): pulsing green outline (the broadcast-toggle
-       green) so the leader sees which song the musicians already have. */
+       console or the leader): broadcast-green outline + "on screen" label. */
     @keyframes leaderSongPulse {
-        0%, 100% { box-shadow: 0 0 0 0 rgba(30,126,52,0);    border-color: #1e7e34; }
-        50%      { box-shadow: 0 0 0 6px rgba(30,126,52,0.3); border-color: #34c759; }
+        0%, 100% { box-shadow: inset 0 0 0 2px #1E7E34; }
+        50%      { box-shadow: inset 0 0 0 2px #1E7E34, inset 0 0 0 5px rgba(30,126,52,0.22); }
     }
     .prod-list-item.song-on {
-        border-color: #1e7e34;
+        background: #F3FAF4;
+        box-shadow: inset 0 0 0 2px #1E7E34;
         animation: leaderSongPulse 1.4s ease-in-out infinite;
     }
     @media (prefers-reduced-motion: reduce) {
-        .prod-list-item.song-on { animation: none; box-shadow: 0 0 0 3px rgba(30,126,52,0.3); }
+        .prod-list-item.song-on { animation: none; }
     }
-
-    .prod-list-item:hover {
-        border-color: #dee2e6;
-        background: #fafbfc;
-    }
-
-    .prod-list-item.active-song {
-        border-color: #3498db;
-        background: #ebf5fb;
-        box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.15);
-    }
-
-    .item-text {
-        font-size: 15px;
-        font-weight: 500;
-        color: #2c3e50;
-        flex: 1;
-        line-height: 1.3;
-    }
-
-    .song-meta {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-top: 3px;
-    }
-
-    .song-book-name {
+    .ld-onscreen {
         font-size: 11px;
-        color: #95a5a6;
+        font-weight: 600;
+        color: #1E7E34;
+        background: #E7F4EA;
+        border-radius: 4px;
+        padding: 1px 6px;
+        white-space: nowrap;
     }
 
-    .song-lang-badges {
-        display: inline-flex;
-        gap: 4px;
+    .ld-info { flex: 1 1 0; min-width: 0; }
+    .item-text {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+        font-size: 15px;
+        font-weight: 600;
+        color: #17212B;
+        line-height: 1.25;
     }
-
+    .song-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 3px; }
+    .song-book-name { font-size: 12px; color: #6E7883; }
+    .song-lang-badges { display: inline-flex; gap: 4px; }
     .lang-badge {
         display: inline-block;
         font-size: 9px;
         font-weight: 700;
-        padding: 2px 6px;
+        padding: 2px 5px;
         border-radius: 4px;
         line-height: 1.4;
         letter-spacing: 0.3px;
     }
-
     .lang-ru { background: #d0e8ff; color: #1a5a99; }
     .lang-lt { background: #d4f0d4; color: #2a6a2a; }
     .lang-en { background: #fff0cc; color: #7a5a00; }
 
-    /* Notes thumbnail */
-    .song-thumb-wrap {
-        width: 52px;
-        height: 52px;
-        flex-shrink: 0;
-        border-radius: 8px;
-        overflow: hidden;
-        border: 1.5px solid #8fa3b8;
-        cursor: pointer;
-        transition: transform 0.15s, box-shadow 0.15s;
-    }
-
-    .song-thumb-wrap:hover {
-        transform: scale(1.06);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.14);
-    }
-
-    .song-thumb {
-        width: 52px;
-        height: 52px;
-        object-fit: cover;
-        display: block;
-    }
-
-    /* Text icon: same size as the notes thumbnail, opens full lyrics on the
-       leader's own screen. */
+    /* Verse mode (¶) and full text (Аа) */
     .song-text-btn {
-        width: 52px;
-        height: 52px;
+        width: 44px;
+        height: 44px;
         flex-shrink: 0;
-        border-radius: 8px;
-        border: 1.5px solid #8fa3b8;
+        border-radius: 6px;
+        border: 1px solid #DCE3E8;
         cursor: pointer;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 22px;
+        font-size: 18px;
         font-weight: 700;
-        color: #1a6db5;
-        background: #f4f8fc;
-        transition: transform 0.15s, box-shadow 0.15s;
+        color: #176B87;
+        background: #fff;
         user-select: none;
     }
-    .song-text-btn:hover {
-        transform: scale(1.06);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.14);
+    .song-text-btn:hover { border-color: #176B87; background: #E6F1F4; }
+
+    /* Notes thumbnail — always the rightmost element of the row */
+    .song-thumb-wrap {
+        width: 56px;
+        height: 64px;
+        flex-shrink: 0;
+        border-radius: 6px;
+        overflow: hidden;
+        border: 1px solid #b9c4cd;
+        cursor: pointer;
+        background: #EDF1F4;
+    }
+    .song-thumb {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: top center;
+        display: block;
     }
 
+    /* ---- Phone (<= 540px) -------------------------------------- */
+    @media (max-width: 540px) {
+        .cx-bar.ld-bar { padding: 0 8px; gap: 6px; }
+        .ld-back .ld-back-ico { display: inline; font-size: 18px; }
+        .ld-back .ld-back-txt { display: none; }
+        .ld-back { width: 44px; padding: 0; }
+        .ld-titles .cx-bar-meta { display: none; }
+        .observer-controls { gap: 6px; }
+        .ld-full { display: none; }
+        .ld-short { display: inline; }
+        .ld-bar .cx-btn { padding: 0 10px; font-size: 12px; }
+        .ld-tools { padding: 8px 8px 0; }
+        .ld-search { margin: 0 -8px; padding: 8px; }
+        .ld-list { padding: 0 8px 32px; }
+    }
+
+    /* ---- Medium tablet, 9-11" portrait (541-899px) ------------- */
+    @media (min-width: 541px) {
+        .prod-list-item { min-height: 76px; gap: 10px; padding-right: 10px; }
+        .ld-seq { display: block; }
+        .item-text { font-size: 16px; }
+        .song-thumb-wrap { width: 60px; height: 64px; }
+        .drag-handle { width: 40px; }
+    }
+
+    /* ---- Large tablet, 14" portrait / desktop (>= 900px) -------- */
+    @media (min-width: 900px) {
+        .ld-shell { height: 100vh; height: 100dvh; display: flex; flex-direction: column; }
+        .ld-body {
+            flex: 1 1 0;
+            min-height: 0;
+            display: grid;
+            grid-template-columns: 300px minmax(0, 1fr);
+        }
+        .ld-tools {
+            padding: 12px;
+            overflow-y: auto;
+            border-right: 1px solid #DCE3E8;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .ld-search { position: static; margin: 0; padding: 0; }
+        .ld-collections { flex-direction: column; align-items: stretch; }
+        .ld-chips { flex: none; flex-direction: column; align-items: stretch; overflow: visible; }
+        .ld-chips .cx-btn { justify-content: flex-start; white-space: normal; text-align: left; height: auto; min-height: 44px; padding: 6px 14px; }
+        .ld-list { overflow-y: auto; padding: 0 16px 24px; }
+        .ld-list-head { position: sticky; top: 0; z-index: 5; background: #EDF1F4; min-height: 52px; }
+        .ld-h-default { display: none; }
+        .ld-h-large { display: inline; }
+        .prod-list-item { min-height: 78px; gap: 12px; padding-right: 12px; }
+        .song-thumb-wrap { width: 64px; height: 64px; }
+    }
     /* Leader's black full-text screen */
     .leader-text-fs {
         position: fixed;
@@ -697,60 +567,6 @@
         max-height: 100vh;
     }
 
-    /* Delete button */
-    .btn-delete {
-        width: 32px;
-        height: 32px;
-        border-radius: 7px;
-        border: none;
-        background: #fdecea;
-        color: #c0392b;
-        font-size: 14px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.15s;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        flex-shrink: 0;
-        line-height: 1;
-    }
-
-    .btn-delete:hover {
-        background: #fad7d4;
-        transform: scale(1.08);
-    }
-
-    /* ---- Bottom actions -------------------------------------- */
-    .bottom-actions {
-        margin-top: 20px;
-        padding-top: 16px;
-        border-top: 1px solid #f0f2f5;
-        display: flex;
-        justify-content: flex-start;
-    }
-
-    .btn-clear {
-        display: inline-flex;
-        align-items: center;
-        gap: 7px;
-        padding: 10px 18px;
-        border-radius: 8px;
-        font-size: 14px;
-        font-weight: 500;
-        border: 1.5px solid #fad7d4;
-        background: #fdecea;
-        color: #c0392b;
-        cursor: pointer;
-        transition: all 0.15s;
-    }
-
-    .btn-clear:hover {
-        background: #fad7d4;
-        border-color: #e74c3c;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 10px rgba(192, 57, 43, 0.18);
-    }
 
     /* ---- Modal overrides ------------------------------------- */
     .modal-dialog {
@@ -922,17 +738,6 @@
         transform: translateY(-1px);
     }
 
-    /* ---- Responsive tweaks ----------------------------------- */
-    @media (max-width: 480px) {
-        .leader-page-title { font-size: 16px; }
-        .item-text { font-size: 14px; }
-        .song-thumb { width: 44px; height: 44px; }
-        .song-thumb-wrap { width: 44px; height: 44px; }
-        .song-text-btn { width: 44px; height: 44px; font-size: 18px; }
-        .btn-show-all { width: 100%; margin-top: 4px; }
-        .songlist-row { flex-direction: column; }
-        .btn-list { min-width: unset; }
-    }
 
     /* ---- Number input fix ------------------------------------ */
     input[type=number]::-webkit-inner-spin-button {
@@ -1044,7 +849,7 @@
     }
 </style>
 
-<div ng-controller="Leader">
+<div ng-controller="Leader" class="cx-page">
 
     <!-- Observer join link / QR code: the phone logs in as the group's
          observer account without a password and lands on /observer -->
@@ -1063,62 +868,69 @@
         </div>
     </div>
 
-    <div class="leader-wrapper">
+    <div class="ld-shell">
 
         <!-- ── WebSocket disconnect banner ────────────────────────── -->
         <div class="ws-disconnect-banner" ng-if="wsConnected === false">
             <?php echo T::s('common.ws.disconnected'); ?>
         </div>
 
-        <!-- Header: Back button + Title + Display target selector -->
-        <div class="leader-header">
-            <button class="btn-back" onclick="window.location.href='/index'">
-                <?php echo T::s('common.button.back'); ?>
+        <!-- Application bar: Back + title + group broadcast / QR -->
+        <header class="cx-bar ld-bar">
+            <button class="cx-btn ld-back" onclick="window.location.href='/index'"
+                    aria-label="<?php echo T::s('common.button.back'); ?>">
+                <span class="ld-back-ico" aria-hidden="true">←</span>
+                <span class="ld-back-txt"><?php echo T::s('common.button.back'); ?></span>
             </button>
-            <div class="leader-title-block">
-                <div class="leader-page-title"><?php echo T::s('leader.title'); ?></div>
-                <div class="leader-page-subtitle"><?php echo T::s('leader.subtitle'); ?></div>
+            <div class="ld-titles">
+                <div class="cx-bar-title"><?php echo T::s('leader.title'); ?></div>
+                <div class="cx-bar-meta"><?php echo T::s('leader.subtitle'); ?></div>
             </div>
             <div class="observer-controls">
                 <!-- Observer channel: while on, everything the leader opens (song,
                      lyrics, verses) is also shown to observers in group mode -->
-                <button class="btn-observer"
+                <button class="cx-btn cx-broadcast btn-observer"
                         ng-class="{'btn-observer-on': observer.active}"
                         ng-click="toggleObserver()"
+                        aria-pressed="{{ observer.active ? 'true' : 'false' }}"
                         title="<?php echo T::s('leader.observer.hint'); ?>">
-                    <span ng-if="!observer.active"><?php echo T::s('leader.observer.off'); ?></span>
-                    <span ng-if="observer.active"><?php echo T::s('leader.observer.on'); ?></span>
+                    <span class="ld-full" ng-if="!observer.active"><?php echo T::s('leader.observer.off'); ?></span>
+                    <span class="ld-full" ng-if="observer.active"><?php echo T::s('leader.observer.on'); ?></span>
+                    <span class="ld-short"><?php echo T::s('leader.observer.short'); ?></span>
                 </button>
                 <!-- Join QR code of the group's observer login (password-less
-                     /join/<token>) — only while the broadcast is on; on phones
-                     it sits under the toggle -->
-                <button class="btn-observer-qr"
+                     /join/<token>) — only while the broadcast is on -->
+                <button class="cx-btn btn-observer-qr"
                         ng-if="observer.active"
                         ng-click="showJoinQr()"
                         title="<?php echo T::s('leader.observer.qrHint'); ?>">
-                    <?php echo T::s('leader.observer.qr'); ?>
+                    <span class="ld-full"><?php echo T::s('leader.observer.qr'); ?></span>
+                    <span class="ld-short"><?php echo T::s('leader.observer.qrShort'); ?></span>
                 </button>
             </div>
-        </div>
+        </header>
 
-        <!-- Song list selector -->
-        <div class="section-label"><?php echo T::s('leader.section.books'); ?></div>
+        <div class="ld-body">
 
-        <div class="songlist-row">
-            <button class="btn-list songlist-btn"
-                    ng-repeat="list in visibleSongLists"
-                    ng-class="listId == list.LIST_ID ? 'btn-selected' : ''"
-                    ng-click="setList(list.LIST_ID)">
-                {{ list.LIST_NAME }}
-            </button>
-        </div>
-        <div class="songlist-row" style="margin-top: 8px;">
-            <button class="btn-action-blue" ng-click="openList()"><?php echo T::s('leader.button.showAll'); ?><span ng-if="currentListName()">: {{ currentListName() }}</span></button>
-        </div>
+        <!-- Tools: collections + "all songs" + search. One column on phones
+             and 9-11" tablets, the left utility rail on large screens. -->
+        <section class="ld-tools" aria-label="<?php echo T::s('leader.section.books'); ?>">
+            <div class="ld-collections">
+                <div class="cx-scroll-x ld-chips">
+                    <button class="cx-btn btn-list songlist-btn"
+                            ng-repeat="list in visibleSongLists"
+                            ng-class="listId == list.LIST_ID ? 'btn-selected' : ''"
+                            ng-click="setList(list.LIST_ID)">
+                        {{ list.LIST_NAME }}
+                    </button>
+                </div>
+                <button class="cx-btn cx-btn-primary ld-all" ng-click="openList()"
+                        title="<?php echo T::s('leader.button.showAll'); ?>{{ currentListName() ? ': ' + currentListName() : '' }}">
+                    <?php echo T::s('leader.button.allSongs'); ?>
+                </button>
+            </div>
 
-        <!-- Search -->
-        <div class="section-label" style="margin-top: 20px;"><?php echo T::s('leader.section.search'); ?></div>
-
+            <div class="ld-search">
         <script type="text/ng-template" id="song-row-tmpl.html">
             <div class="angucomplete-holder" ng-class="{'angucomplete-dropdown-visible': showDropdown}">
                 <input id="{{id}}_value" name="{{inputName}}" tabindex="{{fieldTabindex}}"
@@ -1137,12 +949,6 @@
                          ng-click="selectResult(result)"
                          ng-mouseenter="hoverRow($index)"
                          ng-class="{'angucomplete-selected-row': $index == currentIndex}">
-                        <div class="angucomplete-song-img-col"
-                             ng-click="$emit('song:previewSong', result.originalObject); $event.stopPropagation()"
-                             title="<?php echo T::s('leader.search.viewNotes'); ?>">
-                            <img ng-src="{{result.image}}" class="angucomplete-song-thumb-sm"
-                                 onerror="this.style.display='none'">
-                        </div>
                         <div class="angucomplete-song-text-col">
                             <div class="angucomplete-title" ng-if="matchClass" ng-bind-html="result.title"></div>
                             <div class="angucomplete-title" ng-if="!matchClass">{{ result.title }}</div>
@@ -1154,6 +960,13 @@
                                           ng-if="result.originalObject['hasText_' + lang.code] == '1'">{{lang.label}}</span>
                                 </span>
                             </div>
+                        </div>
+                        <!-- Sheet-music thumbnail: always the rightmost element -->
+                        <div class="angucomplete-song-img-col"
+                             ng-click="$emit('song:previewSong', result.originalObject); $event.stopPropagation()"
+                             title="<?php echo T::s('leader.search.viewNotes'); ?>">
+                            <img ng-src="{{result.image}}" class="angucomplete-song-thumb-sm"
+                                 onerror="this.style.display='none'">
                         </div>
                     </div>
                 </div>
@@ -1173,83 +986,96 @@
                           input-class="form-control"
                           template-url="song-row-tmpl.html">
         </angucomplete-alt>
+            </div>
+        </section>
 
-        <!-- Selected songs -->
-        <div class="section-label" style="margin-top: 20px;">
-            <?php echo T::s('leader.section.selected'); ?>
-            <span ng-if="favorites.length > 0"
-                  style="background:#ebf3fb; color:#1a6db5; border-radius:20px;
-                         padding:1px 8px; font-size:10px; margin-left:6px; font-weight:700;">
-                {{ favorites.length }}
-            </span>
-        </div>
+        <!-- Selected songs ("service order" on large screens) -->
+        <section class="ld-list">
+            <div class="ld-list-head">
+                <span class="ld-h-default"><?php echo T::s('leader.section.selected'); ?></span>
+                <span class="ld-h-large"><?php echo T::s('leader.section.order'); ?></span>
+                <span class="ld-count" ng-if="favorites.length > 0">{{ favorites.length }}</span>
+                <span class="cx-spacer"></span>
+                <button class="cx-btn cx-btn-danger btn-clear" ng-if="favorites.length > 0" ng-click="clearFavorites()">
+                    <?php echo T::s('leader.button.clear'); ?>
+                </button>
+            </div>
 
-        <!-- Empty state -->
-        <div ng-if="favorites.length === 0"
-             style="text-align:center; padding: 28px 16px; color: #b0b8c1;">
-            <div style="font-size: 32px; margin-bottom: 8px;">🎵</div>
-            <div style="font-size: 13px;"><?php echo T::s('leader.empty.title'); ?><br><?php echo T::s('leader.empty.subtitle'); ?></div>
-        </div>
+            <!-- Empty state -->
+            <div class="ld-empty" ng-if="favorites.length === 0">
+                <div class="ld-empty-ico">🎵</div>
+                <div><?php echo T::s('leader.empty.title'); ?><br><?php echo T::s('leader.empty.subtitle'); ?></div>
+            </div>
 
-        <!-- Favorites list -->
-        <div class="favorites-list">
-            <div class="prod-list-item"
-                 ng-class="{'song-on': activeSongImage && listItem.imageName === activeSongImage}"
-                 ng-repeat="listItem in favorites track by listItem.FID">
+            <!-- Favorites list. Row order: handle · number · title/meta · ¶ · Аа · notes.
+                 No delete button: a row is removed by swiping it sideways and
+                 tapping the red button that appears (swipe_delete.js). -->
+            <div class="favorites-list" ng-show="favorites.length > 0">
+                <div class="swipe-row"
+                     ng-repeat="listItem in favorites track by listItem.FID">
 
-                <!-- Drag handle: reorder the list (drag_reorder.js) -->
-                <button class="drag-handle" type="button"
-                        title="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
+                    <button class="swipe-action swipe-action-l" type="button" tabindex="-1"
+                            ng-click="deleteFavoriteNow(listItem.FID)"><?php echo T::s('leader.button.delete'); ?></button>
+                    <button class="swipe-action swipe-action-r" type="button" tabindex="-1"
+                            ng-click="deleteFavoriteNow(listItem.FID)"><?php echo T::s('leader.button.delete'); ?></button>
 
-                <!-- Delete button -->
-                <button class="btn-delete"
-                        ng-click="deleteFavoriteItem(listItem.FID, listItem.dispName)"
-                        title="<?php echo T::s('leader.button.delete'); ?>">✕</button>
+                    <div class="prod-list-item"
+                         ng-class="{'song-on': activeSongImage && listItem.imageName === activeSongImage}">
 
-                <!-- Song info -->
-                <span style="flex: 1; min-width: 0;">
-                    <span class="item-text">{{ listItem.dispName }}</span>
-                    <span class="song-meta">
-                        <span class="song-book-name" ng-if="listItem.bookName">{{ listItem.bookName }}</span>
-                        <span class="song-lang-badges">
-                            <span class="lang-badge lang-{{lang.code}}"
-                                  ng-repeat="lang in langList"
-                                  ng-if="listItem['hasText_' + lang.code] == '1'">{{lang.label}}</span>
+                        <!-- Drag handle: reorder the list (drag_reorder.js) -->
+                        <button class="drag-handle" type="button"
+                                title="<?php echo T::s('common.dragReorder'); ?>"
+                                aria-label="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
+
+                        <span class="ld-seq" aria-hidden="true">{{ $index + 1 }}</span>
+
+                        <!-- Song info -->
+                        <span class="ld-info">
+                            <span class="item-text">{{ listItem.dispName }}</span>
+                            <span class="song-meta">
+                                <span class="ld-onscreen"
+                                      ng-if="activeSongImage && listItem.imageName === activeSongImage"><?php echo T::s('leader.onScreen'); ?></span>
+                                <span class="song-book-name" ng-if="listItem.bookName">{{ listItem.bookName }}</span>
+                                <span class="song-lang-badges">
+                                    <span class="lang-badge lang-{{lang.code}}"
+                                          ng-repeat="lang in langList"
+                                          ng-if="listItem['hasText_' + lang.code] == '1'">{{lang.label}}</span>
+                                </span>
+                            </span>
                         </span>
-                    </span>
-                </span>
 
-                <!-- Split-screen verse mode: broadcast verses to the screens -->
-                <div class="song-text-btn"
-                     ng-if="songHasAnyText(listItem)"
-                     ng-click="openVerseMode(listItem)"
-                     title="<?php echo T::s('leader.verses.open'); ?>">¶</div>
+                        <!-- Split-screen verse mode: broadcast verses to the screens -->
+                        <div class="song-text-btn" role="button"
+                             ng-if="songHasAnyText(listItem)"
+                             ng-click="openVerseMode(listItem)"
+                             title="<?php echo T::s('leader.verses.open'); ?>"
+                             aria-label="<?php echo T::s('leader.verses.open'); ?>">¶</div>
 
-                <!-- Full song text on the leader's screen (also turns on notes for musicians) -->
-                <div class="song-text-btn"
-                     ng-click="openFullscreenText(listItem)"
-                     title="<?php echo T::s('leader.thumb.openText'); ?>">Аа</div>
+                        <!-- Full song text on the leader's screen (also turns on notes for musicians) -->
+                        <div class="song-text-btn" role="button"
+                             ng-click="openFullscreenText(listItem)"
+                             title="<?php echo T::s('leader.thumb.openText'); ?>"
+                             aria-label="<?php echo T::s('leader.thumb.openText'); ?>">Аа</div>
 
-                <!-- Song image thumbnail -->
-                <div class="song-thumb-wrap"
-                     ng-attr-id="{{ 'wrap' + listItem.ID }}"
-                     ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"
-                     title="<?php echo T::s('leader.thumb.openNotes'); ?>">
-                    <img class="song-thumb"
-                         ng-attr-id="{{ 'img' + listItem.ID }}"
-                         ng-src="{{ listItem.imageName }}"/>
+                        <!-- Song image thumbnail — always the rightmost element -->
+                        <div class="song-thumb-wrap"
+                             ng-attr-id="{{ 'wrap' + listItem.ID }}"
+                             ng-click="openFullscreen(listItem.ID, listItem.NUM, listItem.LISTID, listItem.SONGID)"
+                             title="<?php echo T::s('leader.thumb.openNotes'); ?>">
+                            <img class="song-thumb"
+                                 ng-attr-id="{{ 'img' + listItem.ID }}"
+                                 ng-src="{{ listItem.imageName }}"/>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Bottom actions -->
-        <div class="bottom-actions" ng-if="favorites.length > 0">
-            <button class="btn-clear" ng-click="clearFavorites()">
-                <?php echo T::s('leader.button.clear'); ?>
-            </button>
-        </div>
+            <div class="ld-hint" ng-if="favorites.length > 0"><?php echo T::s('leader.swipeHint'); ?></div>
+        </section>
 
-    </div><!-- /leader-wrapper -->
+        </div><!-- /ld-body -->
+
+    </div><!-- /ld-shell -->
 
 
     <!-- ============================================================
@@ -1425,7 +1251,8 @@
 
 <script src="/js/vendor/qrcode.min.js?v=1" type="text/javascript"></script>
 <script src="/js/drag_reorder.min.js?v=1" type="text/javascript"></script>
-<script src="/js/leader.min.js?v=42" type="text/javascript"></script>
+<script src="/js/swipe_delete.min.js?v=1" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=43" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}

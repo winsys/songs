@@ -1,0 +1,242 @@
+/* ============================================================
+   Compact UI (Sept 2026) — shared tokens and chrome components of the
+   redesigned working pages (tech console, leader page, sermon prep).
+   Spec: docs/ui-redesign-tech-leader.md. Everything is namespaced
+   (--cx-* / .cx-*), so pages that do not opt in are not affected.
+   ============================================================ */
+
+:root {
+    --cx-canvas:    #EDF1F4;
+    --cx-surface:   #FFFFFF;
+    --cx-ink:       #17212B;
+    --cx-secondary: #6E7883;
+    --cx-active:    #176B87;
+    --cx-active-tint: #E6F1F4;
+    --cx-broadcast: #1E7E34;
+    --cx-broadcast-tint: #E7F4EA;
+    --cx-danger:    #C4473A;
+    --cx-danger-tint: #FBECEA;
+    --cx-message:   #765276;
+    --cx-message-tint: #F3ECF3;
+    --cx-divider:   #DCE3E8;
+    --cx-radius:    6px;
+    --cx-font: "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif;
+}
+
+.cx-page {
+    font-family: var(--cx-font);
+    color: var(--cx-ink);
+    font-size: 14px;
+    line-height: 1.35;
+}
+.cx-page button { font-family: inherit; }
+.cx-page button:focus-visible,
+.cx-page a:focus-visible,
+.cx-page input:focus-visible,
+.cx-page select:focus-visible,
+.cx-page [tabindex]:focus-visible {
+    outline: 2px solid var(--cx-active);
+    outline-offset: 2px;
+}
+
+/* ---- Application bar --------------------------------------- */
+.cx-bar {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    height: 50px;
+    padding: 0 12px;
+    background: var(--cx-surface);
+    border-bottom: 1px solid var(--cx-divider);
+    flex-shrink: 0;
+}
+.cx-bar-title {
+    font-size: 15px;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+.cx-bar-meta {
+    font-size: 12px;
+    color: var(--cx-secondary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 0;
+}
+.cx-spacer { flex: 1 1 0; min-width: 0; }
+
+/* ---- Context bar -------------------------------------------- */
+.cx-ctx {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-height: 42px;
+    padding: 0 12px;
+    background: var(--cx-canvas);
+    border-bottom: 1px solid var(--cx-divider);
+    flex-shrink: 0;
+}
+.cx-ctx-label {
+    font-size: 12px;
+    color: var(--cx-secondary);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+/* A control group that scrolls sideways instead of wrapping */
+.cx-scroll-x {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+.cx-scroll-x::-webkit-scrollbar { display: none; }
+.cx-scroll-x > * { flex-shrink: 0; }
+.cx-group { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+
+/* ---- Buttons ------------------------------------------------ */
+.cx-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    height: 32px;
+    padding: 0 12px;
+    border: 1px solid var(--cx-divider);
+    border-radius: var(--cx-radius);
+    background: var(--cx-surface);
+    color: var(--cx-ink);
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    text-decoration: none;
+    flex-shrink: 0;
+    transition: background 0.12s, border-color 0.12s, color 0.12s;
+}
+.cx-btn:hover { border-color: var(--cx-active); color: var(--cx-active); text-decoration: none; }
+.cx-btn[disabled] { opacity: 0.45; cursor: default; pointer-events: none; }
+.cx-btn-quiet { border-color: transparent; background: transparent; color: var(--cx-secondary); }
+.cx-btn-primary { background: var(--cx-active); border-color: var(--cx-active); color: #fff; }
+.cx-btn-primary:hover { background: #125a72; border-color: #125a72; color: #fff; }
+.cx-btn-danger { background: var(--cx-danger-tint); border-color: transparent; color: var(--cx-danger); }
+.cx-btn-danger:hover { border-color: var(--cx-danger); color: var(--cx-danger); }
+.cx-btn-danger-solid { background: var(--cx-danger); border-color: var(--cx-danger); color: #fff; }
+.cx-btn-danger-solid:hover { background: #a93a2f; border-color: #a93a2f; color: #fff; }
+.cx-btn-icon { width: 32px; padding: 0; }
+
+/* Selected chip / mode: thin active border + very light tint */
+.cx-chip { /* used together with .cx-btn */ }
+.cx-btn.is-active,
+.cx-btn.btn-selected,
+.cx-btn.lang-active {
+    background: var(--cx-active-tint);
+    border-color: var(--cx-active);
+    color: var(--cx-active);
+    font-weight: 600;
+}
+
+/* Segmented switch (page mode) */
+.cx-seg {
+    display: inline-flex;
+    border: 1px solid var(--cx-divider);
+    border-radius: var(--cx-radius);
+    overflow: hidden;
+    background: var(--cx-surface);
+    flex-shrink: 0;
+}
+.cx-seg > button {
+    height: 32px;
+    padding: 0 16px;
+    border: none;
+    border-right: 1px solid var(--cx-divider);
+    background: transparent;
+    color: var(--cx-secondary);
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    cursor: pointer;
+}
+.cx-seg > button:last-child { border-right: none; }
+.cx-seg > button:hover { color: var(--cx-active); }
+.cx-seg > button.is-active,
+.cx-seg > button.mode-btn-active,
+.cx-seg > button.lang-active { background: var(--cx-active); color: #fff; }
+.cx-seg > button[disabled] { opacity: 0.4; cursor: default; }
+
+/* Group broadcast (observer channel) toggle */
+.cx-broadcast.btn-observer-on,
+.cx-broadcast.is-on {
+    background: var(--cx-broadcast);
+    border-color: var(--cx-broadcast);
+    color: #fff;
+}
+.cx-broadcast.btn-observer-on:hover,
+.cx-broadcast.is-on:hover { background: #176a2b; color: #fff; }
+
+/* ---- Inputs -------------------------------------------------- */
+.cx-input {
+    width: 100%;
+    height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--cx-divider);
+    border-radius: var(--cx-radius);
+    background: var(--cx-surface);
+    color: var(--cx-ink);
+    font-size: 14px;
+    box-shadow: none;
+    -webkit-appearance: none;
+}
+.cx-input:focus { border-color: var(--cx-active); outline: none; box-shadow: 0 0 0 3px rgba(23,107,135,0.14); }
+.cx-select {
+    height: 32px;
+    padding: 0 8px;
+    border: 1px solid var(--cx-divider);
+    border-radius: var(--cx-radius);
+    background: var(--cx-surface);
+    color: var(--cx-ink);
+    font-size: 13px;
+    max-width: 200px;
+}
+
+/* ---- Work panes ---------------------------------------------- */
+.cx-pane {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    min-height: 0;
+    background: var(--cx-surface);
+}
+.cx-pane + .cx-pane { border-left: 1px solid var(--cx-divider); }
+.cx-pane-head {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 34px;
+    padding: 0 12px;
+    border-bottom: 1px solid var(--cx-divider);
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--cx-secondary);
+    flex-shrink: 0;
+    background: var(--cx-surface);
+}
+.cx-pane-head strong { color: var(--cx-active); font-weight: 600; }
+.cx-pane-body { flex: 1 1 0; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+.cx-empty { padding: 16px 12px; color: var(--cx-secondary); font-size: 12px; text-align: center; }
+
+/* ---- WebSocket disconnect banner (same logic, calmer look) ---- */
+.cx-page .ws-disconnect-banner { z-index: 9999; }
+
+@media (prefers-reduced-motion: reduce) {
+    .cx-page *, .cx-page *::before, .cx-page *::after { animation: none !important; transition: none !important; }
+}
