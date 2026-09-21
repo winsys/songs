@@ -2,49 +2,40 @@
 
 <style>
     /* ============================================================
-       HOME / ROLE HUB — compact UI tokens (/css/compact.css, --cx-*).
-       Clarity over density: sections with plain labels, every destination
-       is one large tile (icon + name) in a responsive grid.
+       HOME — compact role-oriented launcher
+       (docs/ui-redesign-main-observer-settings-import.md).
+       One application bar with the product identity and the user context,
+       then destinations grouped by task. Rows, not promotional cards:
+       icon · label · chevron, two columns on tablets, one on phones.
+       Tokens: /css/compact.css (--cx-*).
        ============================================================ */
-    body {
-        background: #EDF1F4;
-        min-height: 100vh;
-        font-family: "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif;
-        color: #17212B;
+    body { background: #EDF1F4; min-height: 100vh; }
+
+    .home-bar .home-logo  { font-size: 24px; line-height: 1; flex-shrink: 0; }
+    .home-bar .home-title { font-size: 17px; font-weight: 600; white-space: nowrap; }
+    .home-bar .home-church {
+        margin-left: auto;
+        min-width: 0;
+        font-size: 13px;
+        color: #6E7883;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
     }
 
-    .home-wrapper {
-        min-height: 100vh;
-        display: flex;
-        align-items: flex-start;
-        justify-content: center;
-        padding: 40px 16px;
-    }
-
-    /* The card itself is the grid: labels and the header span all columns,
-       the buttons flow into it as tiles. */
+    .home-wrapper { padding: 8px 16px 40px; }
+    /* The list itself is the grid: group labels span both columns */
     .home-card {
-        width: 100%;
-        max-width: 760px;
-        background: #fff;
-        border: 1px solid #DCE3E8;
-        border-radius: 10px;
-        padding: 28px 28px 20px;
-        box-shadow: 0 10px 30px rgba(23,33,43,0.08);
+        max-width: 880px;
+        margin: 0 auto;
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 10px;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
     }
-    .home-logo, .home-title, .home-church, .home-section-label, .btn-logout { grid-column: 1 / -1; }
-
-    .home-logo   { font-size: 36px; line-height: 1; text-align: center; }
-    .home-title  { font-size: 24px; font-weight: 600; text-align: center; letter-spacing: -0.2px; margin-top: -4px; }
-    .home-church { font-size: 14px; color: #6E7883; text-align: center; margin-top: -6px; }
-
+    .home-section-label, .home-logout-row { grid-column: 1 / -1; }
     .home-section-label {
         margin-top: 14px;
-        padding-bottom: 6px;
-        border-bottom: 1px solid #DCE3E8;
+        padding: 0 2px 2px;
         font-size: 13px;
         font-weight: 600;
         color: #6E7883;
@@ -55,9 +46,9 @@
         align-items: center;
         gap: 12px;
         width: 100%;
-        min-height: 60px;
+        min-height: 56px;
         margin: 0;
-        padding: 10px 14px;
+        padding: 6px 12px 6px 11px;
         border: 1px solid #DCE3E8;
         border-left: 3px solid #176B87;
         border-radius: 6px;
@@ -70,48 +61,59 @@
         cursor: pointer;
         transition: background 0.12s, border-color 0.12s;
     }
+    /* Right-facing navigation affordance */
+    .btn-home::after {
+        content: '›';
+        margin-left: auto;
+        padding-left: 8px;
+        font-size: 20px;
+        line-height: 1;
+        color: #6E7883;
+        flex-shrink: 0;
+    }
     .btn-home:hover, .btn-home:focus { background: #E6F1F4; border-color: #176B87; outline: none; }
     .btn-home:focus-visible, .btn-logout:focus-visible { outline: 2px solid #176B87; outline-offset: 2px; }
-    .btn-icon { font-size: 24px; line-height: 1; width: 30px; text-align: center; flex-shrink: 0; }
+    .btn-icon { font-size: 22px; line-height: 1; width: 28px; text-align: center; flex-shrink: 0; }
 
-    /* One quiet accent per section — state/meaning, not decoration */
+    /* Narrow accents per group only — rows are never filled with colour */
     .btn-home.btn-green  { border-left-color: #1E7E34; }
-    .btn-home.btn-green:hover,  .btn-home.btn-green:focus  { background: #E7F4EA; border-color: #1E7E34; }
     .btn-home.btn-gray   { border-left-color: #6E7883; }
-    .btn-home.btn-gray:hover,   .btn-home.btn-gray:focus   { background: #EDF1F4; border-color: #6E7883; }
     .btn-home.btn-purple { border-left-color: #765276; }
-    .btn-home.btn-purple:hover, .btn-home.btn-purple:focus { background: #F3ECF3; border-color: #765276; }
     .btn-home.btn-red    { border-left-color: #C4473A; }
-    .btn-home.btn-red:hover,    .btn-home.btn-red:focus    { background: #FBECEA; border-color: #C4473A; }
 
+    .home-logout-row { display: flex; justify-content: flex-end; margin-top: 18px; }
     .btn-logout {
-        justify-self: end;
-        margin-top: 18px;
-        height: 40px;
+        height: 44px;
         padding: 0 18px;
         border: 1px solid #DCE3E8;
         border-radius: 6px;
-        background: #fff;
+        background: transparent;
         color: #6E7883;
         font-size: 14px;
         font-weight: 500;
         cursor: pointer;
     }
-    .btn-logout:hover { border-color: #C4473A; color: #C4473A; }
+    .btn-logout:hover { border-color: #C4473A; color: #C4473A; background: #fff; }
 
-    @media (max-width: 480px) {
-        .home-wrapper { padding: 16px 10px; }
-        .home-card { padding: 20px 14px 16px; grid-template-columns: 1fr; }
-        .btn-logout { justify-self: stretch; }
+    @media (max-width: 599px) {
+        .home-wrapper { padding: 4px 10px 32px; }
+        .home-card { grid-template-columns: 1fr; gap: 6px; }
+        .btn-home { min-height: 52px; }
+        .home-logout-row { justify-content: stretch; }
+        .btn-logout { width: 100%; }
     }
 </style>
 
+<div class="cx-page">
+<!-- Application bar: product identity (unchanged: 🎵 Worship Songs) + user / church context -->
+<header class="cx-bar home-bar">
+    <div class="home-logo" aria-hidden="true">🎵</div>
+    <div class="home-title">Worship Songs</div>
+    <div class="home-church"><?php echo htmlspecialchars($_SESSION['userName']) ?></div>
+</header>
+
 <div class="home-wrapper">
     <div class="home-card">
-
-        <div class="home-logo">🎵</div>
-        <div class="home-title">Worship Songs</div>
-        <div class="home-church"><?php echo htmlspecialchars($_SESSION['userName']) ?></div>
 
         <?php if ($role === 'admin' || $role === 'leader' || $role === 'musician' || $role === 'tech' || $role === 'preacher'): ?>
         <div class="home-section-label"><?php echo T::s('home.section.ministry'); ?></div>
@@ -181,9 +183,12 @@
         </button>
         <?php endif; ?>
 
-        <button class="btn-logout" onclick="window.location.href='/logout'">
-            <?php echo T::s('home.button.logout'); ?>
-        </button>
+        <div class="home-logout-row">
+            <button class="btn-logout" onclick="window.location.href='/logout'">
+                <?php echo T::s('home.button.logout'); ?>
+            </button>
+        </div>
 
     </div>
 </div>
+</div><!-- /cx-page -->
