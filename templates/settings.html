@@ -530,6 +530,110 @@
     .settings-wrapper button:focus-visible, .settings-wrapper input:focus-visible, .settings-wrapper select:focus-visible {
         outline: 2px solid #176B87; outline-offset: 2px;
     }
+
+    /* ---- Workspace layout (docs/ui-redesign-main-observer-settings-import.md) ----
+       Tablet / desktop: sticky category rail + one focused form canvas; the
+       cards of a category are sections of ONE surface separated by rules.
+       Phone: the category list is the first screen, a category opens as a
+       drill-down (setUi.drill). One persistent bottom save strip everywhere. */
+    .settings-wrapper { max-width: 1100px; padding: 0; }
+    .set-body { display: grid; grid-template-columns: 224px minmax(0, 1fr); align-items: start; }
+    .set-rail {
+        position: sticky;
+        top: 50px;
+        max-height: calc(100vh - 50px - 64px);
+        overflow-y: auto;
+        padding: 12px 8px 12px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+    .set-cat {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        min-height: 44px;
+        padding: 6px 10px 6px 9px;
+        border: none;
+        border-left: 3px solid transparent;
+        border-radius: 6px;
+        background: transparent;
+        color: #17212B;
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 1.25;
+        text-align: left;
+        cursor: pointer;
+    }
+    .set-cat:hover { background: #fff; }
+    .set-cat.on { background: #E6F1F4; border-left-color: #176B87; color: #176B87; }
+    .set-cat-ico { width: 24px; text-align: center; font-size: 18px; flex-shrink: 0; }
+    .set-cat:focus-visible, .set-back:focus-visible { outline: 2px solid #176B87; outline-offset: 2px; }
+
+    .set-canvas { padding: 12px 16px 96px 8px; max-width: 800px; }
+    .set-back { display: none; }
+    .set-surface { background: #fff; border: 1px solid #DCE3E8; border-radius: 8px; padding: 0 20px; }
+    .set-surface > .settings-card {
+        border: none;
+        border-bottom: 1px solid #DCE3E8;
+        border-radius: 0;
+        background: transparent;
+        margin: 0;
+        padding: 18px 0;
+    }
+    .set-surface > .settings-card:last-child { border-bottom: none; }
+
+    .set-savebar {
+        position: fixed;
+        left: 0; right: 0; bottom: 0;
+        z-index: 60;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 12px;
+        min-height: 60px;
+        padding: 8px 16px calc(8px + env(safe-area-inset-bottom, 0px));
+        background: #fff;
+        border-top: 1px solid #DCE3E8;
+    }
+    .set-savebar .btn-save-all {
+        position: static;
+        width: auto;
+        min-width: 220px;
+        height: 44px;
+        margin: 0;
+        padding: 0 24px;
+        box-shadow: none;
+    }
+    .set-savebar .btn-save-all:hover { box-shadow: none; }
+
+    @media (max-width: 699px) {
+        .set-body { grid-template-columns: minmax(0, 1fr); }
+        .set-rail { position: static; max-height: none; padding: 12px; gap: 6px; }
+        .set-cat { min-height: 52px; background: #fff; border: 1px solid #DCE3E8; border-left: 3px solid #176B87; font-size: 15px; }
+        .set-cat::after { content: '›'; margin-left: auto; font-size: 20px; color: #6E7883; }
+        .set-cat.on { background: #fff; color: #17212B; }
+        .set-canvas { display: none; padding: 8px 12px 96px; }
+        .set-body.drill .set-rail { display: none; }
+        .set-body.drill .set-canvas { display: block; }
+        .set-back {
+            display: inline-flex;
+            align-items: center;
+            height: 44px;
+            padding: 0 14px;
+            margin-bottom: 8px;
+            border: 1px solid #DCE3E8;
+            border-radius: 6px;
+            background: #fff;
+            color: #176B87;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        .set-surface { padding: 0 14px; }
+        .set-savebar .btn-save-all { width: 100%; }
+    }
 </style>
 
 <script type="text/javascript">
@@ -567,10 +671,45 @@
 
     <div class="settings-wrapper">
 
+        <!-- Workspace: category rail + focused form canvas. setUi is view-only state:
+             cat = the visible category, drill = phone drill-down (canvas shown). -->
+        <div class="set-body" ng-class="{drill: setUi.drill}" ng-init="setUi = {cat: 'basic', drill: false}">
+            <nav class="set-rail" aria-label="<?php echo T::s('settings.cat.all'); ?>">
+                <button class="set-cat" ng-class="{on: setUi.cat === 'basic'}"
+                        ng-click="setUi.cat = 'basic'; setUi.drill = true">
+                    <span class="set-cat-ico" aria-hidden="true">⚙️</span><span class="set-cat-name"><?php echo T::s('settings.cat.basic'); ?></span>
+                </button>
+                <button class="set-cat" ng-class="{on: setUi.cat === 'content'}" ng-show="permissions.canEditSongLists || permissions.canEditLanguages"
+                        ng-click="setUi.cat = 'content'; setUi.drill = true">
+                    <span class="set-cat-ico" aria-hidden="true">🎵</span><span class="set-cat-name"><?php echo T::s('settings.cat.content'); ?></span>
+                </button>
+                <button class="set-cat" ng-class="{on: setUi.cat === 'screens'}" ng-show="permissions.canEditAllSettings"
+                        ng-click="setUi.cat = 'screens'; setUi.drill = true">
+                    <span class="set-cat-ico" aria-hidden="true">🖥️</span><span class="set-cat-name"><?php echo T::s('settings.cat.screens'); ?></span>
+                </button>
+                <button class="set-cat" ng-class="{on: setUi.cat === 'sermon'}" ng-show="permissions.canEditSermonSettings"
+                        ng-click="setUi.cat = 'sermon'; setUi.drill = true">
+                    <span class="set-cat-ico" aria-hidden="true">📖</span><span class="set-cat-name"><?php echo T::s('settings.cat.sermon'); ?></span>
+                </button>
+                <button class="set-cat" ng-class="{on: setUi.cat === 'leader'}" ng-show="permissions.canEditFavoritesOrder || permissions.canEditAllSettings"
+                        ng-click="setUi.cat = 'leader'; setUi.drill = true">
+                    <span class="set-cat-ico" aria-hidden="true">🎤</span><span class="set-cat-name"><?php echo T::s('settings.cat.leader'); ?></span>
+                </button>
+                <button class="set-cat" ng-class="{on: setUi.cat === 'users'}"
+                        ng-click="setUi.cat = 'users'; setUi.drill = true">
+                    <span class="set-cat-ico" aria-hidden="true">👥</span><span class="set-cat-name"><?php echo T::s('settings.cat.users'); ?></span>
+                </button>
+            </nav>
+
+            <div class="set-canvas">
+                <!-- Phone drill-down: back to the category list -->
+                <button class="set-back" ng-click="setUi.drill = false">‹ <?php echo T::s('settings.cat.all'); ?></button>
+                <div class="set-surface">
+
 
         <!-- 0. UI language selector (title deliberately English-only, so it is
              recognisable whatever language the user switched to) -->
-        <div class="settings-card">
+        <div class="settings-card" ng-show="setUi.cat === 'basic'">
             <span class="settings-card-title">🌐 UI language</span>
             <div class="settings-field">
                 <select class="settings-input" ng-model="settings.ui_lang">
@@ -587,7 +726,7 @@
         </div>
 
         <!-- 1. Display name -->
-        <div class="settings-card">
+        <div class="settings-card" ng-show="setUi.cat === 'basic'">
             <span class="settings-card-title">1. <?php echo T::s('settings.card.displayName'); ?></span>
             <div class="settings-field">
                 <input type="text" class="settings-input"
@@ -597,7 +736,7 @@
         </div>
 
         <!-- 2. Favorites order -->
-        <div class="settings-card" ng-show="permissions.canEditFavoritesOrder">
+        <div class="settings-card" ng-show="(permissions.canEditFavoritesOrder) && setUi.cat === 'basic'">
             <span class="settings-card-title">2. <?php echo T::s('settings.card.favoritesOrder'); ?></span>
             <div class="settings-field">
                 <select class="settings-input" ng-model="settings.favorites_order">
@@ -608,7 +747,7 @@
         </div>
 
         <!-- 3. Available song lists -->
-        <div class="settings-card" ng-show="permissions.canEditSongLists">
+        <div class="settings-card" ng-show="(permissions.canEditSongLists) && setUi.cat === 'content'">
             <span class="settings-card-title collapsible" ng-click="toggle('songlists')">
                 <span>3. <?php echo T::s('settings.card.availableLists'); ?></span>
                 <span class="collapse-caret">{{ collapsed.songlists ? '▸' : '▾' }}</span>
@@ -643,7 +782,7 @@
         </div>
 
         <!-- 4. Available languages -->
-        <div class="settings-card" ng-show="permissions.canEditLanguages">
+        <div class="settings-card" ng-show="(permissions.canEditLanguages) && setUi.cat === 'content'">
             <span class="settings-card-title collapsible" ng-click="toggle('langs')">
                 <span>4. <?php echo T::s('settings.card.availableLangs'); ?></span>
                 <span class="collapse-caret">{{ collapsed.langs ? '▸' : '▾' }}</span>
@@ -678,7 +817,7 @@
         </div>
 
         <!-- 5. Background placeholder image -->
-        <div class="settings-card" ng-show="permissions.canEditAllSettings">
+        <div class="settings-card" ng-show="(permissions.canEditAllSettings) && setUi.cat === 'screens'">
             <span class="settings-card-title collapsible" ng-click="toggle('placeholder')">
                 <span>5. <?php echo T::s('settings.card.placeholder'); ?></span>
                 <span class="collapse-caret">{{ collapsed.placeholder ? '▸' : '▾' }}</span>
@@ -710,7 +849,7 @@
         </div>
 
         <!-- 5-7. Main display -->
-        <div class="settings-card" ng-show="permissions.canEditAllSettings">
+        <div class="settings-card" ng-show="(permissions.canEditAllSettings) && setUi.cat === 'screens'">
             <span class="settings-card-title collapsible" ng-click="toggle('maindisplay')">
                 <span><?php echo T::s('settings.card.mainDisplay'); ?></span>
                 <span class="collapse-caret">{{ collapsed.maindisplay ? '▸' : '▾' }}</span>
@@ -762,7 +901,7 @@
         </div>
 
         <!-- 9-13. Streaming display -->
-        <div class="settings-card" ng-show="permissions.canEditAllSettings">
+        <div class="settings-card" ng-show="(permissions.canEditAllSettings) && setUi.cat === 'screens'">
             <span class="settings-card-title collapsible" ng-click="toggle('streaming')">
                 <span><?php echo T::s('settings.card.streamingDisplay'); ?></span>
                 <span class="collapse-caret">{{ collapsed.streaming ? '▸' : '▾' }}</span>
@@ -822,7 +961,7 @@
         </div>
 
         <!-- 14-20. Sermon mode -->
-        <div class="settings-card" ng-show="permissions.canEditSermonSettings">
+        <div class="settings-card" ng-show="(permissions.canEditSermonSettings) && setUi.cat === 'sermon'">
             <span class="settings-card-title collapsible" ng-click="toggle('sermon')">
                 <span><?php echo T::s('settings.card.sermonDisplay'); ?></span>
                 <span class="collapse-caret">{{ collapsed.sermon ? '▸' : '▾' }}</span>
@@ -925,7 +1064,7 @@
         </div>
 
         <!-- Leader screen (verse mode) -->
-        <div class="settings-card" ng-show="permissions.canEditFavoritesOrder || permissions.canEditAllSettings">
+        <div class="settings-card" ng-show="(permissions.canEditFavoritesOrder || permissions.canEditAllSettings) && setUi.cat === 'leader'">
             <span class="settings-card-title collapsible" ng-click="toggle('leaderscreen')">
                 <span><?php echo T::s('settings.card.leaderScreen'); ?></span>
                 <span class="collapse-caret">{{ collapsed.leaderscreen ? '▸' : '▾' }}</span>
@@ -946,7 +1085,7 @@
         </div>
 
         <!-- Group users -->
-        <div class="settings-card">
+        <div class="settings-card" ng-show="setUi.cat === 'users'">
             <span class="settings-card-title"><?php echo T::s('settings.card.groupUsers'); ?></span>
 
             <div ng-repeat="slot in userSlots" class="user-slot-card"
@@ -1045,12 +1184,17 @@
             </button>
         </div>
 
-        <!-- Save all -->
+                </div><!-- /set-surface -->
+            </div><!-- /set-canvas -->
+        </div><!-- /set-body -->
+    </div>
+
+    <!-- Persistent save strip: the existing global Save action (the controller
+         exposes no save / unsaved state, so nothing is shown on the left) -->
+    <div class="set-savebar">
         <button class="btn-save-all" ng-click="saveSettings()">
             <?php echo T::s('settings.button.saveAll'); ?>
         </button>
-
-        <div style="height:60px;"></div>
     </div>
 </div>
 
