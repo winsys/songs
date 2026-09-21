@@ -639,13 +639,13 @@
         /* ============================================================
            SERMON DISPLAY LAYOUT (docs/ui-redesign-sermon-display.md)
            Landscape-only operating surface that always fills the viewport.
-           Tablet: notes (toolbar on top) | preview — 58/42, 55/45 from 1366px.
+           Tablet: notes (toolbar on top) | preview — 55/45 at every tablet width.
            Phone landscape (height <= 540px): notes 62% | dock 50px | preview.
            The notes colours still come from --sn-* (overridable in Settings).
            This block comes last on purpose.
            ============================================================ */
         :root {
-            --sd-notes: 58%;          /* notes share on tablets; the divider is inside it */
+            --sd-notes: 55%;          /* notes share on tablets (preview = 45%, Pavel 2026-09-21); the divider is inside it */
             --sd-dock: 50px;
             --sd-toolbar: #18222C;
             --sd-raised: #24313D;
@@ -656,7 +656,6 @@
             --sn-notes-header: #18222C;
             --sn-notes-border: #3A4652;
         }
-        @media (min-width: 1366px) { :root { --sd-notes: 55%; } }
 
         html, body { width: 100vw; height: 100vh; height: 100dvh; margin: 0; overflow: hidden; }
         body { background: #000; font-family: "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif; }

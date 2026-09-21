@@ -634,6 +634,96 @@
         .set-surface { padding: 0 14px; }
         .set-savebar .btn-save-all { width: 100%; }
     }
+
+    /* ---- Form canvas content (docs/ui-redesign-main-observer-settings-import.md) ----
+       One alignment grid for every field: label column + control column; hints
+       sit under the control. Colour fields, ranges and selects share one height.
+       Ranges stay continuous sliders — the numeric value is part of the label. */
+    .set-surface .settings-card-title { font-size: 15px; margin-bottom: 14px; }
+    .set-surface .settings-field {
+        display: grid;
+        grid-template-columns: minmax(160px, 34%) minmax(0, 1fr);
+        gap: 4px 16px;
+        align-items: center;
+        margin: 0;
+        padding: 10px 0;
+        border-top: 1px solid #EDF1F4;
+    }
+    .set-surface .settings-field > .settings-label { grid-column: 1; margin: 0; font-size: 13px; font-weight: 600; color: #17212B; line-height: 1.35; }
+    .set-surface .settings-field > *:not(.settings-label) { grid-column: 2; min-width: 0; }
+    .set-surface .settings-field > .settings-hint { margin: 0; font-size: 12px; line-height: 1.4; }
+    .set-surface .settings-input { width: 100%; max-width: 420px; height: 40px; }
+    .set-surface textarea.settings-input { height: auto; }
+
+    /* Colour field: swatch + hex value as one compact control */
+    .set-surface .color-row { display: flex; align-items: center; gap: 10px; }
+    .set-surface .color-input-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        height: 40px;
+        padding: 0 10px 0 4px;
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        background: #fff;
+    }
+    .set-surface .color-input-wrap input[type=color] { width: 32px; height: 30px; padding: 0; border: none; background: none; cursor: pointer; }
+    .set-surface .color-hex-label { font-family: Consolas, "Courier New", monospace; font-size: 13px; color: #17212B; }
+    .set-surface .color-preview { display: none; }      /* the swatch already shows the colour */
+
+    /* Range: full-width slider, value stays visible in the label */
+    .set-surface input[type=range].settings-input {
+        height: 28px;
+        padding: 0;
+        border: none;
+        background: transparent;
+        box-shadow: none;
+        accent-color: #176B87;
+    }
+    .set-surface input[type=range].settings-input:focus { box-shadow: none; }
+
+    /* Live display preview */
+    .set-preview {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        max-width: 420px;
+        aspect-ratio: 16 / 7;
+        margin: 0 0 12px auto;
+        padding: 10px 16px;
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        background: #000;
+        color: #fff;
+        text-align: center;
+        overflow: hidden;
+    }
+    .set-preview-text { font-size: 20px; font-weight: 600; line-height: 1.25; }
+
+    /* Radio / checkbox groups inside the grid */
+    .set-surface .radio-row, .set-surface .checkbox-list, .set-surface .scale-row { margin: 0; }
+    .set-surface .checkbox-item, .set-surface .radio-row label { min-height: 36px; }
+
+    /* Group users: compact role rows, one continuous list */
+    .set-surface .user-slot-card {
+        border: none;
+        border-top: 1px solid #DCE3E8;
+        border-radius: 0;
+        margin: 0;
+        padding: 10px 0;
+        background: transparent;
+        box-shadow: none;
+    }
+    .set-surface .user-slot-header { min-height: 44px; }
+    .set-surface .user-slot-fields { padding-top: 8px; }
+
+    @media (max-width: 699px) {
+        .set-surface .settings-field { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+        .set-surface .settings-field > *:not(.settings-label) { grid-column: 1; }
+        .set-surface .settings-input, .set-preview { max-width: none; }
+        .set-preview { margin-left: 0; }
+    }
 </style>
 
 <script type="text/javascript">
@@ -855,6 +945,11 @@
                 <span class="collapse-caret">{{ collapsed.maindisplay ? '▸' : '▾' }}</span>
             </span>
             <div ng-show="!collapsed.maindisplay">
+            <!-- Compact live preview of the values below (view only, nothing extra is stored) -->
+            <div class="set-preview" aria-hidden="true"
+                 ng-style="{'background-color': settings.main_bg_color, 'color': settings.main_font_color, 'font-family': settings.main_font}">
+                <span class="set-preview-text"><?php echo T::s('settings.preview.sample'); ?></span>
+            </div>
 
             <div class="settings-field">
                 <label class="settings-label">5. <?php echo T::s('settings.field.bgColor'); ?></label>
@@ -907,6 +1002,11 @@
                 <span class="collapse-caret">{{ collapsed.streaming ? '▸' : '▾' }}</span>
             </span>
             <div ng-show="!collapsed.streaming">
+            <!-- Compact live preview of the values below (view only, nothing extra is stored) -->
+            <div class="set-preview" aria-hidden="true"
+                 ng-style="{'background-color': settings.streaming_bg_color, 'color': settings.streaming_font_color, 'font-family': settings.streaming_font}">
+                <span class="set-preview-text"><?php echo T::s('settings.preview.sample'); ?></span>
+            </div>
 
             <div class="settings-field">
                 <label class="settings-label">9. <?php echo T::s('settings.field.bgColor'); ?></label>
