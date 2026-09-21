@@ -37,6 +37,8 @@
   "common.button.decrease": "Уменьшить",
   "common.button.delete": "Удалить",
   "common.clearSearch": "Очистить поле поиска",
+  "common.scrollLeft": "Прокрутить влево",
+  "common.scrollRight": "Прокрутить вправо",
   "common.button.increase": "Увеличить",
   "common.button.save": "💾 Сохранить",
   "common.button.send": "Отправить запрос",

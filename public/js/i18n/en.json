@@ -37,6 +37,8 @@
   "common.button.decrease": "Decrease",
   "common.button.delete": "Delete",
   "common.clearSearch": "Clear the search field",
+  "common.scrollLeft": "Scroll left",
+  "common.scrollRight": "Scroll right",
   "common.button.increase": "Increase",
   "common.button.save": "💾 Save",
   "common.button.send": "Send request",

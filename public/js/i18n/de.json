@@ -37,6 +37,8 @@
   "common.button.decrease": "Verkleinern",
   "common.button.delete": "Löschen",
   "common.clearSearch": "Suchfeld leeren",
+  "common.scrollLeft": "Nach links scrollen",
+  "common.scrollRight": "Nach rechts scrollen",
   "common.button.increase": "Vergrößern",
   "common.button.save": "💾 Speichern",
   "common.button.send": "Anfrage senden",

@@ -102,6 +102,34 @@
 .cx-scroll-x > * { flex-shrink: 0; }
 .cx-group { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 
+/* Scrolling chip group with edge arrows (public/js/cx_scroll.js). The arrows
+   show up only when the chips do not fit: .can-left / .can-right. */
+.cx-scroller { position: relative; display: flex; align-items: center; min-width: 0; }
+.cx-scroller > .cx-scroll-x { flex: 1 1 0; }
+.cx-scroll-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 3;
+    display: none;
+    align-items: center;
+    width: 28px;
+    height: 100%;
+    min-height: 30px;
+    padding: 0;
+    border: none;
+    color: var(--cx-active);
+    font-size: 20px;
+    font-weight: 700;
+    line-height: 1;
+    cursor: pointer;
+}
+.cx-scroll-left  { left: 0;  justify-content: center; background: var(--cx-canvas); border-right: 1px solid var(--cx-divider); }
+.cx-scroll-right { right: 0; justify-content: center; background: var(--cx-canvas); border-left: 1px solid var(--cx-divider); }
+.cx-scroller.can-left  > .cx-scroll-left,
+.cx-scroller.can-right > .cx-scroll-right { display: flex; }
+.cx-scroll-btn:hover { color: var(--cx-ink); }
+
 /* ---- Buttons ------------------------------------------------ */
 .cx-btn {
     display: inline-flex;
