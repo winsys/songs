@@ -33,79 +33,6 @@
     @media (max-width: 768px) { .prep-page-wrapper { padding: 14px 10px 48px; } }
     @media (max-width: 480px) { .prep-page-wrapper { padding: 10px 8px 40px; } }
 
-    /* ── Header ────────────────────────────────────────────────── */
-    .prep-header {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
-    }
-    /* Auto-hiding header: a thin trigger strip pinned to the top edge; the
-       header itself is tucked just above the viewport and slides down while
-       the pointer is over the strip (or the header), freeing working space. */
-    .prep-hover-header {
-        position: fixed;
-        top: 0; left: 0; right: 0;
-        height: 8px;
-        z-index: 300;
-    }
-    /* Small handle hint so the hover zone is discoverable; fades out while
-       the header is shown. */
-    .prep-hover-header::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 50%;
-        transform: translateX(-50%);
-        width: 90px; height: 4px;
-        border-radius: 0 0 5px 5px;
-        background: #cbd2da;
-        opacity: 0.7;
-        transition: opacity 0.2s;
-        pointer-events: none;
-    }
-    .prep-hover-header:hover::before { opacity: 0; }
-    .prep-hover-header .prep-header {
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        margin-bottom: 0;
-        padding: 8px 24px;
-        background: #fff;
-        box-shadow: 0 4px 14px -4px rgba(0,0,0,0.20);
-        transform: translateY(-100%);
-        transition: transform 0.22s ease;
-    }
-    .prep-hover-header:hover .prep-header,
-    .prep-hover-header:focus-within .prep-header {
-        transform: translateY(0);
-    }
-    .btn-back {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 7px 14px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 500;
-        color: #5a6272;
-        background: #f4f5f7;
-        border: none;
-        cursor: pointer;
-        transition: all 0.15s;
-        flex-shrink: 0;
-        text-decoration: none;
-    }
-    .btn-back:hover { background: #e8eaed; color: #2c3e50; transform: translateX(-1px); }
-
-    .prep-title-block { flex: 1; }
-    .prep-page-title {
-        font-size: 18px;
-        font-weight: 600;
-        color: #2c3e50;
-        margin: 0;
-        line-height: 1.2;
-    }
-    .prep-page-subtitle { font-size: 12px; color: #95a5a6; margin: 2px 0 0; }
-
     /* ── Section labels ─────────────────────────────────────────── */
     .section-label {
         font-size: 11px;
@@ -798,29 +725,6 @@
     .sermon-list-item.active { background: #ebf3fb; font-weight: 700; color: #1a6db5; }
     .sermon-list-date { color: #95a5a6; font-size: 11px; margin-left: 8px; flex-shrink: 0; }
 
-    /* ── Mobile collapse ─────────────────────────────────────────── */
-    .bible-toggle-btn { display: none; }
-    @media (max-width: 700px) {
-        .prep-two-col { flex-direction: column; }
-        .prep-bible-col { width: 100%; min-width: 0; }
-        .bible-toggle-btn { display: inline-block; }
-        .prep-bible-col.collapsed .prep-bible-inner { display: none; }
-        /* Stacked layout: don't force the editor column to full viewport height. */
-        .prep-editor-col { height: auto; }
-        #sermon-editor { flex: 0 0 auto; height: 60vh; }
-        /* No hover on touch — keep the header in normal flow, always visible. */
-        .prep-hover-header { position: static; height: auto; }
-        .prep-hover-header::before { display: none; }
-        .prep-hover-header .prep-header {
-            position: static;
-            transform: none;
-            box-shadow: none;
-            background: transparent;
-            padding: 0;
-            margin-bottom: 14px;
-        }
-    }
-
     /* ── Fullscreen modal ────────────────────────────────────────── */
     #sermon-img-modal {
         display: none;
@@ -1196,9 +1100,225 @@
         0%, 100% { opacity: 1; }
         50%       { opacity: 0.6; }
     }
+
+    /* ============================================================
+       DOCUMENT-FIRST LAYOUT (docs/ui-redesign-tech-leader.md)
+       Desktop only for now: a 50px application bar (sermon title, date and
+       save actions live in it), a narrow persistent source panel and the
+       document. The page itself never scrolls; the source lists and the
+       editor scroll on their own. Shared tokens: /css/compact.css (.cx-*).
+       This block comes last on purpose: it restyles the components above.
+       ============================================================ */
+    body { background: #EDF1F4; overflow: hidden; }
+
+    .prep-page-wrapper.sp-shell {
+        height: 100vh;
+        max-width: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        min-width: 1000px;
+    }
+
+    /* ---- Application bar --------------------------------------- */
+    .sp-bar { gap: 8px; }
+    .sp-titles { min-width: 0; flex: 0 1 auto; display: flex; flex-direction: column; justify-content: center; }
+    .sp-bar .prep-input { height: 34px; margin: 0; padding: 0 10px; border: 1px solid #DCE3E8; border-radius: 6px; background: #fff; box-shadow: none; }
+    .sp-bar .sp-title-input { flex: 1 1 0; min-width: 160px; font-size: 15px; font-weight: 600; }
+    .sp-bar .sp-date-input { flex: 0 0 120px; width: 120px; font-size: 13px; }
+    .sp-status { flex: 0 0 auto; min-width: 84px; text-align: right; font-size: 12px; margin: 0; }
+    .sp-rel { position: relative; flex-shrink: 0; }
+    .sp-bar .btn-list-toggle, .sp-bar .btn-save { width: auto; margin: 0; }
+    .sp-bar .btn-list-toggle { background: #fff; border: 1px solid #DCE3E8; color: #17212B; border-radius: 6px; padding: 0 12px; height: 32px; font-size: 13px; }
+    .sp-bar .btn-list-toggle:hover, .sp-bar .btn-list-toggle.is-active { border-color: #176B87; color: #176B87; background: #fff; }
+    .sp-bar .btn-save { background: #176B87; border-color: #176B87; height: 32px; padding: 0 14px; font-size: 13px; transform: none; box-shadow: none; }
+    .sp-bar .btn-save:hover { background: #125a72; }
+    /* The print header is filled by the export code only; its empty h1/p
+       margins must not push the 100vh shell down. */
+    #sermon-print-header { display: none; }
+    @media print { #sermon-print-header { display: block; } }
+    .sp-sermons-pop {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        width: 360px;
+        max-height: 60vh;
+        overflow-y: auto;
+        z-index: 200;
+        border: 1px solid #DCE3E8;
+        border-radius: 8px;
+        background: #fff;
+        box-shadow: 0 10px 30px rgba(23,33,43,0.22);
+    }
+    .sp-save { display: flex; flex-shrink: 0; }
+    .sp-save .cx-btn:first-child { border-radius: 6px 0 0 6px; }
+    .sp-save .cx-btn.dropdown-toggle { border-radius: 0 6px 6px 0; border-left: 1px solid rgba(255,255,255,0.35); padding: 0 9px; }
+    @media (max-width: 1365px) {
+        .sp-titles .cx-bar-meta { display: none; }
+    }
+
+    /* ---- Body ---------------------------------------------------- */
+    .prep-two-col {
+        flex: 1 1 0;
+        min-height: 0;
+        display: flex;
+        gap: 0;
+        margin: 0;
+        align-items: stretch;
+    }
+    .prep-bible-col {
+        width: 272px;
+        min-width: 0;
+        flex: 0 0 272px;
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        background: #fff;
+        border-right: 1px solid #DCE3E8;
+    }
+    .prep-bible-col.collapsed { display: none; }
+    .prep-editor-col { flex: 1 1 0; min-width: 0; min-height: 0; height: auto; display: flex; flex-direction: column; }
+
+    /* ---- Source panel ---------------------------------------------- */
+    .left-panel-tabs { flex-shrink: 0; border-bottom: 1px solid #DCE3E8; }
+    .left-tab-btn,
+    .left-tab-btn:first-child,
+    .left-tab-btn:last-child {
+        height: 38px;
+        padding: 0 6px;
+        border: none;
+        border-bottom: 2px solid transparent;
+        border-radius: 0;
+        background: #fff;
+        color: #6E7883;
+        font-size: 13px;
+        font-weight: 600;
+        letter-spacing: 0;
+    }
+    .left-tab-btn.active-tab     { color: #176B87; border: none; border-bottom: 2px solid #176B87; }
+    .left-tab-btn.active-tab-msg { color: #765276; border: none; border-bottom: 2px solid #765276; }
+    .left-tab-content {
+        flex: 1 1 0;
+        min-height: 0;
+        max-height: none;
+        border: none;
+        border-radius: 0;
+        padding: 8px;
+    }
+    .sp-tr-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 8px; }
+    .sp-lang-row { display: flex; gap: 3px; flex-shrink: 0; }
+    .tr-btn, .lang-toggle-btn { border-radius: 6px; }
+    .tr-btn.active-tr, .lang-toggle-btn.lang-active { background: #E6F1F4; border-color: #176B87; color: #176B87; }
+
+    .sp-crumbs { display: flex; align-items: center; gap: 2px; min-height: 30px; margin-bottom: 6px; font-size: 13px; min-width: 0; }
+    .sp-crumb {
+        border: none;
+        background: transparent;
+        color: #176B87;
+        padding: 4px 6px;
+        border-radius: 6px;
+        cursor: pointer;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+    }
+    .sp-crumb:hover { background: #E6F1F4; }
+    .sp-crumb.sp-crumb-current { color: #17212B; font-weight: 600; }
+    .sp-crumb-sep { color: #6E7883; flex-shrink: 0; }
+
+    .prep-bible-search { border: 1px solid #DCE3E8; border-radius: 6px; height: 34px; }
+    .prep-bible-search:focus { border-color: #176B87; box-shadow: 0 0 0 3px rgba(23,107,135,0.14); outline: none; }
+    .prep-panel { border: 1px solid #DCE3E8; border-radius: 6px; }
+    .prep-panel-title { border-radius: 0; text-transform: none; letter-spacing: 0; font-size: 12px; color: #6E7883; background: #fff; border-bottom: 1px solid #DCE3E8; }
+    /* One navigation level at a time, each using the whole panel height.
+       (The ids are needed to outrank the ":not(#prep-verses-panel)" rule above.) */
+    .prep-bible-inner > #prep-books-panel,
+    .prep-bible-inner > #prep-chapters-panel,
+    .prep-bible-inner > #prep-verses-panel { flex: 1 1 0; min-height: 0; height: auto; margin-top: 6px; }
+    .sp-chapter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 4px; padding: 8px; }
+    .sp-chapter-grid .prep-chapter-btn { height: 32px; margin: 0; border: 1px solid #DCE3E8; border-radius: 6px; background: #fff; color: #17212B; }
+    .sp-chapter-grid .prep-chapter-btn.btn-success { background: #176B87; border-color: #176B87; color: #fff; }
+    .prep-list-item { border-left: 3px solid transparent; }
+    .prep-list-item.selected { background: #E6F1F4; border-left-color: #176B87; color: #176B87; font-weight: 600; }
+    /* Verses / paragraphs: a continuous list with thin separators */
+    .prep-verse-item {
+        width: auto;
+        margin: 0;
+        border: none;
+        border-left: 3px solid transparent;
+        border-bottom: 1px solid #EDF1F4;
+        border-radius: 0;
+        font-size: 13px;
+        line-height: 1.45;
+    }
+    .prep-verse-item.verse-selected { background: #E6F1F4; border-left-color: #176B87; color: #17212B; }
+    /* Message sources: message accent instead of the active blue */
+    .sp-msg-code { display: block; font-size: 10px; font-weight: 700; color: #765276; }
+    .prep-list-item.sp-msg-result.selected { background: #F3ECF3; border-left-color: #765276; color: #17212B; }
+    .prep-verse-item.sp-para-item { color: #17212B; }
+    .prep-verse-item.sp-para-item.verse-selected { background: #F3ECF3; border-left-color: #765276; }
+    .prep-panel-title.sp-msg-title { display: flex; align-items: center; gap: 6px; color: #765276; font-weight: 600; }
+    .btn-insert-bible, .btn-insert-msg { flex-shrink: 0; margin-top: 8px; border-radius: 6px; }
+    .btn-insert-bible { background: #176B87; border-color: #176B87; color: #fff; }
+    .btn-insert-bible[disabled] { background: #EDF1F4; color: #6E7883; }
+    .btn-insert-bible:hover:not([disabled]) { background: #125a72; }
+    .btn-insert-msg { background: #765276; border-color: #765276; color: #fff; }
+
+    /* ---- Toolbar: one 40px row -------------------------------------- */
+    .editor-toolbar {
+        flex-wrap: nowrap;
+        gap: 4px;
+        height: 40px;
+        padding: 0 12px;
+        background: #EDF1F4;
+        border: none;
+        border-bottom: 1px solid #DCE3E8;
+        border-radius: 0;
+        overflow: visible;
+    }
+    .toolbar-btn {
+        height: 30px;
+        min-width: 30px;
+        padding: 0 8px;
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        background: #fff;
+        color: #17212B;
+        font-size: 13px;
+        line-height: 1;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    .toolbar-btn:hover { background: #fff; border-color: #176B87; color: #176B87; }
+    .toolbar-select { height: 30px; border: 1px solid #DCE3E8; border-radius: 6px; flex-shrink: 0; }
+    .toolbar-sep { flex-shrink: 0; }
+    .sp-fontsize { font-size: 11px; color: #6E7883; min-width: 30px; text-align: center; flex-shrink: 0; }
+    .sp-color-label { font-size: 12px; color: #6E7883; }
+    .color-picker-wrap { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .sp-insert { position: relative; flex-shrink: 0; }
+    .sp-insert-toggle { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+    .sp-insert-menu { min-width: 200px; border-radius: 8px; border: 1px solid #DCE3E8; box-shadow: 0 10px 30px rgba(23,33,43,0.22); }
+    .sp-insert-menu > li > a { padding: 7px 14px; font-size: 13px; cursor: pointer; }
+
+    /* ---- Document surface --------------------------------------------- */
+    #sermon-editor {
+        border: none;
+        border-radius: 0;
+        padding: 28px max(32px, calc((100% - 860px) / 2)) 80px;   /* ~860px readable column, centred */
+        font-family: Georgia, "Times New Roman", serif;
+        color: #17212B;
+    }
+    /* Application chrome inside the document stays sans serif */
+    #sermon-editor .bible-cite,
+    #sermon-editor .message-cite,
+    #sermon-editor .sermon-video-wrap,
+    #sermon-editor .sermon-slide,
+    #sermon-editor .sermon-ppt-slide { font-family: "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif; }
 </style>
 
-<div ng-controller="SermonPrep">
+<div ng-controller="SermonPrep" class="cx-page">
     <div class="ws-disconnect-banner" ng-if="wsConnected === false">
         <?php echo T::s('common.ws.disconnected'); ?>
     </div>
@@ -1208,69 +1328,40 @@
         <p  id="sermon-print-date"></p>
     </div>
 
-    <div class="prep-page-wrapper">
+    <div class="prep-page-wrapper sp-shell">
 
-        <!-- ── Header (auto-hidden; slides down on hover at the top edge) ── -->
-        <div class="prep-hover-header">
-            <div class="prep-header">
-                <button class="btn-back" onclick="window.location.href='/index'">
-                    <?php echo T::s('common.button.back'); ?>
-                </button>
-                <div class="prep-title-block">
-                    <div class="prep-page-title"><?php echo T::s('prep.title'); ?></div>
-                    <div class="prep-page-subtitle"><?php echo htmlspecialchars($_SESSION['userName']) ?></div>
-                </div>
-                <button class="bible-toggle-btn btn btn-default btn-sm" ng-click="biblePanelCollapsed = !biblePanelCollapsed">
-                    📖
-                </button>
+        <!-- ── Application bar: back · page title · sermon title + date · status / list / new / save ── -->
+        <header class="cx-bar sp-bar">
+            <button class="cx-btn" onclick="window.location.href='/index'">
+                <?php echo T::s('common.button.back'); ?>
+            </button>
+            <div class="sp-titles">
+                <div class="cx-bar-title"><?php echo T::s('prep.title'); ?></div>
+                <div class="cx-bar-meta"><?php echo htmlspecialchars($_SESSION['userName']) ?></div>
             </div>
-        </div>
 
-        <!-- ── Title + Date + Save + List ─────────────────────────── -->
-        <div class="row" style="margin-bottom: 16px;">
-            <div class="col-xs-12 col-sm-4">
-                <label class="prep-field-label"><?php echo T::s('prep.label.title'); ?></label>
-                <input type="text"
-                       class="prep-input prep-title-input"
-                       ng-model="sermon.title" />
-            </div>
-            <div class="col-xs-12 col-sm-2">
-                <label class="prep-field-label"><?php echo T::s('prep.label.date'); ?></label>
-                <input type="text"
-                       class="prep-input"
-                       placeholder="<?php echo T::s('prep.placeholder.date'); ?>"
-                       ng-model="sermon.date" />
-            </div>
-            <div class="col-xs-12 col-sm-2">
-                <label class="prep-field-label">&nbsp;</label>
-                <div class="btn-group" style="width:100%; display:flex;">
-                    <button class="btn-save" style="flex:1; border-radius:8px 0 0 8px;" ng-click="saveSermon()"><?php echo T::s('common.button.save'); ?></button>
-                    <button class="btn-save dropdown-toggle" data-toggle="dropdown"
-                            style="border-radius:0 8px 8px 0; border-left:1px solid rgba(255,255,255,0.35); padding:8px 10px; flex-shrink:0;">
-                        <span class="caret"></span>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-right" style="min-width:150px;">
-                        <li><a href ng-click="$event.preventDefault(); exportToMarkdown()"><?php echo T::s('prep.button.exportMd'); ?></a></li>
-                        <li><a href ng-click="$event.preventDefault(); exportToPdf()"><?php echo T::s('prep.button.exportPdf'); ?></a></li>
-                    </ul>
-                </div>
-                <span class="save-status" ng-class="{'saved': saveStatus === 'saved', 'saving': saveStatus === 'saving'}"
-                      style="display:block; min-height:16px; margin-top:3px;">
-                    {{ saveStatus === 'saving' ? ('<?php echo T::s('prep.status.saving'); ?>') : (saveStatus === 'saved' ? ('<?php echo T::s('prep.status.saved'); ?>') : '') }}
-                </span>
-            </div>
-            <div class="col-xs-12 col-sm-4" style="position:relative;">
-                <label class="prep-field-label">&nbsp;</label>
-                <div style="display:flex; gap:6px;">
-                    <button class="btn-list-toggle" style="flex:1;" ng-click="showSermonList = !showSermonList">
-                        <?php echo T::s('prep.button.list'); ?>
-                    </button>
-                    <button class="btn-list-toggle" style="flex:1;" ng-click="newSermon()">
-                        <?php echo T::s('prep.button.new'); ?>
-                    </button>
-                </div>
-                <div class="sermons-sidebar" ng-show="showSermonList"
-                     style="position:absolute; top:100%; left:15px; right:15px; z-index:200; max-height:320px; overflow-y:auto; margin-top:2px; box-shadow:0 6px 24px rgba(0,0,0,0.16);">
+            <input type="text"
+                   class="cx-input prep-input prep-title-input sp-title-input"
+                   placeholder="<?php echo T::s('prep.label.title'); ?>"
+                   aria-label="<?php echo T::s('prep.label.title'); ?>"
+                   ng-model="sermon.title" />
+            <input type="text"
+                   class="cx-input prep-input sp-date-input"
+                   placeholder="<?php echo T::s('prep.placeholder.date'); ?>"
+                   aria-label="<?php echo T::s('prep.label.date'); ?>"
+                   ng-model="sermon.date" />
+
+            <span class="save-status sp-status" ng-class="{'saved': saveStatus === 'saved', 'saving': saveStatus === 'saving'}">
+                {{ saveStatus === 'saving' ? ('<?php echo T::s('prep.status.saving'); ?>') : (saveStatus === 'saved' ? ('<?php echo T::s('prep.status.saved'); ?>') : '') }}
+            </span>
+
+            <!-- Sermon list popover -->
+            <div class="sp-rel">
+                <button class="cx-btn btn-list-toggle" ng-click="showSermonList = !showSermonList"
+                        ng-class="showSermonList ? 'is-active' : ''">
+                    <?php echo T::s('prep.button.list'); ?>
+                </button>
+                <div class="sermons-sidebar sp-sermons-pop" ng-show="showSermonList">
                     <div class="sermons-sidebar-title">
                         <span><?php echo T::s('prep.panel.sermonsTitle'); ?></span>
                         <span ng-click="showSermonList=false" style="cursor:pointer; font-size:16px; color:#95a5a6; line-height:1;">×</span>
@@ -1297,13 +1388,35 @@
                     </div>
                 </div>
             </div>
-        </div>
+            <button class="cx-btn btn-list-toggle" ng-click="newSermon()">
+                <?php echo T::s('prep.button.new'); ?>
+            </button>
 
-        <!-- ── Two-column body ────────────────────────────────────── -->
+            <!-- Save + export -->
+            <div class="btn-group sp-save">
+                <button class="cx-btn cx-btn-primary btn-save" ng-click="saveSermon()"><?php echo T::s('common.button.save'); ?></button>
+                <button class="cx-btn cx-btn-primary btn-save dropdown-toggle" data-toggle="dropdown"
+                        aria-label="<?php echo T::s('prep.button.exportPdf'); ?>">
+                    <span class="caret"></span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-right" style="min-width:150px;">
+                    <li><a href ng-click="$event.preventDefault(); exportToMarkdown()"><?php echo T::s('prep.button.exportMd'); ?></a></li>
+                    <li><a href ng-click="$event.preventDefault(); exportToPdf()"><?php echo T::s('prep.button.exportPdf'); ?></a></li>
+                </ul>
+            </div>
+
+            <button class="cx-btn cx-btn-icon bible-toggle-btn"
+                    ng-click="biblePanelCollapsed = !biblePanelCollapsed"
+                    ng-class="!biblePanelCollapsed ? 'is-active' : ''"
+                    title="<?php echo T::s('prep.tab.bible'); ?> / <?php echo T::s('prep.tab.message'); ?>"
+                    aria-label="<?php echo T::s('prep.tab.bible'); ?> / <?php echo T::s('prep.tab.message'); ?>">📖</button>
+        </header>
+
+        <!-- ── Two-column body: narrow source panel + document ──────── -->
         <div class="prep-two-col">
 
-            <!-- ===== Left panel: Bible / Messages tabs ===== -->
-            <div class="prep-bible-col" ng-class="{collapsed: biblePanelCollapsed}">
+            <!-- ===== Source panel: Bible / Messages tabs ===== -->
+            <div class="prep-bible-col" ng-class="{collapsed: biblePanelCollapsed}" ng-init="nav = {up: 0}">
 
                 <!-- Tab buttons -->
                 <div class="left-panel-tabs">
@@ -1322,17 +1435,20 @@
                 <!-- Tab content wrapper -->
                 <div class="left-tab-content">
 
-                    <!-- ── BIBLE TAB ── -->
+                    <!-- ── BIBLE TAB ── progressive navigation: books › chapters › verses.
+                         Presentation only: the state is still selectedBook / selectedChapter;
+                         nav.up (0 = deepest level, 1 = chapters, 2 = books) is a view-only
+                         override used by the breadcrumb. -->
                     <div ng-show="leftPanelTab === 'bible'" class="prep-bible-inner">
 
                         <!-- Translation buttons + language toggles -->
-                        <div style="margin-bottom:8px; display:flex; flex-wrap:wrap; gap:4px; align-items:center;">
+                        <div class="sp-tr-row">
                             <button ng-repeat="tr in getFilteredBibleTranslations()"
                                     class="tr-btn"
                                     ng-class="{'active-tr': bibleTranslationId == tr.ID}"
                                     ng-click="setBibleTranslation(tr.ID)">{{ tr.NAME }}</button>
 
-                            <div style="margin-left:6px; display:flex; gap:3px; flex-shrink:0;">
+                            <div class="sp-lang-row">
                             <button ng-repeat="lang in prepLangList"
                                     class="lang-toggle-btn"
                                     ng-class="{
@@ -1345,43 +1461,52 @@
                         </div>
                         </div>
 
-                        <!-- Book search -->
+                        <!-- Breadcrumb: Books › Book › chapter -->
+                        <div class="sp-crumbs" ng-show="selectedBook">
+                            <button class="sp-crumb" ng-click="nav.up = 2"><?php echo T::s('prep.panel.books'); ?></button>
+                            <span class="sp-crumb-sep">›</span>
+                            <button class="sp-crumb" ng-click="nav.up = 1"
+                                    ng-class="{'sp-crumb-current': !selectedChapter || nav.up === 1}">{{ getBookName(selectedBook) }}</button>
+                            <span class="sp-crumb-sep" ng-show="selectedChapter">›</span>
+                            <button class="sp-crumb sp-crumb-current" ng-show="selectedChapter"
+                                    ng-click="nav.up = 0">{{ selectedChapter }}</button>
+                        </div>
+
+                        <!-- Book search (books level only) -->
                         <input type="text"
                                class="prep-bible-search"
+                               ng-show="!selectedBook || nav.up === 2"
                                placeholder="<?php echo T::s('prep.placeholder.bookSearch'); ?>"
                                ng-model="bookSearchQuery" />
 
-                        <!-- Books panel -->
-                        <div class="prep-panel" id="prep-books-panel" style="height:20vh; flex-shrink:0;">
-                            <div class="prep-panel-title"><?php echo T::s('prep.panel.books'); ?></div>
+                        <!-- Books level -->
+                        <div class="prep-panel sp-level" id="prep-books-panel"
+                             ng-show="!selectedBook || nav.up === 2">
                             <div class="prep-list-item"
                                  ng-repeat="book in getFilteredBooks()"
                                  ng-class="{selected: selectedBook && selectedBook.ID === book.ID}"
-                                 ng-click="selectBook(book)">{{ getBookName(book) }}</div>
+                                 ng-click="nav.up = 0; selectBook(book)">{{ getBookName(book) }}</div>
                             <div ng-show="!bibleTranslationId" style="padding:10px; color:#b0b8c1; font-size:11px;">
                                 <?php echo T::s('prep.choosTranslation'); ?>
                             </div>
                         </div>
 
-                        <!-- Chapters panel -->
-                        <div class="prep-panel" id="prep-chapters-panel" style="height:14vh; margin-top:6px; flex-shrink:0;" ng-show="selectedBook">
-                            <div class="prep-panel-title"><?php echo T::s('prep.panel.chapters'); ?></div>
-                            <div style="display:flex; flex-wrap:wrap; gap:4px; padding:8px;">
+                        <!-- Chapters level -->
+                        <div class="prep-panel sp-level" id="prep-chapters-panel"
+                             ng-show="selectedBook && nav.up !== 2 && (!selectedChapter || nav.up === 1)">
+                            <div class="sp-chapter-grid">
                                 <button class="prep-chapter-btn btn btn-xs"
                                         ng-repeat="ch in bibleChapters"
                                         ng-class="selectedChapter == ch ? 'btn-success' : ''"
-                                        ng-click="selectChapter(ch)">{{ ch }}</button>
+                                        ng-click="nav.up = 0; selectChapter(ch)">{{ ch }}</button>
                             </div>
                         </div>
 
-                        <!-- Verses panel -->
-                        <div class="prep-panel" id="prep-verses-panel" style="flex:1 1 auto; min-height:120px; margin-top:6px;" ng-show="selectedChapter">
-                            <div class="prep-panel-title">
-                                <?php echo T::s('prep.panel.verses'); ?>
-                                <span ng-show="selectedBibleVerseNums.length > 0"
-                                      style="color:#1a6db5; font-size:10px; font-weight:normal; margin-left:6px; text-transform:none;">
+                        <!-- Verses level -->
+                        <div class="prep-panel sp-level" id="prep-verses-panel"
+                             ng-show="selectedBook && selectedChapter && nav.up === 0">
+                            <div class="prep-panel-title" ng-show="selectedBibleVerseNums.length > 0">
                                 {{ ('<?php echo T::s('prep.versesSelectedSuffix'); ?>').replace('{count}', selectedBibleVerseNums.length) }}
-                            </span>
                             </div>
                             <span class="prep-verse-item"
                                   ng-repeat="v in preparedVerses"
@@ -1394,7 +1519,7 @@
                             </div>
                         </div>
 
-                        <!-- Insert Bible citation button -->
+                        <!-- Insert Bible citation button: pinned at the bottom of the panel -->
                         <button class="btn-insert-bible"
                                 ng-disabled="selectedBibleVerseNums.length === 0"
                                 ng-click="insertBibleCitation()">
@@ -1420,7 +1545,7 @@
                                    ng-change="searchMessagesPrep()"
                                    style="margin-top:4px;" />
 
-                            <div style="color:#b0b8c1; font-size:11px; padding: 4px 2px 6px;"
+                            <div style="color:#6E7883; font-size:11px; padding: 4px 2px 6px;"
                                  ng-show="prepMsgTitleQuery.length < 2 && prepMsgTextQuery.length < 2">
                                 <?php echo T::s('prep.hint.minChars'); ?>
                             </div>
@@ -1430,13 +1555,13 @@
                                  style="height:24vh; margin-top:4px; flex-shrink:0;"
                                  ng-show="prepMsgTitleQuery.length >= 2 || prepMsgTextQuery.length >= 2">
                                 <div class="prep-panel-title">{{ ('<?php echo T::s('prep.label.results'); ?>').replace('{count}', prepMsgResults.length) }}</div>
-                                <div class="prep-list-item"
+                                <div class="prep-list-item sp-msg-result"
                                      ng-repeat="msg in prepMsgResults"
                                      ng-class="{selected: prepSelectedMessage && prepSelectedMessage.ID === msg.ID}"
                                      ng-click="selectMessagePrep(msg)">
-                                    <span style="color:#1a6db5; font-size:10px; font-weight:700; display:block; letter-spacing:0.3px;">{{ msg.CODE }}</span>
+                                    <span class="sp-msg-code">{{ msg.CODE }}</span>
                                     <span style="display:block; line-height:1.3; font-size:12px;">{{ msg.TITLE }}</span>
-                                    <span ng-if="msg.CITY" style="color:#95a5a6; font-size:10px; display:block; margin-top:1px;">{{ msg.CITY }}</span>
+                                    <span ng-if="msg.CITY" style="color:#6E7883; font-size:10px; display:block; margin-top:1px;">{{ msg.CITY }}</span>
                                 </div>
                                 <div ng-show="prepMsgResults.length === 0"
                                      style="padding:10px; color:#b0b8c1; font-size:11px;">
@@ -1450,7 +1575,7 @@
                              id="prep-msg-para-panel"
                              style="flex:1 1 auto; min-height:140px; margin-top:6px;"
                              ng-show="prepSelectedMessage">
-                            <div class="prep-panel-title" style="color:#6a1b9a; text-transform:none; font-size:12px; display:flex; align-items:center; gap:6px;">
+                            <div class="prep-panel-title sp-msg-title">
                                 <!-- "Back" button — visible when the panel is expanded -->
                                 <button ng-show="prepMsgParaExpanded"
                                         ng-click="collapseMsgSearch()"
@@ -1458,12 +1583,11 @@
                                         title="<?php echo T::s('prep.tip.backToSearch'); ?>">‹</button>
                                 <span style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">{{ prepSelectedMessage.TITLE }}</span>
                             </div>
-                            <span class="prep-verse-item"
+                            <span class="prep-verse-item sp-para-item"
                                   ng-repeat="para in prepMsgParagraphs"
                                   ng-class="{'verse-selected': prepSelectedParaIdx === para.idx}"
                                   ng-click="togglePrepPara(para)"
                                   ng-dblclick="togglePrepPara(para); insertMessageCitation()"
-                                  style="color:#333;"
                                   ng-bind-html="highlightPrepMsg(para.text)"></span>
                             <div ng-show="prepMsgParagraphs.length === 0"
                                  style="padding:10px; color:#b0b8c1; font-size:11px;">
@@ -1482,23 +1606,23 @@
                 </div><!-- /left-tab-content -->
             </div><!-- /prep-bible-col -->
 
-            <!-- ===== Editor (right) ===== -->
+            <!-- ===== Editor ===== -->
             <div class="prep-editor-col">
 
-                <!-- Toolbar -->
+                <!-- Toolbar: formatting stays visible, rare insert actions live in one dropdown -->
                 <div class="editor-toolbar">
-                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.undo'); ?>"
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.undo'); ?>" aria-label="<?php echo T::s('prep.tool.undo'); ?>"
                             ng-mousedown="$event.preventDefault(); execFmt('undo')">↩</button>
-                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.redo'); ?>"
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.redo'); ?>" aria-label="<?php echo T::s('prep.tool.redo'); ?>"
                             ng-mousedown="$event.preventDefault(); execFmt('redo')">↪</button>
                     <div class="toolbar-sep"></div>
-                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.bold'); ?>"
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.bold'); ?>" aria-label="<?php echo T::s('prep.tool.bold'); ?>"
                             ng-mousedown="$event.preventDefault(); execFmt('bold')"><b>B</b></button>
-                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.underline'); ?>"
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.underline'); ?>" aria-label="<?php echo T::s('prep.tool.underline'); ?>"
                             ng-mousedown="$event.preventDefault(); execFmt('underline')"><u>U</u></button>
-                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.italic'); ?>"
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.italic'); ?>" aria-label="<?php echo T::s('prep.tool.italic'); ?>"
                             ng-mousedown="$event.preventDefault(); execFmt('italic')"><i>I</i></button>
-                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.strike'); ?>"
+                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.strike'); ?>" aria-label="<?php echo T::s('prep.tool.strike'); ?>"
                             ng-mousedown="$event.preventDefault(); execFmt('strikeThrough')"><strike>S</strike></button>
                     <div class="toolbar-sep"></div>
                     <button class="toolbar-btn" title="<?php echo T::s('prep.tool.ulist'); ?>"
@@ -1526,19 +1650,16 @@
 
                     <!-- Font size -->
                     <button class="toolbar-btn" title="<?php echo T::s('prep.tool.fontDec'); ?>"
-                            ng-mousedown="$event.preventDefault(); changePrepFontSize(-1)"
-                            style="padding:4px 8px; font-size:13px; font-weight:700;">A−</button>
-                    <span style="font-size:11px; color:#666; min-width:28px; text-align:center; display:inline-block; line-height:1;"
-                          ng-bind="prepFontSize + 'px'"></span>
+                            ng-mousedown="$event.preventDefault(); changePrepFontSize(-1)">A−</button>
+                    <span class="sp-fontsize" ng-bind="prepFontSize + 'px'"></span>
                     <button class="toolbar-btn" title="<?php echo T::s('prep.tool.fontInc'); ?>"
-                            ng-mousedown="$event.preventDefault(); changePrepFontSize(+1)"
-                            style="padding:4px 8px; font-size:13px; font-weight:700;">A+</button>
+                            ng-mousedown="$event.preventDefault(); changePrepFontSize(+1)">A+</button>
 
                     <div class="toolbar-sep"></div>
 
                     <!-- Color picker -->
                     <div class="color-picker-wrap" style="position:relative;">
-                        <span style="font-size:11px; color:#7f8c8d; font-weight:600;"><?php echo T::s('prep.label.color'); ?></span>
+                        <span class="sp-color-label"><?php echo T::s('prep.label.color'); ?></span>
                         <span class="color-swatch" ng-style="{'background': currentColor}"
                               ng-mousedown="$event.preventDefault(); toggleColorPicker()" title="<?php echo T::s('prep.tip.textColor'); ?>"></span>
                         <div class="color-dropdown" ng-show="showColorPicker">
@@ -1550,31 +1671,35 @@
 
                     <div class="toolbar-sep"></div>
 
-                    <!-- Image upload -->
-                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.insertImg'); ?>"
-                            ng-class="{'uploading': uploadingImage}"
-                            ng-mousedown="$event.preventDefault()"
-                            ng-click="!uploadingImage && triggerImageUpload()"
-                            style="padding:5px 10px; display:inline-flex; align-items:center; gap:5px;">
-                        <span ng-if="uploadingImage" class="upload-spinner"></span>
-                        <span ng-if="!uploadingImage" style="font-size:15px; line-height:1;">🖼️</span>
-                        <span ng-if="!uploadingImage" style="font-size:12px; font-weight:600;"><?php echo T::s('prep.tool.imgLabel'); ?></span>
-                        <span ng-if="uploadingImage" style="font-size:12px; font-weight:600;"><?php echo T::s('common.loading'); ?></span>
-                    </button>
-                    <input type="file" id="sermon-image-input" accept="image/*" style="display:none;" />
-
-                    <div class="toolbar-sep"></div>
-
-                    <!-- Insert video button -->
-                    <div class="video-insert-wrap">
-                        <button class="toolbar-btn"
-                                title="<?php echo T::s('prep.tool.insertVideo'); ?>"
+                    <!-- "Insert" dropdown: image, video, slide, selection-to-slide, PowerPoint, draw.io.
+                         The wrapper keeps the .video-insert-wrap class: sermon_prep.js closes the
+                         video panel on a click outside of it. mousedown is prevented everywhere so
+                         the editor keeps its caret; each item closes the menu itself because some
+                         handlers stop the click from reaching Bootstrap. -->
+                    <div class="video-insert-wrap dropdown sp-insert">
+                        <button class="toolbar-btn dropdown-toggle sp-insert-toggle" data-toggle="dropdown"
                                 ng-mousedown="$event.preventDefault()"
-                                ng-click="toggleVideoPanel($event)"
-                                style="padding:5px 10px; display:inline-flex; align-items:center; gap:5px;">
-                            <span style="font-size:15px; line-height:1;">🎥</span>
-                            <span style="font-size:12px; font-weight:600;"><?php echo T::s('prep.tool.videoLabel'); ?></span>
+                                ng-class="{'uploading': uploadingImage || uploadingVideo || importingPptx || importingDrawio}">
+                            <span ng-if="uploadingImage || uploadingVideo || importingPptx || importingDrawio" class="upload-spinner"></span>
+                            <?php echo T::s('prep.tool.insertMenu'); ?> <span class="caret"></span>
                         </button>
+                        <ul class="dropdown-menu sp-insert-menu" onmousedown="event.preventDefault()"
+                            onclick="jQuery(this).closest('.dropdown').removeClass('open')">
+                            <li><a href ng-click="$event.preventDefault(); !uploadingImage && triggerImageUpload()"
+                                   title="<?php echo T::s('prep.tool.insertImg'); ?>">🖼️ <?php echo T::s('prep.tool.imgLabel'); ?></a></li>
+                            <li><a href ng-click="toggleVideoPanel($event)"
+                                   title="<?php echo T::s('prep.tool.insertVideo'); ?>">🎥 <?php echo T::s('prep.tool.videoLabel'); ?></a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href ng-click="$event.preventDefault(); insertSlide()"
+                                   title="<?php echo T::s('prep.tool.newSlide'); ?>">🖥️ <?php echo T::s('prep.tool.slideLabel'); ?></a></li>
+                            <li><a href ng-click="$event.preventDefault(); convertSelectionToSlide()"
+                                   title="<?php echo T::s('prep.tool.toSlide'); ?>">⬛ <?php echo T::s('prep.tool.toSlideLabel'); ?></a></li>
+                            <li role="separator" class="divider"></li>
+                            <li><a href ng-click="$event.preventDefault(); !importingPptx && triggerPptxImport()"
+                                   title="<?php echo T::s('prep.tool.importPpt'); ?>">📊 PowerPoint</a></li>
+                            <li><a href ng-click="$event.preventDefault(); !importingDrawio && triggerDrawioImport()"
+                                   title="<?php echo T::s('prep.tool.importDrawio'); ?>">📐 draw.io</a></li>
+                        </ul>
 
                         <div class="video-insert-panel" ng-show="showVideoPanel"
                              ng-mousedown="$event.stopPropagation()">
@@ -1602,56 +1727,11 @@
                         </div>
                     </div>
 
-                    <!-- Hidden input for the video file -->
+                    <!-- Hidden file inputs -->
+                    <input type="file" id="sermon-image-input" accept="image/*" style="display:none;" />
                     <input type="file" id="sermon-video-input" accept="video/*" style="display:none" />
-
-                    <div class="toolbar-sep"></div>
-
-                    <!-- Insert slide -->
-                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.newSlide'); ?>"
-                            ng-mousedown="$event.preventDefault()"
-                            ng-click="insertSlide()"
-                            style="padding:5px 10px; display:inline-flex; align-items:center; gap:5px;">
-                        <span style="font-size:15px; line-height:1;">🖥️</span>
-                        <span style="font-size:12px; font-weight:600;"><?php echo T::s('prep.tool.slideLabel'); ?></span>
-                    </button>
-
-                    <!-- Convert selection to slide -->
-                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.toSlide'); ?>"
-                            ng-mousedown="$event.preventDefault()"
-                            ng-click="convertSelectionToSlide()"
-                            style="padding:5px 10px; display:inline-flex; align-items:center; gap:5px;">
-                        <span style="font-size:15px; line-height:1;">⬛</span>
-                        <span style="font-size:12px; font-weight:600;"><?php echo T::s('prep.tool.toSlideLabel'); ?></span>
-                    </button>
-
-                    <!-- PowerPoint import -->
-                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.importPpt'); ?>"
-                            ng-mousedown="$event.preventDefault()"
-                            ng-click="triggerPptxImport()"
-                            ng-disabled="importingPptx"
-                            style="padding:5px 10px; display:inline-flex; align-items:center; gap:5px;">
-                        <span style="font-size:15px; line-height:1;">📊</span>
-                        <span style="font-size:12px; font-weight:600;" ng-if="!importingPptx">PPT</span>
-                        <span style="font-size:12px; font-weight:600;" ng-if="importingPptx">...</span>
-                    </button>
-
-                    <!-- Hidden input for PPTX -->
                     <input type="file" id="sermon-pptx-input" accept=".pptx,.ppt,.odp" style="display:none"
                            onchange="angular.element(this).scope().onPptxSelected(this)" />
-
-                    <!-- draw.io import -->
-                    <button class="toolbar-btn" title="<?php echo T::s('prep.tool.importDrawio'); ?>"
-                            ng-mousedown="$event.preventDefault()"
-                            ng-click="triggerDrawioImport()"
-                            ng-disabled="importingDrawio"
-                            style="padding:5px 10px; display:inline-flex; align-items:center; gap:5px;">
-                        <span style="font-size:15px; line-height:1;">📐</span>
-                        <span style="font-size:12px; font-weight:600;" ng-if="!importingDrawio">drawio</span>
-                        <span style="font-size:12px; font-weight:600;" ng-if="importingDrawio">...</span>
-                    </button>
-
-                    <!-- Hidden input for .drawio -->
                     <input type="file" id="sermon-drawio-input" accept=".drawio,.xml" style="display:none"
                            onchange="angular.element(this).scope().onDrawioSelected(this)" />
                 </div>
@@ -1665,8 +1745,6 @@
 
             </div><!-- /prep-editor-col -->
         </div><!-- /prep-two-col -->
-
-        <div style="height:60px;"></div>
 
         <!-- Fullscreen image modal -->
         <div id="sermon-img-modal" ng-click="closeImgModal()">
