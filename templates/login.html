@@ -8,233 +8,148 @@
 </div>
 
 <style>
+    /* ============================================================
+       LOGIN PAGE — compact UI tokens (/css/compact.css, --cx-*).
+       No need to be dense here: one clear, centred card with the three
+       ways in — password, Google, access request for a new church.
+       ============================================================ */
     body {
-        background: #f0f2f5;
+        background: #EDF1F4;
         min-height: 100vh;
+        font-family: "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif;
+        color: #17212B;
     }
 
     .login-wrapper {
+        min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: 100vh;
-        padding: 20px;
+        padding: 24px 16px;
     }
 
     .login-card {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 4px 24px rgba(0, 0, 0, 0.10);
-        padding: 48px 40px 40px;
         width: 100%;
-        max-width: 400px;
+        max-width: 420px;
+        background: #fff;
+        border: 1px solid #DCE3E8;
+        border-radius: 10px;
+        padding: 32px 32px 24px;
+        box-shadow: 0 10px 30px rgba(23,33,43,0.08);
+    }
+    @media (max-width: 480px) {
+        .login-card { padding: 24px 20px 20px; }
     }
 
-    .login-logo {
-        text-align: center;
-        margin-bottom: 8px;
-        font-size: 48px;
-        line-height: 1;
-    }
+    .login-logo { font-size: 40px; line-height: 1; text-align: center; margin-bottom: 8px; }
+    .login-title { font-size: 24px; font-weight: 600; text-align: center; letter-spacing: -0.2px; }
+    .login-subtitle { font-size: 14px; color: #6E7883; text-align: center; margin: 4px 0 24px; }
 
-    .login-title {
-        text-align: center;
-        font-size: 22px;
-        font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 6px;
-    }
+    .form-group { margin-bottom: 16px; }
+    .form-group label { display: block; font-size: 13px; font-weight: 600; color: #17212B; margin-bottom: 6px; }
 
-    .login-subtitle {
-        text-align: center;
-        color: #95a5a6;
-        font-size: 13px;
-        margin-bottom: 32px;
+    /* The icon add-on and the field read as one control */
+    .input-group { display: flex; width: 100%; }
+    .input-group-addon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 44px;
+        flex-shrink: 0;
+        border: 1px solid #DCE3E8;
+        border-right: none;
+        border-radius: 6px 0 0 6px;
+        background: #EDF1F4;
+        font-size: 16px;
+        padding: 0;
     }
-
-    .login-card .form-group {
-        margin-bottom: 20px;
-    }
-
-    .login-card .form-group label {
-        font-size: 12px;
-        font-weight: 600;
-        color: #7f8c8d;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-bottom: 6px;
-    }
-
-    .login-card .input-group-addon {
-        background: #f8f9fa;
-        border-color: #dee2e6;
-        color: #95a5a6;
-        font-size: 15px;
-    }
-
-    .login-card .form-control {
-        border-color: #dee2e6;
-        border-left: none;
-        font-size: 15px;
+    .form-control {
+        display: block;
+        width: 100%;
         height: 44px;
+        padding: 0 12px;
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        background: #fff;
+        color: #17212B;
+        font-size: 15px;
         box-shadow: none;
-        color: #2c3e50;
+        transition: border-color 0.12s, box-shadow 0.12s;
     }
-
-    .login-card .form-control:focus {
-        border-color: #3498db;
-        box-shadow: none;
-    }
-
-    .login-card .input-group:focus-within .input-group-addon {
-        border-color: #3498db;
-        color: #3498db;
-    }
+    .input-group .form-control { border-radius: 0 6px 6px 0; float: none; }
+    textarea.form-control { height: auto; padding: 10px 12px; resize: vertical; }
+    .form-control:focus { border-color: #176B87; box-shadow: 0 0 0 3px rgba(23,107,135,0.14); outline: none; }
 
     .btn-login {
+        display: block;
         width: 100%;
-        height: 48px;
-        font-size: 16px;
-        font-weight: 600;
-        letter-spacing: 0.5px;
-        border-radius: 8px;
+        height: 46px;
         margin-top: 8px;
-        background: linear-gradient(135deg, #3498db, #2980b9);
         border: none;
-        box-shadow: 0 4px 15px rgba(52, 152, 219, 0.4);
-        transition: all 0.2s;
-    }
-
-    .btn-login:hover,
-    .btn-login:focus {
-        background: linear-gradient(135deg, #2980b9, #1f6391);
-        box-shadow: 0 6px 20px rgba(52, 152, 219, 0.5);
-        transform: translateY(-1px);
+        border-radius: 6px;
+        background: #176B87;
         color: #fff;
+        font-size: 15px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.12s;
     }
-
-    .btn-login:active {
-        transform: translateY(0);
-    }
-
-    .login-footer {
-        text-align: center;
-        margin-top: 24px;
-        color: #95a5a6;
-        font-size: 12px;
+    .btn-login:hover, .btn-login:focus { background: #125a72; color: #fff; outline: none; }
+    .btn-login:focus-visible, .btn-google:focus-visible, .signup-link-wrap a:focus-visible {
+        outline: 2px solid #176B87; outline-offset: 2px;
     }
 
     .divider {
         display: flex;
         align-items: center;
-        text-align: center;
-        margin: 24px 0;
-        color: #95a5a6;
+        gap: 12px;
+        margin: 20px 0;
         font-size: 12px;
+        color: #6E7883;
     }
-
-    .divider::before,
-    .divider::after {
-        content: '';
-        flex: 1;
-        border-bottom: 1px solid #dee2e6;
-    }
-
-    .divider::before {
-        margin-right: 12px;
-    }
-
-    .divider::after {
-        margin-left: 12px;
-    }
+    .divider::before, .divider::after { content: ''; flex: 1; height: 1px; background: #DCE3E8; }
 
     .btn-google {
-        width: 100%;
-        height: 48px;
-        font-size: 15px;
-        font-weight: 600;
-        border-radius: 8px;
-        background: #fff;
-        border: 1.5px solid #dee2e6;
-        color: #5f6368;
         display: flex;
         align-items: center;
         justify-content: center;
-        gap: 12px;
-        transition: all 0.2s;
-        cursor: pointer;
-        text-decoration: none;
-    }
-
-    .btn-google:hover {
-        background: #f8f9fa;
-        border-color: #1a73e8;
-        color: #1a73e8;
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-        text-decoration: none;
-    }
-
-    .btn-google svg {
-        width: 18px;
-        height: 18px;
-    }
-
-    .signup-link-wrap {
-        text-align: center;
-        margin-top: 18px;
-    }
-
-    .signup-link-wrap a {
-        color: #3498db;
-        font-size: 13px;
-        text-decoration: none;
-    }
-
-    .signup-link-wrap a:hover {
-        text-decoration: underline;
-    }
-
-    .signup-form-wrap {
-        margin-top: 20px;
-        border-top: 1px solid #dee2e6;
-        padding-top: 20px;
-    }
-
-    .signup-form-title {
+        gap: 10px;
+        width: 100%;
+        height: 46px;
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        background: #fff;
+        color: #17212B;
         font-size: 15px;
         font-weight: 600;
-        color: #2c3e50;
-        margin-bottom: 14px;
+        text-decoration: none;
+        transition: border-color 0.12s, background 0.12s;
+    }
+    .btn-google:hover, .btn-google:focus { border-color: #176B87; background: #F6F8FA; color: #17212B; text-decoration: none; }
+    .btn-google svg { width: 20px; height: 20px; flex-shrink: 0; }
+
+    .signup-link-wrap { margin-top: 20px; text-align: center; font-size: 14px; }
+    .signup-link-wrap a { color: #176B87; font-weight: 600; text-decoration: none; }
+    .signup-link-wrap a:hover { text-decoration: underline; }
+
+    .signup-msg { margin-top: 14px; padding: 10px 12px; border-radius: 6px; font-size: 13px; line-height: 1.45; }
+    .signup-msg.ok  { background: #E7F4EA; color: #1E7E34; border: 1px solid #cfe6d4; }
+    .signup-msg.err { background: #FBECEA; color: #C4473A; border: 1px solid #f3cfca; }
+
+    .signup-form-wrap { margin-top: 20px; padding-top: 20px; border-top: 1px solid #DCE3E8; }
+    .signup-form-title { font-size: 16px; font-weight: 600; margin-bottom: 14px; }
+
+    .login-footer {
+        margin-top: 24px;
+        padding-top: 16px;
+        border-top: 1px solid #DCE3E8;
         text-align: center;
+        font-size: 12px;
+        color: #6E7883;
+        line-height: 1.5;
     }
-
-    .signup-form-wrap .form-control {
-        border-left: 1.5px solid #dee2e6;
-    }
-
-    .signup-form-wrap textarea.form-control {
-        height: auto;
-        resize: vertical;
-    }
-
-    .signup-msg {
-        border-radius: 8px;
-        padding: 10px 14px;
-        font-size: 13px;
-        margin-top: 16px;
-    }
-
-    .signup-msg.ok {
-        background: #eaf6ec;
-        border: 1px solid #4caf50;
-        color: #1e7e34;
-    }
-
-    .signup-msg.err {
-        background: #fdecea;
-        border: 1px solid #e74c3c;
-        color: #c0392b;
-    }
+    .login-footer a { color: #176B87; text-decoration: none; }
+    .login-footer a:hover { text-decoration: underline; }
 </style>
 
 <div class="login-wrapper">
