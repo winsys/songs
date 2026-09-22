@@ -278,7 +278,31 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
 
     // The leader's black text-fullscreen content (null = image mode / off).
     $scope.fullScreenText = null;
+    // Sheet-music image shown by the leader's own notes view ('' = closed).
+    // It is a fixed full-viewport overlay (#leaderNotesFs), NOT the row
+    // thumbnail put into browser fullscreen: iPhone Safari has no Fullscreen
+    // API for anything but <video>, so requestFullscreen on the thumbnail
+    // wrapper silently showed nothing there. Browser fullscreen is requested
+    // on the overlay as a best effort only.
+    $scope.fullScreenImage = '';
     var fsSong = null;   // favorites item shown by the notes / text fullscreen (for console follow)
+
+    function requestFs(el) {
+        if (!el) return;
+        var req = el.requestFullscreen || el.webkitRequestFullscreen;
+        if (!req) return;
+        try {
+            var p = req.call(el);
+            if (p && p.catch) p.catch(function() {});
+        } catch (e) { /* ignore */ }
+    }
+
+    function exitFs() {
+        if (document.fullscreenElement || document.webkitFullscreenElement) {
+            var exit = document.exitFullscreen || document.webkitExitFullscreen;
+            if (exit) { try { exit.call(document); } catch (e) { /* ignore */ } }
+        }
+    }
 
     // Broadcast notes to the musician/display target, then put the LEADER's own
     // screen into fullscreen. When textContent is provided, the leader sees the
@@ -288,6 +312,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         // Set fullScreen flag BEFORE sending set_image to prevent a race with WS.
         $scope.fullScreen = true;
         $scope.fullScreenText = (textContent != null) ? textContent : null;
+        $scope.fullScreenImage = (textContent == null && fsSong) ? (fsSong.imageName || '') : '';
 
         var openLocal = function() {
             if (textContent != null) {
@@ -296,25 +321,16 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
                 // depend on the fullscreen request succeeding (best-effort only).
                 $timeout(function() {
                     buildLeaderText(textContent);
-                    var el = document.getElementById('leaderTextFs');
-                    if (el && el.requestFullscreen) {
-                        try {
-                            var p = el.requestFullscreen();
-                            if (p && p.catch) p.catch(function() {});
-                        } catch (e) { /* ignore */ }
-                    }
+                    requestFs(document.getElementById('leaderTextFs'));
                     fitLeaderText();
                     $timeout(fitLeaderText, 400);   // re-fit after layout settles
                 }, 0);
             } else {
-                var wrapElement = document.getElementById('wrap' + elemId);
-                if (wrapElement && wrapElement.requestFullscreen) {
-                    wrapElement.requestFullscreen().catch(function() {
-                        $scope.$apply(function() { $scope.fullScreen = false; });
-                    });
-                } else {
-                    $scope.fullScreen = false;
-                }
+                // The fixed overlay is already visible via ng-show; browser
+                // fullscreen is a bonus where the platform supports it.
+                $timeout(function() {
+                    requestFs(document.getElementById('leaderNotesFs'));
+                }, 0);
             }
         };
 
@@ -330,16 +346,17 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
                         list_id: list_id,
                         song_id: song_id }
         }).then(openLocal, function() {
-            $scope.fullScreen = false; $scope.fullScreenText = null;
+            $scope.fullScreen = false; $scope.fullScreenText = null; $scope.fullScreenImage = '';
         });
         observerSend(song_id, -1, []);
     }
 
     function leaderLeaveFullscreen() {
         var exitLocal = function() {
-            if (document.fullscreenElement) { document.exitFullscreen(); }
+            exitFs();
             $scope.fullScreen = false;
             $scope.fullScreenText = null;
+            $scope.fullScreenImage = '';
             fsSong = null;
         };
 
@@ -437,10 +454,16 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
             for (var i = 0; i < $scope.favorites.length; i++) {
                 if ($scope.favorites[i].ID == elemId) { fsSong = $scope.favorites[i]; break; }
             }
+            if (!fsSong) return;
             leaderEnterFullscreen(elemId, img_num, list_id, song_id, null);
         } else {
             leaderLeaveFullscreen();
         }
+    };
+
+    // Click on the notes overlay exits, like a click on the black text screen.
+    $scope.exitFullscreenImage = function() {
+        leaderLeaveFullscreen();
     };
 
     // Same broadcast as openFullscreen, but the leader sees the full song text
@@ -703,9 +726,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
             fitLeaderText();
             $timeout(fitLeaderText, 400);
         } else {
-            var fsEl = document.fullscreenElement;
-            var img = fsEl && fsEl.querySelector ? fsEl.querySelector('img') : null;
-            if (img) img.src = item.imageName;
+            $scope.fullScreenImage = item.imageName || '';
         }
     }
 
@@ -841,13 +862,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         // digest reveals the overlay (best-effort — the fixed overlay already
         // covers the viewport if the request is denied).
         $timeout(function() {
-            var el = document.getElementById('leaderVerseMode');
-            if (el && el.requestFullscreen) {
-                try {
-                    var p = el.requestFullscreen();
-                    if (p && p.catch) p.catch(function() {});
-                } catch (e) { /* ignore */ }
-            }
+            requestFs(document.getElementById('leaderVerseMode'));
             vmRenderCurrent();
         }, 0);
 
@@ -870,7 +885,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         $scope.verseMode.activeIdx = null;
         $scope.verseMode.activeIdxs = [];
         $scope.verseMode.renderText = null;
-        if (document.fullscreenElement) { document.exitFullscreen(); }
+        exitFs();
         $http({ method: "POST", url: "/ajax",
                 data: { command: 'clear_image', channel: 'leader' } });
         observerOff();
@@ -1153,12 +1168,15 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         }
     );
 
-    // Listen for fullscreen changes (e.g., when user presses ESC)
-    document.addEventListener('fullscreenchange', function() {
+    // Listen for fullscreen changes (e.g., when user presses ESC). Only fires
+    // where browser fullscreen actually happened; the overlays themselves are
+    // closed by their own click handlers.
+    function onFsChange() {
         $scope.$apply(function() {
-            if (!document.fullscreenElement) {
+            if (!(document.fullscreenElement || document.webkitFullscreenElement)) {
                 $scope.fullScreen = false;
                 $scope.fullScreenText = null;
+                $scope.fullScreenImage = '';
                 fsSong = null;
                 $scope.reloadFavorites();
             } else if ($scope.fullScreenText != null) {
@@ -1166,7 +1184,9 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
                 fitLeaderText();
             }
         });
-    });
+    }
+    document.addEventListener('fullscreenchange', onFsChange);
+    document.addEventListener('webkitfullscreenchange', onFsChange);
 
     $scope.loadSongLists();  // sets listId to first visible list, then calls reloadSongList
     SongsService.getLanguages().then(function (langs) { $scope.langList = langs; });
