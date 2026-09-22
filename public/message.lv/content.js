@@ -68,6 +68,100 @@
     }
   };
 
+  // Keep the presentation copy factual across every design variant.
+  var PLAIN_COPY = {
+    ru: {
+      heroKicker: 'Некоммерческий проект для церквей',
+      heroTitle: 'Песни, тексты и экраны для церковной команды.',
+      heroCopy: 'Worship Songs создана, чтобы помогать другим церквям готовить и проводить богослужения. Ведущий, музыканты, проповедник и техник работают с общими материалами.',
+      heroCaption: 'Ведущий выбирает песню; музыканты видят ноты, а слова можно вывести в зал и на трансляцию.',
+      introLibrary: 'Материалы в одном месте',
+      introLibraryCopy: 'Песни, ноты, переводы Библии, послания и проповеди.',
+      introRoles: 'Инструменты по роли',
+      introRolesCopy: 'У каждого участника свой рабочий экран.',
+      introSync: 'Обновления без пересылки',
+      introSyncCopy: 'Песня и текст появляются на подключённых экранах.',
+      scenariosTitle: 'Как система помогает во время служения',
+      scenariosDeck: 'Три обычные задачи: работа с песнями, проведение проповеди и доступ к текстам на телефоне.',
+      rolesTitle: 'Для каждого участника есть свой режим',
+      rolesDeck: 'Набор действий зависит от того, что человек делает во время служения.',
+      uiTitle: 'Так выглядят рабочие экраны',
+      uiDeck: 'Снимки действующей системы: пульт техника, редактор проповеди и страницы для телефона.',
+      featuresTitle: 'Другие возможности',
+      closeTitle: 'Если это полезно вашей церкви, присоединяйтесь.',
+      closeCopy: 'Проект некоммерческий. На странице входа можно отправить запрос на доступ для своей церкви.'
+    },
+    en: {
+      heroKicker: 'A noncommercial project for churches',
+      heroTitle: 'Songs, texts and screens for church teams.',
+      heroCopy: 'Worship Songs was built to help other churches prepare and hold services. Leaders, musicians, preachers and technicians work with shared materials.',
+      heroCaption: 'The leader selects a song; musicians see sheet music, while lyrics can appear in the hall and on the stream.',
+      introLibrary: 'Materials in one place', introLibraryCopy: 'Songs, sheet music, Bible translations, messages and sermons.',
+      introRoles: 'Tools for each role', introRolesCopy: 'Every participant has a workspace for their task.',
+      introSync: 'Updates without file sharing', introSyncCopy: 'Songs and text reach connected screens.',
+      scenariosTitle: 'How the system helps during a service',
+      scenariosDeck: 'Three common tasks: managing songs, delivering a sermon and reading text on a phone.',
+      rolesTitle: 'A mode for each participant', rolesDeck: 'Available actions depend on the participant’s task during the service.',
+      uiTitle: 'Actual working screens', uiDeck: 'Screenshots from the current system: technical console, sermon editor and phone views.',
+      featuresTitle: 'Other capabilities',
+      closeTitle: 'If this would help your church, get in touch.',
+      closeCopy: 'This is a noncommercial project. You can request access for your church on the sign-in page.'
+    },
+    de: {
+      heroKicker: 'Ein nicht kommerzielles Projekt für Gemeinden',
+      heroTitle: 'Lieder, Texte und Bildschirme für Gemeindeteams.',
+      heroCopy: 'Worship Songs wurde entwickelt, um anderen Gemeinden bei der Vorbereitung und Durchführung von Gottesdiensten zu helfen. Leitung, Musiker, Prediger und Technik nutzen gemeinsame Materialien.',
+      heroCaption: 'Die Leitung wählt ein Lied; Musiker sehen Noten, während der Text im Saal und im Stream erscheinen kann.',
+      introLibrary: 'Materialien an einem Ort', introLibraryCopy: 'Lieder, Noten, Bibelübersetzungen, Botschaften und Predigten.',
+      introRoles: 'Werkzeuge je nach Aufgabe', introRolesCopy: 'Jeder Beteiligte hat einen passenden Arbeitsbereich.',
+      introSync: 'Aktualisierungen ohne Dateiversand', introSyncCopy: 'Lieder und Texte erreichen verbundene Bildschirme.',
+      scenariosTitle: 'So hilft das System im Gottesdienst',
+      scenariosDeck: 'Drei typische Aufgaben: Lieder verwalten, eine Predigt halten und Texte am Smartphone lesen.',
+      rolesTitle: 'Ein Modus für jeden Beteiligten', rolesDeck: 'Die verfügbaren Funktionen richten sich nach der Aufgabe im Gottesdienst.',
+      uiTitle: 'Echte Arbeitsansichten', uiDeck: 'Aufnahmen des aktuellen Systems: Technikpult, Predigteditor und Smartphone-Ansichten.',
+      featuresTitle: 'Weitere Funktionen',
+      closeTitle: 'Wenn das Ihrer Gemeinde hilft, melden Sie sich.',
+      closeCopy: 'Das Projekt ist nicht kommerziell. Auf der Anmeldeseite können Sie Zugang für Ihre Gemeinde anfragen.'
+    },
+    lt: {
+      heroKicker: 'Nekomercinis projektas bažnyčioms',
+      heroTitle: 'Giesmės, tekstai ir ekranai bažnyčios komandai.',
+      heroCopy: 'Worship Songs sukurta padėti kitoms bažnyčioms ruoštis pamaldoms ir jas vesti. Vadovai, muzikantai, pamokslininkai ir technikai naudoja bendrą medžiagą.',
+      heroCaption: 'Vadovas pasirenka giesmę; muzikantai mato natas, o žodžiai gali būti rodomi salėje ir transliacijoje.',
+      introLibrary: 'Medžiaga vienoje vietoje', introLibraryCopy: 'Giesmės, natos, Biblijos vertimai, žinios ir pamokslai.',
+      introRoles: 'Įrankiai pagal vaidmenį', introRolesCopy: 'Kiekvienas dalyvis turi savo darbo erdvę.',
+      introSync: 'Atnaujinimai be failų siuntimo', introSyncCopy: 'Giesmės ir tekstai pasiekia prijungtus ekranus.',
+      scenariosTitle: 'Kaip sistema padeda per pamaldas',
+      scenariosDeck: 'Trys įprastos užduotys: giesmės, pamokslas ir tekstų skaitymas telefone.',
+      rolesTitle: 'Režimas kiekvienam dalyviui', rolesDeck: 'Galimi veiksmai priklauso nuo žmogaus užduoties per pamaldas.',
+      uiTitle: 'Tikri darbo ekranai', uiDeck: 'Dabartinės sistemos vaizdai: techninis pultas, pamokslo redaktorius ir telefono puslapiai.',
+      featuresTitle: 'Kitos galimybės',
+      closeTitle: 'Jei tai naudinga jūsų bažnyčiai, susisiekite.',
+      closeCopy: 'Tai nekomercinis projektas. Prisijungimo puslapyje galima paprašyti prieigos savo bažnyčiai.'
+    },
+    pl: {
+      heroKicker: 'Niekomercyjny projekt dla kościołów',
+      heroTitle: 'Pieśni, teksty i ekrany dla zespołu kościelnego.',
+      heroCopy: 'Worship Songs powstał, aby pomagać innym kościołom przygotowywać i prowadzić nabożeństwa. Prowadzący, muzycy, kaznodzieje i technicy korzystają ze wspólnych materiałów.',
+      heroCaption: 'Prowadzący wybiera pieśń; muzycy widzą nuty, a słowa można pokazać w sali i w transmisji.',
+      introLibrary: 'Materiały w jednym miejscu', introLibraryCopy: 'Pieśni, nuty, przekłady Biblii, przesłania i kazania.',
+      introRoles: 'Narzędzia według roli', introRolesCopy: 'Każdy uczestnik ma własny widok do swojej pracy.',
+      introSync: 'Aktualizacje bez wysyłania plików', introSyncCopy: 'Pieśni i tekst trafiają na połączone ekrany.',
+      scenariosTitle: 'Jak system pomaga podczas nabożeństwa',
+      scenariosDeck: 'Trzy codzienne zadania: pieśni, kazanie i czytanie tekstów na telefonie.',
+      rolesTitle: 'Tryb dla każdego uczestnika', rolesDeck: 'Dostępne działania zależą od zadania danej osoby podczas nabożeństwa.',
+      uiTitle: 'Prawdziwe ekrany pracy', uiDeck: 'Zrzuty bieżącego systemu: pulpit technika, edytor kazania i widoki telefonu.',
+      featuresTitle: 'Pozostałe możliwości',
+      closeTitle: 'Jeśli to przyda się waszemu kościołowi, skontaktujcie się.',
+      closeCopy: 'To projekt niekomercyjny. Na stronie logowania można poprosić o dostęp dla swojego kościoła.'
+    }
+  };
+  Object.keys(PLAIN_COPY).forEach(function (lang) {
+    Object.keys(PLAIN_COPY[lang]).forEach(function (key) {
+      COPY[lang][key] = PLAIN_COPY[lang][key];
+    });
+  });
+
   var TITLES = {
     ru: 'Worship Songs — система управления богослужением',
     en: 'Worship Songs — worship service management system',
