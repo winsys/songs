@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS `signup_requests` (
   `email` varchar(255) NOT NULL,
   `admin_name` varchar(64) NOT NULL,
   `admin_pass` varchar(128) NOT NULL COMMENT 'Encrypted (enc:), inserted into users.PASS as-is on approval',
-  `ui_lang` varchar(5) NOT NULL DEFAULT 'en' COMMENT 'Requested UI language (ru/de/en/lt)',
+  `ui_lang` varchar(5) NOT NULL DEFAULT 'en' COMMENT 'Requested UI language (ru/de/en/lt/pl)',
   `comments` text,
   `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
   `created_user_id` int(11) DEFAULT NULL COMMENT 'users.ID of the admin created on approval',

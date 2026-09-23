@@ -171,7 +171,7 @@ scenario re-checked.
 ### 2.4 Build & i18n contracts
 - Any JS edit: terser (no `--mangle`) + `?v=N` bump in every referencing
   template.
-- Any UI string: keys in ALL FOUR dictionaries (ru/de/en/lt), rendered via
+- Any UI string: keys in ALL FIVE dictionaries (ru/de/en/lt/pl), rendered via
   `window.t()` / `T::s()`.
 
 ### 2.5 Bible translations (one row per translation)

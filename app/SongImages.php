@@ -31,11 +31,11 @@ class SongImages
     /** Default group names (NAME = the original; NAMES = per UI language). */
     const DEFAULT_MAIN_NAME    = 'НОТЫ';
     const DEFAULT_SECOND_NAME  = 'АККОРДЫ';
-    const DEFAULT_MAIN_NAMES   = ['ru' => 'НОТЫ', 'de' => 'NOTEN', 'en' => 'SHEET MUSIC', 'lt' => 'NATOS'];
-    const DEFAULT_SECOND_NAMES = ['ru' => 'АККОРДЫ', 'de' => 'AKKORDE', 'en' => 'CHORDS', 'lt' => 'AKORDAI'];
+    const DEFAULT_MAIN_NAMES   = ['ru' => 'НОТЫ', 'de' => 'NOTEN', 'en' => 'SHEET MUSIC', 'lt' => 'NATOS', 'pl' => 'NUTY'];
+    const DEFAULT_SECOND_NAMES = ['ru' => 'АККОРДЫ', 'de' => 'AKKORDE', 'en' => 'CHORDS', 'lt' => 'AKORDAI', 'pl' => 'AKORDY'];
 
     /** UI languages a group name can be translated into (mirrors T::ALLOWED). */
-    const UI_LANGS = ['ru', 'de', 'en', 'lt'];
+    const UI_LANGS = ['ru', 'de', 'en', 'lt', 'pl'];
 
     /** Accepted image-file extensions (stored lowercase; "jpeg" is saved as "jpg"). */
     const EXT_PATTERN = 'jpe?g|png';
@@ -103,7 +103,17 @@ class SongImages
     {
         $lang  = $lang ?: (class_exists('T') ? T::lang() : 'ru');
         $names = self::names($g);
-        return isset($names[$lang]) ? $names[$lang] : (string)$g['NAME'];
+        if (isset($names[$lang])) return $names[$lang];
+        // A group still carrying a default name gets the standard name of a UI
+        // language added after it was created (its NAMES has no entry for it).
+        $name = (string)$g['NAME'];
+        if ($name === self::DEFAULT_MAIN_NAME && array_key_exists($lang, self::DEFAULT_MAIN_NAMES)) {
+            return self::DEFAULT_MAIN_NAMES[$lang];
+        }
+        if ($name === self::DEFAULT_SECOND_NAME && array_key_exists($lang, self::DEFAULT_SECOND_NAMES)) {
+            return self::DEFAULT_SECOND_NAMES[$lang];
+        }
+        return $name;
     }
 
     /** Normalize a translations array for storage; null when nothing is set. */
