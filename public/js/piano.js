@@ -265,7 +265,7 @@ app.controller('Piano', ['$scope', '$http', 'SongsService', '$timeout', function
     }
 
     // ── Notes view (image of the chosen group) ──────────────────
-    var NO_IMAGE_LANGS = ['ru', 'de', 'en', 'lt'];
+    var NO_IMAGE_LANGS = ['ru', 'de', 'en', 'lt', 'pl'];
     var uiLang = String(window.UI_LANG || 'ru').toLowerCase();
     var noImageSrc = '/no_image/' + (NO_IMAGE_LANGS.indexOf(uiLang) !== -1 ? uiLang : 'ru') + '.png';
 

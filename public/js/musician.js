@@ -21,7 +21,7 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
     // "No images for this song yet" picture in the user's UI language —
     // shown when a song is on but no group holds an image for it (or the
     // listed file fails to load). Notes OFF keeps the configured placeholder.
-    var NO_IMAGE_LANGS = ['ru', 'de', 'en', 'lt'];
+    var NO_IMAGE_LANGS = ['ru', 'de', 'en', 'lt', 'pl'];
     var uiLang = String(window.UI_LANG || 'ru').toLowerCase();
     var noImageSrc = '/no_image/' + (NO_IMAGE_LANGS.indexOf(uiLang) !== -1 ? uiLang : 'ru') + '.png';
 

@@ -16,7 +16,7 @@
 class T
 {
     /** @var string[] */
-    private const ALLOWED = ['ru', 'de', 'en', 'lt'];
+    private const ALLOWED = ['ru', 'de', 'en', 'lt', 'pl'];
 
     /** @var string|null  Resolved language for the current request. */
     private static $lang = null;

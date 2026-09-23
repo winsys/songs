@@ -302,7 +302,7 @@ templates/
 - When a fix fails: do not declare success. Ask for the next reproduction step or examine the actual DOM state.
 - Use English in all new comments.
 - Single endpoint `/ajax`, command dispatch by trait method name. All AJAX requires CSRF.
-- Any new/changed user-facing string: keys in all four i18n dictionaries (ru/de/en/lt), rendered via `window.t()` / `T::s()` — never hardcoded (see §16).
+- Any new/changed user-facing string: keys in all five i18n dictionaries (ru/de/en/lt/pl), rendered via `window.t()` / `T::s()` — never hardcoded (see §16).
 - **Regression gate:** before changing a shared mechanism (`current` table, WebSocket message types, display-target resolution, cross-page Ajax commands) consult the impact map in `docs/deploy-checklist.md`; after deploying such a change, run its 5-minute smoke protocol.
 
 ---
@@ -317,8 +317,8 @@ templates/
   - **Playwright** for E2E multi-role WebSocket flows — last (most setup overhead)
 
 ### UI internationalization — IMPLEMENTED (July 2026)
-- UI language per user: `ru` (default), `de`, `en`, `lt`; selector in `settings.html`, stored in `user_settings.ui_lang`.
+- UI language per user: `ru` (default), `de`, `en`, `lt`, `pl` (Sept 2026); selector in `settings.html`, stored in `user_settings.ui_lang`.
 - Dictionaries: per-language JSON under `public/js/i18n/`; PHP injects the active one inline (`window.UI_LANG`, `window.UI_DICT = T::dictJson()`) — dictionary-only changes need no `?v=` bump.
 - Rendering: `window.t('key', params)` in JS, `T::s('key')` in PHP-rendered templates.
-- **Standing rule: every new or changed user-facing string gets keys in ALL FOUR dictionaries — no hardcoded UI text.**
+- **Standing rule: every new or changed user-facing string gets keys in ALL FIVE dictionaries — no hardcoded UI text.**
 - Completely separate from the multi-language *content* system (`languages` table) — do not conflate (see §7).

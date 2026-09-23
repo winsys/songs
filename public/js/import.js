@@ -63,7 +63,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
     $scope.zipGroupSel       = '';     // ZIP target: group ID (string) or 'new'
     $scope.zipNewGroupName   = '';
     $scope.zipMode           = 'replace';   // 'replace' | 'add'
-    $scope.uiLangs           = ['ru', 'de', 'en', 'lt'];   // group-name translations (UI languages)
+    $scope.uiLangs           = ['ru', 'de', 'en', 'lt', 'pl'];   // group-name translations (UI languages)
     var openNamePanels       = {};         // group ID -> translations panel open
 
     // ── Messages ──────────────────────────────────────────────
@@ -281,7 +281,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                 $scope.imageGroups = r.data || [];
                 angular.forEach($scope.imageGroups, function (g) {
                     g.editName  = g.NAME;
-                    g.editNames = angular.extend({ ru: '', de: '', en: '', lt: '' }, g.NAMES || {});
+                    g.editNames = angular.extend({ ru: '', de: '', en: '', lt: '', pl: '' }, g.NAMES || {});
                     g.showNames = !!openNamePanels[g.ID];
                 });
                 // Keep the ZIP target valid; the default is the main group.
@@ -375,7 +375,7 @@ angular.module('Songs').controller('ImportCtrl', function ($scope, $http, $timeo
                 if (d && d.status === 'success' && d.group) {
                     g.NAMES        = d.group.NAMES || {};
                     g.display_name = d.group.display_name;
-                    g.editNames    = angular.extend({ ru: '', de: '', en: '', lt: '' }, g.NAMES);
+                    g.editNames    = angular.extend({ ru: '', de: '', en: '', lt: '', pl: '' }, g.NAMES);
                     songLog('ok', window.t('import.log.groupNamesSaved', { name: g.NAME }));
                 } else {
                     groupError(d);

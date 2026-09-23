@@ -169,7 +169,7 @@ class Security
         $res->free();
         if (!$row || empty($row['ui_lang'])) return 'ru';
         $l = (string)$row['ui_lang'];
-        return in_array($l, ['ru', 'de', 'en', 'lt'], true) ? $l : 'ru';
+        return in_array($l, ['ru', 'de', 'en', 'lt', 'pl'], true) ? $l : 'ru';
     }
 
     /**

@@ -46,7 +46,7 @@ trait Ajax_Settings
         $slideFontMaxSize = isset($settings['slide_font_max_size']) ? intval($settings['slide_font_max_size']) : 64;
         $slideFontMaxSize = max(20, min(200, $slideFontMaxSize));
         $uiLang = isset($settings['ui_lang']) ? (string)$settings['ui_lang'] : 'ru';
-        if (!in_array($uiLang, ['ru', 'de', 'en', 'lt'], true)) $uiLang = 'ru';
+        if (!in_array($uiLang, ['ru', 'de', 'en', 'lt', 'pl'], true)) $uiLang = 'ru';
         $leaderTextMultilang = !empty($settings['leader_text_multilang']) ? 1 : 0;
 
         $existing = Info::get('db')->get("SELECT group_id FROM user_settings WHERE group_id = {$userId}");

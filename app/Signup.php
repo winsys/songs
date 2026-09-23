@@ -20,7 +20,7 @@
 class Signup
 {
     private const ADMIN_EMAIL = 'pavelpetsevitch@gmail.com';
-    private const UI_LANGS    = ['ru', 'de', 'en', 'lt'];
+    private const UI_LANGS    = ['ru', 'de', 'en', 'lt', 'pl'];
 
     /** Handle POST /signup-request from the login page form. */
     public static function handleRequestForm(): void
