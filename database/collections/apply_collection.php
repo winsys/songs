@@ -14,7 +14,9 @@
  * collection with the same LIST_NAME keeps its LIST_ID (and image
  * groups); its song rows are replaced wholesale in one transaction.
  * A new collection gets MAX(LIST_ID)+1 and the default image groups
- * (SongImages::ensureDefaults). Visibility per group is NOT touched —
+ * (SongImages::ensureDefaults). An optional top-level "images_from_list"
+ * copies the sheet-music images of the same NUMs from that collection.
+ * Visibility per group is NOT touched —
  * an admin enables the collection in settings (available_lists).
  */
 
@@ -131,6 +133,54 @@ foreach (array_chunk($vals, 100) as $chunk) {
     }
 }
 mysqli_query($dbh, 'COMMIT');
+
+// Optional "images_from_list": copy the sheet-music images of the songs
+// with the same NUM from another collection. Main group -> main group,
+// every other group -> the target group of the same NAME (skipped when
+// the target collection has no such group). Existing files are replaced.
+if (!empty($json['images_from_list'])) {
+    $srcList   = (int)$json['images_from_list'];
+    $srcGroups = SongImages::groups($srcList, false);
+    $dstGroups = SongImages::groups($listId);
+    $copied    = 0;
+    $missing   = [];
+    foreach ($songs as $s) {
+        $found = false;
+        foreach ($srcGroups as $sg) {
+            $dg = null;
+            foreach ($dstGroups as $g) {
+                if ((int)$sg['IS_MAIN'] === 1 ? (int)$g['IS_MAIN'] === 1
+                        : ((int)$g['IS_MAIN'] === 0 && $g['NAME'] === $sg['NAME'])) {
+                    $dg = $g;
+                    break;
+                }
+            }
+            $files = SongImages::slotFiles($srcList, $sg, $s['num']);
+            if (!$dg || !$files) {
+                continue;
+            }
+            $ext = strtolower(pathinfo($files[0], PATHINFO_EXTENSION));
+            list($dst) = SongImages::target($listId, $dg, $s['num'], $ext);
+            $dir = dirname($dst);
+            if (!is_dir($dir)) {
+                mkdir($dir, 0775, true);
+                @chown($dir, 'www-data');   // web uploads into this collection must stay possible
+            }
+            if (!copy($files[0], $dst)) {
+                fwrite(STDERR, "copy failed: {$files[0]} -> {$dst}\n");
+                continue;
+            }
+            @chown($dst, 'www-data');
+            $copied++;
+            $found = true;
+        }
+        if (!$found) {
+            $missing[] = $s['num'];
+        }
+    }
+    echo "images from LIST_ID={$srcList}: {$copied} files copied"
+        . ($missing ? ", no image for NUM " . implode(', ', $missing) : '') . "\n";
+}
 
 $cnt = $db->getValue("SELECT COUNT(*) FROM song_list WHERE LISTID = {$listId}");
 $grp = $db->getValue("SELECT COUNT(*) FROM song_image_groups WHERE LISTID = {$listId}");

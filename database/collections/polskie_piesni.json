@@ -1,22 +1,24 @@
 {
  "list_name": "Polskie pieśni",
+ "images_from_list": 8,
  "songs": [
   {
    "num": "2",
-   "name": "(A) Pokój jak rzeka",
+   "name": "(C) Pokój jak rzeka",
    "texts": {
     "pl": "1. Pokój jak rzeka, miłość jak góra. Obecność Twego Ducha jest wszędzie wkoło nas. Radość jak źródło, strumień nowych sił. [:Zstąp Duchu Święty, zapal Ogniem nas:].",
     "ru": "1. Мир Твой, как реки, Любовь, как горы, И радость струится Целительным ключом. Веянье Духа всё наполняет, О, Дух Святой, к нам сойди огнём!",
     "en": "1. Peace like a river, love like a mountain The wind of your Spirit Is blowing everywhere Joy like a fountain Healing spring of life Come, Holy Spirit Let Your fire fall"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №92",
-    "texts": "Vilnius-HGB №2 (song_list.ID 3278)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №92",
+    "texts": "Vilnius-HGB №2 (song_list.ID 3278)",
+    "pl_key": "A"
    }
   },
   {
    "num": "3",
-   "name": "(F) Cudowna Boża łaska",
+   "name": "(G) Cudowna Boża łaska",
    "texts": {
     "pl": "1. Cudowna Boża łaska ta zbawiła z grzechów mnie. Zgubiony, nędzny byłem ja, lecz teraz cieszę się.\r\n2. Ta łaska wlała Boży strach w kamienne serce me. I wtedy zobaczyłem w łzach, żem na przepaści dnie.\r\n3. Lecz łaska podźwignęła mnie i naprzód wiedzie wciąż przez ciemne i burzliwe dnie, tam gdzie Ojcowski Dom.\r\n4. O Boże, dzięki, dzięki Ci za cudną łaskę Twą. Do nóg Twych padam w kornej czci. Niebiosa chwałą brzmią.\r\n5. Lecz łaska podźwignęła mnie i naprzód wiedzie wciąż przez ciemne i burzliwe dnie, tam gdzie Ojcowski Dom.\r\n6. O Boże, dzięki, dzięki Ci za cudną łaskę Twą. Do nóg Twych padam w kornej czci. Niebiosa chwałą brzmią.",
     "ru": "1. О, благодать! Спасён тобой Я из пучины бед; Был мёртв – и чудом стал живой, Был слеп – и вижу свет.\r\n2. Сперва вселила Божий страх, Затем дала покой. Я скорбь души излил в слезах, Твой мир течёт рекой.\r\n3. Прошёл немало я скорбей, Невзгод и чёрных дней, Но ты всегда была со мной, Ведёшь меня домой.\r\n4. Словам Господним верю я, Моя вся крепость в них: Он - верный щит, Он - часть моя Во всех путях моих.\r\n5. Когда же плоть моя умрёт, Придёт борьбе конец, Меня в небесном доме ждёт И радость, и венец.\r\n6. Пройдут десятки тысяч лет, Забудем смерти тень, А Богу так же будем петь, Как в самый первый день.",
@@ -24,13 +26,14 @@
     "en": "1. Amazing grace! How sweet the sound, That saved a wretch like me! I once was lost, But now I'm found, Was blind, but now I see.\r\n2. 'Twas grace that taught My heart to fear, And grace my fears relieved; How precious did That grace appear The hour I first\r\n3. Through many dangers, Toils and snares, I have already come; 'Tis grace hath brought Me safe thus far, And grace will lead me home.\r\n4. The Lord has promised Good to me, His Word my hope secures; He will my shield And portion be, As long as life endures.\r\n5. Yea, when this flesh And heart shall fail, And mortal life shall cease, I shall possess, Within the veil, A life of joy and peace.\r\n6. When we've been There ten thousand years, Bright shining as the sun, We've no less days To sing God's praise Than when we first begun."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №16",
-    "texts": "Vilnius-HGB №3 (song_list.ID 3279)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №16",
+    "texts": "Vilnius-HGB №3 (song_list.ID 3279)",
+    "pl_key": "F"
    }
   },
   {
    "num": "4",
-   "name": "(G) Bóg troszczy się",
+   "name": "(G-A) Bóg troszczy się",
    "texts": {
     "pl": "1. Bóg troszczy się o ciebie i mnie. Przez ciemność i mroki On troszczy się. (Bóg objawił się, zdjął Pieczęcie te. Bym mógł to zobaczyć, On zatroszczył się.)",
     "ru": "1. Заботится Он Всегда о тебе. Во свете и в темноте С тобой Он везде.",
@@ -38,13 +41,14 @@
     "en": "1. He careth for you, He careth for you; Through sunshine or shadow, He careth for you."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №17",
-    "texts": "Vilnius-HGB №4 (song_list.ID 3308)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №17",
+    "texts": "Vilnius-HGB №4 (song_list.ID 3308)",
+    "pl_key": "G"
    }
   },
   {
    "num": "12",
-   "name": "(D) Przychodzą ze wszystkich stron",
+   "name": "(C) Przychodzą ze wszystkich stron",
    "texts": {
     "pl": "1. Przychodzą ze wszystkich stron, przychodzą ze wszystkich ziem, by  wraz z Królem siąść do stołu jak  gość, a wszyscy szczęśliwi są. Móc spojrzeć w tą świętą Twarz, zwieńczoną Bożą czcią. Uczestnicy Jego łask jak perły w koronie lśnią.\r\n*Wszak Jezus wyzwolił mnie, radością me serce tchnie. Nie muszę już, nie, ciężarów swych nieść, jarzmo Jego lekkie jest. Choć duszę mą okrył mrok, lecz ciemność pierzchła precz. Głos zwycięstwa z serca brzmi, wszak Jezus dał wolność mi.\r\n2. Gdzie Biały Sędziowski Tron, zbawionych zbór nuci ton, tam nie ma już łez ni smutku, ni burz, ni śmierci okropnej gróźb. Zbawiciel sam odszedł wpierw zgotować drogę nam. Wkrótce znów spotkamy się, rozłąki nie będzie tam.\r\n3. A bramy w tym Mieście lśnią, dniem, nocą otwarte są. Wszak sprawił to On z miłości i łask, by w Ojca wprowadzić Dom. Jest miejsca dla wszystkich dość, by każdy gość mógł siąść za weselnym stołem tam, gdzie z łaski go wezwał Pan.\r\n4. Z Chrystusem odejdę wnet, me próby zakończą się. Och, żeby mój Pan już dziś zabrał nas – tych, którzy bezgrzeszni są. Nie mogę doczekać się radości tego dnia. Już niedługo weźmie nas. Będzie to szczęśliwy czas!",
     "ru": "1. Придут они издали, С востока и запада. Как гости, придут скитальцы земли На праздник Царя Христа. На облик Его глядят С сиянием на лице И в лучах любви горят, Как камни, в Его венце.\r\n*С Иисусом так счастлив я, Он освободил меня. Уж бремя забот меня не гнетёт, И ноша легка моя. В душе была тьма, как ночь, Но мрак удалился прочь. Я свободен! С торжеством Победный пою псалом.\r\n2. На Белый Престол смотрю, Там выкуп представлен мой. Я смерти и слёз уже не узрю В той чудной стране благой. Спаситель ушёл туда, Он путь приготовил мне; Ждёт нас встреча, чтоб всегда Быть вместе с Ним в той стране.\r\n3. И ночью, и днём открыт Вход в город Царя Христа. Взирай на Него, Он милость дарит, Нам путь проложил туда; Рукою Своей хранит Для всех там прекрасный дом. Будь послушен, зов звучит: \"Готовься на пир с Христом\".",
@@ -52,8 +56,9 @@
     "en": "1. They come from the East and West, They come from the lands afar, To feast with the King, to dine as His guest; How blessed these pilgrims are! Beholding His hallow’d face A glow with a light divine; Blest partakers of His grace, As gems in His crown to shine.\r\n*Since Jesus has set me free, I’m happy as heart can be; No longer I bear the burden of care, His yoke is so sweet to me. My soul was as black as night, But darkness as taken flight; Now I shout the victory, For Jesus has set me free.\r\n2. I look on the great white throne, Before it the ransom’d stand; No longer are tears, no sorrow is known Nor death in that goodly land. My Savior has gone before, Preparing the way for me; Soon we’ll meet to part no more Thru time of eternity.\r\n3. The gates of that holy place Stand open by night and day; O look to the Lord who “giveth more grace,” Whose love has prepar’d the way. A home in those mansions fair His hand hath reserv’d for all, For the wedding feast prepare, Obeying the gracious call."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №9",
-    "texts": "Vilnius-HGB №12 (song_list.ID 3282)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №9",
+    "texts": "Vilnius-HGB №12 (song_list.ID 3282)",
+    "pl_key": "D"
    }
   },
   {
@@ -66,13 +71,14 @@
     "en": "1. Gone from my heart The world and all its charms; Now, through the blood, I'm saved from all alarm Down at the cross my heart Is bending low; The precious blood of Jesus Cleans white as snow.\r\n*I love Him, I love Him Because He first loved me And purchased my salvation On Calvary's tree.\r\n2. Once I was lost, And way down deep in sin, Once was a slave To passions fierce within; Once was afraid To trust a loving God; But now I'm cleansed From every stain Through Jesus' Blood.\r\n3. Once I was bound, But now I am set free; Once, I was blind, But now the light I see; Once I was dead, But now in Christ I live, To tell the world around The peace that He doth give."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №3",
-    "texts": "Vilnius-HGB №13 (song_list.ID 3283)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №3",
+    "texts": "Vilnius-HGB №13 (song_list.ID 3283)",
+    "pl_key": "C"
    }
   },
   {
    "num": "16",
-   "name": "(E) Narody się kruszą",
+   "name": "(G) Narody się kruszą",
    "texts": {
     "pl": "1. Narody się kruszą, Izrael się budzi, jak prorocy mówili nam. Dni pogan zliczone, strachem obciążone, to wieczność już stoi u  bram.\r\n*Odkupienia dzień zbliża się, drży całej ludzkości serce. Bądźcie pełni Ducha, miejcie lampy czyste. Spójrz w górę, twój dzień zbliża się.\r\n2. Fałszywi prorocy powstają i kłamią. Zapierają się Bożych prawd, że Pan Jezus Chrystus jest jedynym Bogiem, a my tam, gdzie apostołów ślad.\r\n3. Rośnie drzewo figowe, Jeruzalem w odnowie, bez życia narodu od lat. Lecz dziś On nas wzywa, Swój późny deszcz zsyła. Powróćcie wygnańcy w swój Kraj.\r\n4. Moce Niebios ruszone i wielu zwiedzionych, nie wiedzą, co powiedział Znak. Zbór Boży jest siłą, wstrząsa tą godziną. Odkupienia bliski to czas.",
     "ru": "1. Народы крушатся, Израиль поднялся, Язычников дни сочтены. Знамений свершенье, народов смятенье, Уж вечность стоит невдали.\r\n*Тот день искупленья грядёт, От страха стенает народ. Светильник наполни и чистым храни. Взор ввысь! Искупленье вблизи.\r\n2. Растёт лист смоковный, Израиль свободный, Восставлен Иерусалим. Дождь поздний спадает, их жизнь обновляет, Народ, возвращайся к своим!\r\n3. На небе знаменья, сил Божьих движенье, Тех знаков не понял народ. Но церковь Господня встряхнёт мир сегодня: Тот день искупленья грядёт.\r\n4. Встают лжепророки, от правды далеки, Что Бог есть Иисусом Христом. Хоть мир в наше время отверг Откровенье, Но путь наш основан на нём.",
@@ -80,8 +86,9 @@
     "en": "1. Nations are breaking, Israel's awaking, The signs that the prophets foretold; The Gentile days numbered, with horrors encumbered; Eternity soon will unfold.\r\n*The day of redemption is near, Men's hearts are failing for fear; Be filled with the Spirit, your lamps trimmed and clear, Look up! your redemption is near.\r\n2. The fig tree is growing; Jerusalem's restoring Her national life, long dethroned; Today she is calling, her latter rain's falling “Return, O dispersed, to your own.”\r\n3. Heaven's powers are shaking, and many are mistaking God's meaning to be of the sky; God's Church is the power that's shaking this hour; The day of redemption is nigh.\r\n4. False prophets are lying, God's Truth they're denying, That Jesus the Christ is our God; Though this generation spurns God's revelation, We'll walk where the apostles have trod."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №2",
-    "texts": "Vilnius-HGB №16 (song_list.ID 3285)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №2",
+    "texts": "Vilnius-HGB №16 (song_list.ID 3285)",
+    "pl_key": "E"
    }
   },
   {
@@ -93,8 +100,9 @@
     "en": "1. The first one to die for this Holy Ghost plan, Was John the Baptist, but he died like a man; Then came the Lord Jesus, they crucified Him, He taught that the Spirit would save men from sin.\r\n*It's dripping with blood, yes, It's dripping with blood, This Holy Ghost Gospel is dripping with blood, The blood of disciples who died for the Truth, This Holy Ghost Gospel is dripping with blood.\r\n2. There was Peter and Paul, and John the divine, They gave up their lives so this Gospel could shine; They mingled their blood, like the prophets of old, So the true Word of God could honest be told.\r\n3. Then they stoned Stephen, he preached against sin, He made them so angry, they dashed his head in; But he died in the Spirit, and gave up the ghost, And went to join others, in that life-giving host.\r\n4. There're souls under the altar, crying, “How long?” For the Lord to punish those who've done wrong; But there's going to be more who'll give their life's blood For this Holy Ghost Gospel and its crimson flood."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №188",
-    "texts": "Vilnius-HGB №20 (song_list.ID 3289)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №188",
+    "texts": "Vilnius-HGB №20 (song_list.ID 3289)",
+    "pl_key": "E"
    }
   },
   {
@@ -107,13 +115,14 @@
     "en": "1. Take the name of Jesus with you, Child of sorrow and of woe. It will joy and comfort give you, Take it then where'er you go.\r\n*Precious name, O how sweet! Hope of earth and joy of heaven; Precious name, O how sweet! Hope of earth and joy of heaven.\r\n2. Take the name of Jesus ever As protection ev'rywhere. If temptations 'round you gather, Breathe that holy name in prayer.\r\n3. At the name of Jesus bowing, When in heaven we shall meet, King of kings, we'll gladly crown Him When our journey is complete.\r\n4."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №466",
-    "texts": "Vilnius-HGB №23 (song_list.ID 3292)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №466",
+    "texts": "Vilnius-HGB №23 (song_list.ID 3292)",
+    "pl_key": "G"
    }
   },
   {
    "num": "24",
-   "name": "(A) Jezus Swój rozpostarł stół",
+   "name": "(G) Jezus Swój rozpostarł stół",
    "texts": {
     "pl": "1. Jezus Swój rozpostarł stół, gdzie chce lud nakarmić Swój, i zaprasza Swych wybranych: „Proszę przyjść”. Mannę z Nieba daje nam, wszystko zaspokoi sam. Wraz z Jezusem siąść do stołu możesz tam.\r\n*„Proszę przyjść – woła Zbawca – Proszę przyjść”. Ten, kto pragnie jeść z Jezusem, może wejść. Kto nasycił ludzi tłum, wodę w wino zmienić mógł, wszystkich głodnych wzywa teraz: „Proszę przyjść”.\r\n2. Raz uczniowie poszli w świat, chcąc Chrystusa słuchać rad. Potem Mistrz zawołał na nich: „Proszę przyjść”. Wnet pragnienie ziścił ich, sztuka chleba, kilka ryb, tak Swych wiernych zaspokaja jeszcze dziś.\r\n3. Wkrótce Pan Wybraną Swą obok Siebie da na Tron i zastępy Nieba tam zgromadzi On. Śliczny widok olśni nas. To szat świętych bije blask. Tam Jezusa zaproszeni wiecznie są.",
     "ru": "1. У Иисуса стол накрыт, кто придёт, тот будет сыт. Он святых туда зовёт с Ним вкушать. Посылает манну нам, помогает в нуждах Сам. О, как славно с Ним на пире пребывать!\r\n*\"Приходите и вкушайте\", – Он зовёт! За столом Иисуса пир тот не пройдёт. Тот, кто алчущих питал, из воды вино создал, \"Приходите и вкушайте\", – Он зовёт!\r\n2. Он явился рыбакам, был огонь разложен там; Их на берег звал Иисус с Ним вкушать, Хлеб и рыбу им подал, для сердец отраду дал. Так желает Он наш голод утолять.\r\n3. Он придёт Невесту взять, чтобы вместе пребывать. Соберётся в небе воинство Христа. Там предстанут в красоте все святые в чистоте, Чтобы праздновать с Иисусом навсегда.",
@@ -121,26 +130,28 @@
     "en": "1. Jesus has a table spread where the saints of God are fed, He invites His chosen people “Come and dine;” With His manna He doth feed and supplies our every need; O, 'tis sweet to sup with Jesus all the time!\r\n*“Come and dine,” the Master calleth, “Come and dine,” You may feast at Jesus' table all the time; He who fed the multitude, turned the water into wine, To the hungry calleth now, “Come and dine.”\r\n2. The disciples came to land, thus obeying Christ's command, For the Master called to them, “Come and dine;” There they found their hearts' desire, bread and fish upon the fire; Thus He satisfies the hungry every time.\r\n3. Soon the Lamb will take His bride to be ever at His side, All the host of heaven will assembled be; O, 'twill be a glorious sight, all the saints in spotless white; And with Jesus they will feast eternally."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №27",
-    "texts": "Vilnius-HGB №24 (song_list.ID 3293)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №27",
+    "texts": "Vilnius-HGB №24 (song_list.ID 3293)",
+    "pl_key": "A"
    }
   },
   {
    "num": "25",
-   "name": "(E) W dół ze Swej Chwały",
+   "name": "(D) W dół ze Swej Chwały",
    "texts": {
     "pl": "1. W dół ze Swej Chwały, to wiecznie żywe dla nas, nasz Bóg i  Zbawca zszedł, Jezus nazywał się. W żłobie zrodzony, Swoim własnym obcy, cierpienia Mąż i łez, śmiertelnych mąk.\r\n*Jak Go miłuję, jak Go uwielbiam! Słońce me, tchnienie i wszystko me! Wielki Stworzyciel stał się mym Zbawcą. I Boża pełnia przebywa w Nim.\r\n2. Co za uniżenie: Niosąc nam zbawienie, gdy w nocy śmierci już nie miał nadziei nikt, czule, łaskawie złożył koronę na bok. Uniżył się, by zbawić duszę mą.\r\n3. Sam dobrowolnie przyszedł, tak pokornie, w mężczyzny postać wdzian, ukryty zjawił plan. Zmarł na Golgocie, odkrył tajemnicę. Teraz już wiem, Tyś wielki Bóg „Jam Jest”.",
     "ru": "1. С небес спустился, в нашу жизнь явился, Он в яслях был рождён, Иисусом наречён. Пришёл как странник, для своих – изгнанник, Был на земле как муж скорбей и слез.\r\n*О, как люблю Его, Им восхищаюсь, Он-жизнь, Он-солнце, Он-всё во всём. Миров Создатель стал мой Спаситель. Вся сущность Бога явилась в Нём.\r\n2. В благоволенье Он нам дал спасенье. Греховный мрак царил, но милость Бог явил. Склонился нежно к нам в любви безбрежной, Сошёл, чтоб душу искупить мою.\r\n3. Пришёл с любовью, стал Он плотью, кровью. Свершился чудный план, Голгофы Агнец дан. Христа явленье, тайны откровенье; Я знаю, Ты-великий Бог \"Я Есть!\".",
     "en": "1. Down from His glory, Ever living story, My God and Saviour came, And Jesus was His Name. Born in a manger, To His own a stranger, A Man of sorrows, Tears and agony.\r\n*Oh, how I love Him! How I adore Him! My breath, my sunshine, My all in all! The great Creator Became my Saviour, And all God's fullness Dwelleth in Him.\r\n2. What condescension, Bringing us redemption; That in the dead of night, Not one faint hope in sight; God, gracious, tender, Laid aside His splendor, Stooping to woo, to win, To save my soul.\r\n3. Without reluctance, Flesh and blood His substance, He took the form of man, Revealed the hidden plan. Oh, glorious mystery, Sacrifice of Calvary, And now I know Thou art the great \"I Am.\""
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №72",
-    "texts": "Vilnius-HGB №25 (song_list.ID 3294)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №72",
+    "texts": "Vilnius-HGB №25 (song_list.ID 3294)",
+    "pl_key": "E"
    }
   },
   {
    "num": "28",
-   "name": "(G) Przez duszę mą płyń",
+   "name": "(E) Przez duszę mą płyń",
    "texts": {
     "pl": "1.[:Przez duszę mą płyń:], Duchu Boży, przez duszę mą płyń. Twój pokój pełny, wszystkim jesteś mi. Duchu Boży, przez duszę mą płyń.",
     "ru": "1. {Повей на меня}-2p., Дух чудный, повей на меня. У ног пред Тобой мой полный покой. Дух чудный, повей на меня.",
@@ -148,8 +159,9 @@
     "en": "1.Sweep over my soul, sweep over my soul, Sweet Spirit, sweep over my soul; My rest is complete while I sit at Your feet; Sweet Spirit, sweep over my soul."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №46",
-    "texts": "Vilnius-HGB №28 (song_list.ID 3321)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №46",
+    "texts": "Vilnius-HGB №28 (song_list.ID 3321)",
+    "pl_key": "G"
    }
   },
   {
@@ -162,8 +174,9 @@
     "en": "1. There is a name I love to hear, I love to sing its worth; it sounds like music in my ear, the sweetest name on earth.\r\n*O how I love Jesus, O how I love Jesus, O how I love Jesus, because he first loved me!\r\n2. It tells me of a Savior's love, who died to set me free; it tells me of his precious blood, the sinner's perfect plea.\r\n3. It tells of one whose loving heart can feel my deepest woe; who in each sorrow bears a part that none can bear below.\r\n4.\r\n**"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №190",
-    "texts": "Vilnius-HGB №30 (song_list.ID 3298)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №190",
+    "texts": "Vilnius-HGB №30 (song_list.ID 3298)",
+    "pl_key": "G"
    }
   },
   {
@@ -176,8 +189,9 @@
     "en": "1. Noah had drifted On the floods many days He searched for land In various ways Troubles he had some, But not from above, God gave him His Sign On the Wings of a Dove.\r\n*On the Wings of a Snow-White Dove, God sends His pure, sweet Love, A sign from Above, On the Wings of a Dove.\r\n2. Jesus, our Saviour Came to earth one day; He was born in a stable, In a manger of hay; Though here rejected, But not from above, God gave us His Sign, On the Wings of a Dove.\r\n3. Though I have suffered In many a way, I cried for healing Both night and day; Faith wasn't forgotten By the Father above, He gave me His Sign On the Wings of a Dove."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №133",
-    "texts": "Vilnius-HGB №33 (song_list.ID 3301)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №133",
+    "texts": "Vilnius-HGB №33 (song_list.ID 3301)",
+    "pl_key": "D"
    }
   },
   {
@@ -189,8 +203,9 @@
     "en": "1. In shady, green pastures, so rich and so sweet, God leads His dear children along; Where the water's cool flow bathes the weary one's feet, God leads His dear children along.\r\n*Some through the waters, some through the flood, Some through the fire, but all through the blood; Some through great sorrow, but God gives a song, In the night season and all the day long.\r\n2. Sometimes on the mount where the sun shines so bright, od leads His dear children along; Sometimes in the valley in the darkest of night, God leads His dear children along.\r\n3. Tho' sorrows befall us, and Satan oppose, God leads His dear children along; Through grace we can conquer, defeat all our foes, God leads His dear children along.\r\n4. Away from the mire, and away from the clay, God leads His dear children along; Away up in glory, eternity's days, God leads His dear children along."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №148",
-    "texts": "Vilnius-HGB №34 (song_list.ID 3302)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №148",
+    "texts": "Vilnius-HGB №34 (song_list.ID 3302)",
+    "pl_key": "C"
    }
   },
   {
@@ -203,13 +218,14 @@
     "en": "1.Teach me, Lord to wait Down on my knees Till in Your own good time You answer my pleas Teach me not to rely On what others do But to wait in prayer For the answer from You\r\n*They that wait upon the Lord Shall renew their strength They shall mount up With wings as eagles They shall run and not be weary They shall walk and not faint Teach me Lord, Teach me Lord, to wait\r\n2. Teach me, Lord to wait While hearts are aflame Help me humble myself And call on Your Name Keep my Faith renewed And my eyes on Thee Help me be on this earth What You want me to be"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №69",
-    "texts": "Vilnius-HGB №36 (song_list.ID 3304)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №69",
+    "texts": "Vilnius-HGB №36 (song_list.ID 3304)",
+    "pl_key": "E"
    }
   },
   {
    "num": "37",
-   "name": "(A) Czy słyszałeś o Mojżeszu",
+   "name": "(G) Czy słyszałeś o Mojżeszu",
    "texts": {
     "pl": "1. Czy słyszałeś o Mojżeszu raz w sitowiu? O Dawidzie, co się procą dzielnie bił? O Józefie, jego snach tak pełnych proroctw? O Jonaszu, który w brzuchu ryby był? W Biblii bohaterów mamy jeszcze wielu, których pragnę także spotkać, mówię wam. Pan pozwoli zejść się z nimi na weselu, w tym spotkaniu w Niebie tam.\r\n*Szybko zbliża się spotkanie na powietrzu w błogim połączeniu się. Z wami spotkam się po tamtej stronie, w Domu tym, gdzie mieszka Bóg. Usłyszycie cudny śpiew, jak jeszcze nigdy przedtem. Wspaniałe będzie to, mówię wam. A sam Boży Syn będzie przewodził w tym spotkaniu w Niebie tam.\r\n2. Czy słyszałeś o Mojżeszu raz w sitowiu? O Dawidzie, co się procą dzielnie bił? O Józefie, jego snach tak pełnych proroctw? O Jonaszu, który w brzuchu ryby był? W Biblii bohaterów mamy jeszcze wielu, których pragnę także spotkać, mówię wam. Pan pozwoli zejść się z nimi na weselu, w tym spotkaniu w Niebie tam.\r\n3. Czy słyszałeś o Mojżeszu raz w sitowiu? O Dawidzie, co się procą dzielnie bił? O Józefie, jego snach tak pełnych proroctw? O Jonaszu, który w brzuchu ryby był? W Biblii bohaterów mamy jeszcze wielu, których pragnę także spotkać, mówię wam. Pan pozwoli zejść się z nimi na weselu, w tym spotkaniu w Niebie tam.",
     "ru": "1. Вы слыхали о младенце Моисее, Как с пращей пошёл Давид на бой с врагом; Вы слыхали об Иосифе сновидце, Об Ионе и других псалмы поём. Много в Библии героев подтверждённых. День наступит, и предстанут люди те. Как желаю я скорее их увидеть На той встрече в высоте.\r\n*Скоро близок тот час, свиданья сладкий час В вышине на облаках. Там я встречу тебя, ждёт встреча нас В чудном доме в небесах. Никто из людей не слыхал таких песней, Явит Славу Он в полноте. Сын Божий Сам ведущим будет там, На той встрече в высоте.\r\n2. Эта встреча очень многое изменит: Слёзы высохнут и скорби все уйдут, Там не будет больше проповеди грешным, Ибо грешники туда не попадут. Там не будем больше плакать мы за близких И молить за них в полночной темноте. Наше бремя и заботы будут сняты На той встрече в высоте.\r\n3. Сомневающихся там уже не будет, И для скептиков на небе места нет. Ворчуны нас перестанут беспокоить, И исчезнет вдалеке Аханцев след. У святых на их челах печать Господня, У искупленных одежды в чистоте. Все, кто будут в том наряде, соберутся На той встрече в высоте.",
@@ -217,8 +233,9 @@
     "en": "1. You have heard of little Moses in the bulrush, You have heard of fearless David and his sling; You have heard the story told of dreaming Joseph, And of Jonah and the whale you often sing. There are many, many others through the Bible, I should like to meet them all, I do declare! By and by the Lord will surely let us meet them At the meeting in the air.\r\n*There is going to be a meeting in the air, In the sweet, sweet by and by; I am going to meet you, meet you there In that home beyond the sky; Such singing you will hear, never heard by mortal ear, 'Twill be glorious, I do declare! And God's own Son will be the leading One At the meeting in the air.\r\n2. Many things will there be missing, in that meeting: For the mourners bench will have no place at all; There will never be a sermon preached to sinners, For the sinner had refused to heed the call. There will be no mourning over wayward loved ones, There will be no lonely nights of pleading prayer; All our burdens and our anguish will be lifted At the meeting in the air.\r\n3. There the doubters will be missing altogether, All the skeptics will be absent on that day; There will be no grumblers present to disturb us, And the Achans will be busy far away. There the saints will have His “seal upon their foreheads,” Dressed in raiment none but ransomed ones can wear; All who have the wedding garments will be present At the meeting in the air."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №70",
-    "texts": "Vilnius-HGB №37 (song_list.ID 3305)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №70",
+    "texts": "Vilnius-HGB №37 (song_list.ID 3305)",
+    "pl_key": "A"
    }
   },
   {
@@ -231,13 +248,14 @@
     "en": "1. The love of God is greater far Than tongue or pen can ever tell; It goes beyond the highest star, And reaches to the lowest hell. The guilty pair, bowed down with care, God gave His Son to win; His erring child He reconciled, And pardoned from his sin.\r\n*Oh, love of God, how rich and pure! How measureless and strong! It shall forevermore endure, The Bride and Bridegroom's Love song.\r\n2. When hoary time shall pass away, And earthly thrones and kingdoms fall; When men who here refuse to pray, On rocks and hills and mountains call; God's love, so sure, shall still endure, All measureless and strong; Redeeming grace to Adam's race, The Bride and Bridegroom's Love song.\r\n3. Could we with ink the ocean fill, And were the skies Of parchment made; Were every stalk on earth a quill, And every man a scribe by trade; To write the love of God above Would drain the ocean dry; Nor could the scroll contain the whole, Though stretched from sky to sky."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №156",
-    "texts": "Vilnius-HGB №39 (song_list.ID 3307)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №156",
+    "texts": "Vilnius-HGB №39 (song_list.ID 3307)",
+    "pl_key": "C"
    }
   },
   {
    "num": "40",
-   "name": "(F) Słuchaj, jak Pan żniwa słodko woła",
+   "name": "(E) Słuchaj, jak Pan żniwa słodko woła",
    "texts": {
     "pl": "1. Słuchaj, jak Pan żniwa słodko woła: „Kto pracować dla Mnie zechce dziś? Kto zapraszać chce na wąską drogę, do ginących z dobrą wieścią iść?”.\r\n*[:Panie, mów:], a odpowiem wnet na Słowo Twe. [:Panie, mów:], a ja powiem: „Zbawco, poślij  mnie”.\r\n2. Chociaż prorok miał nieczyste wargi, żarem ognia Bóg oczyścił je. Gdy głos Boży spytał: „Kto tam pójdzie?”, odrzekł: „Oto jestem, poślij mnie”.\r\n3. W hańbie grzechu giną dziś miliony. Gorzki głos rozpaczy z ust ich brzmi. Pośpiesz bracie szybko na ratunek. Powiedz: „Mistrzu, pragnę służyć Ci”.\r\n4. Wkrótce Pan zgromadzi nas u Siebie. Wkrótce się zakończy żniwa znój, aby Pan mógł przyjąć nas łaskawie i powiedzieć: „Dobrze, sługo Mój”.",
     "ru": "1. Вот Хозяин жатвы кличет нежно: \"Кто трудиться для Меня пойдёт, Кто на узкий путь укажет грешным, Кто ко Мне заблудших приведёт?\"\r\n*Говори, мой Господь, Поспешу Тебе ответить я. Говори, мой Господь, Я готов, Господь, пошли меня.\r\n2. Уголёк коснулся уст пророка, Стал он чист от пламени огня. \"Кто пойдёт для нас?\"- спросил глас Бога. Он сказал: \"Вот я, пошли меня\".\r\n3. Миллионы грешных погибают. Слышишь ли ты их скорбящий глас? Брат, Господь спасать их призывает, Отвечай: \"Вот я, иду тотчас\".\r\n4. Скоро будет жатвы завершение, Мы на праздник тот придём домой. Пусть услышим мы благословенье: \"Верный раб, войди на пир со Мной\".",
@@ -245,8 +263,9 @@
     "en": "1. Hear the Lord of harvest Sweetly calling, \"Who will go and work For Me today? Who will bring to Me The lost and dying? Who will point them To the narrow way?\"\r\n*Speak, my Lord, Speak, my Lord, Speak and I'll be quick To answer Thee; Speak, my Lord, Speak, my Lord Speak, and I will answer, \"Lord send me.\"\r\n2. When the coal of fire Touched the prophet, Making him as pure, As pure can be; When the voice of God said, \"Who'll go for us?' Then he answered, \"Here I am, send me.\"\r\n3. Millions now in sin And shame are dying; Listen to their sad And bitter cry; Hasten, brother, Hasten to the rescue; Quickly answer, \"Master, here am I.\"\r\n4. Soon the time for reaping Will be over; Soon we'll gather for The harvest home; May the Lord of harvest Smile upon us, May we hear His blessed, \"Child, well done.\""
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №35",
-    "texts": "Vilnius-HGB №40 (song_list.ID 3309)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №35",
+    "texts": "Vilnius-HGB №40 (song_list.ID 3309)",
+    "pl_key": "F"
    }
   },
   {
@@ -259,8 +278,9 @@
     "en": "1. Christ our Redeemer died on the cross, Died for the sinner, paid all His due; Sprinkle your soul with the blood of the Lamb, And I will pass, will pass over you.\r\n*When I see the blood, When I see the blood, When I see the blood, I will pass, I will pass over you.\r\n2. Chieftest of sinners, Jesus will save; All He has promised, that will He do; Wash in the fountain opened for sin, And I will pass, will pass over you.\r\n3. Judgement is coming, all will be there, Each one receiving justly his due; Hide in the saving, sin-cleansing blood, And I will pass, will pass over you.\r\n4. Oh, great compassion! O boundless love! O loving kindness, faithful and true! Find peace and shelter under the blood, And I will pass, will pass over you."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №30",
-    "texts": "Vilnius-HGB №41 (song_list.ID 3310)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №30",
+    "texts": "Vilnius-HGB №41 (song_list.ID 3310)",
+    "pl_key": "A"
    }
   },
   {
@@ -273,8 +293,9 @@
     "en": "1. This is the day, this is the day. That the Lord has made, that the Lord has made. We will rejoice, we will rejoice, And be glad in it, and be glad in it. This is the day that the Lord has made. We will rejoice and be glad in it. This is the day, this is the day That the Lord has made."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №93",
-    "texts": "Vilnius-HGB №42 (song_list.ID 3311)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №93",
+    "texts": "Vilnius-HGB №42 (song_list.ID 3311)",
+    "pl_key": "E"
    }
   },
   {
@@ -286,8 +307,9 @@
     "en": "1. In a manger long ago, I know it’s really so, A babe was born to save men from their sin. John saw Him on the shore, The Lamb for evermore, Christ, the crucified of Calvary.\r\n*I love that man from Galilee For He has done so very much for me. He has taken all my sins, Placed the Holy Ghost within; I love that man, that man from Galilee.\r\n2. The publican went to pray in the temple there one day, He cried, “O Lord, be merciful to me!” He was forgiven of every sin, and a deep peace placed within; He said, “Come see this man from Galilee.”\r\n3. Well, the lame was made to walk and the dumb was made to speak, When he spoke there is power in His word The blind was made to see, I know it could only be By the miracle of the man of Galilee.\r\n4. Nicodemus came by night to know the way of right, He asked the Son of Man what must he do. These words He said to him, “Ye must be born again” By the Spirit of that man from Galilee.\r\n5. The woman at the well, He all her sins did tell, How five husbands she had at that time, She was forgiven of every sin and a deep peace came within; Then she cried, “Come see that man from Galilee!”"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №99",
-    "texts": "Vilnius-HGB №43 (song_list.ID 3312)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №99",
+    "texts": "Vilnius-HGB №43 (song_list.ID 3312)",
+    "pl_key": "E"
    }
   },
   {
@@ -300,8 +322,9 @@
     "en": "1. From Bethl’hem’s manger Came forth a Stranger, On earth I long to be like Him; My faithful Savior, How rich His favor! On earth I long to be like Him.\r\n*To be like Jesus, to be like Jesus, On earth I long to be like Him; All thru life’s journey from earth to glory I only ask to be like Him.\r\n2. Serene and holy, Obedient, lowly On earth I long to be like Him; By grace forgiven, An heir of heaven, On earth I long to be like Him."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №5",
-    "texts": "Vilnius-HGB №47 (song_list.ID 3323)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №5",
+    "texts": "Vilnius-HGB №47 (song_list.ID 3323)",
+    "pl_key": "E"
    }
   },
   {
@@ -314,8 +337,9 @@
     "en": "1. Let me walk, blessed Lord, In the way Thou hast gone, Leading straight to the Land above; Giving cheer everywhere To the sad and the lone, Fill my way every day with Love.\r\n*Fill my way every day with Love, As I walk with the Heav'nly Dove; Let me go all the while With a song and a smile, Fill my way every day with Love.\r\n2. Keep me close to the side of My Saviour and Guide, Let me never in darkness rove; Keep my path free from wrath And my soul satisfied, Fill my way every day with Love.\r\n3. Soon this race will be o'er And I'll travel no more, But abide in my Home above; Let me sing, blessed King, All the way to that Shore, Fill my way every day with Love."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №184",
-    "texts": "Vilnius-HGB №49 (song_list.ID 3325)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №184",
+    "texts": "Vilnius-HGB №49 (song_list.ID 3325)",
+    "pl_key": "E"
    }
   },
   {
@@ -327,8 +351,9 @@
     "en": "1. Every day with Jesus Is sweeter than the day before Every day with Jesus I love Him more and more, Jesus saves and keeps me And He’s the One I’m waiting for; Every day with Jesus Is sweeter than the day before.\r\n2. Every day with Jesus Is sweeter than the day before Every day with Jesus I love Him more and more, Jesus saves and keeps me And He’s the One I’m waiting for; Every day with Jesus Is sweeter than the day before."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №211",
-    "texts": "Vilnius-HGB №51 (song_list.ID 3327)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №211",
+    "texts": "Vilnius-HGB №51 (song_list.ID 3327)",
+    "pl_key": "E"
    }
   },
   {
@@ -341,13 +366,14 @@
     "en": "1. It's the old-time Holy Spirit, And the devil won't go near It, That's the reason people fear It; But it's good enough for me.\r\n*Give me that old-time religion, Give me that old-time religion, Give me that old-time religion, It's good enough for me.\r\n2. It will make you stop your lying; It will save you when you're dying; It will start the devil flying; And It's good enough for me.\r\n3. It's so good I want no other, For It makes me love my brother; And It brings things From under cover, And It's good enough for me.\r\n4. It was good for Paul and Silas, It was good for our fathers, It was good for Brother Branham, And It's good enough for me.\r\n5. Makes me love everybody, It will do when I'm dying, It will take us all to Heaven, And It's good enough for me."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №56",
-    "texts": "Vilnius-HGB №54 (song_list.ID 3330)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №56",
+    "texts": "Vilnius-HGB №54 (song_list.ID 3330)",
+    "pl_key": "G"
    }
   },
   {
    "num": "60",
-   "name": "(G) Oto ludzie niemal wszędzie",
+   "name": "(A) Oto ludzie niemal wszędzie",
    "texts": {
     "pl": "1. Oto ludzie niemal wszędzie, których serca palą się Ogniem, który w dzień Zielonych Świąt spadł i oczyścił ich. On się pali teraz w sercu mym, o chwała Jemu, cześć! Cieszę się, bo mówić śmiem, żem jeden z nich.\r\n*Jeden z nich, jeden z nich! Cieszę się, bo mówić śmiem, żem jeden z nich:].\r\n2. Choć nie mieli wykształcenia ni chluby świeckiej sławy, przyjęli Ducha Świętego i w Imię Jezusa chrzest. Teraz głoszą wzdłuż i wszerz, że Jego moc ta sama jest. Cieszę się, bo mówić śmiem, żem jeden z nich.\r\n3. Zeszli się w górnym pokoju, wzywając Imię Jego, a Duch Święty ochrzcił ich i dał im do usługi moc. Co uczynił dla nich tego dnia, dla ciebie zrobi też. Cieszę się, bo mówić śmiem, żem jeden z nich.\r\n4. Bracie, szukaj daru Boga, co obmyje serca grzech, a dzwony radości zabrzmią, płomień będzie w duszy twej. On się pali teraz w sercu mym, o chwała Jemu, cześć! Cieszę się, bo mówić śmiem, żem jeden z nich.",
     "ru": "1. Есть такие в мире люди, чьи сердца воспламенил Тот огонь Пятидесятницы, что души осветил. Слава Имени Его! Во мне горит он, как и в них. Я так счастлив, что и я-один из них.\r\n*{Один из них, один из них, Я так счастлив, что и я – один из них}-2p..\r\n2. Славы в мире не имеют, но от Духа рождены, Люди те в Святое Имя Иисуса крещены. Они всюду возвещают: та же сила и у них. Я так счастлив, что и я -один из них.\r\n3. В верхней комнате собрались в Его Имени они, Силу свыше получили, были Духом крещены. Бог ту силу для служенья дал для нас, как и для них. Я так счастлив, что и я-один из них.\r\n4. Брат, ищи благословенья, что весь грех твой удалит, Сердцу радость ниспошлёт, в душе огонь тот сохранит. Слава Имени Его! Оно во мне, как и у них. Я так счастлив, что и я-один из них.",
@@ -355,21 +381,23 @@
     "en": "1. There are people almost everywhere, Whose hearts are all aflame, With the fire that fell at Pentecost, Which cleansed and made them clean; It is burning now within my heart, All glory to His name! I'm so glad that I can say I'm one of them!\r\n*One of them, one of them, I'm so glad that I can say I'm one of them! One of them, one of them, I'm so glad that I can say I'm one of them!\r\n2. Though these people May not learned be, Nor boast of worldly fame, They have all received Their Pentecost, Baptized in Jesus' name; And are telling now, both far and wide, His pow'r is yet the same, I'm so glad that I can say I'm one of them!\r\n3. They were gathered in the upper room, All praying in His name, They were baptized With the Holy Ghost, And pow'r for service came; Now what He did for them that day He'll do for you the same; I'm so glad that I can say I'm one of them!\r\n4. Come, my brother, seek this blessing That will cleanse your heart from sin, That will start the joy-bells ringing And will keep the soul aflame; It is burning now within my heart, All glory to His name, I'm so glad that I can say I'm one of them!"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №6",
-    "texts": "Vilnius-HGB №60 (song_list.ID 3336)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №6",
+    "texts": "Vilnius-HGB №60 (song_list.ID 3336)",
+    "pl_key": "G"
    }
   },
   {
    "num": "62",
-   "name": "(E) Wnet nadejdzie dzień",
+   "name": "(G) Wnet nadejdzie dzień",
    "texts": {
     "pl": "1. [:Wnet nadejdzie dzień, gdy ujrzymy Króla Chwał:]. Wnet nadejdzie dzień, gdy ujrzymy Króla Chwał, alleluja, alleluja, gdy ujrzymy Króla Chwał!\r\n2. [:Radość będzie tam, gdy ujrzymy Króla Chwał:]. Radość będzie tam, gdy ujrzymy Króla Chwał, alleluja, alleluja, gdy ujrzymy Króla Chwał!\r\n3. [:Smutku nie będzie tam, gdy ujrzymy Króla Chwał:]. Smutku nie będzie tam, gdy ujrzymy Króla Chwał, alleluja, alleluja, gdy ujrzymy Króla Chwał!\r\n4. [:Chorób nie będzie tam, gdy ujrzymy Króla Chwał:]. Chorób nie będzie tam, gdy ujrzymy Króla Chwał, alleluja, alleluja, gdy ujrzymy Króla Chwał!\r\n5. ",
     "ru": "1. {Скоро, очень скоро, мы увидим Царя}-3p., {Аллилуйя!}-2p. Мы увидим Царя. {Аллилуйя!}-2p.\r\n2. {Ночи там уж нет - мы увидим Царя}-3p., {Аллилуйя!}-2p. Мы увидим Царя. {Аллилуйя!}-2p.\r\n3. {Плача больше нет - мы увидим Царя}-3p., {Аллилуйя!}-2p. Мы увидим Царя. {Аллилуйя!}-2p.\r\n4. {Там болезней нет - мы увидим Царя}-3p., {Аллилуйя!}-2p. Мы увидим Царя. {Аллилуйя!}-2p.\r\n5. {Там разлуки нет - мы увидим Царя}-3p., {Аллилуйя!}-2p. Мы увидим Царя. {Аллилуйя!}-2p.",
     "en": "1. Soon and Very Soon We Are Going to See the King, Soon and Very Soon We Are Going to See the King, Soon and Very Soon We Are Going to See the King, Hallelujah, hallelujah, We're going to see the king\r\n2. Soon and Very Soon We Are Going to See the King, Soon and Very Soon We Are Going to See the King, Soon and Very Soon We Are Going to See the King, Hallelujah, hallelujah, We're going to see the king\r\n3. No more cryin there, We are going to see the King No more cryin there, We are going to see the King No more cryin there, We are going to see the King Hallelujah, hallelujah, We're going to see the King\r\n4. Soon and Very Soon We Are Going to See the King, Soon and Very Soon We Are Going to See the King, Soon and Very Soon We Are Going to See the King, Hallelujah, hallelujah, We're going to see the king\r\n5. No more dying there, we are going to see the King! No more dying there, we are going to see the King! No more dying there, we are going to see the King! Hallelujah, Hallelujah, we’re going to see the King!"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №142",
-    "texts": "Vilnius-HGB №62 (song_list.ID 3338)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №142",
+    "texts": "Vilnius-HGB №62 (song_list.ID 3338)",
+    "pl_key": "E"
    }
   },
   {
@@ -382,13 +410,14 @@
     "en": "1. I looked over Jordan and what did I see Coming for to carry me home; A band of angels coming after me, Coming for to carry me home.\r\n*Swing low, sweet chariot, Coming for to carry me home; Swing low, sweet chariot, Coming for to carry me home.\r\n2. If you get there before I do, Coming for to carry me home; Tell all my friends I'm a-coming too, Coming for to carry me home."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №152",
-    "texts": "Vilnius-HGB №69 (song_list.ID 3345)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №152",
+    "texts": "Vilnius-HGB №69 (song_list.ID 3345)",
+    "pl_key": "E"
    }
   },
   {
    "num": "71",
-   "name": "(D) Wzburzony już Jordanu brzeg",
+   "name": "(E) Wzburzony już Jordanu brzeg",
    "texts": {
     "pl": "1. Wzburzony już Jordanu brzeg. Tęsknoty wzrok swój ślę, gdzie piękno Kanaanu jest, posiadłość, szczęście me.\r\n*[:Celem mym Obiecany Kraj:]. O, kto z was pójdzie ze mną tam? Celem mym Obiecany Kraj.\r\n2. Rozległe lśnią równiny te. To jeden wieczny dzień. Bóg Syn sprawuje rządy Swe i noc przepędził zeń.\r\n3. Nie sięgnie diabeł Ziemi tej trującą, mroźną mgłą. Choroby, troski, ból czy śmierć nieznane już tam są.\r\n4. W tym szczęsnym Kraju chcę już być, w Twą, Ojcze, spojrzeć Twarz. Spoczynek, wieczną błogość mi na łonie Swym tam dasz.",
     "ru": "1. Смотрю я вдаль за Иордан, Где грозный вал шумит. Вижу я счастливый Ханаан, Там наследие моё лежит.\r\n*{Я иду в обетованный край}-2р.. О, кто пойдёт со мной в тот край? Я иду в этот чудный край.\r\n2. Там, над просторами равнин, Сияет вечный день. Вечно царствует в стране Бог Сын, Прогоняя ночную тень.\r\n3. Студёный ветер, лютый зной Вреда не принесут. Нет болезней в той стране благой, Смерть и скорбь навсегда уйдут.\r\n4. Благословенным навсегда Я буду в том краю. Отдохну там на груди Христа И Его чудный лик узрю.",
@@ -396,20 +425,22 @@
     "en": "1. On Jordan's stormy banks I stand, And cast a wishful eye, Toward Canaan’s fair and happy land, Where my possessions lie.\r\n*I am bound for the promised land, I am bound for the promised land; O who will come and go with me? I am bound for the promised land.\r\n2. O’er all those wide extended plains Shines one eternal day; There God the Son forever reigns, And scatters night away.\r\n3. No chilling winds, nor pois’nous breath, Can reach that healthful shore; Sickness and sorrow, pain and death, Are feared and felt no more.\r\n4. When shall I reach that happy place, And be forever blest! When shall I see my Father's face, And in His bosom rest?"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №101",
-    "texts": "Vilnius-HGB №71 (song_list.ID 3347)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №101",
+    "texts": "Vilnius-HGB №71 (song_list.ID 3347)",
+    "pl_key": "D"
    }
   },
   {
    "num": "72",
-   "name": "(F) Przemierzam przez Kraj Kanaan",
+   "name": "(E) Przemierzam przez Kraj Kanaan",
    "texts": {
     "pl": "1. Przemierzam przez Kraj Kanaan. Przemierzam przez Kraj Kanaan. Przemierzam przez Kraj Kanaan. Jestem w drodze, chwała Mu, jestem w drodze.\r\n2. A jeśli chcesz, to chodź ze mną. A jeśli chcesz, to chodź ze mną. A jeśli chcesz, to chodź ze mną. Jestem w drodze, chwała Mu, jestem w drodze.\r\n3. Jeśli nie chcesz, nie wstrzymuj mnie. Jeśli nie chcesz, nie wstrzymuj mnie. Jeśli nie chcesz, nie wstrzymuj mnie. Jestem w drodze, chwała Mu, jestem w drodze.",
     "ru": "1. {Я на пути в край Ханаан}-3p., Хвала Христу, я на пути в край Ханаан.\r\n2. {Пойдём со мной в край Ханаан}-3p., Я на пути в край Ханаан, в край Ханаан.\r\n3. {А если нет, то пропусти}-3p., О, не препятствуй на пути в край Ханаан."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №59",
-    "texts": "Vilnius-HGB №72 (song_list.ID 3348)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №59",
+    "texts": "Vilnius-HGB №72 (song_list.ID 3348)",
+    "pl_key": "F"
    }
   },
   {
@@ -422,8 +453,9 @@
     "en": "1. O my heart sings today, sings for joy and gladness, Jesus saves, satisfies, banishes my sadness; Guilt is gone, peace is mine, peace like to a river, Jesus is wonderful, mighty to deliver.\r\n*Wonderful, wonderful, Jesus is to me, Counselor, Prince of Peace, Mighty God is He, Saving me, keeping me from all sin and shame, Wonderful is my Redeemer, praise His name!\r\n2. Once a slave, now I’m free, free from condemnation, Jesus gives liberty and a full salvation; Now the sins of the past have been all forgiven, And my name is inscribed on the book of heaven.\r\n3. Living here with my Lord in a holy union, Day by day, all the way holding sweet communion; O what change grace hath wrought in my lowly station! Since my soul has received full and free salvation."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №98",
-    "texts": "Vilnius-HGB №73 (song_list.ID 3349)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №98",
+    "texts": "Vilnius-HGB №73 (song_list.ID 3349)",
+    "pl_key": "E"
    }
   },
   {
@@ -436,8 +468,9 @@
     "en": "1. Down at the cross where my Saviour died, Down where for cleansing from sin I cried; ‘There to my heart was the blood applied; Glory to His name!\r\n*Glory to His name! Glory to His name! There to my heart was the blood applied; Glory to His name!\r\n2. I am so wondrously saved from sin, Jesus so sweetly abides within, There at the cross where He took me in: Glory to His name!\r\n3. O, precious fountain that saves from sin! I am so glad I have entered in; There Jesus saves me and keeps me clean; Glory to His name!\r\n4. Come, to this fountain so rich and sweet; Cast thy poor soul at the Saviour’s feet; Plunge in today, and be made complete; Glory to His name!"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №96",
-    "texts": "Vilnius-HGB №81 (song_list.ID 3357)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №96",
+    "texts": "Vilnius-HGB №81 (song_list.ID 3357)",
+    "pl_key": "G"
    }
   },
   {
@@ -450,13 +483,14 @@
     "en": "1. Would you be free From the burden of sin? There's power in the blood, Power in the Blood; Would you o'er evil A victory win? There's wonderful power In the Blood.\r\n*There is power, power, Wonder-working power In the Blood of the Lamb; There is power, power Wonder-working power In the precious Blood of the Lamb.\r\n2. Would you be free From your passion and pride? There's power in the Blood, Power in the Blood; Come for a cleansing To Calvary's tide; There's wonderful power In the Blood.\r\n3. Would you be whiter, Much whiter than snow? There's power in the Blood, Power in the Blood; Sin stains are lost In its Lifegiving flow; There's wonderful power In the Blood.\r\n4. Would you do service For Jesus your King? There's power in the Blood, Power in theBlood; Would you live daily His praises to sing? There's wonderful power In the Blood."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №331",
-    "texts": "Vilnius-HGB №164 (song_list.ID 3438)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №331",
+    "texts": "Vilnius-HGB №164 (song_list.ID 3438)",
+    "pl_key": "G"
    }
   },
   {
    "num": "165",
-   "name": "(D) Tak jak jeleń",
+   "name": "(C) Tak jak jeleń",
    "texts": {
     "pl": "1. Tak jak jeleń do źródła wody, dusza ma do Ciebie lgnie. Tyś pragnieniem mojego serca. Panie, Ciebie wielbić chcę. Tyś mą siłą, Tyś tarczą jest, na Tobie tylko polegać chcę. Tyś pragnieniem mojego serca. Panie, Ciebie wielbić chcę.\r\n2. Jesteś mi jak mój Brat i jak Przyjaciel, choć Tyś królów Król. I miłuję Cię, Jezu, ponad wszystko, z całej duszy mej. Tyś mą siłą, Tyś tarczą jest, na Tobie tylko polegać chcę. Tyś pragnieniem mojego serca. Panie, Ciebie wielbić chcę.\r\n3. Jesteś droższy mi ponad skarby świata! Wszystko w Tobie mam! Tylko Ty dajesz mi prawdziwą radość, wszystkim jesteś mi! Tyś mą siłą, Tyś tarczą jest, na Tobie tylko polegać chcę. Tyś pragnieniem mojego serca. Panie, Ciebie wielbić chcę.",
     "ru": "1. Как олень стремится к водам, Так душа моя к Тебе! Только Ты жажду утоляешь, Прихожу, Господь, к Тебе. Ты один – моя крепость, щит, Лишь к Тебе душа спешит. Ты один – желанье сердца; Прихожу, Господь, к Тебе.\r\n2. Я колени преклоняю, Пред Тобой, Господь, стою И, восторгом окрылённый, Гимн хвалы Тебе пою. Ты один мир даруешь мне, лишь в Тебе счастлив я вполне. Ты один – желанье сердца; Поклоняюсь я Тебе.\r\n3. Мне сокровищ земных не надо, только будь всегда со мной. Лишь Тебе моё сердце радо в этой суете земной. Ты один – моя крепость, щит, лишь к Тебе душа спешит. Ты один – желанье сердца; Прихожу, Господь, к Тебе.",
@@ -464,51 +498,55 @@
     "en": "1. As the deer panteth for the water, So my soul longeth after Thee. You alone are my heart's desire, And I long to worship Thee. You alone are my Strength, my Shield, To You alone does my spirit yield. You alone are my heart's desire, And I long to worship Thee.\r\n2. You're my Friend, And You are my Brother, Even though You are The King. I want You more than any other, So much more than anything. You alone are my Strength, my Shield, To You alone does my spirit yield. You alone are my heart's desire, And I long to worship Thee.\r\n3. I want You more than gold or silver, Only You can satisfy. You alone are the real Joy-Giver, And the Apple of my eye. You alone are my Strength, my Shield, To You alone does my spirit yield. You alone are my heart's desire, And I long to worship Thee."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №210",
-    "texts": "Vilnius-HGB №165 (song_list.ID 3439)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №210",
+    "texts": "Vilnius-HGB №165 (song_list.ID 3439)",
+    "pl_key": "D"
    }
   },
   {
    "num": "176",
-   "name": "(E) Bóg dobry jest",
+   "name": "(D) Bóg dobry jest",
    "texts": {
     "pl": "1. [:Bóg dobry jest:], Bóg dobry jest, dobry dla mnie jest.\r\n2. [:Czyni cuda wciąż:], czyni cuda wciąż, dobry dla mnie jest.\r\n3. [:Dał Słowo Swe:], dał Słowo Swe, bo dobry dla mnie jest.\r\n4. [:Miłuję Go:], miłuję Go, bo dobry dla mnie jest.\r\n5. [:Miłuję Go:], miłuję Go, bo dobry dla mnie jest.",
     "ru": "1. \\Бог мой так благ\\-3р Он так благ ко мне.\r\n2. \\Он спас меня\\-3р Он так благ ко мне.\r\n3. \\Он помощь мне\\-3р Он так благ ко мне.\r\n4. \\Любит меня\\ 3р Он так благ ко мне\r\n5. \\Славлю Его\\-3р Он так благ ко мне",
     "en": "1. God is so good God is so good God is so good He's so good to me.\r\n2. He cares for me, He cares for me, He cares for me, He's so good to me.\r\n3. God answers prayer, God answers prayer, God answers prayer, He's so good to me.\r\n4.\r\n5. I praise His name, I praise His name, I praise His name, He's so good to me."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №11",
-    "texts": "Vilnius-HGB №176 (song_list.ID 3450)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №11",
+    "texts": "Vilnius-HGB №176 (song_list.ID 3450)",
+    "pl_key": "E"
    }
   },
   {
    "num": "181",
-   "name": "(A) Godzien jesteś",
+   "name": "(G) Godzien jesteś",
    "texts": {
     "pl": "1. [:Godzien jesteś:], Panie i Boże nasz. Godzien jesteś przyjąć chwałę, chwałę, cześć i moc. Ponieważ Ty wszystko stworzyłeś w Swej mocy, wszystko stworzyłeś Ty sam i z woli Twojej zostało stworzone. Godzien jesteś wziąć cześć.",
     "ru": "1. {Ты достоин}-3р., Господь! Ты достоин принять славу, Славу и силу, и честь. Ибо Ты сотворил всё, Ты сотворил. Всё создано волей Твоей. И всё по воле Твоей существует. Ты славы достоин, Господь!"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №20",
-    "texts": "Vilnius-HGB №181 (song_list.ID 3455)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №20",
+    "texts": "Vilnius-HGB №181 (song_list.ID 3455)",
+    "pl_key": "A"
    }
   },
   {
    "num": "182",
-   "name": "(C) Królestwa Bożego",
+   "name": "(D) Królestwa Bożego",
    "texts": {
     "pl": "1. Królestwa Bożego szukajcie wpierw i jego sprawiedliwości, a wszystko inne dodane będzie wam. Alleluja, amen!\r\n2. Nie troszczcie się o to, co jeść będziecie, pić, ani co przyodziejecie. Wie Ojciec w Niebie, co jest potrzebne wam. Alleluja, amen!\r\n3. Proście, a dane na pewno będzie wam. Pukajcie, a wam otworzą. Kto bowiem szuka, ten odnajduje to. Alleluja, amen!\r\n4. Nie można dwom panom zarazem służyć dziś. Jednego więc wybrać trzeba. Jego miłować, On żywym Bogiem jest. Alleluja, amen!",
     "ru": "1. Ищите же прежде Царства Божия И правды Его. Всё остальное приложится вам. Аллилуйя, Аллилуйя!\r\n2. Не только хлебом живёт человек, Но также всяким Словом, Посланным Богом людям в должный час. Аллилуйя, Аллилуйя!\r\n3. Просите, и вам будет дано, Ищите и найдёте, Стучите, и отворят вам. Аллилуйя, Аллилуйя!\r\n4. Предайте Господу весь ваш путь И на Него уповайте. И Он Сам всё совершит. Аллилуйя, аллилуйя!",
     "lt": "1. Ieškokite Dievo Karalystės ir Jo teisybės, O visa kita bus jums pridėta, aleliuja, aleliuja.\r\n2. Ne viena duona gyvas žmogus, bet kiekvienu Žodžiu, Iš Dievo lūpų išeinančiu, aleliuja, aleliuja.\r\n3. Belskit, ir bus jums atidaroma, jeigu ieškosit -  rasit, Nes tas, kas prašo, tas ir gauna, aleliuja, aleliuja.\r\n4."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №314",
-    "texts": "Vilnius-HGB №182 (song_list.ID 3456)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №314",
+    "texts": "Vilnius-HGB №182 (song_list.ID 3456)",
+    "pl_key": "C"
    }
   },
   {
    "num": "187",
-   "name": "(E) Ja mogę",
+   "name": "(G) Ja mogę",
    "texts": {
     "pl": "1. [:Ja mogę, ja będę, ja wierzę teraz:]. Ja mogę, ja będę, ja wierzę teraz, że Jezus uzdrowił mnie.\r\n*[:Ja mogę, ja będę, ja wierzę teraz:]. Ja mogę, ja będę, ja wierzę teraz, że Jezus uzdrowił mnie.\r\n2.[:Ja mogę, ja będę, ja wierzę teraz:]. Ja mogę, ja będę, ja wierzę teraz, że Jezus uzdrowił mnie.\r\n3.[:Ja mogę, ja będę, ja wierzę teraz:]. Ja mogę, ja będę, ja wierzę teraz, że Jezus zbawił mnie.\r\n4.[:Ja mogę, ja będę, ja wierzę teraz:]. Ja mogę, ja będę, ja wierzę teraz, że Jezus zbawił mnie.\r\n**[:Ja mogę, ja będę, ja wierzę teraz:]. Ja mogę, ja będę, ja wierzę teraz, że Jezus zbawił mnie.",
     "ru": "1. {Склоняюсь к трону милосердья)-Зр., Где Бог ответит мне.\r\n*{Могу, хочу и верю Богу}-3р., Что спас меня Иисус.\r\n2. (Огонь Твой пусть очистит сердце)-Зр. И в душу свет прольёт.\r\n3. {С небес приходит сила свыше}-Зр. И грех сжигает мой.\r\n4. {Могу, хочу и верю Богу)-3р., Что Им я исцелён.\r\n**{Я верю только Иисусу}-3р., Что Им я исцелён.",
@@ -516,21 +554,23 @@
     "en": "1.\r\n*I can, I will, I do believe; I can, I will, I do believe; I can, I will, I do believe That Jesus heals me now.\r\n2.\r\n3.\r\n4. I can, I will, I do believe; I can, I will, I do believe; I can, I will, I do believe That Jesus heals me now.\r\n**I'm trusting only in the Lord, I'm trusting only in the Lord, I'm trusting only in the Lord That Jesus heals me now."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №249",
-    "texts": "Vilnius-HGB №187 (song_list.ID 3461)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №249",
+    "texts": "Vilnius-HGB №187 (song_list.ID 3461)",
+    "pl_key": "E"
    }
   },
   {
    "num": "189",
-   "name": "(C) Pokojem moim Bóg",
+   "name": "(D) Pokojem moim Bóg",
    "texts": {
     "pl": "1. [:Pokojem moim Bóg. On skruszył wszelki mur. Pokojem Bóg, pokojem mym:]. [:Złóż na Niego ciężar swój, On ci pomoc Swą da. Pokojem Bóg, pokojem mym:].",
     "ru": "1. {Господь – наш мир, Он разрушил стены все, Господь – наш мир, Господь – наш мир}-2р.. {Доверь заботы все, Он поможет тебе, Господь – наш мир, Господь – наш мир}-2р..",
     "en": "1. He is our peace Who has broken down every wall, He is our peace, He is our peace. He is our peace Who has broken down every wall, He is our peace, He is our peace. Cast all your cares on Him, For He cares for you, He is our peace, He is our peace."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №387",
-    "texts": "Vilnius-HGB №189 (song_list.ID 3463)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №387",
+    "texts": "Vilnius-HGB №189 (song_list.ID 3463)",
+    "pl_key": "C"
    }
   },
   {
@@ -543,13 +583,14 @@
     "en": "1. Mercy rewrote my life, God's mercy rewrote my life. I should have fallen My soul cast down But mercy rewrote my life."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №230",
-    "texts": "Vilnius-HGB №190 (song_list.ID 3464)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №230",
+    "texts": "Vilnius-HGB №190 (song_list.ID 3464)",
+    "pl_key": "G"
    }
   },
   {
    "num": "192",
-   "name": "(G) Wiarą w obietnice",
+   "name": "(A) Wiarą w obietnice",
    "texts": {
     "pl": "1. Wiarą w obietnice Boże żyję ja. Tylko Jemu ufam, On mi pomoc da. Wiem, że nigdy nie zawiedzie mnie mój Bóg. Żyję więc bez obaw i bez trwóg.\r\n*Wiarą, wiarą, żyję wiarą w obietnice mego Zbawcy. Wiarą, wiarą, chcę wiarą w obietnice Boże żyć.\r\n2. Wiarą w obietnice Boże zawsze żyć. Podczas burz, nawałnic o wieczności śnić. W chwili zwątpień, pokus, błogą pewność mam: Słowo Boże nam zwycięstwo da.\r\n3. Wiarą w obietnice Boże będę żyć. Z nią złączony mogę się nad ziemię wzbić. Miłość Jego mnie posila z dnia na dzień. Śmiało idę z Nim przez nocy cień.\r\n4. Wiarą w obietnice Boże żyj i ty. Radość, pokój wnet wypełnią twoje dni. Zechciej Mu zaufać, serce Jemu dać, wiarą w obietnicach Bożych trwać.",
     "ru": "1. Стоя на обетованьях Господа, Славу в вышних буду воспевать всегда. Вечно пусть звучит хваленье для Христа, Стоя на обетованиях.\r\n*Я стою, да {Я стою на Слове}-2р., На обетованьях, что мне дал Спаситель. Я стою, да {Я стою на Слове}-2р., На всех обетованьях я стою.\r\n2. Стоя на обетованьях, что верны, Бури страха и сомненья не страшны. Словом побеждаю козни сатаны, Стоя на обетованиях.\r\n3. Стоя на обетованьях, вижу я, Очищенье мне даёт Крови струя. Во Христе свобода полная моя, Стоя на обетованиях.\r\n4. Стоя на обетованьях Господа, С Ним любовью связан крепко, навсегда. Побеждаю каждый день мечом Христа, Стоя на обетованиях.\r\n5. Стоя на обетованьях, не паду, Слышу голос Божий, лишь за Ним иду. В Нём покоюсь, доверяю всё Христу, Стоя на обетованиях.",
@@ -557,8 +598,9 @@
     "en": "1. Standing on the promises of Christ my King, Through eternal ages let His praises ring; Glory in the highest I will shout and sing, Standing on the promises of God.\r\n*Standing, standing, Standing on the promises of God my Saviour, Standing, standing, I'm standing on the promises of God.\r\n2. Standing on the promises that cannot fail, When the howling storms of doubt and fear assail, By the living Word of God I shall prevail, Standing on the promises of God.\r\n3. Standing on the promises I now can see Perfect, present cleansing in the blood for me; Standing in the liberty where Christ makes free, Standing on the promises of God.\r\n4. Standing on the promises of Christ the Lord, Bound to Him eternally by love's strong cord, Overcoming daily with the Spirit's sword, Standing on the promises of God.\r\n5. Standing on the promises I cannot fall, List’ning every moment to the Spirit's call, Resting in my Saviour, as my all in all, Standing on the promises of God."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №291",
-    "texts": "Vilnius-HGB №192 (song_list.ID 3466)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №291",
+    "texts": "Vilnius-HGB №192 (song_list.ID 3466)",
+    "pl_key": "G"
    }
   },
   {
@@ -571,8 +613,9 @@
     "en": "1. I have decided to follow Jesus; I have decided to follow Jesus; I have decided to follow Jesus; No turning back, no turning back.\r\n2. The world behind me, the cross before me, The world behind me, the cross before me; The world behind me, the cross before me; No turning back, no turning back.\r\n3. My cross I'll carry, till I see Jesus; My cross I'll carry till I see Jesus, My cross I'll carry till I see Jesus; No turning back, No turning back.\r\n4. I have decided to follow Jesus; I have decided to follow Jesus; I have decided to follow Jesus; No turning back, no turning back.\r\n5. Tho' none go with me, I still will follow, Tho' none go with me I still will follow, Tho' none go with me, I still will follow; No turning back, no turning back.\r\n6. I have decided to live in Jesus; I have decided to live in Jesus; I have decided to live in Jesus; No turning back, no turning back."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №114",
-    "texts": "Vilnius-HGB №193 (song_list.ID 3467)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №114",
+    "texts": "Vilnius-HGB №193 (song_list.ID 3467)",
+    "pl_key": "C"
    }
   },
   {
@@ -584,8 +627,9 @@
     "en": "1. I'ma pilgrim and a stranger Wand’ring through this world of sin, On my way to that fair city, When the Saints go marching in.\r\n*When the saints go marching in, When the saints go marching in, Lord, I want to be in that number When the saints go marching in.\r\n2. Oh, I know I'll see my Saviour If my life is free from sin, Heaven's doors will open for me When the Saints go marching in.\r\n3. When we gather ‘round the Throne And the gates are closed within, I'll be shouting “Glory, Glory” When the Saints go marching in.\r\n4. I'm waiting for the chariot To swing low and I'll step in, On the clouds I'll ride to Heaven When the Saints go marching in."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №33",
-    "texts": "Vilnius-HGB №195 (song_list.ID 3469)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №33",
+    "texts": "Vilnius-HGB №195 (song_list.ID 3469)",
+    "pl_key": "D"
    }
   },
   {
@@ -597,21 +641,23 @@
     "en": "1. “Great is Thy faithfulness,” O God my Father, There is no shadow of turing with Thee; Thou changest not, Thy compassions, they fail not; As Thou hast been Thou forever wilt be.\r\n*“Great is thy faithfulness! Great is Thy faithfulness!” Moming by moming new mercies I see; All I have needed Thy hand hath provided; “Great is Thy faithfulness,” Lord, unto me!\r\n2. Summer and winter, and springtime and harvest, Sun, moon and stars in their courses above, Join with all nature in manifold witness, To Thy great faithfulness, mercy and love.\r\n3. Pardon for sin and a peace that endureth. Thy own dear presence to cheer and to guide; Strength for today and bright hope for tomorrow, Blessings all mine, with ten thousand beside!"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №404",
-    "texts": "Vilnius-HGB №196 (song_list.ID 3470)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №404",
+    "texts": "Vilnius-HGB №196 (song_list.ID 3470)",
+    "pl_key": "C"
    }
   },
   {
    "num": "197",
-   "name": "(C) On jest tu",
+   "name": "(C-D) On jest tu",
    "texts": {
     "pl": "1. On jest tu, alleluja. On jest tu, amen. On jest tu, Święty, Święty. Święte Imię wielbić chcę. On jest tu, wytęż ucho, wszak On woła cię. On jest tu, dotknij się Go, a nie będziesz taki sam.",
     "ru": "1. Он здесь, Аллилуйя! Он здесь, Аминь! Свят Господь! Воспою я Честь Тебе, мой Властелин. Он здесь, о, приди же, Бог тебе говорит. Он здесь, прикоснись же, И тебя Он преобразит!",
     "en": "1. He is here, Hallelujah; He is here, Amen He is here, Holy Holy; I will bless His Holy Name. He is here, listen closely, Hear Him calling out your name. He is here; you can touch Him, You will never be the same."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №149",
-    "texts": "Vilnius-HGB №197 (song_list.ID 3471)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №149",
+    "texts": "Vilnius-HGB №197 (song_list.ID 3471)",
+    "pl_key": "C"
    }
   },
   {
@@ -623,13 +669,14 @@
     "en": "1. We need wisdom we need power And true love for each other We have had so many big but empty words So we come before Your face Asking for Your grace Bring Your people to a state of kingdom life Restore Your church again\r\n*Touch Your people once again With Your Precious Holy Hand we pray Let Your Kingdom shine upon this earth Through Your Living Glorious Church Not for temporary deeds But to restore authority and power Let Your mighty Rushing Wind blow in Touch Your people once again\r\n2. Lord You see Your tired servants And the broken wounded soldiers Oh how much we need Your precious healing hand We need the power of the cross As the only source for us When we stand up facing final battle cry Restore your church again"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №76",
-    "texts": "Vilnius-HGB №198 (song_list.ID 3472)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №76",
+    "texts": "Vilnius-HGB №198 (song_list.ID 3472)",
+    "pl_key": "E"
    }
   },
   {
    "num": "199",
-   "name": "(D) Ogień daj lampie mej",
+   "name": "(D-E) Ogień daj lampie mej",
    "texts": {
     "pl": "1. Ogień daj lampie mej, niechaj płonie. Ogień daj lampie mej w każdy dzień. Ogień daj lampie mej, niechaj płonie. Niechaj płonie, aż zabierzesz mnie.\r\n*[:Śpiewaj: „Hosanna”:], śpiewaj Panu, który Królem jest! [:Śpiewaj: „Hosanna”:], śpiewaj Panu cały dzień!",
     "ru": "1. Мой светильник Ты маслом наполни, Чтоб горел он во тьме ночной. Мой светильник Ты маслом наполни, Дай гореть, пока придёшь за мной.\r\n*О Осанна, О Осанна, О Осанна для Христа Царя! О Осанна, О Осанна, О Осанна для Царя!",
@@ -637,8 +684,9 @@
     "en": "1. Give me oil in my lamp, keep me burning, give me oil in my lamp, I pray; give me oil in my lamp, keep me burning, keep me burning till the break of day.\r\n*Sing hosanna, sing hosanna, sing hosanna to the King of kings! Sing hosanna, sing hosanna, sing hosanna to the King!"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №79",
-    "texts": "Vilnius-HGB №199 (song_list.ID 3473)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №79",
+    "texts": "Vilnius-HGB №199 (song_list.ID 3473)",
+    "pl_key": "D"
    }
   },
   {
@@ -650,8 +698,9 @@
     "en": "1. Oh, how sweet the glorious message, Simple faith may claim; Yesterday, today, forever, Jesus is the same. Still He loves to save the sinful, Heal the sick and lame; Cheer the moumer, still the tempest; Glory to His name!\r\n*Yesterday, today, forever, Jesus is the same; All may change, but Jesus never! Glory to His name. Glory to His name, Glory to His name; All may change, but Jesus never! Glory to His name.\r\n2. He who was the friend of sinners, Seeks thee, lost one, now; Sinner, come, and at His footstool Penitently bow. He who said, “I'll not condemn thee, Go and sin no more;” Speaks to thee that word of pardon, As in days of yore.\r\n3. Oft on earth He healed the suffrer By His mighty hand; Still our sicknesses and sorrows Go at His command. He who gave His healing virtue, To a woman's touch; To the faith that claims His fullness, Still will give as much.\r\n4. He who pardoned erring Peter, Never need’st thou fear, He that came to faithless Thomas, All thy doubt will clear. He who let the loved disciple On His bosom rest, Bids thee still, with love as tender, Lean upon His breast.\r\n5. He who ‘mid the raging billows, Walked upon the sea; Still can hush our wildest tempest, As on Galilee. He who wept and prayed in anguish, In Gethsemane, Drinks with us each cup of trembling, In our agony.\r\n6. As of old He walked to Emmaus, With them to abide; So through all life’s way He walketh, Ever near our side. Soon again we shall behold Him, Hasten, Lord, the day! But ‘twill still be “this same Jesus,” As He went away."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №113",
-    "texts": "Vilnius-HGB №201 (song_list.ID 3475)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №113",
+    "texts": "Vilnius-HGB №201 (song_list.ID 3475)",
+    "pl_key": "G"
    }
   },
   {
@@ -664,8 +713,9 @@
     "en": "1. As I journey through the land, singing as I go, Pointing souls to Calvary, to the crimson flow, Many arrows pierce my soul from without, within; But my Lord leads me on, through Him must win.\r\n*Oh. I want to see Him, look upon His face. There to sing forever of His saving grace; On the streets of Glory let me lift my voice. Cares all past, home ait last, ever to rejoice.\r\n2. When in service for my Lord, dark may be the night. But I'll cling more close to Him, He will give me light; Satan's snares may vex my soul, tum my thoughts aside; But my Lord goes ahead, leads whate’er betide.\r\n3. When in valleys low I look toward the mountain height, And behold my Saviour there, leading in the fight. With a tender hand outstretched toward the valley low; Guiding me, I can see, as | onward go.\r\n4. When before me billows rise from the mighty deep. Then my Lord directs my bark, He doth safely keep. And He leads me gently on through this world below; He’s a real Friend to me, O I love Him so."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №127",
-    "texts": "Vilnius-HGB №206 (song_list.ID 3480)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №127",
+    "texts": "Vilnius-HGB №206 (song_list.ID 3480)",
+    "pl_key": "G"
    }
   },
   {
@@ -678,8 +728,9 @@
     "en": "1. Redeemed, how I love to proclaim it! Redeemed by the blood of the Lamb; Redeemed through His infinite mercy, His child, and forever, I am.\r\n*Redeemed, redeemed, Redeemed by the blood of the Lamb; Redeemed, redeemed, His child, and forever, I am.\r\n2. Redeemed and so happy in Jesus, No language my rapture can tell; I know that the light of His presence With me doth continually dwell.\r\n3. I think of my blessed Redeemer, I think of Him all the day long; I sing, for I cannot be silent; His love is the theme of my song.\r\n4. I know I shall see in His beauty The King in whose law I delight; Who lovingly guardeth my footsteps, And giveth me songs in the night."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №47",
-    "texts": "Vilnius-HGB №208 (song_list.ID 3482)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №47",
+    "texts": "Vilnius-HGB №208 (song_list.ID 3482)",
+    "pl_key": "G"
    }
   },
   {
@@ -692,8 +743,9 @@
     "en": "1. Come, we that love the Lord, And let our joys be known, Join in a song with sweet accord, Join in a song with sweet accord, and thus surround the throne, And thus surround the throne.\r\n*We're marching to Zion, Beautiful, beautiful Zion; We're marching upward to Zion, The beautiful city of God.\r\n2. Let those refuse to sing Who never knew our God; But children of the heavenly King, But children of the heavenly King, May speak their joys abroad, May speak their joys abroad.\r\n3. The hill of Zion yields A thousand sacred sweets Before we reach the heavenly fields, Before we reach the heavenly fields, Or walk the golden streets, Or walk the golden streets.\r\n4. Then let our songs abound, And every tear be dry; We're marching thru Immanuel’s ground, We're marching thru Immanuel’s ground, To fairer worlds on high, To fairer worlds on high."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №248",
-    "texts": "Vilnius-HGB №211 (song_list.ID 3485)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №248",
+    "texts": "Vilnius-HGB №211 (song_list.ID 3485)",
+    "pl_key": "E"
    }
   },
   {
@@ -705,13 +757,14 @@
     "en": "1. There is a fountain filled with blood, Drawn from Immanuel’s veins, And sinners plunged beneath that flood, Lose all their guilty stains. Lose all their guilty stains, Lose all their guilty stains; And sinners plunged beneath that flood, Lose all their guilty stains.\r\n2. The dying thief rejoiced to see That fountain in his day; And there may I, though vile as he, Wash all my sins away. Wash all my sins away, Wash all my sins away; And there may I, though vile as he, Wash all my sins away.\r\n3. Thou dying Lamb, Thy precious blood Shall never lose its power, Till all the ransomed Church of God Be saved, to sin no more. Be saved, to sin no more, Be saved, to sin no more; Till all the ransomed Church of God Be saved, to sin no more.\r\n4. E’er since by faith I saw the stream Thy flowing wounds — supply, Redeeming love has been my theme, And shall be till I die. And shall be till I die, And shall be till I die; Redeeming love has been my theme, And shall be till I die.\r\n5. Then in a nobler, sweeter song, I'll sing Thy power to save, When this poor lisping, stammering tongue Lies silent in the grave. Lies silent in the grave, Lies silent in the grave; When this poor lisping, stammering tongue Lies silent in the grave."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №125",
-    "texts": "Vilnius-HGB №221 (song_list.ID 3495)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №125",
+    "texts": "Vilnius-HGB №221 (song_list.ID 3495)",
+    "pl_key": "A"
    }
   },
   {
    "num": "223",
-   "name": "(E) On wszystkim jest",
+   "name": "(D-E) On wszystkim jest",
    "texts": {
     "pl": "1. [:On wszystkim jest, On wszystkim jest dla mnie:]. On jest mym Ojcem, mą Matką, mym Bratem i mą Siostrą. On wszystkim jest dla mnie!",
     "ru": "1. Ты – всё во всём, Спаситель, для меня; Ты – мать, отец, Ты – вся моя семья. Стал Ты братом, сестрою, моей большой семьёю – Стал всем Ты для меня.",
@@ -719,8 +772,9 @@
     "en": "1. He's everything, He’s everything to me; He's everything, He’s everything to me; For He's my father, my mother, my sister and my brother, He's everything to me."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №214",
-    "texts": "Vilnius-HGB №223 (song_list.ID 3497)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №214",
+    "texts": "Vilnius-HGB №223 (song_list.ID 3497)",
+    "pl_key": "E"
    }
   },
   {
@@ -733,8 +787,9 @@
     "en": "1. I know it was the Blood, I know it was the Blood, I know it was the Blood for me; One day when I was lost, He died upon the Cross, I know it was the Blood for me.\r\n2. I know it was the Blood, I know it was the Blood, I know it was the Blood for me; One day when I was lost, He died upon the Cross, I know it was the Blood for me."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №10",
-    "texts": "Vilnius-HGB №225 (song_list.ID 3499)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №10",
+    "texts": "Vilnius-HGB №225 (song_list.ID 3499)",
+    "pl_key": "E"
    }
   },
   {
@@ -745,21 +800,23 @@
     "ru": "1. {Господь, приди и говори, Под крыльями Херувимов К нам говори}-2p..\r\n2. {{Славлю Тебя}-2р., Под крыльями Херувимов Славлю Тебя}-2р..\r\n3. {В том месте Я встречу тебя, Под крыльями Херувимов Встречу тебя}-2р.."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №388",
-    "texts": "Vilnius-HGB №227 (song_list.ID 3501)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №388",
+    "texts": "Vilnius-HGB №227 (song_list.ID 3501)",
+    "pl_key": "C"
    }
   },
   {
    "num": "229",
-   "name": "(C) Wiara w tobie się rwie",
+   "name": "(D) Wiara w tobie się rwie",
    "texts": {
     "pl": "1. Wiara w tobie się rwie, serce ciszy tak chce, więc w gorących modlitwach wciąż trwasz. Ale wiedz, duszo ma, próżna prośba jest twa, zanim wszystko na ołtarz ty dasz.\r\n*Czyś już wszystko na ołtarz położył, co masz, a w twym sercu Duch Święty ma straż? Tylko wtedy i ty możesz pokój mieć cny, gdy Mu ciało i duszę swą dasz.\r\n2. Chciałbyś z Panem tu żyć, w Jego Świetle wciąż być? Jego pokój tak błogi czy znasz? Wiele skarbów On ma, które chętnie ci da, jeśli wszystko na ołtarz Mu dasz.\r\n3. Nie wie tego nikt z nas, co nasz Pan może dać, ile łask, błogosławieństw On ma, ile szczęścia już tu spłynie temu, co Mu wszystko gotów na ołtarz jest dać.\r\n4.",
     "ru": "1. О покое вздыхал, больше веры желал, И сердечно, усердно просил; Но забыл, что лишь тот мир и радость найдёт, Кто здесь всё на алтарь возложил.\r\n*Возложил ли ты всё на Господень алтарь, Дух ли Божий владеет тобой? Тот в блаженство вошёл, мир и радость нашёл, Кто отдался Христу всей душой.\r\n2. Чтобы с Господом жить, в свете Слова ходить, В сердце Духа иметь вечный дар, Нужно волю Его ставить выше всего И себя возложить на алтарь.\r\n3. Божьих тайн не поймёшь, в Божий мир не войдёшь, За ударом постигнет удар, Если зренье и слух, если тело и дух Не возложен на Божий алтарь.\r\n4. Кто опишет любовь, кто оценит покров, Кто измерит источники сил? То даёт Бог тому, кто послушен Ему, Кто здесь всё на алтарь возложил.",
     "en": "1. You have longed for sweet peace, And for faith to increase; And have earnestly, fervently prayed: But you cannot have rest, Or be perfectly blest Until all on the altar is laid.\r\n*Is your all on the altar of sacrifice laid? Your heart, does the Spirit control? You can only be blest And have peace and sweet rest; As you yield Him your body and soul.\r\n2. Would you walk with the Lord, In the light of His Word, And have peace and contentment always? You must do His sweet will, To be free from all ill; On the altar your all you must lay.\r\n3. Oh, we never can know What the Lord will bestow Of the blessings for which we have prayed; Till our body and soul He doth fully control; And our all on the altar is laid.\r\n4. Who can tell all the love He will send from above, And how happy our hearts will be made, Of the fellowship sweet we shall  share at His feet; When our all on the altar is laid?"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №290",
-    "texts": "Vilnius-HGB №229 (song_list.ID 3503)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №290",
+    "texts": "Vilnius-HGB №229 (song_list.ID 3503)",
+    "pl_key": "C"
    }
   },
   {
@@ -771,8 +828,9 @@
     "en": "1. This world is not my home, I'm just a' passing through. My treasures are laid up, Somewhere beyond the blue. The angels beckon me, From heaven's open door. And I can't feel at home, In this world anymore.\r\n2. O Lord, You know, I have no friend like You, If heaven's not my home, Then Lord what will I do? The angels beckon me, From heaven's open door, And I can't feel at home In this world anymore.\r\n3. They're all expecting me, And that's one thing I know; I fixed it up with Jesus, Many years ago. I know He'll see me through, Tho' I am weak and poor, And I can't feel at home, In this world anymore.\r\n4. Just over in the glory land, We'll live eternally; The saints on every hand Are shouting “victory”. The songs of sweetest praise Drift back from heaven's shore, And I can't feel at home In this world anymore."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №37",
-    "texts": "Vilnius-HGB №235 (song_list.ID 3509)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №37",
+    "texts": "Vilnius-HGB №235 (song_list.ID 3509)",
+    "pl_key": "E"
    }
   },
   {
@@ -784,8 +842,9 @@
     "en": "1. Emmanuel, Emmanuel; His Name is called Emmanuel. He's God with us, Revealed in us, His Name is called Emmanuel.\r\n2."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №217",
-    "texts": "Vilnius-HGB №243 (song_list.ID 3517)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №217",
+    "texts": "Vilnius-HGB №243 (song_list.ID 3517)",
+    "pl_key": "C"
    }
   },
   {
@@ -797,8 +856,9 @@
     "en": "1. At night I laid in bed, and I begin to cry And my mind just fails to know exactly why I can't explain with tongue or pen The Spirit's groanings deep within It must be God here in my soul Cause I feel the pull.\r\n*I feel the pull I hear the call And I know His Spirit's moving me To give my all He speaks to me And I agree Lord please come and take control I feel the pull.\r\n2. I went to hear the Word And with each line and phrase Oh, He was drawing me to give a higher praise There is a deep, calling to the deep Like a great magnet pulling me I know for sure That I reach the goal Cause I feel the pull."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №212",
-    "texts": "Vilnius-HGB №249 (song_list.ID 3523)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №212",
+    "texts": "Vilnius-HGB №249 (song_list.ID 3523)",
+    "pl_key": "G"
    }
   },
   {
@@ -809,8 +869,9 @@
     "ru": "1. Настал счастливый день тот, Иисус встал предо мною, Я понял всю любовь Его ко мне. От всей души и мысли всем естеством взывая, Хочу любить Христа ещё сильней.\r\n*Хочу любить Христа ещё сильней, Любовью побеждая то, что зло. Сам по себе я слабый, и силы мои малы; Хочу любить Христа ещё сильней.\r\n2. Я снова открываю святую милость Божью И вижу, как храним Его рукой. Я вновь к Христу взываю и всей душой желаю Любить Его всё больше каждый день."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №196",
-    "texts": "Vilnius-HGB №266 (song_list.ID 3540)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №196",
+    "texts": "Vilnius-HGB №266 (song_list.ID 3540)",
+    "pl_key": "E"
    }
   },
   {
@@ -822,21 +883,23 @@
     "en": "1. From glory to glory He's changing me, Changing, changing me His likeness and image To perfect in me. The love of God shown to the world\r\n*For He's changing, changing me, From earthly thing to the heavenly. His likeness and image To perfect in me, The love of God shown to the world.\r\n1. From glory to glory He's changing me, Changing, changing me His likeness and image To perfect in me. The love of God shown to the world\r\n1. From glory to glory He's changing me, Changing, changing me His likeness and image To perfect in me. The love of God shown to the world"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №297",
-    "texts": "Vilnius-HGB №267 (song_list.ID 3541)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №297",
+    "texts": "Vilnius-HGB №267 (song_list.ID 3541)",
+    "pl_key": "G"
    }
   },
   {
    "num": "270",
-   "name": "(F) Kiedyś rankiem",
+   "name": "(E) Kiedyś rankiem",
    "texts": {
     "pl": "1. Kiedyś rankiem, kiedy dojdzie życia kres, polecę stąd. Tam do Domu na Niebiański brzeg polecę stąd.\r\n*Polecę, o chwała, polecę stąd. Pan mnie woła, alleluja, wkrótce już polecę stąd.\r\n2. Gdy przeminie życie tak jak sen, polecę stąd. Tak jak ptak wyfrunę z klatki swej, polecę stąd.\r\n3. Jeszcze parę żmudnych życia dni, polecę stąd. Do Kraju bezkresnej radości polecę stąd.",
     "ru": "1. Славным утром путь придёт к концу, Я улечу. В дом небесный к моему Отцу Я улечу.\r\n*Я улечу, о слава! Я улечу! Когда путь пройду, Аллилуйя, в высоту Я улечу.\r\n2. И когда всё скроет мрак земной, Я улечу. Как из клетки птица, в край родной Я улечу.\r\n3. Уж немного тяжкого труда, Я улечу В ту страну, где радость навсегда, Я улечу.",
     "en": "1. Some glad morning when this life is over I'll fly away To a home on God's celestial shore I'll fly away\r\n*I'll fly away, oh, Glory I'll fly away When I die, Hallelujah, by and by I'll fly away\r\n2. When the shadows of this life have gone, I'll fly away; Like a bird from prison bars has flown, I'll fly away\r\n3. Just a few more weary days and then I'll fly away To a land where joy shall never end I'll fly away"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №24",
-    "texts": "Vilnius-HGB №270 (song_list.ID 3544)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №24",
+    "texts": "Vilnius-HGB №270 (song_list.ID 3544)",
+    "pl_key": "F"
    }
   },
   {
@@ -848,8 +911,9 @@
     "en": "1. In prisoner's chains with bleeding stripes Paul and Silas prayed that night And in their pain began to sing Their chains were loosed and they were free\r\n*I bless Your Name I bless Your Name I give You honour, give You praise You are the Life, the Truth, the Way I bless Your Name I bless Your Name\r\n2. Some midnight hour, if you should find You're in a prison in your mind Reach out and praise, defy those chains And they will fall in Jesus' Name\r\n**We bless Your Name We bless Your Name We give You honour, give You praise You are the Life, the Truth, the Way We bless Your Name We bless Your Name"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №257",
-    "texts": "Vilnius-HGB №279 (song_list.ID 3553)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №257",
+    "texts": "Vilnius-HGB №279 (song_list.ID 3553)",
+    "pl_key": "C"
    }
   },
   {
@@ -862,8 +926,9 @@
     "en": "1. Jesus, keep me near the cross, There's a precious fountain, Free to all, a healing stream, Flows from Calvary's mountain.\r\n*In the cross, in the cross, Be my glory ever, Till my raptured soul shall find Rest beyond the river.\r\n2. Near the cross, a trembling soul, Love and mercy found me; There the Bright and Morning Star Sheds its beams around me.\r\n3. Near the cross! O Lamb of God, Bring its scenes before me; Help me walk from day to day, With its shadows over me.\r\n4. Near the cross I'll watch and wait, Hoping, trusting, ever, Till I reach the golden strand, Just beyond the river."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №123",
-    "texts": "Vilnius-HGB №283 (song_list.ID 3557)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №123",
+    "texts": "Vilnius-HGB №283 (song_list.ID 3557)",
+    "pl_key": "E"
    }
   },
   {
@@ -876,8 +941,9 @@
     "en": "1. Change my heart, O God, Make it ever true; Change my heart, O God, May I be like you. You are the Potter, I am the clay; Mold me and make me, This is what I pray."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №308",
-    "texts": "Vilnius-HGB №287 (song_list.ID 3561)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №308",
+    "texts": "Vilnius-HGB №287 (song_list.ID 3561)",
+    "pl_key": "C"
    }
   },
   {
@@ -889,8 +955,9 @@
     "en": "1. If we never meet again On this earth, my precious friend And if the blood of Jesus Christ Has redeemed us from our sin Then for us there'll be a meetin' What a hallelujah greeting I'll see you in the rapture some sweet day.\r\n*I'll see you in the rapture I'll see you in the rapture I'll see you at that meeting in the air There with our blessed Savior We'll live and reign forever I'll see you in the rapture some sweet day.\r\n2. O my loved ones, let me say That there'll surely come a day That the Lord will come again And He'll take His bride away So get ready now to greet Him With hallelujahs, greet Him I'll see you in the rapture some sweet day."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №226",
-    "texts": "Vilnius-HGB №292 (song_list.ID 3566)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №226",
+    "texts": "Vilnius-HGB №292 (song_list.ID 3566)",
+    "pl_key": "C"
    }
   },
   {
@@ -902,8 +969,9 @@
     "en": "1. I'm rejoicing night and day, As I walk the pilgrim way, For the hand of God in all my life I see, And the reason of my bliss, Yes, the secret all is this; That the Comforter abides with me.\r\n*He abides, He abides, Hallelujah, He abides with me! I’m rejoicing night and day, As I walk the narrow way, For the Comforter abides with me.\r\n2. Once my heart was full of sin. Once I had no peace within, Till I heard how Jesus died upon the tree; Then I fell down at His feet, And there came a peace so sweet, Now the Comforter abides with me.\r\n3. He is with me everywhere, And He knows my every care, I’m as happy as a bird and just as free; For the Spirit has control, Jesus satisfies my soul, Since the Comforter abides with me!\r\n4. There's no thirsting for the things Of the world, they've taken wings; Long ago I gave them up, and instantly All my night was tumed to day, All my burdens rolled away, Now the Comforter abides with me!"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №471",
-    "texts": "Vilnius-HGB №305 (song_list.ID 3579)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №471",
+    "texts": "Vilnius-HGB №305 (song_list.ID 3579)",
+    "pl_key": "E"
    }
   },
   {
@@ -915,21 +983,23 @@
     "en": "1. Lord we come to You in worship No matter what the circumstance. No matter what the situation We will lift up holy hands.\r\n*El Elah Elohim, How we love to worship You. El Elah Elohim, How we love to worship You.\r\n2. Here we are in satan's eden Satan tries to keep us down But with Your Spirit here within us We will stand on solid ground.\r\n*El Elah Elohim, How we love to worship You. El Elah Elohim, How we love to worship You.\r\n3. We are gathered in one accord We have seen the Son's first rays Can you hear the Jubilee sounding As we stand and give Him praise.\r\n*El Elah Elohim, How we love to worship You. El Elah Elohim, How we love to worship You."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №279",
-    "texts": "Vilnius-HGB №310 (song_list.ID 3584)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №279",
+    "texts": "Vilnius-HGB №310 (song_list.ID 3584)",
+    "pl_key": "C"
    }
   },
   {
    "num": "313",
-   "name": "(E) Jezus to Przyjaciel",
+   "name": "(D) Jezus to Przyjaciel",
    "texts": {
     "pl": "1. Jezus to Przyjaciel lepszy nad wszech na ziemi tej. Wśród tysięcy najpiękniejszy duszy mej. Bowiem Lilię z Doliny w Nim tylko ujrzeć śmiem. On oczyści i uzdrowi całkiem mnie. Pociesza mnie, gdym smutny. W potrzebie wspiera mnie: „Złóż na Mnie wszystkie troski, wesprę cię”. Alleluja!\r\n*Pan nasz Lilią jest z Doliny, Poranną Gwiazdą sam, najpiękniejszy wśród tysięcy, których znam.\r\n2. O, On odjął moje troski, cierpienia moje wziął. W pokuszeniach ducha siłę we mnie tchnął. Dlań wszystkiego się wyrzekłem, czym zniewolonym był. W sercu moim władnie teraz Duchem Swym. Choć cały świat drwi ze mnie, śle szatan pokus rój, przez Jezusa pewnie cel osiągnę swój. Alleluja!\r\n3. On mnie nigdy nie opuści, nie puszczę się Go ja. By żyć w wierze w Jego Słowo, siłę da. Chociaż ogień chce mnie strawić, nie boję się już, nie. Mannę z Nieba hojnie głodnej duszy śle. A potem w wiecznej Chwale śmiem spojrzeć w Jego Twarz, gdzie nad rzeką Wody Żywej spocząć da. Alleluja!",
     "ru": "1. Стал Иисус мне лучшим Другом, теперь Он – всё во всём. Он дороже мне, чем тысячи других. Он – Лилия долины, и только в Нём одном Очищенье, исцеленье ран моих. Я нахожу поддержку и мир у ног Христа, Он готов помочь во всех делах моих. Аллилуйя! Он – Лилия долины и яркая Звезда, Он дороже мне, чем тысячи других.\r\n2. Он понёс мои печали, чтоб горя я не знал, В искушениях стал крепостью моей. Я ради Иисуса всех идолов убрал, И меня хранит Он силою Своей. Хоть мир меня отвергнет, хотя грозит беда, К цели доведёт Иисус друзей Своих. Аллилуйя! Он – Лилия долины и яркая Звезда, Он дороже мне, чем тысячи других.\r\n3. Если в вере пребываю, живу по Слову с Ним, Словно огненной стеной я защищён. Иисус меня не бросит, я буду невредим. Свежей манной душу напитает Он. А в небесах, где счастья и мира полнота, Встретит нас Иисус, возлюбленный Жених. Аллилуйя! Он – Лилия долины и яркая Звезда, Он дороже мне, чем тысячи других.",
     "en": "1. I've found a friend in Jesus, He's everything to me. He's the fairest of ten thousand to my soul; The Lily of the Valley in Him alone I see, All I need to cleanse and make me fully whole. In sorrow He’s my comfort, in trouble He’s my stay, He tells me every care on Him to roll. Hallelujah! He's the Lily of the Valley, the Bright and Morning Star. He's the fairest of ten thousand to my soul.\r\n2. He all my griefs has taken, and all my sorrows borne; In temptation He’s my strong and mighty tow; I have all for Him forsaken, and all my idols torn From my heart, and now He keeps me by His power. Though all the world forsake me, and Satan tempt me sore, Through Jesus I shall safely reach the goal. Hallelujah! He’s the Lily of the Valley, the Bright and Morning Star, He's the fairest of ten thousand to my soul.\r\n3. He'll never, never leave me, nor yet forsake me here, While I live by faith and do His blessed will; A wall of fire about me, I've nothing now to fear; With His manna He my hungry soul shall fill. Then sweeping up to glory, we'll see His blessed face, Where rivers of delight shall ever roll. Hallelujah! He’s the Lily of the Valley, the Bright and morning Star, He’s the fairest of ten thousand to my soul."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №15",
-    "texts": "Vilnius-HGB №313 (song_list.ID 3587)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №15",
+    "texts": "Vilnius-HGB №313 (song_list.ID 3587)",
+    "pl_key": "E"
    }
   },
   {
@@ -942,39 +1012,42 @@
     "en": "1. My boat of life sails on a troubled sea Ever there's a wind in my sails, But my Heavenly Father, He watches over me When the breeze turns into a gale.\r\n*I know the Master of the wind, I know the Maker of the rain, He can calm the storm And make the sun to shine again I know the Master of the wind.\r\n2. Sometimes I soar like an eagle in the sky Among the peaks my soul can be found, An unexpected storm May drive me from the heights, It may bring me low, But it can never bring me down."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №265",
-    "texts": "Vilnius-HGB №322 (song_list.ID 3596)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №265",
+    "texts": "Vilnius-HGB №322 (song_list.ID 3596)",
+    "pl_key": "C"
    }
   },
   {
    "num": "323",
-   "name": "(E) Wszystkie moje żale",
+   "name": "(D) Wszystkie moje żale",
    "texts": {
     "pl": "1.Wszystkie moje żale, gorycz, troski, spory Panu memu dziś powierzam tu. Nie mają znaczenia bóle i zmartwienia. Jezus pewną Skałą jest.\r\n*Stoję więc na Wieków Skale, pewnie, choć się piętrzą fale. Pan obdarzył mnie wspaniale, stoję więc na pewnej Skale tej.\r\n2. Przecież On nie odszedł, nie zostałem sam. Pocieszenie w Duchu Pańskim mam. Dotyk Jego dłoni od pokus mnie chroni. Jezus pewną Skałą jest.\r\n3. Biegnąc ciągle naprzód, zbliżam się do Domu. Zbawcy więcej ufam też co dnia. Z Panem w społeczności nie mam wątpliwości. Jezus pewną Skałą jest.",
     "ru": "1. Разочарованья, планы и желанья На Господа я смело возложу. С Ним нипочём давленье, боли, притесненье, Я на Скале Христа стою!\r\n*Стою я на Скале спасенья, Мне не страшен шторм сомненья, В Боге я богат нетленьем. Я на Скале Христа стою!\r\n2. Хоть Иисус во Славе, Утешитель с нами, Он Словом изменяет жизнь мою. Его рукой хранимый, с Ним непобедимый, Я на Скале Христа стою!\r\n3. Вслед за Ним шагаю, всё Ему вверяю И с каждым шагом ближе к Дому я. Мы с Ним неразлучны, крепче нету дружбы; Стою я на Скале Христа!",
     "en": "1. Through my disappointments, strife and discontentment, I cast my every care upon the Lord. No matter what obsession, pain or deep depression, I’m standing on the solid rock.\r\n*I’m standing on the rock of ages; Safe from every storm that rages; Rich, but not from Satan’s wages. I’m standing on the solid rock.\r\n2. Even though He's gone now, I don't feel alone now, With comfort came the Spirit of the Lord. Now with His word to guide me, From temptations hide me, I'm standing on the solid rock.\r\n3. Now I’m pressing onward Each step leads me homeward. I’m trusting in my Savior day by day. And close is our relation Firm is it’s foundation So on this solid rock I’ll stay."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №278",
-    "texts": "Vilnius-HGB №323 (song_list.ID 3597)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №278",
+    "texts": "Vilnius-HGB №323 (song_list.ID 3597)",
+    "pl_key": "E"
    }
   },
   {
    "num": "324",
-   "name": "(D) W obecności Boga Jahwe",
+   "name": "(C) W obecności Boga Jahwe",
    "texts": {
     "pl": "1. Wróg naciera z każdej strony, chce osłabić siły me. Szukam odpowiedzi, zmagam się kolejny dzień. Ale w Bożej obecności wszystko prostym staje się, nie ma miejsca na zwątpienia. Jakże cenię chwile te!\r\n*W obecności Boga Jahwe, Księcia, który pokój śle, znikną troski i problemy, gdy przed Królem znajdziesz się.\r\n2. Pan ci przygotował miejsce, w którym możesz ukryć się. Miejsce odpocznienia, gdy problemy dręczą cię. Więc nie możesz się poddawać, walka już wygrana jest. Gdy wezwiesz Imię Pana, na spotkanie wyjdzie twe.",
     "ru": "1. Столько в жизни я встречаю Безвыходных проблем, Ответа ожидаю На вопросы каждый день. Но в присутствии Иеговы Получаю я ответ; Даёт Он веру снова, Сомнений больше нет.\r\n*Когда рядом Иегова, Очищает сердце Он; Исчезают все проблемы, Избавитель наш силён!\r\n2. Здесь, в присутствии Иеговы, Мы черпаем покой, Ответ находим в Слове, Сам Господь ведёт наш бой. Так что вовсе нет причины В битве руки опускать, – Шепни Господне Имя, Рядом будет Он опять.",
     "en": "1. In and out of situations That \"tug of war\" at me All day long I struggle For answers that I need. Then I come into His Presence And all my questions become clear, And for a sacred moment, No doubt can interfere.\r\n*In the Presence of Jehovah, God Almighty, Prince of Peace. Troubles vanish, hearts are mended, In the Presence of the King.\r\n2. Through His Love the Lord provided A place for us to rest; A place to find the answer In hours of distress. There is never any reason To give up in despair; Just look away and breathe His Name, He will come and meet you there."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №383",
-    "texts": "Vilnius-HGB №324 (song_list.ID 3598)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №383",
+    "texts": "Vilnius-HGB №324 (song_list.ID 3598)",
+    "pl_key": "D"
    }
   },
   {
    "num": "328",
-   "name": "(G) Mówmy o Jezusie",
+   "name": "(E) Mówmy o Jezusie",
    "texts": {
     "pl": "1. Mówmy o Jezusie. Królem królów jest On. Potężny panów Pan poprzez całą wieczność. Ta wielka Droga, Prawda, Życie i Drzwi. Mówmy o Jezusie wciąż i wciąż.\r\n2. Mówmy o Jezusie. Chlebem Życia jest On. Zbawiciel świata, Człowiek z Galilei. Prorok, Kapłan, Książę. Potężnym Bogiem On. Źródło wytryskujących wód.\r\n3.\r\n4. Mówmy o Jezusie. Skałą Wieków jest On, Barankiem, który zmarł za nas na Golgocie. Wielki Emanuel, Lilia z Doliny, Pasterzem, który wiedzie nas.\r\n5.",
     "ru": "1. Давайте же говорить Всё больше о Христе, Об Имени Его Узнают пусть везде. Он как Дитя рождён, Он – яркая Звезда. Пусть льются песни для Христа.\r\n2. Давайте же говорить Всё больше о Христе, Освободителе, Живительной воде. Спаситель мира Он, Хлеб Жизни, Царь и Бог, Первосвященник и Пророк.\r\n3. Давайте же говорить Всё больше о Христе. Он – Врач, Он – Пастырь наш, Готов помочь в беде. Цветок Сарона Он и Лилия долин, И мира Князь, и Властелин.\r\n4. Давайте же говорить Всё больше о Христе. Голгофский Агнец Он, Распятый на кресте, Господь Эммануил, Жених, Скала веков, Живое Слово всех эпох.\r\n5. Давайте же говорить Всё больше о Христе. Он – сильный Царь царей, Господь на высоте. Он – Бог \"Я Есть\", Он – Жизнь, Он стал моим путём. Давайте говорить о Нём.",
@@ -982,8 +1055,9 @@
     "en": "1. Let’s talk about Jesus, Let all the world proclaim. The pow’r and majesty Of such a wondrous Name. The Babe of Bethlehem, The Bright and Morning Star, Let’s sing His praises near and far.\r\n2. Let’s talk about Jesus, The Bread of Life is He, The Saviour of the world, The Man of Galilee. The Prophet, Priest and King, The Mighty God is He, The well of Living Water free.\r\n3. Let’s talk about Jesus, The Prince of Peace is He, The Great Physician too, Down through all history. The Lily pure and white, The Rose of Sharon fair, The Shepherd of such tender care.\r\n4. Let’s talk about Jesus, The Rock of Ages He, The Lamb for sinners slain, That Man of Calvary. The Great Emmanuel, The Word of God sublime, He is our Bridegroom so divine.\r\n5. Let's talk about Jesus. The King of kings is He, The Lord of lords, Supreme Throughout Eternity; The great I AM, the Way, The Truth, the Life, the Door; Let’s talk about Jesus More and more."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №102",
-    "texts": "Vilnius-HGB №328 (song_list.ID 3602)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №102",
+    "texts": "Vilnius-HGB №328 (song_list.ID 3602)",
+    "pl_key": "G"
    }
   },
   {
@@ -994,73 +1068,79 @@
     "ru": "1. Когда думаю я об Иисусе, Сколько Он совершил для меня, Всей душой пою: \"Аллилуйя!\" Славлю Бога, что Он спас меня.\r\n2. Когда слышу слова Иисуса, Верю в то, что Он мне обещал, Всей душой пою: \"Аллилуйя!\" Даром вечную Жизнь Он мне дал."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №171",
-    "texts": "Vilnius-HGB №334 (song_list.ID 3608)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №171",
+    "texts": "Vilnius-HGB №334 (song_list.ID 3608)",
+    "pl_key": "E"
    }
   },
   {
    "num": "337",
-   "name": "(F) Słowo Twe ochroną jest",
+   "name": "(E) Słowo Twe ochroną jest",
    "texts": {
     "pl": "1. Słowo Twe ochroną jest w każdym dniu wędrówki mej. To Serca jest Bożego głos. On działa wciąż na duszę mą. W Słowie Życia ufność mam. W  boju swym nie jestem sam. Kroczę przez świat drogą Twą, Ty mnie wiedziesz w Ojca Dom.\r\n*Boże Słowo prawdą jest; zmienia ciebie, zmienia mnie. Z otwartym sercem stoję tu. Niech święte Słowo działa znów!\r\n2. Pełnię Słowa na ten dzień posłał Bóg Wybranej Swej, by zażądać dzisiaj tych, których obmył w świętej Krwi. Słowo Twe ochroną jest w każdym dniu wędrówki mej. To Serca jest Bożego głos. On działa wciąż na duszę mą.",
     "ru": "1. Бог нам Слово послал, Чрез века сохранял, Своё сердце нам открыл, Чтоб каждый Божьим Словом жил. Слово силы даёт, Жизнь и веру несёт И в пути победу шлёт, Домой нас Слово приведёт.\r\n*Божье Слово верно, Изменяет нас Оно. Мы пришли, открыв сердца. О пусть звучат Слова Отца.\r\n2. Слово веры святой Перешло к нам с тобой Через жертву на кресте. Внимай же Слову о Христе. Бог нам Слово послал, Чрез века сохранял, Своё сердце нам открыл, Чтоб каждый Божьим Словом жил.",
     "en": "1. Holy Words long preserved, For our walk in this world They resound with God's Own Heart, O let the Word of God impart Words of Life, Words of Hope, Give us strength, Help us cope In this world where we roam The Word of God will guide us Home\r\n*Word of God ever true, Changing me and changing you We have come with open hearts, O let the Word of God impart\r\n2. Holy Words of our Faith, Handed down to this age Came to us through sacrifice, O heed the Faithful Words of Christ Holy Words long preserved, For our walk in this world They resound with God's Own Heart, O let the Word of God impart"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №264",
-    "texts": "Vilnius-HGB №337 (song_list.ID 3611)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №264",
+    "texts": "Vilnius-HGB №337 (song_list.ID 3611)",
+    "pl_key": "F"
    }
   },
   {
    "num": "338",
-   "name": "(E) Byłem biedny",
+   "name": "(D) Byłem biedny",
    "texts": {
     "pl": "1. Byłem biedny, odziany w łachman grzechu i zła. Żyłem jak nędzarz, zostawiony gdzieś sam. Wtedy przyszedł On do mnie, sam wielki nasz Pan. W Swej miłości i łasce pod Swe skrzydła mnie wziął.\r\n*Alleluja, chwała, cześć! Dzieckiem Króla jam jest. W żyłach mych płynie Jego Królewska Krew. Chociaż byłem zgubiony, dziś wznoszę mój śpiew. Alleluja, chwała, cześć! Dzieckiem Króla jam jest!\r\n2. Teraz jestem dziedzicem, w Niebie wieczny mam dział. Ojciec Niebieski na własność mnie wziął. Przebaczenie mych grzechów i wolność mi dał. Więc dziękować Mu chcę za to, że zbawił mnie.",
     "ru": "1. Жалкий слепец был в лохмотьях греха, Нищий, отверженный – это был я. Но однажды я встретил Царя всех царей, С великою любовью меня Он принял к Себе.\r\n*Аллилуйя! Я ведь чадо Царя! Царская Кровь омыла меня. Был жалким, слепым, но теперь вижу я. Христу хвала – я ведь чадо Царя!\r\n2. В Царстве Своём приютил Он меня, Нежно сказал: \"Будь как дома, дитя!\" В белоснежные ризы меня Он облёк, Очень скоро я с Ним встречусь, этот день недалёк!",
     "en": "1.Once I was clothed in the rags of my sin Wretched and poor lost and lonely within But with wondrous compassion The King of all kings in pity and love Took me under His wing\r\n*Oh yes, oh yes I'm a child of the King His royal blood now flows in my veins And I, who was wretched and poor Now can sing praise God, praise God\r\nI'm a child of the King\r\n2.Now I'm a child with a heavenly home My Holy Father has made me His own I am blessed by His Blood and I'm clothed in His Love And someday I'll sing with the angels above"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №187",
-    "texts": "Vilnius-HGB №338 (song_list.ID 3612)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №187",
+    "texts": "Vilnius-HGB №338 (song_list.ID 3612)",
+    "pl_key": "E"
    }
   },
   {
    "num": "341",
-   "name": "(A) Prawdym szukał",
+   "name": "(G) Prawdym szukał",
    "texts": {
     "pl": "1. Prawdym szukał wciąż na drodze mej, lecz pustki serca mego nie zagasi życie te. Żadnej pociechy z filozofii ludzkich słów. Wiedziałem jednak, że ma więcej Słowa dla mnie Bóg.\r\n*Wtem jakiś Orła głos: „Wyjdź z niego, dziecię Me. W ramiona Moje chodź, do Słowa wiodę cię. Nauczę latać cię, tylko skrzydła rozłóż ty”. Szczęściem napełnił mnie Bożego Orła krzyk.\r\n2. Kiedyś tam w niewiary gnieździem żył. Nic tylko pustka, choć szukałem, ile miałem sił. Tylko świeżego coś zagasi duszy głód. Niechbym cudownej łaski Jego więcej poznać mógł!",
     "ru": "1. Я всю жизнь ту Истину искал, Боролся я внутри, Я знал, что жить так нельзя. Я не нашёл покой в людских учениях, Но Слово Божие Будет помощь мне в скорбях.\r\n*Раздался крик Орла: \"Взлети в высоту! За руку взяв тебя, Я к Слову приведу! Я научу летать – расправь свои крыла!\" Я был так рад, когда услышал крик Орла.\r\n2. Я сидел в гнезде неверия, Как в клетке я там был И полон был сомненья. Чего-то свежего я так хотел в душе. Я в темноте бродил, Но Он любовь явил в моей беде!",
     "en": "1. All my life I searched for the truth, I struggled deep inside I knew this life just wouldn't do. There was no comfort in some men's philosophy, I knew there must be more of His Word in store for me.\r\n*And then an eagle screamed, \"Child, come out of her, I'll take you in My arms and lead you to the Word. Come on and spread your wings I'll teach you how to fly.\" I've been so happy since I heard God's eagle cry.\r\n2. There I was in a nest of unbelief, Another empty heart was really all I could see; I needed something fresh to feed my hungry soul, I felt so out of place more of His wondrous grace I had to know."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №53",
-    "texts": "Vilnius-HGB №341 (song_list.ID 3615)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №53",
+    "texts": "Vilnius-HGB №341 (song_list.ID 3615)",
+    "pl_key": "A"
    }
   },
   {
    "num": "342",
-   "name": "(D) Mizerną, lichą stajnię",
+   "name": "(E) Mizerną, lichą stajnię",
    "texts": {
     "pl": "1. Mizerną, lichą stajnię, nie królewski próg, obrał sam Bóg i narodził się Król. By objawić Swój majestat, wybrał skromny żłób. Więc gdy Jemu w pełni oddam się, sam we mnie zrodzi się.\r\n* Niechaj Słowo Twe w moim sercu zrodzi się. Niechaj żyję Nim, niechaj jasno lśni. Jestem gliną w rękach Twych. Kształtuj, wypełń mnie. Niechaj Słowo Twe w moim sercu zrodzi się.\r\n2. Jestem tylko prochem, cóż więc mogę dać, by objawić się mógł Swoim Słowem we mnie Bóg? Jeśli wydam swe naczynie i oddam Jemu ster, od Chwały do Chwały będzie zmieniał mnie.\r\n* Niechaj Słowo Twe w moim sercu zrodzi się. Niechaj żyję Nim, niechaj jasno lśni. Jestem gliną w rękach Twych. Kształtuj, wypełń mnie. Niechaj Słowo Twe w moim sercu zrodzi się.",
     "ru": "1. В той малюсенькой конюшне, Не в большом дворце, Царь и Господь Был рождён на земле. Чтоб явить Своё величье, Он открылся в простоте. Если я отдам Ему себя, Родится Он во мне.\r\n*Пусть родится Он в яслях сердца моего, Слово оживит, пусть Оно Исправляет каждый час, живёт всё время в нас. Пусть родится Он в яслях сердца моего.\r\n2. О, я был таким никчёмным, Недостойным жить, Я сам бы не смог Его Слова явить; Но Господь нашёл сосуд мой, Отдался я Ему, И Он от Славы в Славу Меняет жизнь мою.\r\n**Да, родился Он В яслях сердца моего, Слово оживил, Пусть Оно Исправляет каждый час, Живёт всё время в нас. Да, родился Он В яслях сердца моего.",
     "en": "1. There was a tiny, simple stable, Old, beaten, and worn; Hardly a place For a King to be born; He didn't choose Some place special, To reveal His Majesty; So I know if I'll give Him control, He'll be born in me.\r\n*Let Your Word be born In the manger of my heart, Let It live in me, let It start; Live inside this house of clay, And mold me everyday; Let Your Word be born In the manger of my heart.\r\n2. Well, outwardly I'm nothing, Not much to behold, Unlikely the place for His Word to unfold; But if I'll just yield this vessel, And let Him have His way; From glory unto glory, He'll change me day by day.\r\n*Let Your Word be born In the manger of my heart, Let It live in me, let It start; Live inside this house of clay, And mold me everyday; Let Your Word be born In the manger of my heart."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №407",
-    "texts": "Vilnius-HGB №342 (song_list.ID 3616)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №407",
+    "texts": "Vilnius-HGB №342 (song_list.ID 3616)",
+    "pl_key": "D"
    }
   },
   {
    "num": "347",
-   "name": "(C) Według wizji Zachariasza",
+   "name": "(G) Według wizji Zachariasza",
    "texts": {
     "pl": "1. Rzekł Abraham swemu słudze: „Wyrusz w drogę jeszcze dziś i po żonę dla mojego syna idź”. Tak Eliezer na wielbłądach dotarł aż do studni, gdzie chciał odpocząć, a z Rebeką spotkał się. Bliskich hojnie obdarował, a Rebekę zabrał sam w długą drogę, gdzie Izaak czekał nań. Tak Eliezer wciąż jej mówił, jak Izaak kocha ją, aż Rebeka pokochała szczerze go.\r\n*O, gotowa bądź Rebeko, czas już iść. Czy słyszysz jak Eliezer woła? Wnet nastanie czas zaślubin i wesele jest tuż-tuż. Wieczór nastał, czas wyruszyć w drogę już.\r\n2. Dzisiaj znowu Eliezera nam w Proroku posłał Bóg, aby Żonę dla Chrystusa znaleźć mógł. Nasz Izaak w Górnym Kraju przygotował Namiot nam, gdzie przebywać chce ze Swą Wybraną sam. Przedsmak Nieba dziś odczuwam, nie obchodzi świat już mnie. Słowo całkiem przemieniło myśli me. Moja szata jak śnieg biała. Wiem, że blisko jest ten dzień, gdy do Siebie Oblubieniec weźmie mnie.\r\n**Jam gotowy jest już z Tobą, Jezu, iść. Eliezera słowa w sercu chowam. Zaślubiony z moim Panem, na wesele zdążam, cóż – wieczór nastał, ja do Domu idę już.",
     "ru": "1. Караван Елиезера в ту весеннюю пору Встал у древнего колодца отдохнуть. Он нашёл для Исаака в тот вечерний час жену, Не напрасно он проделал долгий путь. Так он взял с собой Ревекку и повёз её туда, Где её ждал Исаак и Авраам. Полюбил Исаак невесту, что нашёл ему слуга. О, какой счастливый брак у них был там!\r\n*Приготовься, вечер настаёт, Слышишь ли, Елиезер зовёт? Брачный Ужин начнётся скоро, Что за радость будет нам, Когда вечером придёт тот караван!\r\n2. Дух Святой сошёл в пророке, чтобы на земле найти Ту достойную Невесту для Христа. Наш Исаак уж приготовил в Небесах шатры любви, И Ревекка с Ним там будет жить всегда. Мы ушли от наших близких, оставляя мир греха, И идём сейчас Домой, в наш Край родной, Мы увидим Исаака на блаженных Небесах. Что за радость будет нам на встрече той!\r\n*Всё готово, вечер уж настал, Зов Елиезера прозвучал. В Иисусе радость наша, Мы на Брак Его пришли, И Жених зовёт Невесту: \"О приди!\"",
     "en": "1. ’Twas a day in early springtime, By an ancient wayside well, Eliezer paused to rest his camel train. He had found a bride for Isaac Ere the evening shadows fell, For his weary journey had not been in vain. So he took the fair Rebekah, Dressed in jewels rich and rare, Quickly to her waiting bridegroom far away. Where Rebekah loved her Isaac, And he loved Rebekah fair; Oh, it must have been a happy wedding day.\r\n*Oh, get ready! Evening shadows fall. Don’t you hear the Eliezer call? There’s going to be a wedding, And our joy will soon begin,   In the evening when the camel train comes in.\r\n2. Now the blessed Holy Spirit, From our Father God above, Has come down to earth to find a worthy Bride. For our Isaac over yonder Has prepared His tents of love, And He wants His fair Rebekah by His side. We have left our kinfolk gladly; We have bade the world goodbye. We’ve been called to be His pure and spotless Bride; Where we’ll soon behold our Jesus In that blest eternity — What a happy, happy wedding that will be!"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №385",
-    "texts": "Vilnius-HGB №347 (song_list.ID 3621)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №385",
+    "texts": "Vilnius-HGB №347 (song_list.ID 3621)",
+    "pl_key": "C"
    }
   },
   {
@@ -1072,34 +1152,37 @@
     "en": "1. I have a Maker He formed my heart And before even time began My life was in His Hand\r\n*He knows my name He knows my every thought He sees each tear that falls And hears me when I call.\r\n2. I have a Father He calls me His Own And He'll never leave me No matter where I go."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №362",
-    "texts": "Vilnius-HGB №354 (song_list.ID 3628)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №362",
+    "texts": "Vilnius-HGB №354 (song_list.ID 3628)",
+    "pl_key": "E"
    }
   },
   {
    "num": "382",
-   "name": "(F) Dziś stoję przed mym Panem",
+   "name": "(E) Dziś stoję przed mym Panem",
    "texts": {
     "pl": "1. Dziś stoję przed mym Panem w uwielbieniu, czci, przed Bogiem, który stworzył cały świat. On uspokaja szalejące wody mórz. Pan oddał życie Swe, bym dzisiaj ja mógł żyć.\r\n*Mój Pan mą siłą jest na każdy dzień na ziemi tej. Tak, mój Pan jest Skałą mą na wieki już.\r\n2. Pan daje łaskę ziemi tej, gdy wstaje dzień, a grzesznik znajdzie ukojenie w Nim, bo On uzdrowi i przebaczy grzechy mu. Kto ufa w Bogu swym, nie będzie cierpiał już.",
     "ru": "1. Благоговею я в Присутствии Царя, Кто мудро всё создал рукой Своей. Пред Ним утихнут штормы и моря, Живая жертва Он, Источник Жизни всей.\r\n*Господь – моя Скала, Лишь на Него надеюсь я, Он – мой Бог Отныне и на все века.\r\n2. Он озаряет землю милостью Своей, Всегда готов Он грешника простить, Спасти, утешить, раны залечить И верящим в Него в сердца покой вселить.\r\n1. I stand in awe within the Presence of the Lord In whom the wisdom of the ages lies For whom the raging of the sea subsides The Living Sacrifice the only source of Life",
     "en": "1. I stand in awe within the Presence of the Lord In whom the wisdom of the ages lies For whom the raging of the sea subsides The Living Sacrifice the only source of Life\r\n*My hope is in the Lord From this time on and ever-more Oh my hope is in the Lord forever-more\r\n2. His Tender Mercies come with every rising sun To meet the sinner in his brokenness To offer healing and forgiveness And those who trust in Him Will find their hearts at rest"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №283",
-    "texts": "Vilnius-HGB №382 (song_list.ID 3656)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №283",
+    "texts": "Vilnius-HGB №382 (song_list.ID 3656)",
+    "pl_key": "F"
    }
   },
   {
    "num": "384",
-   "name": "(F) Nie zapomnij modlić się",
+   "name": "(E) Nie zapomnij modlić się",
    "texts": {
     "pl": "1. Nie zapomnij modlić się, Jezus pragnie spotkać cię. Gdy w komórce modlisz się, On zdejmuje troski twe.\r\n*W domu razem módlmy się, Jezus nas napełnić chce. Gdy rodzina modli się, On wysłucha prośby te.\r\n2. Nie zapomnij modlić się, On cię błogosławić chce. Gdy potrzeby powiesz swe, On Swym Duchem wzmocni cię.\r\n3.\r\n4.\r\n5.\r\n6.",
     "ru": "1. Не забудьте о молитве В каждый час и в каждой битве. Хочет с вами Бог встречаться, Вашим Другом быть, общаться.\r\n*Не забудь, молись с семьёю, Бог там встретится с тобою, Разрешит вопрос любой, О, не забудь, молись с семьёй.\r\n2. Мы болеем – Он всё знает, Нас к здоровью возвращает. Хочет Он, чтоб вы склонялись, В ваших нуждах открывались.\r\n3. Зная всё ещё в начале, Хочет Бог, чтоб вы сказали, Что нуждаетесь вы в Нём, В вашем Друге дорогом.\r\n4. Бог услышит и поймёт, Понесёт весь груз забот. Хочет Сам Он в вас трудиться, В вашей жизни проявиться.\r\n5. На собранье будь с семьёю...\r\n6. Библию читай с семьёю...",
     "en": "1. Don't forget the family prayer, Jesus wants to meet you there; He will take your every care, Oh, don’t forget the family prayer.\r\nDon't forget the family prayer, Jesus wants to meet you there; He will take your every care, Oh, don’t forget the family prayer.\r\nDon't forget the family prayer, Jesus wants to meet you there; He will take your every care, Oh, don’t forget the family prayer.\r\nDon't forget the family prayer, Jesus wants to meet you there; He will take your every care, Oh, don’t forget the family prayer.\r\nDon't forget the family prayer, Jesus wants to meet you there; He will take your every care, Oh, don’t forget the family prayer.\r\nDon't forget the family prayer, Jesus wants to meet you there; He will take your every care, Oh, don’t forget the family prayer."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №360",
-    "texts": "Vilnius-HGB №384 (song_list.ID 3658)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №360",
+    "texts": "Vilnius-HGB №384 (song_list.ID 3658)",
+    "pl_key": "F"
    }
   },
   {
@@ -1111,8 +1194,9 @@
     "en": "1. In Christ alone my hope is found, He is my Light, my Strength, my Song; This Cornerstone, this solid Ground, Firm through the fiercest drought and storm.\r\n*What heights of Love, what depths of Peace, When fears are stilled, when strivings cease! My Comforter, my All in All, Here in the Love of Christ I stand.\r\n2. In Christ alone! - who took on flesh, Fullness of God in helpless babe. This gift of Love and Righteousness, Scorned by the ones He came to save:\r\n**Till on that cross as Jesus died, The wrath of God was satisfied - For every sin on Him was laid; Here in the death of Christ I live.\r\n3. There in the ground His Body lay, Light of the world by darkness slain: Then bursting forth in glorious day Up from the grave He rose again!\r\n***And as He stands in victory Sin's curse has lost its grip on me, For I am His and He is mine - Bought with the precious Blood of Christ.\r\n4. No guilt in life, no fear in death, This is the Power of Christ in me; From life's first cry to final breath, Jesus commands my destiny.\r\n****No power of hell, no scheme of man, Can ever pluck me from His Hand: Till He returns to call me Home, Here in the Power of Christ I'll stand"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №19",
-    "texts": "Vilnius-HGB №389 (song_list.ID 3663)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №19",
+    "texts": "Vilnius-HGB №389 (song_list.ID 3663)",
+    "pl_key": "E"
    }
   },
   {
@@ -1125,8 +1209,9 @@
     "en": "1. It was hard to take the first step When I didn't know the way Each turn was so uncertain I learned to walk by Faith But You gave me a promise That You would never leave You will lead and guide me Oh Lord I do believe\r\n*Lead me Lord I will follow Lead me Lord I will go You have called me, I have answered Lead me Lord I will go\r\n2. Your plans for me are perfect I never need to fear For though at times I feel alone I know that You are near My heart just wants to follow I'm willing to obey Take my hand and lead me I'll follow all the way"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №365",
-    "texts": "Vilnius-HGB №392 (song_list.ID 3666)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №365",
+    "texts": "Vilnius-HGB №392 (song_list.ID 3666)",
+    "pl_key": "C"
    }
   },
   {
@@ -1139,8 +1224,9 @@
     "en": "*Amen! Amen! Amen! Amen, Amen!\r\n1. Are you going to love Him? Amen! Are you going to praise Him? Amen! Are you going to worship Him? Amen! Amen, Amen!\r\n2. Do you love Him? Amen! Will you serve Him? Amen! Do you believe Him? Amen! Amen, Amen!\r\n3. The Bible's true Amen! I believe It Amen! It’s the Word of God Amen! Amen, Amen!\r\n4. We believe You're coming Amen! Were ready to meet You. Amen! Come, Lord Jesus. Amen! Amen, Amen!"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №100",
-    "texts": "Vilnius-HGB №430 (song_list.ID 3704)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №100",
+    "texts": "Vilnius-HGB №430 (song_list.ID 3704)",
+    "pl_key": "E"
    }
   },
   {
@@ -1153,8 +1239,9 @@
     "en": "1. These are the days of Elijah Declaring the word of the Lord, yeah And these are the days of Your servant, Moses Righteousness being restored.  These are the days of great trials Of famine and darkness and sword Still we are the voice in the desert crying Prepare ye the way of the Lord!\r\n*Behold He comes, riding on the clouds Shining like the sun at the trumpet's call Lift your voice, (it's) the year of Jubilee Out of Zion's hill, salvation comes\r\n2. And these are the days of Ezekiel The dry bones becoming as flesh And these are the days of Your servant, David Rebuilding the temple of praise And these are the days of the harvest The fields are all white in the world And we are the laborers that are in Your vineyard Declaring the Word of the Lord\r\n**There's no God like Jehovah! (7x)"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №271",
-    "texts": "Vilnius-HGB №448 (song_list.ID 3722)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №271",
+    "texts": "Vilnius-HGB №448 (song_list.ID 3722)",
+    "pl_key": "G"
    }
   },
   {
@@ -1166,8 +1253,9 @@
     "en": "1. I'm kind of homesick for a Country, To which I've never been before. No sad goodbyes Will there be spoken, For time won't matter anymore.\r\n*Beulah Land, I'm longing for you, And someday on Thee I'll stand. There my Home shall be Eternal. Beulah Land, sweet Beulah Land.\r\n2. I'm looking now, across the river, To where my faith Will end in sight. There's just a few more days to labour, Then I will take my Heav'nly flight."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №326",
-    "texts": "Vilnius-HGB №467 (song_list.ID 3741)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №326",
+    "texts": "Vilnius-HGB №467 (song_list.ID 3741)",
+    "pl_key": "E"
    }
   },
   {
@@ -1180,33 +1268,36 @@
     "en": "1. Some glorious morning sorrow will cease, Some glorious morning all will be peace; Heartaches all ended, school days all done, Heaven will open–Jesus will come.\r\n*Some golden daybreak Jesus will come; Some golden daybreak, battles all won, He'll shout the victory, break through the blue, Some golden daybreak, for me, for you.\r\n2. Sad hearts will gladden, all shall be bright, Goodbye forever to earth's dark night; Changed in a moment, like Him to be, Oh, glorious daybreak, Jesus I'll see.\r\n3. Oh, what a meeting, there in the skies, No tears nor crying shall dim our eyes; Loved ones united eternally, Oh, what a daybreak that morn will be."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №39",
-    "texts": "Vilnius-HGB №469 (song_list.ID 3743)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №39",
+    "texts": "Vilnius-HGB №469 (song_list.ID 3743)",
+    "pl_key": "E"
    }
   },
   {
    "num": "480",
-   "name": "(E) Bóg nas od grzechu zbawia",
+   "name": "(D-E) Bóg nas od grzechu zbawia",
    "texts": {
     "pl": "1. Bóg nas od grzechu zbawia i chroni w tarapatach, i w sprawiedliwość nas odziewa Swą, i własną Krwią obmywa, Swą wiarę nam posyła – tak do wieczności nas prowadzi On.\r\n*I stanie przed Nim Oblubienica Słowa. Jej szatą świętość oraz czystość Chrystusowa. Przez wieczność będzie ona chwalić swego Pana. Ich miłość czysta jest i wieczna, doskonała!\r\n2. Tyś jest nasz Wykupiciel i wielki Wyzwoliciel. I znane nam Twe Imię, Jehowa – Tyś nasz Pan, Chrystus objawiony, odkryty i realny. Ty poprzez Ciało się przejawiasz dziś.\r\n3. Od zawsze istniejący i Życie nam dający, namaszczone Słowo, Drzewo Życia, Święty Bóg. Dziś znana tajemnica, że ta Oblubienica powraca do Edenu – tam wieczny jest jej Dom.\r\n4. Bóg dał nam objawienie – to nasze przeznaczenie. Ta Ewa tylko Słowu wierzy, nie upadnie więc. Chrystusa my więźniami, swe życie Mu składamy, by złączyć się w miłości z Nim. On nas zabierze stąd.",
     "ru": "1. Бог от греха спасает, в беде оберегает, И праведность Свою Он нам даёт. Он Кровью очищает и веру посылает, Так к вечности Господь нас доведёт.\r\n*Она предстанет перед Ним – Невеста Слова В наряде чистоты и святости Христовой, Чтобы остаться с Ним и славить бесконечно, И совершенная любовь их длится вечно.\r\n2. Великий Искупитель и наш Освободитель, Мы знаем, Его Имя – Иегова, наш Господь. Христа открыта тайна, для нас она реальна, Бог в полноте проявится чрез плоть.\r\n3. Он от начала Сущий, Он тот же, Жизнь дающий, Помазанное Слово, Древо Жизни, Бог святой, И тайна нам известна – теперь Его Невеста Обратно возвращается в Эдем к себе Домой.\r\n4. Бог дал нам откровенье – в том предопределенье, И третья Ева знает Слово, точно не падёт. Мы – узники Христовы и жизнь отдать готовы, Чтоб слиться с Ним в одной любви, и нас Он заберёт."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №396",
-    "texts": "Vilnius-HGB №480 (song_list.ID 3754)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №396",
+    "texts": "Vilnius-HGB №480 (song_list.ID 3754)",
+    "pl_key": "E"
    }
   },
   {
    "num": "500",
-   "name": "(G) Sądy i mrok nad światem",
+   "name": "(E) Sądy i mrok nad światem",
    "texts": {
     "pl": "1. Sądy i mrok nad światem się spowiły. Ucisku fala zbliża się tuż-tuż. Czasami czuję, jak opadam z siły, a ciało szepcze: „Poddaj wreszcie się już”.\r\n*Ktoś ciągle trzyma mnie. Pewność przeżywam, że On daje wiarę mi, bym w Słowie zwycięzcą był. Ktoś zawsze wiedzie mnie w czułej miłości Swej. Boże wybranie jest tym, co wciąż trzyma mnie.\r\n2. Czasami też popadam w pokuszenie. Tak diabeł chce mi moją wiarę skraść. Lecz mam w Chrystusie cudne objawienie, że dla mnie łaska Boża wciąż będzie trwać.\r\n**Ktoś woła imię me i pewność mam tę, że w miejsce mnie stawia, gdzie jak diament lśnić mogę się, życiem Jezusa żyć, Jego odbiciem być. O, teofania ma to jest to, co trzyma mnie!",
     "ru": "1. Cуды и тьма сгущаются над миром, Давленье ощутимо всё сильней. Меня порою покидают силы, И плоть мне шепчет: “Сдайся поскорей!”\r\n*Кто-то хранит меня, в этом уверен я, Веру вселяет Он, чтоб Словом побеждать. Кто-то ведёт всегда, бережно и любя. Божье избрание – вот что хранит меня.\r\n2. Порою попадаю в искушение. Желает дьявол веру всю украсть. Но во Христе имею откровение: Всё, что мне нужно – Божья благодать!\r\n**Кто-то зовёт меня, в этом уверен я, Ставит в позицию, чтоб как алмаз сиять. Вечным я был всегда, я – атрибут Христа. Моя теофания – вот что зовёт меня!",
     "en": "1. The trials of this world were getting closer, The pull I felt was more than I could bear, And I was on the verge of just giving over: The strength within myself just wasn’t there.\r\n*Something keeps holding me, Everyday I see, He’s helping me faithfully To overcome my trials; He’s guiding me constantly, Giving me victory, He’s a reality; Something keeps holding me.\r\n2. Satan laid before me his temptation Of his desire to steal away my faith, But I have found inside the Revelation, The strength I need to keep me by His Grace.\r\n*Something keeps holding me, Everyday I see, He’s helping me faithfully To overcome my trials; He’s guiding me constantly, Giving me victory, He’s a reality; Something keeps holding me."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №442",
-    "texts": "Vilnius-HGB №500 (song_list.ID 3774)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №442",
+    "texts": "Vilnius-HGB №500 (song_list.ID 3774)",
+    "pl_key": "G"
    }
   },
   {
@@ -1217,20 +1308,22 @@
     "ru": "1. {Когда Дух Господень наполняет меня, Пою я, как Давид}-2р.. {{Пою я}-3р., как Давид}-2р..\r\n2. {Когда Дух Господень наполняет меня, Молюсь я, как Давид}-2р.. {{Молюсь я}-3р., как Давид}-2р..\r\n3. {Когда Дух Господень наполняет меня, Борюсь я, как Давид}-2р.. {{Борюсь я}-3р., как Давид}-2р..\r\n4. {Когда Дух Господень наполняет меня, Ликую, как Давид}-2р.. {{Ликую}-3р., как Давид}-2р.."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №216",
-    "texts": "Vilnius-HGB №541 (song_list.ID 3815)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №216",
+    "texts": "Vilnius-HGB №541 (song_list.ID 3815)",
+    "pl_key": "Em"
    }
   },
   {
    "num": "562",
-   "name": "(B) Bóg buduje dziś świątynię",
+   "name": "(A-C) Bóg buduje dziś świątynię",
    "texts": {
     "pl": "1. Bóg buduje dziś świątynię z tych żywych kamieni własności Swej. Sam Węgielnym jest Kamieniem – On, Szczytowy Kamień ten!\r\n*Stosem kamieni, zapomnianymi – takimi byliśmy. Duch Święty, On sam ożywił i nas. Jesteśmy żywymi! Bóg sam wybrał nas i przeznaczyć chciał na część Swej świątyni. Widzimy dziś znów: On jest z nami tu, Zbawiciel jedyny.\r\n2. Doskonałe oczyszczenie poprzez Słowo, które nam posłał Pan, zmywa wszelkie wątpliwości, ufność, wiarę daje nam.\r\n3. Pan nam posłał budowniczych, którzy ociosują nas Słowem tym, aby każdy kamień jaśnieć mógł, wśród ciemności światłem był!\r\n4. Oglądamy dziś przywództwo. Swoją Chwałę sam Bóg objawia w nas. Wnet wspaniałą Swą budowlę On ukończy. Co za czas!",
     "ru": "1. Бог сегодня созидает храм Из живых камней, из тех, кто был в Нём. Он – Краеугольный Камень Сам И Заглавный Камень Он.\r\n*Из груды камней, забытых давно, какими мы были, Бог Духом Святым нас вновь оживил, мы – камни живые. Сам Бог нас избрал и каждый из нас – часть храма Господня, Куда усмотрел всю Славу Свою излить Он сегодня.\r\n2. Происходит очищение Через Слово, что Господь нам даёт. Исчезает мох сомнения, Недоверия налёт.\r\n3. Нам Господь каменотёсов дал, Нужно нас со всех сторон обтесать, Чтобы каждый камень засиял, И мы все могли сказать:\r\n4. Видим мы Его водительство, Проявляет Бог Свою Славу в нас. Храма чудное строительство Завершает Он сейчас."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №474",
-    "texts": "Vilnius-HGB №562 (song_list.ID 3836)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №474",
+    "texts": "Vilnius-HGB №562 (song_list.ID 3836)",
+    "pl_key": "B"
    }
   },
   {
@@ -1242,84 +1335,91 @@
     "en": "1. Lord I want to take the time, Just to praise Your Holy Name, ’Cause You’ve been, been so good to me; So from the rising of the sun, To the going down of the same, Lord Your Name alone is worthy to be praised.\r\n*Jehovah Nissi, the Lord our banner; Jehovah Rapha, the Lord our healer; Jehovah Shalom, the Lord our peace; Jehovah Shammah, the Lord is present; Jehovah Raah, the Lord our shepherd; Jehovah Tsidkenu, the Lord our righteousness; Jehovah Shalom, the Lord our peace; Jehovah Jireh, He provideth all our needs.\r\n2. You are the great I AM that I AM, The God that was, is, and is to come, Prophet, Priest and King, Eagle, Lamb and Lion, Son of Man, Son of God and Son of David.\r\n3. You are the Rose of Sharon, You’re the Lily of the valley,  You’re the Bright and Morning Star,  That’s who You are;  The Mighty Conqueror  that’s been unconquered by traditions,  The Lord God Jehovah is His name."
    },
    "source": {
-    "title_key": "Śpiewaj Panu (Kaplica Pokoju) №557",
-    "texts": "Vilnius-HGB №577 (song_list.ID 3851)"
+    "title": "Śpiewaj Panu (Kaplica Pokoju) №557",
+    "texts": "Vilnius-HGB №577 (song_list.ID 3851)",
+    "pl_key": "E"
    }
   },
   {
    "num": "607",
-   "name": "(Cm) Kim jest ten Melchizedek?",
+   "name": "(Bm) Kim jest ten Melchizedek?",
    "texts": {
     "pl": "1. Kim jest ten Melchizedek, nasz Król Salemu? Kim jest ten Melchizedek, nasz Król Jeruzalemu? Jestem poganka Rut i pragnę więcej poznać Cię. Wędrować nie chcę już za bogami obcych ziem. Usłyszałam o tej cywilizacji innej i o ludziach Barankowi oddających cześć.\r\n*Co to za Miasto? Co to za Kraj? Kim są ci ludzie żyjący w nim? Opowiedz mi więcej! Co to za ziemia? Skąd ona jest? Mój Boazie, ja na klepisku czekam Cię!\r\n2. Ożywiająca siła drogi mej kurs zmieniła. Już nie obcymi w Kraju tym, lecz obywatelami Jeruzalemu. Bóg nam poganom dał odegrać rolę w planie Swym, a my niewiele tak o Bogu swoim wiemy wciąż. O Bogu więcej powiedz mi, o tych wymiarach i światach. Nadprzyrodzonych dzieł uczestnikiem jestem ja.\r\n**Co to za Miasto? Co to za Kraj? Kim są ci ludzie żyjący w nim? Opowiedz mi więcej! Co to za ziemia, wymiary jej? Nadprzyrodzone przeznaczone dla mnie jest.\r\n3. Czym jest ten Chleb? Czym jest to Wino? I jakie ciało za mnie Ty złożyłeś w ofierze? Otworzyłeś drogę do teofanii, do wymiaru, gdzie mój pozytyw realny jest.\r\n***O ciałach trzech powiedziałeś mi i że w ciele uwielbionym będę żyć jak Ty. Jestem z wieczności – powiedziałeś mi. Będę żyć, w Wiecznym Mieście z Tobą żyć",
     "ru": "1. Кто такой Мелхиседек, наш Царь Салима? Кто такой Мелхиседек, наш Царь Иерусалима? Я – Руфь, язычница, жажду я лично знать И больше не хочу вслед чужих богов блуждать. Услыхала я о той цивилизации другой И о людях, отдающих Агнцу честь.\r\n*Каков же этот Город? (Расскажи!) Какая та Страна? (Расскажи!) Какие же те люди, живущие в ней? Расскажи побольше! Какая та земля, (Расскажи!) её происхождение? Я в ожидании у Вооза на гумне.\r\n2. Силой оживления наш путь поменял направление. Мы не чужие в той Стране, но сограждане Иерусалима. Хоть мы – язычники, Бог дал нам роль в плане Своём, И очень многое ещё не знаем мы о Нём. О Боге больше расскажи, о тех измереньях и мирах, Ведь я участвую в сверхъестественных делах.\r\n**Каков же этот Город? (Расскажи!)  Какая та Страна? (Расскажи!) Какие же те люди, живущие в ней? Расскажи побольше! Какая та земля, (Расскажи!) её все измерения? Ведь в сверхъестественном быть предназначено и мне.\r\n3.  Кем есть этот Хлеб? (Расскажи!) Чем есть то вино? (Расскажи!) И какое тело за меня преломлено? Путь Ты мне открой (Расскажи!) в сферу теофаний, В то измерение, где позитив реален мой.\r\n***О трёх телах меня оповестил, Я являюсь триединым существом. Я из вечности, Ты это мне открыл, Вместе жить будем в мире неземном.",
     "en": "1. Who is this Melchizedek? This king of Salem. Who is this Melchizedek? This king of Jerusalem. I am a gentile I need to know for sure. I am a Moabite, I've worshiped foreign gods. But have heard of a land A different civilization Of a people who worship the lamb\r\n*Tell me of this city, Tell me of the land, Tell me of this people Who worship the Lamb. Tell me of this earth  And it's generations. For I am a Moabite sitting at the threshing floor\r\n2. Yes I have been quickened  my course is changed. I am no longer a stranger  but a citizen of Jerusalem. Though I'm a gentile I now have access to Him . I am a gentile there is so much I need to know Tell me more about this God About these dimensions and worlds For I am a candidate of this supernatural world\r\n*Tell me of this city, Tell me of the land, Tell me of this people Who worship the Lamb. Tell me of this earth  And it's generations. For I am a Moabite sitting at the threshing floor\r\n3.Tell me of this bread  Tell me of this wine  Tell me of this body that's broken for me  Tell me of this way and How to change dimension  To my theophany  That is the positive of me\r\n***You told me I have three bodies But there's only one of me  You told me I am eternal With you in eternity I'll be"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №439",
-    "texts": "Vilnius-HGB №607 (song_list.ID 3881)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №439",
+    "texts": "Vilnius-HGB №607 (song_list.ID 3881)",
+    "pl_key": "Cm"
    }
   },
   {
    "num": "621",
-   "name": "(F) Radość w Bogu",
+   "name": "(C-D-E) Radość w Bogu",
    "texts": {
     "pl": "1. Radość w Bogu to ogromna siła. Ona daje mi do zwycięstwa moc. Słowo sekret ten mi objawiło. Smutku i rozpaczy nadszedł kres.\r\n* Mój Pan – moja radość. Mój Pan – moja siła. W Nim moja nadzieja, mój absolut. Realnego Boga mi Słowo odkryło i Jego atrybut wyrażam tu dziś.\r\n2. Cieszę się, bo wiem, gdzie wcześniej byłem. Tu i teraz chcę w woli Jego żyć. Tam, gdzie jest Duch Pański, tam i wolność. Pragnę w Jego Duchu ciągle być.\r\n3. Cieszę się, gdyż Bóg jest mą opoką. Mogę w każdy czas w pełni ufać Mu. Nawet w trudnej chwili doświadczenia niechaj radość wielka w sercu trwa.\r\n4. Cieszę się i tego nie ukrywam. Tyle łaski Swej mi darował Pan. I w podzięce pieśń tę Mu zaśpiewam. Serce moje rozweselił On.",
     "ru": "1. Радоваться в Боге – это сила И успех моих в Господе побед! Слово тайну радости раскрыло, Места для печали больше нет!\r\n*Господь – моя радость, Господь - моя сила, Моё упованье и мой Абсолют! Реального Бога мне Слово раскрыло, И я тоже вечный Его атрибут!\r\n2. Радуюсь, что я пришёл от Бога, Чтобы здесь Его волю исполнять. Там, где Дух Господень, там свобода. Духа я не буду угашать!\r\n3. Радуюсь, имея основанье, Что могу во всём Богу доверять, И тогда любые испытанья С радостью великой принимать!\r\n4. Радуюсь и это не скрываю, Для меня Господь столько совершил! Всю хвалу Ему я воспеваю, Сердце Он моё возвеселил!"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №451",
-    "texts": "Vilnius-HGB №621 (song_list.ID 3895)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №451",
+    "texts": "Vilnius-HGB №621 (song_list.ID 3895)",
+    "pl_key": "F"
    }
   },
   {
    "num": "644",
-   "name": "(G) Ja wierzę w dokonany",
+   "name": "(E) Ja wierzę w dokonany",
    "texts": {
     "pl": "1. Ja wierzę w dokonany cud Chrystusa, Pana Chwał. Okoliczności minie czas, lecz Boże Słowo będzie trwać. Choroby, grzech, wina i strach nie mogą więcej dręczyć nas. I teraz klucze w rękach mych; jest dane mi zwycięzcą być.\r\n*Jestem wolny, dzień nastąpił mój. Jestem wolny, mogę sobą być. Jestem wolny, spadły więzy me. [:Panie, wiem, możliwe wszystko jest:].\r\n2. Ja wierzę, że i dzisiaj Bóg ten sam jak wczoraj jest. To życie, którym Prorok żył, wyrazić wreszcie nadszedł dzień. Ten właśnie czas przybliżył się, by Chrystus w nas uwielbił się. Duch Święty w pełni wolny jest, by we mnie czynić dzieła Swe.\r\n3. Ja wierzę, polecenie Swe dał mi dzisiaj Bóg. Już książę świata idzie, lecz wiem, działu we mnie nie ma on. Przez to, co robię w zwykłych dniach, ja mogę stworzyć wokół mnie tę atmosferę, gdzie sam Bóg kontrolę przejąć będzie mógł.",
     "ru": "1. Я верю в завершённый труд Моего Христа. Все обстоятельства пройдут, Но Божье Слово никогда! Болезни, грех, вина и страх Не могут больше угнетать, Ключи теперь в моих руках, И мне дано всё побеждать!\r\n*Я свободен! Воссиял день мой! Я свободен быть самим собой! Я свободен! Пали цепи все! {Знаю, всё возможно во Христе!}-2р.\r\n2. Я верю, поручение Дал мне Бог Своё. Идёт князь мира, но во мне Он не имеет ничего! И цепью обстоятельств я Могу создать вокруг себя Ту атмосферу, где Сам Бог Дух каждый под контроль возьмёт!\r\n3. Я верю, что сегодня Бог тот же, как вчера. Ту жизнь, которой жил пророк, Невесте выразить пора! Теперь настал уже тот час Христу прославиться и в нас! Свободен Дух Святой вполне Свои дела свершать во мне!",
     "en": "1. I am resting on the finished work Of Jesus Christ today, All circumstances will be gone, The Word of God will still remain! No sickness, fear, no guilt or sin can have control and worry me, The keys of faith are in my hands, and I am bound for Victory!\r\n*I am free, My new day has come, Now I can be who I truly am, I am free, Covered by His Blood! All things are possible with God! All things are possible with God!\r\n2. A great commission from my Lord I have now received, The prince of power of the air Will never have a part in me. As amateur creator I Can change the atmosphere around, I use the chain of circumstance For any spirits to be bound!\r\n3. I know that Jesus \"the I AM\" Is the same today, The prophet came to show the Life The Bride must have It on display The hour has come for Christ in us to be completely glorified, I want the Spirit to be free To do the greater works in me!"
    },
    "source": {
-    "title_key": "Śpiewaj Panu (Kaplica Pokoju) №634",
-    "texts": "Vilnius-HGB №644 (song_list.ID 3918)"
+    "title": "Śpiewaj Panu (Kaplica Pokoju) №634",
+    "texts": "Vilnius-HGB №644 (song_list.ID 3918)",
+    "pl_key": "G"
    }
   },
   {
    "num": "701",
-   "name": "(F) Nowe rzeczy",
+   "name": "(E) Nowe rzeczy",
    "texts": {
     "pl": "1. Jak dotąd nikt nie umiał wskazać tak jasno, skąd jesteśmy, gdzie zmierzamy dziś. Bóg przez Proroka nam pokazał to, co było przed początkiem i nasz przyszły Dom.\r\n*Nowe rzeczy nam obwieszczane są. W zachwyceniu idę stąd. Anioł Pański sam prowadzi duszę mą do Niebiańskich spraw, niewidzialnych tak i niepojętych wciąż. Lecz wierzę w to, co niemożliwe jest. Ten nowy dzień!\r\n2. Po dwóch tysiącach lat Anioł Pański tu jest na odejście przygotować nas. To, kim jesteśmy, ukazuje nam, abyśmy mogli wejść w to, na co patrzymy dziś.\r\n3. W dzisiejszym dniu obiecał Bóg Oblubienicy Swej: „Powiedz Słowo, wszystko możliwe jest”. Nie widziało oko, nie słyszało ucho o tym, co Pan przygotował tym, którzy miłują Go.\r\n**",
     "ru": "1. До этого дня никто сказать нам не мог, Откуда пришли мы и куда идём. Но через виденье пророка показал нам Бог Всё от прежде Бытия до прибытия в наш будущий Дом.\r\n*Нам новое возвещено, Знаю, вскоре я от земли восхищен буду. Ангел Господень здесь, ведёт Он нас вперёд, В то неслышимое и незримое, невообразимое, Чтобы поверить в непостижимое в этот новый день.\r\n2. Две тысячи лет не появлялся тот Ангел, но явился нам вновь, Готовит Он нас совершить переход. Наши образы в Слове нам открывает И постепенно в то, что мы видим, войти нам даёт.\r\n3. Не видел то глаз, и не слышал никто, о том и подумать кто б мог, Что Своим детям приготовил Бог! В наш день Господь доверить смог опять силу изрекать, И ничто не сможет перед Словом устоять.\r\n**О Север, отдай святых! Надлежит им Божью Славу явить! О Юг, не удержишь ты тех, кого Бог предназначил для Себя.",
     "en": "1. Until this day No man could tell us Just where we came from And where we go from here But through the eyes of the prophet God revealed to us Before God was God All the way to the future Home\r\n*New things are being declared I know very soon I'll be raptured out of here The Angel of God is here Leading our souls into The invisible, the inaudible, The inconceivable Faith to believe for the impossible In this new day\r\n2. The Angel of God Not seen for 2000 years appeared He's here fixing things For us to leave He's waving visions Of ourselves before us So we can walk Step by step Into what we behold\r\n3. Eyes have not seen, nor ears heard The things that God has Prepared for those whom He loved But in this day, God displayed \"If you say\", nothing shall be Impossible unto you\r\n**Oh north, you give them up I'm determined they'll declare My praise Oh south, you hold not back This people I've formed for Myself"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №454",
-    "texts": "Vilnius-HGB №701 (song_list.ID 3975)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №454",
+    "texts": "Vilnius-HGB №701 (song_list.ID 3975)",
+    "pl_key": "F"
    }
   },
   {
    "num": "702",
-   "name": "(C) Stadko Me małe",
+   "name": "(A) Stadko Me małe",
    "texts": {
     "pl": "1. Ja nie przyszedłem, byś musiał się bać. Miłość, odwagę ci daję. Wszystko, czym Ja jestem, to teraz sam tobie w dziedzictwie oddaję.\r\n*Stadko Me małe, nie lękaj się. Dziś dla ciebie z Nieba zstąpiłem. Ja żyję w tobie i do rąk twych całą Mą wszechmoc włożyłem.\r\n2. Przyszedłem po to, by zawrzeć tu dziś przymierze wieczne i pewne: Ty powiesz Słowo, a Ja – Pan, twój Bóg, sam Je dla ciebie wypełnię.",
     "ru": "1. Я не пришёл, чтобы в страхе был ты...  Смелость, любовь дал тебе Я.  Всё, Кем являюсь Я Сам, в эти дни Вверил тебе для владенья.\r\n*Малое стадо, ты не страшись,  Для тебя с Небес Я спустился! Жив Я в тебе, и в руках твоих  Моё Всемогущество скрылось!\r\n2. Церковь, завет заключил Я с тобой, Вечный завет, безусловный. Выскажи Слово, а Я, твой Господь, Сам это Слово исполню!"
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №414",
-    "texts": "Vilnius-HGB №702 (song_list.ID 3976)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №414",
+    "texts": "Vilnius-HGB №702 (song_list.ID 3976)",
+    "pl_key": "C"
    }
   },
   {
    "num": "714",
-   "name": "(F) Szalom",
+   "name": "(E) Szalom",
    "texts": {
     "pl": "*Szalom, szalom – w nowym poranku wita nas On. Szalom, szalom, już blisko jest nasz Dom.\r\n**Szalom, szalom – w nowym poranku wita nas On. Szalom, szalom, już blisko jest nasz Dom.\r\n1. Powstań i świeć, gdyż zjawiła się twa Światłość. A Chwała twego Pana wzeszła nad tobą, jasno świeci wciąż.\r\n*Szalom, szalom – w nowym poranku wita nas On. Szalom, szalom, już blisko jest nasz Dom.\r\n2. Ciemność i mrok ogarniają dziś narody. Lecz Chwała twego Pana wzeszła nad tobą, jasno świeci wciąż.",
     "ru": "*Шалом! Шалом! Царь и Спаситель воссел на престол! Шалом! Шалом! Уж близко так наш Дом!\r\n**Шалом! Шалом! Нас новым утром приветствует Он.  Шалом! Шалом! Уж близко так наш Дом!\r\n1. Восстань, светись, ибо Свет твой пришёл, И Слава Господня взошла над тобою, взошла над тобой!\r\n*Шалом! Шалом! Царь и Спаситель воссел на престол! Шалом! Шалом! Уж близко так наш Дом!\r\n2. Тьма на земле и мрак на народах, Но Слава Господня взошла над тобою, взошла над тобой!",
     "en": "*Shalom, Shalom! Peace and good morning.  He is on the Throne.  Shalom, Shalom! We are almost Home.\r\n*Shalom, Shalom! Peace and good morning.  He is on the Throne.  Shalom, Shalom! We are almost Home.\r\n1. Arise and shine  For thy Light has come And the Glory of the Lord Has risen upon thee, risen upon thee.\r\n*Shalom, Shalom! Peace and good morning.  He is on the Throne.  Shalom, Shalom! We are almost Home.\r\n2. Darkness to come, Gross darkness upon the people, But the Glory of the Lord Has risen upon thee, risen upon thee."
    },
    "source": {
-    "title_key": "Nowa Pieśń (Bażanowice 2021) №428",
-    "texts": "Vilnius-HGB №714 (song_list.ID 3988)"
+    "title": "Nowa Pieśń (Bażanowice 2021) №428",
+    "texts": "Vilnius-HGB №714 (song_list.ID 3988)",
+    "pl_key": "F"
    }
   }
  ]
