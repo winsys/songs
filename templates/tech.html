@@ -444,6 +444,7 @@
     #edit-song-popup .esp-page-del:hover { background: #c0392b; }
     #edit-song-popup .esp-page-add { margin: 0; padding: 7px 14px; cursor: pointer; }
     #edit-song-popup .esp-page-add.esp-busy { opacity: 0.6; pointer-events: none; }
+    #edit-song-popup .esp-file-hint { flex-basis: 100%; margin: 2px 0 8px; font-size: 12px; color: #95a5a6; }
     #edit-song-popup .esp-groups-hint { margin-top: 12px; font-size: 12px; color: #95a5a6; }
 
     /* Footer buttons */
@@ -2234,19 +2235,22 @@
                                 <div class="esp-image-actions">
                                     <input type="file"
                                            id="imageUpload"
-                                           accept="image/*"
+                                           accept="image/*,application/pdf,.pdf"
                                            style="display:none"
                                            onchange="angular.element(this).scope().previewImage()" />
                                     <button class="esp-btn esp-btn-image"
+                                            ng-disabled="editConfig.imageBusy"
                                             onclick="document.getElementById('imageUpload').click()">
-                                        <span ng-if="!editConfig.previewImage"><?php echo T::s('tech.esp.addImage'); ?></span>
-                                        <span ng-if="editConfig.previewImage"><?php echo T::s('tech.esp.changeImage'); ?></span>
+                                        <span ng-if="editConfig.imageBusy"><?php echo T::s('tech.esp.pdfConverting'); ?></span>
+                                        <span ng-if="!editConfig.imageBusy && !editConfig.previewImage"><?php echo T::s('tech.esp.addImage'); ?></span>
+                                        <span ng-if="!editConfig.imageBusy && editConfig.previewImage"><?php echo T::s('tech.esp.changeImage'); ?></span>
                                     </button>
                                     <button class="esp-btn esp-btn-clear-img"
                                             ng-if="editConfig.previewImage"
                                             ng-click="clearImagePreview()">
                                         <?php echo T::s('tech.esp.removeImage'); ?>
                                     </button>
+                                    <div class="esp-file-hint"><?php echo T::s('tech.esp.imageFileHint'); ?></div>
                                 </div>
                             </div>
 
@@ -2254,6 +2258,7 @@
                                  Uploads / deletions here apply immediately (no Save needed). -->
                             <div class="esp-groups" ng-if="!editConfig.isNewSong">
                                 <div class="esp-groups-title"><?php echo T::s('tech.esp.imageGroups'); ?></div>
+                                <div class="esp-file-hint"><?php echo T::s('tech.esp.imageFileHint'); ?></div>
                                 <div class="esp-group-row" ng-repeat="g in editConfig.imageGroups track by g.id">
                                     <div class="esp-group-head">
                                         <span class="esp-group-name">{{ g.name }}</span>
@@ -2270,11 +2275,12 @@
                                                     title="<?php echo T::s('common.button.delete'); ?>">&times;</button>
                                         </div>
                                         <!-- one image per group: the button adds it or replaces it -->
-                                        <label class="esp-btn esp-btn-image esp-page-add" ng-class="{'esp-busy': g.uploading}">
-                                            <span ng-if="!g.uploading && !g.image"><?php echo T::s('tech.esp.addImage'); ?></span>
-                                            <span ng-if="!g.uploading && g.image"><?php echo T::s('tech.esp.changeImage'); ?></span>
+                                        <label class="esp-btn esp-btn-image esp-page-add" ng-class="{'esp-busy': g.uploading || g.converting}">
+                                            <span ng-if="!g.uploading && !g.converting && !g.image"><?php echo T::s('tech.esp.addImage'); ?></span>
+                                            <span ng-if="!g.uploading && !g.converting && g.image"><?php echo T::s('tech.esp.changeImage'); ?></span>
+                                            <span ng-if="g.converting"><?php echo T::s('tech.esp.pdfConverting'); ?></span>
                                             <span ng-if="g.uploading"><?php echo T::s('tech.esp.uploadingPage'); ?></span>
-                                            <input type="file" accept="image/jpeg,image/png" style="display:none"
+                                            <input type="file" accept="image/jpeg,image/png,application/pdf,.pdf" style="display:none"
                                                    ng-attr-data-gid="{{ g.id }}"
                                                    onchange="angular.element(this).scope().onGroupFileSelected(this)" />
                                         </label>
@@ -2287,7 +2293,7 @@
 
                         <div class="modal-footer">
                             <button class="esp-btn esp-btn-cancel" data-dismiss="modal"><?php echo T::s('common.button.cancel'); ?></button>
-                            <button class="esp-btn esp-btn-save" ng-click="saveSongEdits()">
+                            <button class="esp-btn esp-btn-save" ng-click="saveSongEdits()" ng-disabled="editConfig.imageBusy">
                                 <?php echo T::s('tech.esp.saveChanges'); ?>
                             </button>
                         </div>
@@ -2380,5 +2386,6 @@
 
 <script src="/js/drag_reorder.min.js?v=1" type="text/javascript"></script>
 <script src="/js/cx_scroll.min.js?v=1" type="text/javascript"></script>
-<script src="/js/tech.min.js?v=53" type="text/javascript"></script>
+<script src="/js/pdf_page_image.min.js?v=1" type="text/javascript"></script>
+<script src="/js/tech.min.js?v=54" type="text/javascript"></script>
 
