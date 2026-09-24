@@ -32,7 +32,7 @@ Capabilities: synchronized setlist management, digital sheet music, sermon prepa
 - **Real-time:** Workerman WebSocket server on port 2345 (browser) / 2346 (internal PHP)
 - **Auth:** Session-based + Google OAuth; WebSocket uses HMAC-SHA256 tokens
 - **Export tools:** TurndownService (Markdown export), Blob + `<a target="_blank">` pattern (PDF export)
-- **Custom JS modules:** `sermon_prep.js`, `sermon_chip_editor.js`, `songs_service.js`, `sermon.js`, `tech.js`, `leader.js`, `csrf_interceptor.js`, `websocket_auth.js`, `drawio_import.js`, `drag_reorder.js` (pointer-events drag-n-drop of playlist rows on the leader page and tech console — handle `.drag-handle`, array reorder via callbacks, order persisted by `reorder_favorites`), `swipe_delete.js` (leader page + pianist mode: a playlist row swiped left/right uncovers a red delete button — that button is the confirmation, no dialog; pointer events, axis lock, never starts on `.drag-handle`), `net_status.js` (offline banner: browser online/offline + the global `websocket_status` CustomEvent from `websocket_auth.js`; included everywhere except the musician page and the two screens)
+- **Custom JS modules:** `sermon_prep.js`, `sermon_chip_editor.js`, `songs_service.js`, `sermon.js`, `tech.js`, `leader.js`, `csrf_interceptor.js`, `websocket_auth.js`, `drawio_import.js`, `drag_reorder.js` (pointer-events drag-n-drop of playlist rows on the leader page and tech console — handle `.drag-handle`, array reorder via callbacks, order persisted by `reorder_favorites`), `swipe_delete.js` (leader page + pianist mode: a playlist row swiped left/right uncovers a red delete button — that button is the confirmation, no dialog; pointer events, axis lock, never starts on `.drag-handle`), `pdf_page_image.js` (tech song edit dialog: a PDF picked as a sheet-music file becomes ONE cropped JPEG page client-side — vendored pdf.js 4.10.38 legacy build in `public/js/vendor/pdfjs/`, ES modules renamed to `.js`, lazy `import()`; portrait pages only, multi-page PDFs ask for the page number; the JPEG then goes through the unchanged `upload_song_image` / `upload_song_group_image`), `net_status.js` (offline banner: browser online/offline + the global `websocket_status` CustomEvent from `websocket_auth.js`; included everywhere except the musician page and the two screens)
 
 ---
 
@@ -199,6 +199,7 @@ public/js/
   sermon_chip_editor.js      # citation chip editor (self-contained, injects own CSS/HTML)
   drawio_import.js           # draw.io (.drawio) → SVG converter; sermon prep imports pages as slides
   drag_reorder.js            # drag-n-drop reorder of playlist rows (leader + tech), pointer events
+  pdf_page_image.js          # PDF page -> cropped sheet-music JPEG in the browser (pdf.js in vendor/pdfjs)
   settings.js                # user/group/Google settings
   import.js                  # import controller
   *.min.js                   # AUTO-GENERATED, never edit

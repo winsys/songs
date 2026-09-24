@@ -2287,22 +2287,46 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         jQuery("#edit-song-popup .modal").modal(flag ? 'show' : 'hide');
     };
 
+    // A picked sheet-music file ready for upload: images pass through, a PDF
+    // becomes one cropped JPEG page (pdf_page_image.js). Resolves to null when
+    // the user cancels the PDF page question; rejections carry a UI message.
+    function prepareSheetFile(file) {
+        if (!window.PdfPageImage || !window.PdfPageImage.isPdf(file)) return Promise.resolve(file);
+        return window.PdfPageImage.fromFile(file);
+    }
+
+    // Native onchange of the NEW song's image input: the prepared file waits
+    // in editConfig.pendingFile until Save uploads it.
     $scope.previewImage = function() {
         var fileInput = document.getElementById('imageUpload');
         var file = fileInput.files[0];
-        if (file) {
+        fileInput.value = '';   // re-picking the same file must fire onchange again
+        if (!file || !$scope.editConfig || $scope.editConfig.imageBusy) return;
+        var cfg = $scope.editConfig;
+        $scope.$applyAsync(function() { cfg.imageBusy = true; });
+        prepareSheetFile(file).then(function(ready) {
+            if (!ready) {
+                $scope.$applyAsync(function() { cfg.imageBusy = false; });
+                return;
+            }
             var reader = new FileReader();
             reader.onload = function(e) {
-                $scope.$apply(function() {
-                    $scope.editConfig.previewImage = e.target.result;
+                $scope.$applyAsync(function() {
+                    cfg.imageBusy    = false;
+                    cfg.pendingFile  = ready;
+                    cfg.previewImage = e.target.result;
                 });
             };
-            reader.readAsDataURL(file);
-        }
+            reader.readAsDataURL(ready);
+        }, function(err) {
+            $scope.$applyAsync(function() { cfg.imageBusy = false; });
+            alert(err && err.message ? err.message : window.t('settings.alert.imageUploadError'));
+        });
     };
 
     $scope.clearImagePreview = function() {
         $scope.editConfig.previewImage = null;
+        $scope.editConfig.pendingFile  = null;
         document.getElementById('imageUpload').value = '';
     };
 
@@ -2361,9 +2385,22 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         var file = input.files && input.files[0];
         input.value = '';
         var group = findImageGroup(gid);
-        if (!group || !file || group.uploading) return;
-        $scope.$applyAsync(function() { group.uploading = true; });
+        if (!group || !file || group.uploading || group.converting) return;
+        var pdf = !!(window.PdfPageImage && window.PdfPageImage.isPdf(file));
+        $scope.$applyAsync(function() { if (pdf) group.converting = true; else group.uploading = true; });
+        prepareSheetFile(file).then(function(ready) {
+            $scope.$applyAsync(function() {
+                group.converting = false;
+                if (ready) uploadGroupImage(group, gid, ready);
+            });
+        }, function(err) {
+            $scope.$applyAsync(function() { group.converting = false; });
+            alert(err && err.message ? err.message : window.t('settings.alert.imageUploadError'));
+        });
+    };
 
+    function uploadGroupImage(group, gid, file) {
+        group.uploading = true;
         var fd = new FormData();
         fd.append('command',  'upload_song_group_image');
         fd.append('song_id',  $scope.editConfig.songId);
@@ -2386,7 +2423,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 alert(window.t('settings.alert.imageUploadError'));
             }
         );
-    };
+    }
 
     $scope.deleteGroupImage = function(group) {
         if (!confirm(window.t('tech.esp.deleteImageConfirm', { group: group.name }))) return;
@@ -2426,6 +2463,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     $scope.saveSongEdits = function() {
+        if ($scope.editConfig.imageBusy) return;   // a PDF is still being converted
         var textData = {};
         for (var i = 0; i < $scope.langList.length; i++) {
             var lang = $scope.langList[i];
@@ -2445,8 +2483,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 function success(response) {
                     $scope.editConfig.songId  = response.data.song_id;
                     $scope.editConfig.songNum = $scope.listId + '/' + response.data.num;
-                    var fileInput = document.getElementById('imageUpload');   // absent for saved songs (groups block instead)
-                    if (fileInput && fileInput.files.length > 0) {
+                    if ($scope.editConfig.pendingFile) {   // new songs only (saved ones use the groups block)
                         $scope.uploadImage(function() {
                             $scope.addSongToFavorites($scope.editConfig.songId);
                             $scope.showEditDialog(false);
@@ -2466,8 +2503,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     id: $scope.editConfig.songId,
                     name: $scope.editConfig.songName }, textData) }).then(
                 function success() {
-                    var fileInput = document.getElementById('imageUpload');   // absent for saved songs (groups block instead)
-                    if (fileInput && fileInput.files.length > 0) {
+                    if ($scope.editConfig.pendingFile) {   // new songs only (saved ones use the groups block)
                         $scope.uploadImage(function() {
                             $scope.reloadFavorites();
                             $scope.showEditDialog(false);
@@ -2485,8 +2521,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     $scope.uploadImage = function(callback) {
-        var fileInput = document.getElementById('imageUpload');
-        var file = fileInput.files[0];
+        var file = $scope.editConfig.pendingFile;
         var formData = new FormData();
         formData.append('image', file);
         formData.append('command', 'upload_song_image');
