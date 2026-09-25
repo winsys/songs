@@ -578,7 +578,7 @@
            SERMON DISPLAY LAYOUT (docs/ui-redesign-sermon-display.md)
            Landscape-only operating surface that always fills the viewport.
            Tablet: notes (toolbar on top) | preview — 55/45 at every tablet width.
-           Phone landscape (height <= 540px): notes | dock 50px | preview 45%.
+           Phone landscape (height <= 540px): notes 62% | dock 50px | preview.
            The sermon title IS the sermon selector (invisible native <select> on top).
            The notes colours still come from --sn-* (overridable in Settings).
            This block comes last on purpose.
@@ -609,6 +609,13 @@
         }
         #notes-panel { width: auto; height: 100%; min-width: 0; overflow: hidden; border-right: 2px solid var(--sd-divider); position: relative; }
         #notes-body { flex: 1 1 0; min-height: 0; overflow-y: auto; padding-left: clamp(20px, 2.2vw, 28px); padding-right: clamp(20px, 2.2vw, 28px); }
+        /* Notes never scroll sideways: long words wrap (also at 300% font),
+           media and tables from the editor shrink to the pane */
+        #notes-body { overflow-x: hidden; overflow-wrap: anywhere; }
+        #notes-body img, #notes-body video, #notes-body iframe, #notes-body table, #notes-body svg { max-width: 100%; }
+        #notes-body img { height: auto; }
+        #notes-body pre { white-space: pre-wrap; }
+        #notes-body .bible-cite .cite-ref { white-space: normal; }   /* a long reference wraps instead of overflowing */
         #display-panel { width: auto; height: 100%; min-width: 0; }
         #sermon-dock { display: none; }
 
@@ -686,7 +693,7 @@
 
         /* ---- Phone landscape: notes | dock | preview ---- */
         @media (max-height: 540px) {
-            #sermon-layout { grid-template-columns: minmax(0, 1fr) var(--sd-dock) 45%; }
+            #sermon-layout { grid-template-columns: 62% var(--sd-dock) minmax(0, 1fr); }
             #notes-panel { border-right: none; }
             .sd-tablet, #fullscreen-btn { display: none !important; }
             #notes-header { height: 34px; padding: 0 6px; }
