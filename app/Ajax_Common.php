@@ -108,7 +108,7 @@ trait Ajax_Common
          WHERE l.LISTID = {$listId}
          ORDER BY l.NUM"
         );
-        return json_encode($list);
+        return json_encode(SongImages::withImageSrc($list));
     }
 
     private static function get_songs_for_search()
@@ -136,7 +136,7 @@ trait Ajax_Common
          WHERE l.LISTID IN ({$rawIds})
          ORDER BY l.LISTID, l.NUM+0"
         );
-        return json_encode($list);
+        return json_encode(SongImages::withImageSrc($list));
     }
 
     // Uses combined max sort_order from both favorites lists + 1.

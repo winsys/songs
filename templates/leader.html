@@ -965,7 +965,7 @@
                           search-fields="dispName,TEXT"
                           title-field="dispName"
                           description-field="langInfo"
-                          image-field="imageName"
+                          image-field="imageSrc"
                           selected-object="selectedItem"
                           minlength="2"
                           input-class="form-control"
@@ -1147,7 +1147,7 @@
                                         ng-click="addSongToFavorites(song.ID)"><?php echo T::s('leader.list.select'); ?></button>
                             </div>
                             <div class="col-xs-12" ng-if="song.showInlineNotes" style="margin-top: 10px;">
-                                <img ng-src="/images/{{ song.LISTID }}/{{ song.NUM }}.jpg"
+                                <img ng-src="{{ song.imageSrc }}"
                                      style="width: 100%; border-radius: 8px; border: 1px solid #dee2e6;"
                                      onerror="this.style.display='none'">
                             </div>
@@ -1196,7 +1196,7 @@
                 <span class="song-preview-book" ng-if="songPreview.song.bookName">{{ songPreview.song.bookName }}</span>
             </div>
             <div class="song-preview-img-wrap">
-                <img ng-src="{{ songPreview.song.imageName }}"
+                <img ng-src="{{ songPreview.song.imageSrc || songPreview.song.imageName }}"
                      class="song-preview-img"
                      ng-hide="songPreview.imgError"
                      onerror="angular.element(this).scope().$apply(function(s){s.songPreview.imgError=true;})">
