@@ -27,7 +27,8 @@
     .ld-tools { padding: 8px 12px 0; }
     .ld-collections { display: flex; align-items: center; gap: 8px; }
     .ld-chips { flex: 1 1 0; }
-    .ld-chips .cx-btn, .ld-all { height: 44px; padding: 0 14px; font-size: 14px; }
+    .ld-chips .cx-btn, .ld-all, .ld-add { height: 44px; padding: 0 14px; font-size: 14px; }
+    .ld-add { flex-shrink: 0; }
     .ld-search {
         position: sticky;
         top: 50px;
@@ -134,7 +135,7 @@
     .swipe-action {
         position: absolute;
         top: 0; bottom: 0;
-        width: 104px;
+        width: 96px;
         border: none;
         background: #C4473A;
         color: #fff;
@@ -146,9 +147,15 @@
     }
     .swipe-action-l { left: 0; }
     .swipe-action-r { right: 0; }
+    /* Edit sits next to Delete, on the inner side (the tray is 2 x 96 px =
+       actionWidth in leader.js); Delete stays at the outer edge. */
+    .swipe-action-l.swipe-edit { left: 96px; }
+    .swipe-action-r.swipe-edit { right: 96px; }
+    .swipe-action.swipe-edit { background: #176B87; }
     .swipe-row.swipe-right .swipe-action-l,
     .swipe-row.swipe-left .swipe-action-r { visibility: visible; transition-delay: 0s; }
     .swipe-action:active { background: #a93a2f; }
+    .swipe-action.swipe-edit:active { background: #125a72; }
 
     .prod-list-item {
         position: relative;
@@ -274,6 +281,7 @@
         user-select: none;
     }
     .song-text-btn:hover { border-color: #176B87; background: #E6F1F4; }
+    .ld-edit-btn { display: none; font-size: 16px; font-weight: 400; }
 
     /* Notes thumbnail — always the rightmost element of the row */
     .song-thumb-wrap {
@@ -308,6 +316,7 @@
         .ld-tools { padding: 8px 8px 0; }
         .ld-search { margin: 0 -8px; padding: 8px; }
         .ld-list { padding: 0 8px 32px; }
+        .ld-add { width: 44px; padding: 0; justify-content: center; font-size: 20px; }
     }
 
     /* ---- Medium tablet, 9-11" portrait (541-899px) ------------- */
@@ -317,6 +326,7 @@
         .item-text { font-size: 16px; }
         .song-thumb-wrap { width: 60px; height: 64px; }
         .drag-handle { width: 40px; }
+        .ld-edit-btn { display: flex; }
     }
 
     /* ---- Large tablet, 14" portrait / desktop (>= 900px) -------- */
@@ -898,6 +908,11 @@
                         title="<?php echo T::s('leader.button.showAll'); ?>{{ currentListName() ? ': ' + currentListName() : '' }}">
                     <?php echo T::s('leader.button.allSongs'); ?>
                 </button>
+                <button class="cx-btn ld-add" ng-click="addNewSong()"
+                        title="<?php echo T::s('tech.songs.addNew'); ?>{{ currentListName() ? ': ' + currentListName() : '' }}"
+                        aria-label="<?php echo T::s('tech.songs.addNew'); ?>">
+                    <span class="ld-full"><?php echo T::s('tech.songs.addShort'); ?></span><span class="ld-short">＋</span>
+                </button>
             </div>
 
             <div class="ld-search">
@@ -977,15 +992,19 @@
                 <div><?php echo T::s('leader.empty.title'); ?><br><?php echo T::s('leader.empty.subtitle'); ?></div>
             </div>
 
-            <!-- Favorites list. Row order: handle · number · title/meta · ¶ · Аа · notes.
-                 No delete button: a row is removed by swiping it sideways and
-                 tapping the red button that appears (swipe_delete.js). -->
+            <!-- Favorites list. Row order: handle · number · title/meta · ✏️ · ¶ · Аа · notes
+                 (✏️ from 541px). No delete button: swiping a row sideways uncovers
+                 «Изменить» + the red «Удалить» (swipe_delete.js). -->
             <div class="favorites-list" ng-show="favorites.length > 0">
                 <div class="swipe-row"
                      ng-repeat="listItem in favorites track by listItem.FID">
 
                     <button class="swipe-action swipe-action-l" type="button" tabindex="-1"
                             ng-click="deleteFavoriteNow(listItem.FID)"><?php echo T::s('leader.button.delete'); ?></button>
+                    <button class="swipe-action swipe-action-l swipe-edit" type="button" tabindex="-1"
+                            ng-click="editFavoriteRow(listItem)"><?php echo T::s('leader.button.edit'); ?></button>
+                    <button class="swipe-action swipe-action-r swipe-edit" type="button" tabindex="-1"
+                            ng-click="editFavoriteRow(listItem)"><?php echo T::s('leader.button.edit'); ?></button>
                     <button class="swipe-action swipe-action-r" type="button" tabindex="-1"
                             ng-click="deleteFavoriteNow(listItem.FID)"><?php echo T::s('leader.button.delete'); ?></button>
 
@@ -1013,6 +1032,13 @@
                                 </span>
                             </span>
                         </span>
+
+                        <!-- Edit the song (shared dialog, song_editor.js). Hidden on phones:
+                             there the swipe tray carries «Изменить». -->
+                        <div class="song-text-btn ld-edit-btn" role="button"
+                             ng-click="editFavoriteRow(listItem)"
+                             title="<?php echo T::s('leader.button.editSong'); ?>"
+                             aria-label="<?php echo T::s('leader.button.editSong'); ?>">✏️</div>
 
                         <!-- Split-screen verse mode: broadcast verses to the screens -->
                         <div class="song-text-btn" role="button"
@@ -1224,12 +1250,17 @@
         </div>
     </div>
 
+    <!-- Song edit / add dialog (shared with the tech console) -->
+    <?php include __DIR__ . '/song_edit_dialog.html'; ?>
+
     </div><!-- /ng-controller -->
 
 <script src="/js/vendor/qrcode.min.js?v=1" type="text/javascript"></script>
 <script src="/js/drag_reorder.min.js?v=1" type="text/javascript"></script>
 <script src="/js/swipe_delete.min.js?v=2" type="text/javascript"></script>
-<script src="/js/leader.min.js?v=45" type="text/javascript"></script>
+<script src="/js/pdf_page_image.min.js?v=1" type="text/javascript"></script>
+<script src="/js/song_editor.min.js?v=1" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=46" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}

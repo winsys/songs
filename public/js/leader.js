@@ -272,7 +272,8 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         ? window.createSwipeDelete({
             container: document.querySelector('.favorites-list'),
             rowSelector: '.swipe-row',
-            slideSelector: '.prod-list-item'
+            slideSelector: '.prod-list-item',
+            actionWidth: 192            // tray = «Изменить» + «Удалить», 96 px each (leader.html)
         })
         : null;
 
@@ -1113,6 +1114,33 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
             }
         }
         return '';
+    };
+
+    // ==========================================================
+    // SONG EDIT / ADD — the tech console's dialog (song_editor.js,
+    // templates/song_edit_dialog.html). A new song goes into the selected
+    // collection and onto the list.
+    // ==========================================================
+    window.installSongEditor($scope, $http, {
+        listId:   function () { return $scope.listId; },
+        listName: function () { return $scope.currentListName(); },
+        onSaved:  function (songId, isNew) {
+            if (isNew) {
+                $scope.addSongToFavorites(songId);
+            } else {
+                $scope.reloadFavorites();
+            }
+            // New name / languages must show in the search and in «Все песни» too.
+            if ($scope.visibleSongLists.length) $scope.loadSearchSongs($scope.visibleSongLists);
+            $scope.reloadSongList();
+        },
+        onMainImage: function () { $scope.reloadFavorites(); }
+    });
+
+    // Edit from a list row (the ✏️ button or the swipe tray).
+    $scope.editFavoriteRow = function (listItem) {
+        if (favSwipe) favSwipe.close();
+        $scope.editFavorite(listItem);
     };
 
 
