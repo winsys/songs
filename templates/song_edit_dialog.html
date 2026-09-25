@@ -1,0 +1,530 @@
+<!-- ============================================================
+     Song edit / add dialog + enlarged image view — shared by the tech
+     console and the leader page (PHP include inside the page controller;
+     logic: public/js/song_editor.js, needs pdf_page_image.js).
+     Desktop: header and footer stay, the body scrolls. Phones (<= 700px):
+     the dialog fills the screen, editors stack in one column.
+     ============================================================ -->
+<style>
+    .enlarged-image-popup .modal-dialog { margin: 30px auto; }
+    .enlarged-image-popup img { box-shadow: 0 4px 8px rgba(0,0,0,0.3); }
+
+    /* Bootstrap's clearfix pseudo-elements (::before/::after on
+       .modal-header/.modal-footer) become flex items inside flex headers and
+       push the title / close button away from the window edges. */
+    #edit-song-popup .modal-header::before, #edit-song-popup .modal-header::after,
+    #edit-song-popup .modal-footer::before, #edit-song-popup .modal-footer::after,
+    #enlarged-image-popup .modal-header::before, #enlarged-image-popup .modal-header::after { display: none; }
+    #enlarged-image-popup .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    #enlarged-image-popup .modal-header .close { float: none; order: 2; margin: 0; }
+
+    #edit-song-popup .modal-dialog {
+        width: 100%;
+        max-width: none;
+        margin: 20px 0;
+    }
+    #edit-song-popup .modal-content {
+        border: none;
+        border-radius: 16px;
+        box-shadow: 0 12px 48px rgba(0,0,0,0.18);
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
+        max-height: calc(100vh - 40px);
+    }
+    #edit-song-popup .modal-header {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 16px 24px;
+        background: linear-gradient(135deg, #1a6db5 0%, #2980b9 100%);
+        border-bottom: none;
+    }
+    #edit-song-popup .modal-header .modal-title {
+        font-size: 16px;
+        font-weight: 700;
+        color: #fff;
+        margin: 0;
+        letter-spacing: 0.3px;
+        min-width: 0;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    #edit-song-popup .modal-header .close {
+        color: rgba(255,255,255,0.85);
+        opacity: 1;
+        font-size: 22px;
+        font-weight: 300;
+        text-shadow: none;
+        float: none;
+        margin: 0 0 0 auto;
+        padding: 0 0 0 12px;
+        line-height: 1;
+        transition: color 0.15s;
+    }
+    #edit-song-popup .modal-header .close:hover { color: #fff; }
+    #edit-song-popup .modal-body {
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        padding: 20px 24px;
+        background: #f8f9fa;
+    }
+    #edit-song-popup .modal-footer {
+        flex-shrink: 0;
+        padding: 12px 24px;
+        background: #fff;
+        border-top: 1px solid #f0f2f5;
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    /* Name input */
+    #edit-song-popup .esp-name-row {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 16px;
+        background: #fff;
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        padding: 10px 16px;
+    }
+    #edit-song-popup .esp-name-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        white-space: nowrap;
+        flex-shrink: 0;
+    }
+    #edit-song-popup .esp-name-input {
+        flex: 1;
+        min-width: 0;
+        border: none;
+        outline: none;
+        font-size: 15px;
+        font-weight: 600;
+        color: #2c3e50;
+        background: transparent;
+        padding: 0;
+    }
+    #edit-song-popup .esp-num-error { color: #e74c3c; font-size: 11px; margin-left: 10px; }
+
+    /* Text editors: one per content language, as many columns as fit */
+    #edit-song-popup .esp-editors {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 14px;
+        margin-bottom: 16px;
+    }
+    #edit-song-popup .esp-editor-col {
+        display: flex;
+        flex-direction: column;
+        background: #fff;
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    #edit-song-popup .esp-editor-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        background: #f4f5f7;
+        border-bottom: 1px solid #e9ecef;
+    }
+    #edit-song-popup .esp-editor-header .lang-badge {
+        font-size: 9px;
+        padding: 2px 7px;
+        border-radius: 5px;
+    }
+    #edit-song-popup .esp-editor-lang { font-size: 12px; font-weight: 600; color: #2c3e50; }
+    #edit-song-popup .esp-editor-hint {
+        font-size: 11px;
+        color: #95a5a6;
+        margin-left: auto;
+        text-align: right;
+    }
+    #edit-song-popup textarea.verse-editor {
+        flex: 1;
+        border: none;
+        outline: none;
+        resize: none;
+        padding: 12px;
+        font-size: 13px;
+        font-family: 'Courier New', monospace;
+        line-height: 1.65;
+        color: #2c3e50;
+        caret-color: #1a6db5;
+        background: #fff;
+        height: 52vh;
+        min-height: 300px;
+        white-space: pre-wrap;
+    }
+    #edit-song-popup textarea.verse-editor:focus { background: #fafeff; }
+
+    /* Image section */
+    #edit-song-popup .esp-image-row {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        background: #fff;
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        padding: 12px 16px;
+    }
+    #edit-song-popup .esp-image-thumb {
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1.5px solid #dee2e6;
+        cursor: pointer;
+        transition: border-color 0.15s;
+    }
+    #edit-song-popup .esp-image-thumb:hover { border-color: #1a6db5; }
+    #edit-song-popup .esp-image-empty {
+        width: 64px;
+        height: 64px;
+        border: 1.5px dashed #dee2e6;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #b0b8c1;
+        font-size: 22px;
+        flex-shrink: 0;
+    }
+    #edit-song-popup .esp-image-label {
+        font-size: 11px;
+        font-weight: 700;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+    }
+    #edit-song-popup .esp-image-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        align-items: center;
+    }
+
+    /* Image groups: the song's image in every group of its collection */
+    #edit-song-popup .esp-groups {
+        margin-top: 14px;
+        background: #fff;
+        border: 1.5px solid #dee2e6;
+        border-radius: 10px;
+        padding: 12px 16px;
+    }
+    #edit-song-popup .esp-groups-title {
+        font-size: 11px;
+        font-weight: 700;
+        color: #7f8c8d;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        margin-bottom: 6px;
+    }
+    #edit-song-popup .esp-group-row {
+        display: flex;
+        align-items: flex-start;
+        gap: 14px;
+        padding: 10px 0;
+    }
+    #edit-song-popup .esp-group-row + .esp-group-row { border-top: 1px solid #f0f2f5; }
+    #edit-song-popup .esp-group-head {
+        width: 150px;
+        flex-shrink: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        padding-top: 6px;
+    }
+    #edit-song-popup .esp-group-name { font-size: 13px; font-weight: 700; color: #2c3e50; }
+    #edit-song-popup .esp-group-main { font-size: 10px; font-weight: 600; color: #27ae60; }
+    #edit-song-popup .esp-pages {
+        flex: 1;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+    }
+    #edit-song-popup .esp-page {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 3px;
+    }
+    #edit-song-popup .esp-page-thumb {
+        width: 64px;
+        height: 64px;
+        object-fit: cover;
+        border-radius: 8px;
+        border: 1.5px solid #dee2e6;
+        background: #f8f9fa;
+        cursor: pointer;
+        transition: border-color 0.15s;
+    }
+    #edit-song-popup .esp-page-thumb:hover { border-color: #1a6db5; }
+    #edit-song-popup .esp-page-del {
+        position: absolute;
+        top: -7px;
+        right: -7px;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        border: none;
+        background: #e74c3c;
+        color: #fff;
+        font-size: 14px;
+        line-height: 18px;
+        padding: 0;
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+    #edit-song-popup .esp-page-del:hover { background: #c0392b; }
+    #edit-song-popup .esp-page-add { margin: 0; padding: 7px 14px; cursor: pointer; }
+    #edit-song-popup .esp-page-add.esp-busy { opacity: 0.6; pointer-events: none; }
+    #edit-song-popup .esp-file-hint { flex-basis: 100%; margin: 2px 0 8px; font-size: 12px; color: #95a5a6; }
+    #edit-song-popup .esp-groups-hint { margin-top: 12px; font-size: 12px; color: #95a5a6; }
+
+    /* Buttons */
+    #edit-song-popup .esp-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 9px 20px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-weight: 600;
+        border: 1.5px solid transparent;
+        cursor: pointer;
+        transition: all 0.15s;
+        letter-spacing: 0.2px;
+    }
+    #edit-song-popup .esp-btn[disabled] { opacity: 0.6; cursor: default; }
+    #edit-song-popup .esp-btn-cancel {
+        background: #f4f5f7;
+        color: #5a6272;
+        border-color: #dee2e6;
+    }
+    #edit-song-popup .esp-btn-cancel:hover { background: #e9eaec; }
+    #edit-song-popup .esp-btn-save {
+        background: #1a6db5;
+        color: #fff;
+        border-color: #1a6db5;
+    }
+    #edit-song-popup .esp-btn-save:hover:not([disabled]) { background: #155a9a; box-shadow: 0 3px 10px rgba(26,109,181,0.3); transform: translateY(-1px); }
+    #edit-song-popup .esp-btn-image {
+        background: #f0f8ff;
+        color: #1a6db5;
+        border-color: #b8d9f5;
+    }
+    #edit-song-popup .esp-btn-image:hover { background: #daeeff; }
+    #edit-song-popup .esp-btn-clear-img {
+        background: #fdecea;
+        color: #c0392b;
+        border-color: #fad7d4;
+    }
+    #edit-song-popup .esp-btn-clear-img:hover { background: #fad7d4; }
+
+    /* Phones: full-screen dialog, one editor column, 16px inputs (smaller
+       ones make iOS zoom the page on focus). */
+    @media (max-width: 700px) {
+        #edit-song-popup .modal-dialog { margin: 0; }
+        #edit-song-popup .modal-content {
+            border-radius: 0;
+            height: 100vh;
+            height: 100dvh;
+            max-height: none;
+        }
+        #edit-song-popup .modal-header { padding: 12px 16px; }
+        #edit-song-popup .modal-header .modal-title {
+            white-space: normal;
+            display: -webkit-box;
+            -webkit-box-orient: vertical;
+            -webkit-line-clamp: 2;
+            line-height: 1.3;
+        }
+        #edit-song-popup .modal-body { padding: 12px; }
+        #edit-song-popup .modal-footer { padding: 10px 12px; }
+        #edit-song-popup .modal-footer .esp-btn { flex: 1 1 0; justify-content: center; padding: 11px 12px; }
+        #edit-song-popup .esp-name-row { padding: 8px 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        #edit-song-popup .esp-name-input { font-size: 16px; }
+        #edit-song-popup .esp-editors { gap: 12px; margin-bottom: 12px; }
+        #edit-song-popup textarea.verse-editor { height: 40vh; min-height: 180px; font-size: 16px; line-height: 1.5; }
+        #edit-song-popup .esp-image-row { flex-wrap: wrap; padding: 10px 12px; }
+        #edit-song-popup .esp-groups { padding: 10px 12px; }
+        #edit-song-popup .esp-group-row { flex-direction: column; align-items: stretch; gap: 8px; }
+        #edit-song-popup .esp-group-head { width: auto; flex-direction: row; align-items: baseline; gap: 8px; padding-top: 0; }
+        .enlarged-image-popup .modal-dialog { width: auto !important; margin: 10px; }
+    }
+</style>
+
+<!-- Edit / add song -->
+<div id="edit-song-popup">
+    <div class="modal fade edit-song-popup" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h3 class="modal-title">✏️ {{ editConfig.title }}</h3>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+
+                <div class="modal-body">
+
+                    <!-- Song name and number -->
+                    <div class="esp-name-row">
+                        <span class="esp-name-label"><?php echo T::s('tech.esp.name'); ?></span>
+                        <input type="text"
+                               class="esp-name-input"
+                               placeholder="<?php echo T::s('tech.esp.namePlaceholder'); ?>"
+                               ng-model="editConfig.songName">
+                    </div>
+
+                    <div class="esp-name-row" ng-if="editConfig.isNewSong">
+                        <span class="esp-name-label"><?php echo T::s('tech.esp.number'); ?></span>
+                        <!-- type="text", NOT "number": NUM is a string — a numeric input
+                             turns "086" into 86 (leading zero lost, breaking the string
+                             ORDER BY in the songbook) and rejects numbers like "д001". -->
+                        <input type="text"
+                               class="esp-name-input"
+                               style="max-width: 120px;"
+                               placeholder="№"
+                               autocomplete="off"
+                               ng-model="editConfig.songNum"
+                               ng-blur="checkSongNumUniqueness()">
+                        <span class="esp-num-error" ng-if="songNumError">{{ songNumError }}</span>
+                    </div>
+
+                    <!-- Text editors (one per language) -->
+                    <div class="esp-editors">
+                        <div class="esp-editor-col" ng-repeat="lang in langList">
+                            <div class="esp-editor-header">
+                                <span class="lang-badge lang-{{lang.code}}">{{lang.code | uppercase}}</span>
+                                <span class="esp-editor-lang">{{lang.label}}</span>
+                                <span class="esp-editor-hint" ng-if="lang.is_default == '1'"><?php echo T::s('tech.esp.verseSeparator'); ?></span>
+                                <span class="esp-editor-hint" ng-if="lang.is_default != '1'"><?php echo T::s('tech.esp.optional'); ?></span>
+                            </div>
+                            <textarea class="verse-editor"
+                                      ng-model="editConfig.texts[lang.code]"
+                                      placeholder="{{lang.label}}..."></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Main image of a NEW song (uploaded on Save). Saved songs
+                         manage every group, the main one included, in the block below. -->
+                    <div class="esp-image-row" ng-if="editConfig.isNewSong">
+                        <span class="esp-image-label"><?php echo T::s('tech.esp.image'); ?></span>
+                        <img ng-if="editConfig.previewImage"
+                             class="esp-image-thumb"
+                             ng-src="{{ editConfig.previewImage }}"
+                             ng-click="showEnlargedImage(editConfig.previewImage)"
+                             title="<?php echo T::s('tech.esp.zoom'); ?>" />
+                        <img ng-if="!editConfig.previewImage && editConfig.currentImage"
+                             class="esp-image-thumb"
+                             ng-src="{{ editConfig.currentImage }}"
+                             ng-click="showEnlargedImage(editConfig.currentImage)"
+                             title="<?php echo T::s('tech.esp.currentImage'); ?>" />
+                        <div class="esp-image-empty" ng-if="!editConfig.previewImage && !editConfig.currentImage">🖼</div>
+                        <div class="esp-image-actions">
+                            <input type="file"
+                                   id="imageUpload"
+                                   accept="image/*,application/pdf,.pdf"
+                                   style="display:none"
+                                   onchange="angular.element(this).scope().previewImage()" />
+                            <button class="esp-btn esp-btn-image"
+                                    ng-disabled="editConfig.imageBusy"
+                                    onclick="document.getElementById('imageUpload').click()">
+                                <span ng-if="editConfig.imageBusy"><?php echo T::s('tech.esp.pdfConverting'); ?></span>
+                                <span ng-if="!editConfig.imageBusy && !editConfig.previewImage"><?php echo T::s('tech.esp.addImage'); ?></span>
+                                <span ng-if="!editConfig.imageBusy && editConfig.previewImage"><?php echo T::s('tech.esp.changeImage'); ?></span>
+                            </button>
+                            <button class="esp-btn esp-btn-clear-img"
+                                    ng-if="editConfig.previewImage"
+                                    ng-click="clearImagePreview()">
+                                <?php echo T::s('tech.esp.removeImage'); ?>
+                            </button>
+                            <div class="esp-file-hint"><?php echo T::s('tech.esp.imageFileHint'); ?></div>
+                        </div>
+                    </div>
+
+                    <!-- Image groups: this song's image in every group of its collection.
+                         Uploads / deletions here apply immediately (no Save needed). -->
+                    <div class="esp-groups" ng-if="!editConfig.isNewSong">
+                        <div class="esp-groups-title"><?php echo T::s('tech.esp.imageGroups'); ?></div>
+                        <div class="esp-file-hint"><?php echo T::s('tech.esp.imageFileHint'); ?></div>
+                        <div class="esp-group-row" ng-repeat="g in editConfig.imageGroups track by g.id">
+                            <div class="esp-group-head">
+                                <span class="esp-group-name">{{ g.name }}</span>
+                                <span class="esp-group-main" ng-if="g.is_main"><?php echo T::s('import.groups.main'); ?></span>
+                            </div>
+                            <div class="esp-pages">
+                                <div class="esp-page" ng-if="g.image">
+                                    <img class="esp-page-thumb"
+                                         ng-src="{{ g.image }}{{ editConfig.imgBuster }}"
+                                         ng-click="showEnlargedImage(g.image + editConfig.imgBuster)"
+                                         title="<?php echo T::s('tech.esp.zoom'); ?>" />
+                                    <button type="button" class="esp-page-del"
+                                            ng-click="deleteGroupImage(g)"
+                                            title="<?php echo T::s('common.button.delete'); ?>">&times;</button>
+                                </div>
+                                <!-- one image per group: the button adds it or replaces it -->
+                                <label class="esp-btn esp-btn-image esp-page-add" ng-class="{'esp-busy': g.uploading || g.converting}">
+                                    <span ng-if="!g.uploading && !g.converting && !g.image"><?php echo T::s('tech.esp.addImage'); ?></span>
+                                    <span ng-if="!g.uploading && !g.converting && g.image"><?php echo T::s('tech.esp.changeImage'); ?></span>
+                                    <span ng-if="g.converting"><?php echo T::s('tech.esp.pdfConverting'); ?></span>
+                                    <span ng-if="g.uploading"><?php echo T::s('tech.esp.uploadingPage'); ?></span>
+                                    <input type="file" accept="image/jpeg,image/png,application/pdf,.pdf" style="display:none"
+                                           ng-attr-data-gid="{{ g.id }}"
+                                           onchange="angular.element(this).scope().onGroupFileSelected(this)" />
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="esp-groups-hint" ng-if="editConfig.isNewSong"><?php echo T::s('tech.esp.saveFirstForGroups'); ?></div>
+
+                </div><!-- /modal-body -->
+
+                <div class="modal-footer">
+                    <button class="esp-btn esp-btn-cancel" data-dismiss="modal"><?php echo T::s('common.button.cancel'); ?></button>
+                    <button class="esp-btn esp-btn-save" ng-click="saveSongEdits()" ng-disabled="editConfig.imageBusy || editConfig.saving">
+                        <?php echo T::s('tech.esp.saveChanges'); ?>
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Enlarged image view -->
+<div id="enlarged-image-popup">
+    <div class="modal fade enlarged-image-popup" role="dialog">
+        <div class="modal-dialog modal-lg" style="width: 90%; max-width: 1200px;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3 class="modal-title"><?php echo T::s('tech.esp.fullSize'); ?></h3>
+                    <button type="button" class="close" data-dismiss="modal" style="font-size: 30pt;">&times;</button>
+                </div>
+                <div class="modal-body" style="text-align: center;">
+                    <img ng-if="editConfig.enlargedImage"
+                         ng-src="{{ editConfig.enlargedImage }}"
+                         style="max-width: 100%; max-height: 80vh;" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
