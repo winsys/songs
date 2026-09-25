@@ -118,8 +118,11 @@ app.controller('Piano', ['$scope', '$http', 'SongsService', '$timeout', function
     var previewSeq = 0;
     $scope.$on('song:previewSong', function (e, song) {
         var seq = ++previewSeq;
-        $scope.songPreview = { visible: true, song: song, imgError: false, image: song.imageName,
-                               groups: [], selectedGroupId: null, shownGroup: null };
+        // Per-open buster (like renderNotes): a sheet replaced under the same
+        // file name must not come from the browser cache.
+        var buster = '?t=' + new Date().getTime();
+        $scope.songPreview = { visible: true, song: song, imgError: false, image: song.imageName + buster,
+                               buster: buster, groups: [], selectedGroupId: null, shownGroup: null };
         loadGroups(song.ID, function (groups) {
             var sp = $scope.songPreview;
             if (seq !== previewSeq || !sp.visible) return;
@@ -132,7 +135,7 @@ app.controller('Piano', ['$scope', '$http', 'SongsService', '$timeout', function
         sp.selectedGroupId = selected ? selected.id : null;
         sp.shownGroup = (selected && selected.image) ? selected : firstWithImage(sp.groups);
         sp.imgError = false;
-        sp.image = (sp.shownGroup && sp.shownGroup.image) ? sp.shownGroup.image : sp.song.imageName;
+        sp.image = ((sp.shownGroup && sp.shownGroup.image) ? sp.shownGroup.image : sp.song.imageName) + sp.buster;
     }
 
     $scope.selectPreviewGroup = function (g, $event) {
