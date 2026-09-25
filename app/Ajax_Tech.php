@@ -260,6 +260,11 @@ trait Ajax_Tech
         if (isset(self::$args['book_num'])) {
             $bookNum    = (int)self::$args['book_num'];
             $chapterNum = (int)self::$args['chapter_num'];
+            // Without a translation the rows of EVERY translation come back and
+            // the client picks the first one (Synodal) — a German / English /
+            // Lithuanian sermon chip then showed the Russian verse.
+            $translationId = isset(self::$args['translation_id']) ? (int)self::$args['translation_id'] : 0;
+            $translationSql = $translationId > 0 ? " AND b.TRANSLATION_ID = {$translationId}" : '';
 
             $cols = 'v.ID, v.VERSE_NUM, v.TEXT';
             foreach ($langs as $lang) {
@@ -272,7 +277,7 @@ trait Ajax_Tech
                 "SELECT {$cols}
                  FROM bible_verses v
                  JOIN bible_books b ON v.BOOK_ID = b.ID
-                 WHERE b.BOOK_NUM = {$bookNum} AND v.CHAPTER_NUM = {$chapterNum}
+                 WHERE b.BOOK_NUM = {$bookNum} AND v.CHAPTER_NUM = {$chapterNum}{$translationSql}
                  ORDER BY v.VERSE_NUM
                  LIMIT 1000"
             );

@@ -588,7 +588,8 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                         $timeout(function () { showReadyVerse(readyText, readyTitle); });
                         return;
                     }
-                    $timeout(function () { fetchAndShowVerse(colSuffix, bookNum, chapter, verseNum, refLabel); });
+                    var translationId = el.getAttribute('data-translation-id') || '';
+                    $timeout(function () { fetchAndShowVerse(colSuffix, bookNum, chapter, verseNum, refLabel, translationId); });
                 };
             });
 
@@ -785,12 +786,14 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
         // FETCH BIBLE VERSE
         // ==========================================================
 
-        function fetchAndShowVerse(colSuffix, bookNumOrId, chapter, verseNum, refLabel) {
+        function fetchAndShowVerse(colSuffix, bookNumOrId, chapter, verseNum, refLabel, translationId) {
             // Try book_num first (new method), fallback to book_id (old method)
             var requestData = { command: 'get_bible_verses', chapter_num: chapter };
             // If bookNumOrId is <= 66, it's probably BOOK_NUM, otherwise it's BOOK_ID
             if (parseInt(bookNumOrId) <= 66) {
                 requestData.book_num = bookNumOrId;
+                // The chip's own translation — book_num alone matches every translation
+                if (parseInt(translationId) > 0) requestData.translation_id = parseInt(translationId);
             } else {
                 requestData.book_id = bookNumOrId;
             }
