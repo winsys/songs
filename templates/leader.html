@@ -249,7 +249,7 @@
     }
     .song-meta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-top: 3px; }
     .song-book-name { font-size: 12px; color: #6E7883; }
-    .song-lang-badges { display: inline-flex; gap: 4px; }
+    .song-lang-badges { display: inline-flex; flex-wrap: wrap; gap: 4px; }   /* wrap in the narrow phone title column */
     .lang-badge {
         display: inline-block;
         font-size: 9px;
@@ -263,10 +263,16 @@
     .lang-lt { background: #d4f0d4; color: #2a6a2a; }
     .lang-en { background: #fff0cc; color: #7a5a00; }
 
-    /* Verse mode (¶) and full text (Аа) */
+    /* Row actions: edit (✏️), verse mode (¶), full text (Аа) and the notes
+       thumbnail share one size (--ld-act-w x --ld-act-h) and keep an extra
+       --ld-act-space apart, so the leader does not hit the wrong one while singing. */
+    .favorites-list { --ld-act-w: 56px; --ld-act-h: 64px; --ld-act-space: 6px; }
+    .song-text-btn, .song-thumb-wrap {
+        width: var(--ld-act-w);
+        height: var(--ld-act-h);
+        margin-left: var(--ld-act-space);
+    }
     .song-text-btn {
-        width: 44px;
-        height: 44px;
         flex-shrink: 0;
         border-radius: 6px;
         border: 1px solid #DCE3E8;
@@ -274,19 +280,17 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
+        font-size: 22px;
         font-weight: 700;
         color: #176B87;
         background: #fff;
         user-select: none;
     }
     .song-text-btn:hover { border-color: #176B87; background: #E6F1F4; }
-    .ld-edit-btn { display: none; font-size: 16px; font-weight: 400; }
+    .ld-edit-btn { display: none; font-size: 20px; font-weight: 400; }
 
     /* Notes thumbnail — always the rightmost element of the row */
     .song-thumb-wrap {
-        width: 56px;
-        height: 64px;
         flex-shrink: 0;
         border-radius: 6px;
         overflow: hidden;
@@ -324,7 +328,7 @@
         .prod-list-item { min-height: 76px; gap: 10px; padding-right: 10px; }
         .ld-seq { display: block; }
         .item-text { font-size: 16px; }
-        .song-thumb-wrap { width: 60px; height: 64px; }
+        .favorites-list { --ld-act-w: 60px; --ld-act-space: 8px; }
         .drag-handle { width: 40px; }
         .ld-edit-btn { display: flex; }
     }
@@ -355,7 +359,7 @@
         .ld-h-default { display: none; }
         .ld-h-large { display: inline; }
         .prod-list-item { min-height: 78px; gap: 12px; padding-right: 12px; }
-        .song-thumb-wrap { width: 64px; height: 64px; }
+        .favorites-list { --ld-act-w: 64px; --ld-act-space: 10px; }
     }
     /* Leader's black full-text screen */
     .leader-text-fs {
