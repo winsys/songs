@@ -2024,6 +2024,13 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             return false;
         });
     };
+    // Books of one testament for the two-column books level. Canonical
+    // BOOK_NUM: 1-39 Old Testament, 40-66 New Testament (as on the observer page).
+    $scope.getTestamentBooks = function (nt) {
+        return ($scope.getFilteredBooks() || []).filter(function (book) {
+            return (parseInt(book.BOOK_NUM, 10) >= 40) === nt;
+        });
+    };
     $scope.getBookName = function (book) {
         if (!book) return '';
         // Resolution order:

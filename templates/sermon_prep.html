@@ -1259,9 +1259,22 @@
     .sp-quick-item { padding: 7px 10px; border-bottom: 1px solid #EDF1F4; font-size: 12px; line-height: 1.4; cursor: pointer; color: #17212B; }
     .sp-quick-item:last-child { border-bottom: none; }
     .sp-quick-item:hover { background: #F3ECF3; }
-    /* Books in two columns — the panel is wide enough */
-    #prep-books-panel { column-count: 2; column-gap: 0; }
-    #prep-books-panel .prep-list-item { break-inside: avoid; }
+    /* Books in two columns: Old Testament | New Testament */
+    .sp-testaments { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
+    .sp-testament + .sp-testament { border-left: 1px solid #DCE3E8; }
+    .sp-testament-title {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+        padding: 6px 12px;
+        font-size: 11px;
+        font-weight: 700;
+        color: #6E7883;
+        text-transform: uppercase;
+        letter-spacing: 0.4px;
+        background: #F6F8FA;
+        border-bottom: 1px solid #DCE3E8;
+    }
 
     .prep-bible-search { border: 1px solid #DCE3E8; border-radius: 6px; height: 34px; }
     .prep-bible-search:focus { border-color: #176B87; box-shadow: 0 0 0 3px rgba(23,107,135,0.14); outline: none; }
@@ -1569,13 +1582,26 @@
                                     ng-click="nav.up = 0">› <?php echo T::s('prep.panel.chapter'); ?> {{ selectedChapter }}</button>
                         </div>
 
-                        <!-- Books level -->
+                        <!-- Books level: two columns, Old Testament | New Testament
+                             (canonical BOOK_NUM 1-39 / 40-66) -->
                         <div class="prep-panel sp-level" id="prep-books-panel"
                              ng-show="prepBibleSearchQuery.length < 2 && (!selectedBook || nav.up === 2)">
-                            <div class="prep-list-item"
-                                 ng-repeat="book in getFilteredBooks()"
-                                 ng-class="{selected: selectedBook && selectedBook.ID === book.ID}"
-                                 ng-click="nav.up = 0; selectBook(book)">{{ getBookName(book) }}</div>
+                            <div class="sp-testaments" ng-show="bibleBooks.length">
+                                <div class="sp-testament">
+                                    <div class="sp-testament-title" ng-show="getTestamentBooks(false).length"><?php echo T::s('observer.bible.oldTestament'); ?></div>
+                                    <div class="prep-list-item"
+                                         ng-repeat="book in getTestamentBooks(false)"
+                                         ng-class="{selected: selectedBook && selectedBook.ID === book.ID}"
+                                         ng-click="nav.up = 0; selectBook(book)">{{ getBookName(book) }}</div>
+                                </div>
+                                <div class="sp-testament">
+                                    <div class="sp-testament-title" ng-show="getTestamentBooks(true).length"><?php echo T::s('observer.bible.newTestament'); ?></div>
+                                    <div class="prep-list-item"
+                                         ng-repeat="book in getTestamentBooks(true)"
+                                         ng-class="{selected: selectedBook && selectedBook.ID === book.ID}"
+                                         ng-click="nav.up = 0; selectBook(book)">{{ getBookName(book) }}</div>
+                                </div>
+                            </div>
                             <div ng-show="!bibleTranslationId" style="padding:10px; color:#b0b8c1; font-size:11px;">
                                 <?php echo T::s('prep.choosTranslation'); ?>
                             </div>
@@ -1924,4 +1950,4 @@
 <script src="/js/vendor/turndown.min.js?v=1"></script>
 <script src="/js/sermon_chip_editor.min.js?v=15"></script>
 <script src="/js/drawio_import.min.js?v=1"></script>
-<script src="/js/sermon_prep.min.js?v=29" type="text/javascript"></script>
+<script src="/js/sermon_prep.min.js?v=30" type="text/javascript"></script>
