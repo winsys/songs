@@ -902,6 +902,16 @@
         display: block;
         flex-shrink: 0;
     }
+    .song-image-empty {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #F4F6F8;
+        color: #9AA7B1;
+        font-size: 20px;
+        line-height: 1;
+        user-select: none;
+    }
     .tech-video-controls { width: auto; margin: 0; padding: 6px 8px 8px 31px; background: #E7F4EA; }
     .tech-audio-player { margin: 0; padding: 6px 8px 8px 31px; background: #E7F4EA; }
     .tech-audio-player audio { width: 100%; height: 34px; }
@@ -1446,10 +1456,15 @@
                                         title="<?php echo T::s('tech.tooltip.removeFromPlaylist'); ?>"
                                         aria-label="<?php echo T::s('tech.tooltip.removeFromPlaylist'); ?>">✕</button>
 
+                                <!-- imageSrc ends with ?v=0 when the song has no sheet file:
+                                     an empty frame instead of a broken-image icon -->
                                 <img class="song-image"
+                                     ng-if="(listItem.imageSrc || '').slice(-4) !== '?v=0'"
                                      ng-click="$event.stopPropagation()"
                                      ng-attr-id="{{ 'img' + listItem.ID }}"
                                      ng-src="{{ listItem.imageSrc || listItem.imageName }}" />
+                                <span class="song-image song-image-empty" aria-hidden="true"
+                                      ng-if="(listItem.imageSrc || '').slice(-4) === '?v=0'">♪</span>
                             </div>
 
                             <!-- ── Media row (image, video or audio) ── -->

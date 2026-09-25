@@ -229,6 +229,17 @@
         object-position: top center;
         display: block;
     }
+    .song-thumb-empty {
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #9AA7B1;
+        font-size: 26px;
+        line-height: 1;
+        user-select: none;
+    }
 
     /* ---- Phone (<= 540px) -------------------------------------- */
     @media (max-width: 540px) {
@@ -801,7 +812,11 @@
                         <div class="song-thumb-wrap"
                              ng-click="openNotes(listItem)"
                              title="<?php echo T::s('piano.thumb.openNotes'); ?>">
-                            <img class="song-thumb" ng-src="{{ listItem.imageSrc || listItem.imageName }}" onerror="this.style.display='none'"/>
+                            <!-- imageSrc ends with ?v=0 when the song has no sheet file -->
+                            <img class="song-thumb" ng-if="(listItem.imageSrc || '').slice(-4) !== '?v=0'"
+                                 ng-src="{{ listItem.imageSrc || listItem.imageName }}" onerror="this.style.display='none'"/>
+                            <span class="song-thumb-empty" aria-hidden="true"
+                                  ng-if="(listItem.imageSrc || '').slice(-4) === '?v=0'">♪</span>
                         </div>
                     </div>
                 </div>
