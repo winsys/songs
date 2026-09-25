@@ -149,68 +149,6 @@
             flex-shrink: 0;
         }
 
-        /* ── "⋮" menu button ── */
-        #header-menu-btn {
-            width: 36px;
-            height: 34px;
-            border-radius: 8px;
-            background: rgba(255,255,255,0.07);
-            border: 1px solid var(--sn-notes-border);
-            color: var(--sn-notes-text);
-            font-size: 20px;
-            line-height: 1;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            transition: background 0.15s;
-            user-select: none;
-        }
-        #header-menu-btn:hover { background: rgba(255,255,255,0.15); }
-
-        /* ── Dropdown menu ── */
-        #header-dropdown {
-            display: none;
-            position: absolute;
-            top: 46px;
-            right: 8px;
-            background: #2a2a2a;
-            border: 1px solid var(--sn-notes-border);
-            border-radius: 10px;
-            padding: 10px;
-            z-index: 200;
-            min-width: 240px;
-            box-shadow: 0 6px 24px rgba(0,0,0,0.5);
-            flex-direction: column;
-            gap: 8px;
-        }
-        #header-dropdown.open { display: flex; }
-
-        .hd-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .hd-label {
-            font-size: 9pt;
-            color: var(--sn-notes-text-dim);
-            white-space: nowrap;
-            min-width: 64px;
-        }
-        .hd-row #sermon-select {
-            flex: 1;
-            background: var(--sn-notes-header);
-            color: var(--sn-notes-text);
-            border: 1px solid var(--sn-notes-border);
-            border-radius: 5px;
-            padding: 5px 6px;
-            font-size: 9pt;
-            cursor: pointer;
-            height: 32px;
-            max-width: unset;
-        }
-
         /* ===== Font-size controls ===== */
         #font-size-controls {
             display: flex;
@@ -640,7 +578,8 @@
            SERMON DISPLAY LAYOUT (docs/ui-redesign-sermon-display.md)
            Landscape-only operating surface that always fills the viewport.
            Tablet: notes (toolbar on top) | preview — 55/45 at every tablet width.
-           Phone landscape (height <= 540px): notes 62% | dock 50px | preview.
+           Phone landscape (height <= 540px): notes | dock 50px | preview 45%.
+           The sermon title IS the sermon selector (invisible native <select> on top).
            The notes colours still come from --sn-* (overridable in Settings).
            This block comes last on purpose.
            ============================================================ */
@@ -678,7 +617,7 @@
         #notes-title-wrap { flex: 1 1 0; min-width: 0; }
         #notes-title { color: var(--sd-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         #notes-date { color: var(--sd-text-dim); }
-        .btn-back, .font-size-btn, #sermon-select {
+        .btn-back, .font-size-btn {
             height: 44px;
             border: 1px solid var(--sd-divider);
             border-radius: 6px;
@@ -691,22 +630,40 @@
         #font-size-controls { display: flex; gap: 4px; flex-shrink: 0; }
         .font-size-btn { width: 46px; padding: 0; font-weight: 600; }
         .btn-back:hover, .font-size-btn:hover, #fullscreen-btn:hover, .dock-btn:hover { background: #2e3d4b; color: #fff; }
-        #header-dropdown {
+        /* Title = sermon selector: the native <select> lies invisibly over the
+           title/date, so a tap opens the platform's own picker everywhere. */
+        #notes-title-wrap {
+            position: relative;
             display: flex;
-            position: static;
             flex-direction: row;
             align-items: center;
-            gap: 0;
-            min-width: 0;
-            padding: 0;
-            border: none;
-            background: transparent;
-            box-shadow: none;
-            flex: 0 1 clamp(150px, 22vw, 280px);
+            gap: 8px;
+            height: 44px;
+            padding: 0 10px;
+            border: 1px solid transparent;
+            border-radius: 6px;
+            cursor: pointer;
         }
-        #header-dropdown .hd-label { display: none; }
-        #sermon-select { width: 100%; min-width: 0; padding: 0 8px; }
-        #sermon-layout button:focus-visible, #sermon-select:focus-visible { outline: 2px solid #2F9ED3; outline-offset: 1px; }
+        #notes-title-text { flex: 0 1 auto; min-width: 0; display: flex; flex-direction: column; }
+        #notes-title-caret { flex-shrink: 0; color: var(--sd-text-dim); font-size: 13px; line-height: 1; }
+        @media (hover: hover) {
+            #notes-title-wrap:hover { background: var(--sd-raised); border-color: var(--sd-divider); }
+            #notes-title-wrap:hover #notes-title-caret { color: var(--sd-text); }
+        }
+        #sermon-select {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            border: 0;
+            opacity: 0;
+            cursor: pointer;
+            font-size: 16px;   /* smaller makes iOS zoom the page on focus */
+        }
+        #sermon-layout button:focus-visible,
+        #notes-title-wrap:has(#sermon-select:focus-visible) { outline: 2px solid #2F9ED3; outline-offset: 1px; }
 
         /* Fullscreen: quiet overlay, lower-right corner of the preview */
         #fullscreen-btn {
@@ -729,11 +686,12 @@
 
         /* ---- Phone landscape: notes | dock | preview ---- */
         @media (max-height: 540px) {
-            #sermon-layout { grid-template-columns: 62% var(--sd-dock) minmax(0, 1fr); }
+            #sermon-layout { grid-template-columns: minmax(0, 1fr) var(--sd-dock) 45%; }
             #notes-panel { border-right: none; }
             .sd-tablet, #fullscreen-btn { display: none !important; }
-            #notes-header { height: 34px; padding: 0 12px; }
-            #notes-title-wrap { display: flex; flex-direction: row; align-items: baseline; gap: 8px; }
+            #notes-header { height: 34px; padding: 0 6px; }
+            #notes-title-wrap { height: 30px; padding: 0 8px; }
+            #notes-title-text { flex-direction: row; align-items: baseline; gap: 8px; }
             #notes-title { flex: 0 1 auto; min-width: 0; }
             #notes-title { font-size: 13px; }
             #notes-date { font-size: 11px; white-space: nowrap; }
@@ -768,20 +726,6 @@
             .dock-fs { position: relative; margin-top: 7px; font-size: 19px; }
             .dock-fs::before { content: ''; position: absolute; left: -3px; right: -3px; top: -5px; height: 1px; background: var(--sd-divider); }
 
-            /* The sermon selector opens over the notes pane, never over the preview */
-            #header-dropdown {
-                display: none;
-                position: absolute;
-                top: 40px; left: 12px; right: 12px;
-                z-index: 200;
-                flex: none;
-                padding: 10px;
-                border: 1px solid var(--sd-divider);
-                border-radius: 8px;
-                background: var(--sd-toolbar);
-                box-shadow: 0 8px 24px rgba(0,0,0,0.6);
-            }
-            #header-dropdown.open { display: flex; }
             #svc-seek { min-height: 28px; }
         }
 
@@ -814,25 +758,19 @@
 
     <!-- LEFT: Notes panel -->
     <div id="notes-panel">
-        <!-- Notes-pane toolbar (tablet): Back · title/date · A− A+ · sermon selector.
+        <!-- Notes-pane toolbar (tablet): Back · title/date (= sermon selector) · A− A+.
              On a phone in landscape only the title/date strip stays here — the
-             actions live in the central dock (#sermon-dock). -->
+             other actions live in the central dock (#sermon-dock). -->
         <div id="notes-header">
             <button class="btn-back sd-tablet" ng-click="goHome()"><?php echo T::s('common.button.back'); ?></button>
-            <div id="notes-title-wrap">
-                <div id="notes-title">{{ currentSermon ? currentSermon.TITLE || ('<?php echo T::s('sermon.untitled'); ?>') : ('<?php echo T::s('sermon.selectSermon'); ?>') }}</div>
-                <div id="notes-date">{{ currentSermon ? currentSermon.SERMON_DATE : '' }}</div>
-            </div>
-            <div id="font-size-controls" class="sd-tablet">
-                <button class="font-size-btn" ng-click="changeNotesFontSize(-1)"
-                        title="<?php echo T::s('common.button.decrease'); ?>" aria-label="<?php echo T::s('common.button.decrease'); ?>">A−</button>
-                <button class="font-size-btn" ng-click="changeNotesFontSize(+1)"
-                        title="<?php echo T::s('common.button.increase'); ?>" aria-label="<?php echo T::s('common.button.increase'); ?>">A+</button>
-            </div>
-            <!-- The one sermon selector: inline in the toolbar on tablets, an overlay
-                 over the notes pane on phones (opened from the dock) -->
-            <div id="header-dropdown">
-                <span class="hd-label"><?php echo T::s('sermon.label.sermon'); ?></span>
+            <!-- The one sermon selector: a tap on the title («Выберите проповедь»
+                 or the sermon's name) opens the native <select> lying over it -->
+            <div id="notes-title-wrap" title="<?php echo T::s('sermon.selectSermon'); ?>">
+                <div id="notes-title-text">
+                    <div id="notes-title">{{ currentSermon ? currentSermon.TITLE || ('<?php echo T::s('sermon.untitled'); ?>') : ('<?php echo T::s('sermon.selectSermon'); ?>') }}</div>
+                    <div id="notes-date">{{ currentSermon ? currentSermon.SERMON_DATE : '' }}</div>
+                </div>
+                <span id="notes-title-caret" aria-hidden="true">▾</span>
                 <select id="sermon-select" ng-model="selectedSermonId" ng-change="loadSermon(selectedSermonId)"
                         aria-label="<?php echo T::s('sermon.label.sermon'); ?>">
                     <option value=""><?php echo T::s('common.choose'); ?></option>
@@ -840,6 +778,12 @@
                         {{ s.TITLE || ('<?php echo T::s('sermon.untitled'); ?>') }} {{ s.SERMON_DATE ? '(' + s.SERMON_DATE + ')' : '' }}
                     </option>
                 </select>
+            </div>
+            <div id="font-size-controls" class="sd-tablet">
+                <button class="font-size-btn" ng-click="changeNotesFontSize(-1)"
+                        title="<?php echo T::s('common.button.decrease'); ?>" aria-label="<?php echo T::s('common.button.decrease'); ?>">A−</button>
+                <button class="font-size-btn" ng-click="changeNotesFontSize(+1)"
+                        title="<?php echo T::s('common.button.increase'); ?>" aria-label="<?php echo T::s('common.button.increase'); ?>">A+</button>
             </div>
         </div>
 
@@ -881,8 +825,6 @@
     <div id="sermon-dock">
         <button class="dock-btn" ng-click="goHome()"
                 title="<?php echo T::s('common.button.back'); ?>" aria-label="<?php echo T::s('common.button.back'); ?>">←</button>
-        <button class="dock-btn" id="dock-menu-btn" onclick="toggleHeaderMenu(event)"
-                title="<?php echo T::s('sermon.label.sermon'); ?>" aria-label="<?php echo T::s('sermon.label.sermon'); ?>">☰</button>
         <button class="dock-btn" ng-click="changeNotesFontSize(-1)"
                 title="<?php echo T::s('common.button.decrease'); ?>" aria-label="<?php echo T::s('common.button.decrease'); ?>">A−</button>
         <button class="dock-btn" ng-click="changeNotesFontSize(+1)"
@@ -962,24 +904,5 @@
 <script src="/js/net_status.min.js?v=1"></script>
 <script src="/js/yt_bridge.min.js?v=1"></script>
 <script src="/js/sermon.min.js?v=21" type="text/javascript"></script>
-<script>
-    function toggleHeaderMenu(e) {
-        e.stopPropagation();
-        document.getElementById('header-dropdown').classList.toggle('open');
-    }
-    document.addEventListener('click', function(e) {
-        var dd = document.getElementById('header-dropdown');
-        if (dd && !dd.contains(e.target) && e.target.id !== 'dock-menu-btn') {
-            dd.classList.remove('open');
-        }
-    });
-    // Close the dropdown when a sermon is selected
-    document.addEventListener('change', function(e) {
-        if (e.target && e.target.id === 'sermon-select') {
-            document.getElementById('header-dropdown').classList.remove('open');
-        }
-    });
-
-</script>
 </body>
 </html>
