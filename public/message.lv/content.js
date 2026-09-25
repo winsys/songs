@@ -166,9 +166,45 @@
       closeCopy: 'To projekt niekomercyjny. Na stronie logowania można poprosić o dostęp dla swojego kościoła.'
     }
   };
-  Object.keys(PLAIN_COPY).forEach(function (lang) {
-    Object.keys(PLAIN_COPY[lang]).forEach(function (key) {
-      COPY[lang][key] = PLAIN_COPY[lang][key];
+  // Screenshot captions: one set of live-system screenshots per language
+  // (images/ui/<lang>/<shot>.webp, switched together with the page language).
+  var SHOT_COPY = {
+    ru: {
+      uiDeck: 'Снимки действующей системы: пульт техника, главный экран, проповедь, ноты музыканта и страницы для телефона.',
+      uiSermon: 'Проповедь', uiScreen: 'Главный экран', uiMusician: 'Музыкант', uiTablet: 'планшет',
+      uiTechAlt: 'Технический режим: песня на экране, выбран куплет на двух языках',
+      uiSermonAlt: 'Проповедь: заметки проповедника и то, что сейчас на экране'
+    },
+    en: {
+      uiDeck: 'Screenshots of the live system: the technician’s console, the main screen, the sermon, the musician’s sheet music and pages for phones.',
+      uiSermon: 'Sermon', uiScreen: 'Main screen', uiMusician: 'Musician', uiTablet: 'tablet',
+      uiTechAlt: 'Technical mode: a song on the screen, one verse selected in two languages',
+      uiSermonAlt: 'Sermon: the preacher’s notes and what is on the screen now'
+    },
+    de: {
+      uiDeck: 'Aufnahmen des laufenden Systems: Technikerpult, Hauptbildschirm, Predigt, Noten für Musiker und Seiten für das Smartphone.',
+      uiSermon: 'Predigt', uiScreen: 'Hauptbildschirm', uiMusician: 'Musiker', uiTablet: 'Tablet',
+      uiTechAlt: 'Technischer Modus: ein Lied auf dem Bildschirm, eine Strophe in zwei Sprachen ausgewählt',
+      uiSermonAlt: 'Predigt: Notizen des Predigers und was gerade auf dem Bildschirm ist'
+    },
+    lt: {
+      uiDeck: 'Veikiančios sistemos ekrano nuotraukos: techniko pultas, pagrindinis ekranas, pamokslas, muzikanto natos ir puslapiai telefonui.',
+      uiSermon: 'Pamokslas', uiScreen: 'Pagrindinis ekranas', uiMusician: 'Muzikantas', uiTablet: 'planšetė',
+      uiTechAlt: 'Techninis režimas: giesmė ekrane, pasirinktas posmas dviem kalbomis',
+      uiSermonAlt: 'Pamokslas: pamokslininko užrašai ir tai, kas dabar rodoma ekrane'
+    },
+    pl: {
+      uiDeck: 'Zrzuty ekranu działającego systemu: pulpit technika, ekran główny, kazanie, nuty muzyka i strony na telefon.',
+      uiSermon: 'Kazanie', uiScreen: 'Ekran główny', uiMusician: 'Muzyk', uiTablet: 'tablet',
+      uiTechAlt: 'Tryb techniczny: pieśń na ekranie, wybrana zwrotka w dwóch językach',
+      uiSermonAlt: 'Kazanie: notatki kaznodziei i to, co jest teraz na ekranie'
+    }
+  };
+  [PLAIN_COPY, SHOT_COPY].forEach(function (source) {
+    Object.keys(source).forEach(function (lang) {
+      Object.keys(source[lang]).forEach(function (key) {
+        COPY[lang][key] = source[lang][key];
+      });
     });
   });
 
@@ -207,6 +243,11 @@
       if (scene === 'worship-hall') image.alt = dict.worshipTitle;
       if (scene === 'sermon-hall') image.alt = dict.sermonTitle;
       if (scene === 'outdoor-group') image.alt = dict.groupTitle;
+    });
+    document.querySelectorAll('[data-shot]').forEach(function (image) {
+      image.src = 'images/ui/' + lang + '/' + image.getAttribute('data-shot') + '.webp';
+      var alt = dict[image.getAttribute('data-alt')];
+      if (alt !== undefined) image.alt = alt;
     });
     try { localStorage.setItem('ws_promo_lang', lang); } catch (error) {}
   }
