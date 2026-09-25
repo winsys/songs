@@ -2483,6 +2483,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 function success(response) {
                     $scope.editConfig.songId  = response.data.song_id;
                     $scope.editConfig.songNum = $scope.listId + '/' + response.data.num;
+                    refreshSongIndexes();
                     if ($scope.editConfig.pendingFile) {   // new songs only (saved ones use the groups block)
                         $scope.uploadImage(function() {
                             $scope.addSongToFavorites($scope.editConfig.songId);
@@ -2503,13 +2504,16 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     id: $scope.editConfig.songId,
                     name: $scope.editConfig.songName }, textData) }).then(
                 function success() {
+                    // restoreCurrentState re-splits the shown song's verses from
+                    // the fresh row (a plain reload re-points showingSong only).
+                    refreshSongIndexes();
                     if ($scope.editConfig.pendingFile) {   // new songs only (saved ones use the groups block)
                         $scope.uploadImage(function() {
-                            $scope.reloadFavorites();
+                            $scope.reloadFavorites(restoreCurrentState);
                             $scope.showEditDialog(false);
                         });
                     } else {
-                        $scope.reloadFavorites();
+                        $scope.reloadFavorites(restoreCurrentState);
                         $scope.showEditDialog(false);
                     }
                 },
@@ -2519,6 +2523,15 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             );
         }
     };
+
+    // A saved / created song must show its new name and languages in the
+    // song search and in the collection list, not only in the playlist.
+    function refreshSongIndexes() {
+        if ($scope.visibleSongLists && $scope.visibleSongLists.length) {
+            $scope.loadSearchSongs($scope.visibleSongLists);
+        }
+        if ($scope.listId) $scope.reloadSongList();
+    }
 
     $scope.uploadImage = function(callback) {
         var file = $scope.editConfig.pendingFile;

@@ -801,7 +801,7 @@
                         <div class="song-thumb-wrap"
                              ng-click="openNotes(listItem)"
                              title="<?php echo T::s('piano.thumb.openNotes'); ?>">
-                            <img class="song-thumb" ng-src="{{ listItem.imageName }}" onerror="this.style.display='none'"/>
+                            <img class="song-thumb" ng-src="{{ listItem.imageSrc || listItem.imageName }}" onerror="this.style.display='none'"/>
                         </div>
                     </div>
                 </div>

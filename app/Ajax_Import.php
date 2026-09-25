@@ -631,6 +631,9 @@ trait Ajax_Import
         }
         @chmod($abs, 0664);
         self::notifyNotesIfCurrent($listId, $num);
+        if ((int)$group['IS_MAIN'] === 1) {
+            self::updateSocket();   // playlist thumbnails show the main sheet
+        }
         return json_encode([
             'status' => 'success',
             'path'   => $url,
@@ -662,6 +665,9 @@ trait Ajax_Import
             @unlink($f);
         }
         self::notifyNotesIfCurrent($listId, $num);
+        if ((int)$group['IS_MAIN'] === 1) {
+            self::updateSocket();   // playlist thumbnails show the main sheet
+        }
         return json_encode(['status' => 'success', 'groups' => self::songImageGroups($song)]);
     }
 

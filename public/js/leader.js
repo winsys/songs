@@ -312,7 +312,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         // Set fullScreen flag BEFORE sending set_image to prevent a race with WS.
         $scope.fullScreen = true;
         $scope.fullScreenText = (textContent != null) ? textContent : null;
-        $scope.fullScreenImage = (textContent == null && fsSong) ? (fsSong.imageName || '') : '';
+        $scope.fullScreenImage = (textContent == null && fsSong) ? (fsSong.imageSrc || fsSong.imageName || '') : '';
 
         var openLocal = function() {
             if (textContent != null) {
@@ -726,7 +726,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
             fitLeaderText();
             $timeout(fitLeaderText, 400);
         } else {
-            $scope.fullScreenImage = item.imageName || '';
+            $scope.fullScreenImage = item.imageSrc || item.imageName || '';
         }
     }
 

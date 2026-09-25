@@ -1751,7 +1751,7 @@
                                 <img class="song-image"
                                      ng-click="$event.stopPropagation()"
                                      ng-attr-id="{{ 'img' + listItem.ID }}"
-                                     ng-src="{{ listItem.imageName }}" />
+                                     ng-src="{{ listItem.imageSrc || listItem.imageName }}" />
                             </div>
 
                             <!-- ── Media row (image, video or audio) ── -->
@@ -2387,5 +2387,5 @@
 <script src="/js/drag_reorder.min.js?v=1" type="text/javascript"></script>
 <script src="/js/cx_scroll.min.js?v=1" type="text/javascript"></script>
 <script src="/js/pdf_page_image.min.js?v=1" type="text/javascript"></script>
-<script src="/js/tech.min.js?v=54" type="text/javascript"></script>
+<script src="/js/tech.min.js?v=55" type="text/javascript"></script>
 
