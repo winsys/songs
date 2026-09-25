@@ -330,6 +330,11 @@
         .item-text { font-size: 16px; }
         .favorites-list { --ld-act-w: 60px; --ld-act-space: 8px; }
         .drag-handle { width: 40px; }
+    }
+
+    /* Visible ✏️ only on a desktop (wide screen + mouse). Phones and tablets —
+       also large ones in the >= 900px layout — edit via the swipe tray. */
+    @media (min-width: 900px) and (hover: hover) and (pointer: fine) {
         .ld-edit-btn { display: flex; }
     }
 
@@ -997,7 +1002,7 @@
             </div>
 
             <!-- Favorites list. Row order: handle · number · title/meta · ✏️ · ¶ · Аа · notes
-                 (✏️ from 541px). No delete button: swiping a row sideways uncovers
+                 (✏️ on desktop only). No delete button: swiping a row sideways uncovers
                  «Изменить» + the red «Удалить» (swipe_delete.js). -->
             <div class="favorites-list" ng-show="favorites.length > 0">
                 <div class="swipe-row"
@@ -1037,8 +1042,8 @@
                             </span>
                         </span>
 
-                        <!-- Edit the song (shared dialog, song_editor.js). Hidden on phones:
-                             there the swipe tray carries «Изменить». -->
+                        <!-- Edit the song (shared dialog, song_editor.js). Desktop only
+                             (wide screen + mouse); touch devices use «Изменить» in the swipe tray. -->
                         <div class="song-text-btn ld-edit-btn" role="button"
                              ng-click="editFavoriteRow(listItem)"
                              title="<?php echo T::s('leader.button.editSong'); ?>"
