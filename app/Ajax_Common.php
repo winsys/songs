@@ -201,7 +201,7 @@ trait Ajax_Common
                 LEFT JOIN list_names n ON n.LIST_ID = l.LISTID
                 WHERE f.groupId = {$userId}
                 ORDER BY f.sort_order {$dir}, FID {$dir}";
-        $list = Info::get('db')->select($sql);
+        $list = SongImages::withImageSrc(Info::get('db')->select($sql));
         return json_encode($list);
     }
 
@@ -265,7 +265,7 @@ trait Ajax_Common
         }
 
         // Songs from favorites
-        $songs = Info::get('db')->select(
+        $songs = SongImages::withImageSrc(Info::get('db')->select(
             "SELECT
              f.ID           AS FID,
              f.sort_order   AS sort_order,
@@ -282,7 +282,7 @@ trait Ajax_Common
          LEFT JOIN song_list l  ON l.ID      = f.SONGID
          LEFT JOIN list_names n ON n.LIST_ID = l.LISTID
          WHERE f.groupId = {$userId}"
-        );
+        ));
 
         // Media from tech_media_favorites
         $media = Info::get('db')->select(

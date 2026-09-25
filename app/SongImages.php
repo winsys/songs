@@ -209,6 +209,35 @@ class SongImages
     }
 
     /**
+     * <img> source of the song's main sheet for list thumbnails: the web path
+     * plus "?v=<mtime>". A replaced sheet keeps its file name, so without the
+     * version browsers go on showing the cached old page. The bare path
+     * (imageName) stays the song's identity on the notes channel — never
+     * compare against this value.
+     */
+    public static function mainImageSrc($listId, $num)
+    {
+        $url = self::mainImageUrl($listId, $num);
+        if (!self::isSafeNum($num)) {
+            return $url;
+        }
+        $t = @filemtime(self::listDir($listId) . '/' . $num . '.jpg');
+        return $t ? $url . '?v=' . $t : $url;
+    }
+
+    /** Adds imageSrc (see mainImageSrc) to song rows; rows without a song get null. */
+    public static function withImageSrc(array $rows)
+    {
+        foreach ($rows as &$r) {
+            $r['imageSrc'] = (isset($r['LISTID'], $r['NUM']) && $r['LISTID'] !== '')
+                ? self::mainImageSrc($r['LISTID'], $r['NUM'])
+                : null;
+        }
+        unset($r);
+        return $rows;
+    }
+
+    /**
      * A song number is safe to use as a file-name stem: anything except path
      * separators, control characters and the "." / ".." pseudo-names.
      * Numbers like "д001", "304 (1)" or "422_C" are all valid.

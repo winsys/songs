@@ -85,7 +85,7 @@ trait Ajax_Piano
              WHERE l.ID IN (" . implode(',', $ids) . ")"
         );
         $byId = [];
-        foreach ($rows as $r) {
+        foreach (SongImages::withImageSrc($rows) as $r) {
             $byId[(int)$r['ID']] = $r;
         }
         $out  = [];
