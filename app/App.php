@@ -94,8 +94,16 @@ class App
             exit;
         }
 
-        // Access control
+        // Access control. A page the role may not open is usually a stale
+        // address (browser autocomplete, a phone switched to the shared
+        // observer login), so a plain page load lands on the home page, which
+        // every role may open — no redirect loop. Anything else stays 403.
         if (!Security::canAccess($route[0])) {
+            $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+            if ($method === 'GET' || $method === 'HEAD') {
+                header("Location: " . Security::defaultRedirect());
+                exit;
+            }
             header("HTTP/1.1 403 Forbidden");
             echo '403 — Access denied.';
             exit;
