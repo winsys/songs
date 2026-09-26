@@ -76,14 +76,19 @@ class App
             exit;
         }
 
-        if (!Security::isLoggedIn()) {
+        // /login is never a destination of a signed-in user: iPhone Safari
+        // autocompletes the typed domain to the last visited /login, the
+        // "remember me" cookie signs the user in on that very request, and
+        // the role check below used to answer 403 until the site data was
+        // cleared. Send such a request home instead (a submitted login form
+        // still switches the account).
+        if (!Security::isLoggedIn() || $route[0] == 'login') {
             if (Security::loginRequest()) {
-                if (Security::doLogin()) {
-                    if (Security::isLoggedIn()) {
-                        header("Location: " . Security::defaultRedirect());
-                        exit;
-                    }
-                }
+                Security::doLogin();
+            }
+            if (Security::isLoggedIn()) {
+                header("Location: " . Security::defaultRedirect());
+                exit;
             }
             $this->render('login');
             exit;
