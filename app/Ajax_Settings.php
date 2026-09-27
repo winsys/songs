@@ -55,8 +55,12 @@ trait Ajax_Settings
         return $out;
     }
 
-    /** Adds user_settings.musician_msg_style on first use (self-migration). */
-    private static function ensureMusicianMsgColumn()
+    /**
+     * Adds the Sept 2026 leader settings columns on first use (self-migration):
+     * musician_msg_style (JSON) and leader_clear_screen (1 = the leader's song
+     * open / close clears the main screen, 0 = only the technicians manage it).
+     */
+    private static function ensureLeaderSettingsColumns()
     {
         static $checked = false;
         if ($checked) {
@@ -70,12 +74,34 @@ trait Ajax_Settings
                  COMMENT 'JSON: style of the leader message overlay on the musician page'"
             );
         }
+        if (!Info::get('db')->get("SHOW COLUMNS FROM user_settings LIKE 'leader_clear_screen'")) {
+            Info::get('db')->exec(
+                "ALTER TABLE user_settings
+                 ADD COLUMN leader_clear_screen tinyint(1) NOT NULL DEFAULT 1
+                 COMMENT '1 = leader song open/close clears the main screen; 0 = screen left to the technicians'"
+            );
+        }
+    }
+
+    /**
+     * «Отключать слова с главного экрана» (default on). Off: the leader's song
+     * open (set_image) and view close (clear_image) switch the notes only —
+     * the main screen keeps what the technicians put there. The leader's
+     * explicit verse clicks (set_leader_text) still reach the screen.
+     */
+    private static function leaderClearsScreen($groupId)
+    {
+        self::ensureLeaderSettingsColumns();
+        $v = Info::get('db')->getValue(
+            "SELECT leader_clear_screen FROM user_settings WHERE group_id = " . (int)$groupId
+        );
+        return $v === null || $v === false || (int)$v === 1;
     }
 
     /** The group's sanitized message style (defaults when unset). */
     private static function loadMusicianMsgStyle($groupId)
     {
-        self::ensureMusicianMsgColumn();
+        self::ensureLeaderSettingsColumns();
         $raw = Info::get('db')->getValue(
             "SELECT musician_msg_style FROM user_settings WHERE group_id = " . (int)$groupId
         );
@@ -124,7 +150,8 @@ trait Ajax_Settings
         $uiLang = isset($settings['ui_lang']) ? (string)$settings['ui_lang'] : 'ru';
         if (!in_array($uiLang, ['ru', 'de', 'en', 'lt', 'pl'], true)) $uiLang = 'ru';
         $leaderTextMultilang = !empty($settings['leader_text_multilang']) ? 1 : 0;
-        self::ensureMusicianMsgColumn();
+        self::ensureLeaderSettingsColumns();
+        $leaderClearScreen = (!isset($settings['leader_clear_screen']) || !empty($settings['leader_clear_screen'])) ? 1 : 0;
         $musicianMsgStyle = mysqli_escape_string(Info::get('dbh'),
             json_encode(self::musicianMsgSanitize($settings)));
 
@@ -157,7 +184,8 @@ trait Ajax_Settings
                     slide_font_max_size      = {$slideFontMaxSize},
                     ui_lang                  = '{$uiLang}',
                     leader_text_multilang    = {$leaderTextMultilang},
-                    musician_msg_style       = '{$musicianMsgStyle}'
+                    musician_msg_style       = '{$musicianMsgStyle}',
+                    leader_clear_screen      = {$leaderClearScreen}
                 WHERE group_id = {$userId}
             ");
         } else {
@@ -169,7 +197,7 @@ trait Ajax_Settings
                     sermon_notes_bg_color, sermon_bible_base_color, sermon_msg_base_color,
                     sermon_prep_font_size, sermon_notes_font_size, sermon_scale_chips,
                     slide_bg_color, main_font_max_size, slide_font_max_size, ui_lang, leader_text_multilang,
-                    musician_msg_style
+                    musician_msg_style, leader_clear_screen
                 ) VALUES (
                     {$userId}, '{$displayName}', '{$favoritesOrder}', '{$availableLists}', " . ($availableLanguages === null ? 'NULL' : "'{$availableLanguages}'") . ", '{$placeholderImage}',
                     '{$mainBgColor}', '{$mainFont}', '{$mainFontColor}',
@@ -177,7 +205,7 @@ trait Ajax_Settings
                     '{$sermonNotesBgColor}', '{$sermonBibleBaseColor}', '{$sermonMsgBaseColor}',
                     {$sermonPrepFontSize}, {$sermonNotesFontSize}, {$sermonScaleChips},
                     '{$slideBgColor}', {$mainFontMaxSize}, {$slideFontMaxSize}, '{$uiLang}', {$leaderTextMultilang},
-                    '{$musicianMsgStyle}'
+                    '{$musicianMsgStyle}', {$leaderClearScreen}
                 )
             ");
         }

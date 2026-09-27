@@ -36,7 +36,8 @@ app.controller('Settings', function ($scope, $http, $sce)
         musician_msg_font:              'Arial',
         musician_msg_text_color:        '#E65100',
         musician_msg_text_transparency: 80,
-        musician_msg_font_max:          160
+        musician_msg_font_max:          160,
+        leader_clear_screen:            1
     };
 
     // ui_lang at the time settings were loaded; used to decide whether to
@@ -170,6 +171,8 @@ app.controller('Settings', function ($scope, $http, $sce)
                     $scope.settings.sermon_notes_font_size = parseInt($scope.settings.sermon_notes_font_size, 10) || 100;
                     $scope.settings.sermon_scale_chips = parseInt($scope.settings.sermon_scale_chips) || 0;
                     $scope.settings.leader_text_multilang = parseInt($scope.settings.leader_text_multilang) || 0;
+                    $scope.settings.leader_clear_screen = ($scope.settings.leader_clear_screen === undefined ||
+                        parseInt($scope.settings.leader_clear_screen, 10) === 1) ? 1 : 0;
                     ['musician_msg_bg_transparency', 'musician_msg_height',
                      'musician_msg_text_transparency', 'musician_msg_font_max'].forEach(function(k) {
                         $scope.settings[k] = parseInt($scope.settings[k], 10) || 0;
