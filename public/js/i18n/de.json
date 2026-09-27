@@ -480,6 +480,7 @@
   "settings.mm.bgTransparency": "Transparenz des Hintergrunds ({pct} %)",
   "settings.mm.height": "Höhe des Nachrichtenfensters ({pct} % der Bildschirmhöhe)",
   "settings.mm.textTransparency": "Transparenz des Textes ({pct} %)",
+  "settings.mm.fontSystem": "Systemschrift (iPhone, iPad, Mac, Android, Windows)",
   "settings.mm.fontMaxHint": "Der Text wird so groß wie möglich dargestellt, solange er ins Fenster passt, jedoch nicht größer als dieser Wert.",
   "settings.mm.sample": "Refrain wiederholen",
   "settings.card.mainDisplay": "Hauptbildschirm (Text Display)",

@@ -18,9 +18,9 @@ trait Ajax_Settings
             'musician_msg_bg_color'          => '#FFFFFF',
             'musician_msg_bg_transparency'   => 98,
             'musician_msg_height'            => 35,
-            'musician_msg_font'              => 'Arial',
+            'musician_msg_font'              => 'System',   // the device's UI font (see musician.js)
             'musician_msg_text_color'        => '#E65100',
-            'musician_msg_text_transparency' => 80,
+            'musician_msg_text_transparency' => 60,
             'musician_msg_font_max'          => 160,
         ];
     }
@@ -48,7 +48,7 @@ trait Ajax_Settings
                 $out[$k] = max($r[0], min($r[1], (int)$src[$k]));
             }
         }
-        $fonts = ['Arial', 'Verdana', 'Times New Roman', 'Georgia', 'Courier New', 'Tahoma'];
+        $fonts = ['System', 'Arial', 'Verdana', 'Times New Roman', 'Georgia', 'Courier New', 'Tahoma'];
         if (isset($src['musician_msg_font']) && in_array($src['musician_msg_font'], $fonts, true)) {
             $out['musician_msg_font'] = $src['musician_msg_font'];
         }

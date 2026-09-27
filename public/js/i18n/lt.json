@@ -480,6 +480,7 @@
   "settings.mm.bgTransparency": "Fono skaidrumas ({pct} %)",
   "settings.mm.height": "Žinutės lango aukštis ({pct} % ekrano aukščio)",
   "settings.mm.textTransparency": "Teksto skaidrumas ({pct} %)",
+  "settings.mm.fontSystem": "Sistemos šriftas (iPhone, iPad, Mac, Android, Windows)",
   "settings.mm.fontMaxHint": "Tekstas padidinamas iki didžiausio dydžio, kuriuo dar telpa į langą, bet ne daugiau nei šis.",
   "settings.mm.sample": "Kartojame priedainį",
   "settings.card.mainDisplay": "Pagrindinis ekranas (Text Display)",

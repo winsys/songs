@@ -267,6 +267,16 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
         el.style.maxHeight = '';
     }
 
+    // 'System' = the device's own UI font: San Francisco on iOS / macOS,
+    // Roboto on Android, Segoe UI on Windows — present everywhere, nothing
+    // to download. Other names are used as they are, with a generic fallback.
+    // Same mapping in settings.js (preview).
+    var SYSTEM_FONT = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+    function msgFontFamily(name) {
+        if (!name || name === 'System') return SYSTEM_FONT;
+        return '"' + name + '", ' + SYSTEM_FONT;
+    }
+
     function showMusicianMessage(d) {
         if (!d || !d.text) return;
         var st = d.style || {};
@@ -278,8 +288,8 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
             'background-color': rgba(st.musician_msg_bg_color || '#FFFFFF', st.musician_msg_bg_transparency != null ? st.musician_msg_bg_transparency : 98)
         };
         $scope.msg.textStyle = {
-            color: rgba(st.musician_msg_text_color || '#E65100', st.musician_msg_text_transparency != null ? st.musician_msg_text_transparency : 80),
-            'font-family': st.musician_msg_font || 'Arial'
+            color: rgba(st.musician_msg_text_color || '#E65100', st.musician_msg_text_transparency != null ? st.musician_msg_text_transparency : 60),
+            'font-family': msgFontFamily(st.musician_msg_font)
         };
         $scope.msg.on = true;
         // After the digest has put the text and the box height into the DOM:

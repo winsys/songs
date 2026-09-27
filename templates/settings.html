@@ -1248,7 +1248,7 @@
                                 'background-color': mmRgba(settings.musician_msg_bg_color, settings.musician_msg_bg_transparency)}">
                     <span class="mm-preview-text"
                           ng-style="{'color': mmRgba(settings.musician_msg_text_color, settings.musician_msg_text_transparency),
-                                     'font-family': settings.musician_msg_font}"><?php echo T::s('settings.mm.sample'); ?></span>
+                                     'font-family': mmFontFamily(settings.musician_msg_font)}"><?php echo T::s('settings.mm.sample'); ?></span>
                 </div>
             </div>
 
@@ -1278,6 +1278,7 @@
             <div class="settings-field">
                 <label class="settings-label">26. <?php echo T::s('settings.field.font'); ?></label>
                 <select class="settings-input" ng-model="settings.musician_msg_font">
+                    <option value="System"><?php echo T::s('settings.mm.fontSystem'); ?></option>
                     <option value="Arial">Arial</option>
                     <option value="Verdana">Verdana</option>
                     <option value="Times New Roman">Times New Roman</option>
@@ -1428,4 +1429,4 @@
 </div>
 
 <script src="/js/vendor/qrcode.min.js?v=1" type="text/javascript"></script>
-<script src="/js/settings.js?v=22" type="text/javascript"></script>
+<script src="/js/settings.js?v=23" type="text/javascript"></script>

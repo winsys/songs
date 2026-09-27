@@ -480,6 +480,7 @@
   "settings.mm.bgTransparency": "Przezroczystość tła ({pct}%)",
   "settings.mm.height": "Wysokość okna wiadomości ({pct}% wysokości ekranu)",
   "settings.mm.textTransparency": "Przezroczystość tekstu ({pct}%)",
+  "settings.mm.fontSystem": "Czcionka systemowa (iPhone, iPad, Mac, Android, Windows)",
   "settings.mm.fontMaxHint": "Tekst jest powiększany do największego rozmiaru, przy którym mieści się w oknie, ale nie większego niż ten.",
   "settings.mm.sample": "Powtarzamy refren",
   "settings.card.mainDisplay": "Ekran główny (Text Display)",
