@@ -288,7 +288,7 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
             'background-color': rgba(st.musician_msg_bg_color || '#FFFFFF', st.musician_msg_bg_transparency != null ? st.musician_msg_bg_transparency : 98)
         };
         $scope.msg.textStyle = {
-            color: rgba(st.musician_msg_text_color || '#E65100', st.musician_msg_text_transparency != null ? st.musician_msg_text_transparency : 60),
+            color: rgba(st.musician_msg_text_color || '#E65100', st.musician_msg_text_transparency != null ? st.musician_msg_text_transparency : 50),
             'font-family': msgFontFamily(st.musician_msg_font)
         };
         $scope.msg.on = true;
