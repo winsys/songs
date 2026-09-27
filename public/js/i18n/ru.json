@@ -480,6 +480,7 @@
   "settings.mm.bgTransparency": "Прозрачность фона ({pct}%)",
   "settings.mm.height": "Высота окна сообщения ({pct}% высоты экрана)",
   "settings.mm.textTransparency": "Прозрачность текста ({pct}%)",
+  "settings.mm.fontSystem": "Системный (iPhone, iPad, Mac, Android, Windows)",
   "settings.mm.fontMaxHint": "Текст увеличивается до самого крупного размера, при котором помещается в окно, но не больше этого.",
   "settings.mm.sample": "Повторяем припев",
   "settings.card.mainDisplay": "Основной дисплей (Text Display)",

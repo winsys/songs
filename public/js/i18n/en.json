@@ -480,6 +480,7 @@
   "settings.mm.bgTransparency": "Background transparency ({pct}%)",
   "settings.mm.height": "Message box height ({pct}% of the screen height)",
   "settings.mm.textTransparency": "Text transparency ({pct}%)",
+  "settings.mm.fontSystem": "System font (iPhone, iPad, Mac, Android, Windows)",
   "settings.mm.fontMaxHint": "The text is enlarged to the largest size that still fits the box, but never beyond this value.",
   "settings.mm.sample": "Repeat the chorus",
   "settings.card.mainDisplay": "Main display (Text Display)",

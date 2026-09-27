@@ -33,9 +33,9 @@ app.controller('Settings', function ($scope, $http, $sce)
         musician_msg_bg_color:          '#FFFFFF',
         musician_msg_bg_transparency:   98,
         musician_msg_height:            35,
-        musician_msg_font:              'Arial',
+        musician_msg_font:              'System',
         musician_msg_text_color:        '#E65100',
-        musician_msg_text_transparency: 80,
+        musician_msg_text_transparency: 60,
         musician_msg_font_max:          160,
         leader_clear_screen:            1
     };
@@ -299,6 +299,13 @@ app.controller('Settings', function ($scope, $http, $sce)
 
     // '#RRGGBB' + transparency in percent -> rgba() (musician message preview;
     // the same conversion as musician.js).
+    // Font of the musician message: 'System' = the device's UI font (same
+    // mapping as musician.js).
+    var MM_SYSTEM_FONT = 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
+    $scope.mmFontFamily = function(name) {
+        if (!name || name === 'System') return MM_SYSTEM_FONT;
+        return '"' + name + '", ' + MM_SYSTEM_FONT;
+    };
     $scope.mmRgba = function(hex, transparency) {
         var m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(String(hex || ''));
         if (!m) return 'transparent';
