@@ -258,7 +258,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
                 $http({ method: 'POST', url: '/ajax', data: {
                         command: 'reorder_favorites',
                         items: $scope.favorites.map(function (f) {
-                            return { type: 'song', fid: f.FID };
+                            return { type: $scope.isNote(f) ? 'note' : 'song', fid: f.FID };
                         })
                     }}).then(null, function () { $scope.reloadFavorites(); });
             }
@@ -990,11 +990,32 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
     window.addEventListener('resize', leaderScheduleRefit);
     window.addEventListener('orientationchange', leaderScheduleRefit);
 
+    // The song currently ON in the group (current_notes) left the list:
+    // switch it off like the leader's own song toggle-off — notes off for
+    // the musicians, the leader-channel screen cleared (playing media
+    // survives server-side), observers told. Without this the tech console
+    // kept showing the verses of a song that is no longer on the list.
+    function songOffIfActive(imageName) {
+        if (!$scope.activeSongImage || imageName !== $scope.activeSongImage) return;
+        $scope.activeSongImage = '';
+        $http({ method: "POST", url: "/ajax", data: { command: 'clear_image', channel: 'leader' } });
+        observerOff();
+    }
+
+    function favoriteByFid(fid) {
+        for (var i = 0; i < $scope.favorites.length; i++) {
+            if ($scope.favorites[i].FID == fid) return $scope.favorites[i];
+        }
+        return null;
+    }
+
     $scope.clearFavorites = function(){
         if($scope.favorites.length > 0)
             $scope.confirmationDialog(window.t('leader.confirm.clearTitle'), function() {
+                var active = $scope.activeSongImage;
                 $http({method: "POST", url: "/ajax", data: {command: 'clear_favorites'}}).then(
                     function success() {
+                        songOffIfActive(active);
                         $scope.reloadFavorites();
                     },
                 );
@@ -1004,8 +1025,10 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
 
     $scope.deleteFavoriteItem = function(fav_id, fav_title){
         $scope.confirmationDialog(fav_title, function(){
+            var item = favoriteByFid(fav_id);
             $http({ method: "POST", url: "/ajax", data: {command: 'delete_favorite_item', id: fav_id } }).then(
                 function success(){
+                    if (item) songOffIfActive(item.imageName);
                     $scope.reloadFavorites();
                 },
             );
@@ -1016,8 +1039,10 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
     // Deletion confirmed by the red button of a swiped row — no dialog.
     $scope.deleteFavoriteNow = function(fav_id){
         if (favSwipe) favSwipe.close();
+        var item = favoriteByFid(fav_id);
         $http({ method: "POST", url: "/ajax", data: {command: 'delete_favorite_item', id: fav_id } }).then(
             function success(){
+                if (item) songOffIfActive(item.imageName);
                 $scope.reloadFavorites();
             }
         );
@@ -1137,10 +1162,108 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         onMainImage: function () { $scope.reloadFavorites(); }
     });
 
-    // Edit from a list row (the ✏️ button or the swipe tray).
+    // Edit from a list row (the ✏️ button or the swipe tray): the song
+    // dialog for a song, the note dialog for a leader note.
     $scope.editFavoriteRow = function (listItem) {
         if (favSwipe) favSwipe.close();
+        if ($scope.isNote(listItem)) {
+            $scope.openNoteEditor(listItem);
+            return;
+        }
         $scope.editFavorite(listItem);
+    };
+
+    // ==========================================================
+    // LEADER NOTES — free text between the songs of the list ("prayer",
+    // "announcements"...). Stored as favorites rows with NOTE set
+    // (add_favorite_note / update_favorite_note); moved, deleted and cleared
+    // like songs. Never broadcast anywhere.
+    // ==========================================================
+    $scope.isNote = function (item) {
+        return !!item && item.NOTE !== null && item.NOTE !== undefined;
+    };
+    // Numbering and the counter skip the notes: "song 3" stays song 3.
+    $scope.songCount = function () {
+        var n = 0;
+        for (var i = 0; i < $scope.favorites.length; i++) {
+            if (!$scope.isNote($scope.favorites[i])) n++;
+        }
+        return n;
+    };
+    $scope.songSeq = function (index) {
+        var n = 0;
+        for (var i = 0; i <= index && i < $scope.favorites.length; i++) {
+            if (!$scope.isNote($scope.favorites[i])) n++;
+        }
+        return n;
+    };
+
+    // "＋" button: a small menu — new song in the collection, or a note.
+    $scope.addMenu = { open: false };
+    $scope.toggleAddMenu = function () {
+        $scope.addMenu.open = !$scope.addMenu.open;
+    };
+    $scope.addMenuSong = function () {
+        $scope.addMenu.open = false;
+        $scope.addNewSong();
+    };
+    $scope.addMenuNote = function () {
+        $scope.addMenu.open = false;
+        $scope.openNoteEditor(null);
+    };
+    document.addEventListener('pointerdown', function (e) {
+        if (!$scope.addMenu.open) return;
+        if (e.target && e.target.closest && e.target.closest('.ld-add-wrap')) return;
+        $scope.$applyAsync(function () { $scope.addMenu.open = false; });
+    }, true);
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape' && $scope.addMenu.open) {
+            $scope.$applyAsync(function () { $scope.addMenu.open = false; });
+        }
+    });
+
+    $scope.noteEditor = { fid: null, text: '', saving: false, error: '' };
+    $scope.openNoteEditor = function (item) {
+        $scope.noteEditor = {
+            fid:    item ? item.FID : null,
+            text:   item ? (item.NOTE || '') : '',
+            saving: false,
+            error:  ''
+        };
+        jQuery('#note-dialog .modal').modal('show');
+    };
+    jQuery(document).on('shown.bs.modal', '#note-dialog .modal', function () {
+        var ta = document.getElementById('noteText');
+        if (ta) { ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); }
+    });
+    $scope.saveNote = function () {
+        var ne = $scope.noteEditor;
+        var text = (ne.text || '').trim();
+        if (!text || ne.saving) return;
+        ne.saving = true;
+        ne.error = '';
+        var data = ne.fid
+            ? { command: 'update_favorite_note', id: ne.fid, text: text }
+            : { command: 'add_favorite_note', text: text };
+        $http({ method: 'POST', url: '/ajax', data: data }).then(function (r) {
+            ne.saving = false;
+            if (!r.data || r.data.status !== 'success') {
+                ne.error = (r.data && r.data.message) || window.t('common.unknownError');
+                return;
+            }
+            jQuery('#note-dialog .modal').modal('hide');
+            $scope.reloadFavorites();
+        }, function (e) {
+            ne.saving = false;
+            ne.error = 'HTTP ' + e.status;
+        });
+    };
+    // Ctrl/Cmd+Enter saves (plain Enter is a line break).
+    $scope.noteKeydown = function (e) {
+        if (e.keyCode === 13 && (e.ctrlKey || e.metaKey)) {
+            e.preventDefault();
+            $scope.saveNote();
+        }
     };
 
 

@@ -2,7 +2,7 @@
     /* ============================================================
        PIANIST MODE — compact UI, a private copy of the leader page
        (docs/ui-redesign-tech-leader.md). Keep in sync with leader.html by
-       hand. Differences: no drag reorder, no verse mode, no broadcast —
+       hand. Differences: no verse mode, no broadcast, no song editing —
        the list lives in the PHP session and nothing leaves this device.
        Shared tokens / chrome components: /css/compact.css (.cx-*).
        Invariant: the sheet-music thumbnail is always the LAST (rightmost)
@@ -156,7 +156,7 @@
         align-items: center;
         gap: 8px;
         min-height: 84px;
-        padding: 8px 8px 8px 12px;   /* no drag handle on this page */
+        padding: 8px 8px 8px 0;
         background: #fff;
         touch-action: pan-y;            /* horizontal movement belongs to swipe_delete.js */
         user-select: none;
@@ -164,6 +164,36 @@
     }
     .swipe-row.swiping .prod-list-item,
     .swipe-row.swipe-open .prod-list-item { box-shadow: 0 0 12px rgba(23,33,43,0.22); }
+
+    /* Drag-n-drop reorder (drag_reorder.js), same as on the leader page: the
+       handle is the only place where touch starts a drag. */
+    .drag-handle {
+        touch-action: none;
+        user-select: none;
+        -webkit-user-select: none;
+        -webkit-touch-callout: none;
+        cursor: grab;
+        border: none;
+        background: transparent;
+        color: #6E7883;
+        font-size: 18px;
+        line-height: 1;
+        width: 36px;
+        min-height: 44px;
+        align-self: stretch;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .drag-handle:active { cursor: grabbing; color: #17212B; }
+    .prod-list-item.drag-active {
+        background: #E6F1F4;
+        box-shadow: 0 6px 18px rgba(23,33,43,0.25);
+        z-index: 10;
+    }
+    body.drag-reorder-busy { user-select: none; -webkit-user-select: none; }
+    @media (min-width: 541px) { .drag-handle { width: 40px; } }
 
     .ld-info { flex: 1 1 0; min-width: 0; }
     .item-text {
@@ -774,7 +804,7 @@
                 <div><?php echo T::s('leader.empty.title'); ?><br><?php echo T::s('leader.empty.subtitle'); ?></div>
             </div>
 
-            <!-- Favorites list. Row order: title/meta · Аа · notes (rightmost).
+            <!-- Favorites list. Row order: handle · title/meta · Аа · notes (rightmost).
                  No delete button: a row is removed by swiping it sideways and
                  tapping the red button that appears (swipe_delete.js). -->
             <div class="favorites-list" ng-show="favorites.length > 0">
@@ -787,6 +817,11 @@
                             ng-click="deleteFavoriteNow(listItem.FID)"><?php echo T::s('leader.button.delete'); ?></button>
 
                     <div class="prod-list-item">
+
+                        <!-- Drag handle: reorder the list (drag_reorder.js) -->
+                        <button class="drag-handle" type="button"
+                                title="<?php echo T::s('common.dragReorder'); ?>"
+                                aria-label="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
 
                         <!-- Song info -->
                         <span class="ld-info">
@@ -977,8 +1012,9 @@
     </div>
 </div>
 
+<script src="/js/drag_reorder.min.js?v=1" type="text/javascript"></script>
 <script src="/js/swipe_delete.min.js?v=2" type="text/javascript"></script>
-<script src="/js/piano.min.js?v=5" type="text/javascript"></script>
+<script src="/js/piano.min.js?v=6" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}

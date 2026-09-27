@@ -130,6 +130,27 @@ scenario re-checked.
   leader's `observerSend` hooks (song open/close, verse on/off, language
   switch, toggle on re-send).
 
+### 2.1e The group playlist — `favorites` + `tech_media_favorites`
+- One shared `sort_order` sequence over both tables. `favorites` holds songs
+  AND leader notes (Sept 2026): a note is a row with `NOTE` set (utf8mb4
+  text) and a synthetic `SONGID` = `'N'` + 14 hex chars, so the unique key
+  `(groupId, SONGID)` and the `LEFT JOIN song_list` stay harmless. The column
+  self-migrates on first use (`ensureFavoriteNotes()` in `get_favorites`,
+  `get_favorites_with_text`, `add_favorite_note`, `update_favorite_note`);
+  manual DDL: `database/migrations/add_favorite_notes.sql`.
+- **Writers:** `add_to_favorites`, `add_favorite_note`, `update_favorite_note`,
+  `reorder_favorites` (type `song` / `note` → `favorites`, media types →
+  `tech_media_favorites`), `delete_favorite_item`, `clear_favorites`, media
+  commands in Ajax_Tech.
+- **Readers:** `get_favorites` (leader page: note rows have `NOTE` non-null,
+  `ID` / `imageName` null), `get_favorites_with_text` (tech console:
+  `itemType` `'note'`). Anything that walks the list looking for a song must
+  skip note rows (they match no `LISTID` / `NUM` / `imageName`).
+- A song that leaves the list (delete / clear, on either page) is switched
+  off if it was ON (notes channel): the leader sends `clear_image` channel
+  `'leader'`, the tech console `clear_image clear_notes:1`; the tech console
+  also drops the verse list of a selected song that vanished on reload.
+
 ### 2.2 WebSocket message types (group-routed via port 2346)
 | Type | Producers | Consumers |
 |---|---|---|
@@ -230,6 +251,11 @@ Setup: one browser as ведущий, one as техник (same group), one scre
 4. **Sermon:** страница проповеди показывает слайд (цель канала задана) —
    слайд на главном экране; «Отключить экран» у техника убирает его и
    деактивирует UI проповедника.
+   **Кнопка «Отключить экран» (Sept 2026):** видна у техника всякий раз,
+   когда на главном экране что-то есть (куплет, стих, цитата Послания — в
+   том числе из проповеди, слайд, картинка, видео), и пропадает на пустом
+   экране / когда включены только ноты музыканта. После обрыва сети
+   (выключить и включить Wi-Fi) техстраница сама перечитывает состояние.
    **Видео (Aug 2026):** YouTube-ролик со страницы проповеди — перемотка
    ползунком и внутри плеера повторяется на главном экране (~1 с);
    пауза/пуск и ⏹ работают как раньше; обычный видеофайл — то же самое.
@@ -276,6 +302,20 @@ Setup: one browser as ведущий, one as техник (same group), one scre
    настройке «новые сверху» порядок после перетаскивания тот, что на экране.
    Тач: перетаскивание работает пальцем за ⠿, страница при этом не скроллится,
    клик по карточке после перетаскивания не срабатывает.
+   **Заметки ведущего (Sept 2026):** у ведущего «＋» → «Заметка» → текст →
+   «Сохранить»: янтарная строка в списке ведущего и в тех-консоли, на экраны
+   ничего не уходит; перетаскивание заметки за ⠿ меняет порядок в обоих
+   местах; «Изменить» в свайпе (✏️ на десктопе) правит текст; нумерация и
+   счётчик у ведущего считают только песни. «＋» → «Новая песня в сборник»
+   открывает прежний диалог песни.
+   **Пианист (Sept 2026):** в `/piano` песни перетаскиваются за ⠿; порядок
+   сохраняется после обновления страницы (в сессии).
+   **Удаление включённой песни (Sept 2026):** ведущий или техник очищает
+   список / удаляет включённую песню — у техника пропадают её куплеты, у
+   музыканта — ноты.
+   **Меню «Медиа» / «Заставки» у техника:** открытое меню закрывается при
+   переключении Песни/Библия/Послание, клике мимо него, Esc и уходе со
+   вкладки.
 
 9. **Observer mode (Aug 2026):** вход общим логином роли «Наблюдатель» →
    главная показывает только «Наблюдатель» и «Выйти» (настроек нет);

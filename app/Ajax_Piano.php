@@ -131,6 +131,34 @@ trait Ajax_Piano
         return json_encode(['status' => 'success']);
     }
 
+    /**
+     * Persist the dragged order of the session list. Params: ids — song IDs
+     * top-to-bottom as displayed. Unknown IDs are ignored; songs missing from
+     * the request (added meanwhile in another tab) keep their place at the end.
+     */
+    private static function piano_reorder_favorites()
+    {
+        $current = self::pianoIds();
+        $ids     = self::$args['ids'] ?? [];
+        if (!is_array($ids)) {
+            return json_encode(['status' => 'error', 'message' => 'Bad ids']);
+        }
+        $out = [];
+        foreach ($ids as $id) {
+            $id = (int)$id;
+            if (in_array($id, $current, true) && !in_array($id, $out, true)) {
+                $out[] = $id;
+            }
+        }
+        foreach ($current as $id) {
+            if (!in_array($id, $out, true)) {
+                $out[] = $id;
+            }
+        }
+        self::pianoSave($out);
+        return json_encode(['status' => 'success']);
+    }
+
     private static function piano_clear_favorites()
     {
         self::pianoSave([]);

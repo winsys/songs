@@ -164,6 +164,88 @@ trait Ajax_Common
         return '';
     }
 
+    // ─── Leader notes in the playlist (Sept 2026) ────────────────────
+    // A note is free text the leader keeps between the songs of the service
+    // ("prayer", "announcements", "choir"...). It is a row of `favorites`
+    // with NOTE set and a synthetic SONGID ('N' + 14 hex chars — unique per
+    // group, never a song_list ID), so ordering, drag-n-drop, clearing and
+    // deleting go through the song paths unchanged. Screens, notes channel
+    // and observers never see it.
+
+    /** Adds the favorites.NOTE column on first use (self-migration, like auth_token). */
+    private static function ensureFavoriteNotes()
+    {
+        static $checked = false;
+        if ($checked) {
+            return;
+        }
+        $checked = true;
+        if (!Info::get('db')->get("SHOW COLUMNS FROM favorites LIKE 'NOTE'")) {
+            Info::get('db')->exec(
+                "ALTER TABLE favorites
+                 ADD COLUMN NOTE text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci NULL
+                 COMMENT 'Leader note text; NULL = song row'"
+            );
+        }
+    }
+
+    /** Note text from the request: trimmed, CRLF-normalized, at most 2000 characters. */
+    private static function noteTextArg()
+    {
+        $text = str_replace("\r\n", "\n", (string)(self::$args['text'] ?? ''));
+        $text = trim($text);
+        if (function_exists('mb_substr')) {
+            $text = mb_substr($text, 0, 2000, 'UTF-8');
+        }
+        return $text;
+    }
+
+    /** Params: text. Appends a note to the group's playlist (same position rule as a song). */
+    private static function add_favorite_note()
+    {
+        self::ensureFavoriteNotes();
+        $text = self::noteTextArg();
+        if ($text === '') {
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.noteEmpty')]);
+        }
+        $groupId = (int)$_SESSION['curGroupId'];
+        $maxSong  = Info::get('db')->get(
+            "SELECT IFNULL(MAX(sort_order), 0) AS m FROM favorites WHERE groupId = {$groupId}"
+        );
+        $maxMedia = Info::get('db')->get(
+            "SELECT IFNULL(MAX(sort_order), 0) AS m FROM tech_media_favorites WHERE group_id = {$groupId}"
+        );
+        $sortOrder = max((int)$maxSong['m'], (int)$maxMedia['m']) + 1;
+
+        $key  = 'N' . bin2hex(random_bytes(7));
+        $note = mysqli_real_escape_string(Info::get('dbh'), $text);
+        Info::get('db')->exec(
+            "INSERT INTO favorites (groupId, SONGID, sort_order, NOTE)
+             VALUES ({$groupId}, '{$key}', {$sortOrder}, '{$note}')"
+        );
+        self::updateSocket();
+        return json_encode(['status' => 'success', 'fid' => Info::get('db')->insert_id()]);
+    }
+
+    /** Params: id (favorites.ID of a note), text. */
+    private static function update_favorite_note()
+    {
+        self::ensureFavoriteNotes();
+        $id   = (int)(self::$args['id'] ?? 0);
+        $text = self::noteTextArg();
+        if ($text === '') {
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.noteEmpty')]);
+        }
+        $groupId = (int)$_SESSION['curGroupId'];
+        $note    = mysqli_real_escape_string(Info::get('dbh'), $text);
+        Info::get('db')->exec(
+            "UPDATE favorites SET NOTE = '{$note}'
+             WHERE ID = {$id} AND groupId = {$groupId} AND NOTE IS NOT NULL"
+        );
+        self::updateSocket();
+        return json_encode(['status' => 'success']);
+    }
+
     private static function add_to_piano_favorites()
     {
         Info::get('db')->exec("insert into piano_favorites (groupId, SONGID) values ({$_SESSION['curGroupId']},".mysqli_escape_string(Info::get('dbh'), self::$args['id']).")");
@@ -182,6 +264,7 @@ trait Ajax_Common
         );
         $dir = ($settings && $settings['favorites_order'] === 'latest_top') ? 'DESC' : 'ASC';
 
+        self::ensureFavoriteNotes();
         $langs = self::getLanguages();
         $hasTextFields = '';
         foreach ($langs as $lang) {
@@ -194,6 +277,7 @@ trait Ajax_Common
                        concat(l.num, ' - ', l.name) as dispName,
                        concat('/images/', l.LISTID, '/', l.num, '.jpg') as imageName,
                        f.SONGID,
+                       f.NOTE,
                        n.LIST_NAME as bookName
                        {$hasTextFields}
                 FROM favorites f
@@ -207,9 +291,10 @@ trait Ajax_Common
 
     /**
      * Persist the dragged order of the group's playlist (leader page and
-     * tech console). Args: items — [{type: 'song'|'image'|'video'|'audio',
-     * fid}, ...] top-to-bottom AS DISPLAYED. Songs live in `favorites`,
-     * media in `tech_media_favorites`; both share one sort_order sequence.
+     * tech console). Args: items — [{type: 'song'|'note'|'image'|'video'|'audio',
+     * fid}, ...] top-to-bottom AS DISPLAYED. Songs and leader notes live in
+     * `favorites`, media in `tech_media_favorites`; all share one sort_order
+     * sequence.
      * With favorites_order = 'latest_top' the display direction is DESC,
      * so positions are assigned in reverse — the stored sequence keeps the
      * "a new item gets MAX+1" contract of add_to_favorites in both modes.
@@ -233,7 +318,7 @@ trait Ajax_Common
             $fid  = (int)(isset($it['fid']) ? $it['fid'] : 0);
             $type = isset($it['type']) ? (string)$it['type'] : 'song';
             if ($fid > 0) {
-                if ($type === 'song') {
+                if ($type === 'song' || $type === 'note') {
                     $db->exec("UPDATE favorites SET sort_order = {$pos} WHERE ID = {$fid} AND groupId = {$groupId}");
                 } else {
                     $db->exec("UPDATE tech_media_favorites SET sort_order = {$pos} WHERE id = {$fid} AND group_id = {$groupId}");
@@ -254,6 +339,7 @@ trait Ajax_Common
         );
         $order = ($settings && $settings['favorites_order'] === 'latest_top') ? 'DESC' : 'ASC';
 
+        self::ensureFavoriteNotes();
         $langs = self::getLanguages();
         $hasTextFields = '';
         $mediaHasTextFields = '';
@@ -264,12 +350,13 @@ trait Ajax_Common
             $mediaHasTextFields .= ", 0 AS {$alias}";
         }
 
-        // Songs from favorites
+        // Songs (and leader notes) from favorites
         $songs = SongImages::withImageSrc(Info::get('db')->select(
             "SELECT
              f.ID           AS FID,
              f.sort_order   AS sort_order,
-             'song'         AS itemType,
+             IF(f.NOTE IS NULL, 'song', 'note') AS itemType,
+             f.NOTE         AS NOTE,
              l.*,
              CONCAT(l.NUM, ' - ', l.NAME)                    AS dispName,
              n.LIST_NAME                                      AS bookName,
@@ -290,6 +377,7 @@ trait Ajax_Common
              id             AS FID,
              sort_order     AS sort_order,
              media_type     AS itemType,
+             NULL           AS NOTE,
              NULL AS ID, NULL AS LISTID, NULL AS NUM, name AS NAME,
              name           AS dispName,
              NULL           AS bookName,
@@ -343,7 +431,8 @@ trait Ajax_Common
 
     private static function delete_favorite_item()
     {
-        $sql = "DELETE FROM favorites WHERE ID=".self::$args['id'];
+        $sql = "DELETE FROM favorites WHERE ID=" . (int)self::$args['id']
+             . " AND groupId=" . (int)$_SESSION['curGroupId'];
         Info::get('db')->exec($sql);
         self::updateSocket();
         return '';
