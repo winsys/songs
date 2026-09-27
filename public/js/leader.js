@@ -362,9 +362,12 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         };
 
         // Same as above: the server decides whether any screen is cleared.
+        // keep_notes: the musicians' notes stay on until the leader switches
+        // them off (second click on the row) or on for another song.
         $http({ method: "POST", url: "/ajax", data: {
             command: 'clear_image',
-            channel: 'leader'
+            channel: 'leader',
+            keep_notes: 1
         }}).then(exitLocal, exitLocal);
         observerOff();
     }
@@ -879,8 +882,9 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         observerSend(listItem.SONGID || listItem.ID, -1, vmSelectedCodes());
     };
 
-    // Close = the leader's song toggle-off: notes off, screen cleared
-    // server-side (playing media survives; NULL target = screens untouched).
+    // Close: screen cleared server-side (playing media survives; NULL target
+    // = screens untouched). The musicians' notes stay on (keep_notes) — only
+    // a second click on the song row or another song switches them.
     $scope.vmClose = function() {
         $scope.verseMode.open = false;
         $scope.verseMode.activeIdx = null;
@@ -888,7 +892,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         $scope.verseMode.renderText = null;
         exitFs();
         $http({ method: "POST", url: "/ajax",
-                data: { command: 'clear_image', channel: 'leader' } });
+                data: { command: 'clear_image', channel: 'leader', keep_notes: 1 } });
         observerOff();
     };
 
@@ -991,15 +995,13 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
     window.addEventListener('orientationchange', leaderScheduleRefit);
 
     // The song currently ON in the group (current_notes) left the list:
-    // switch it off like the leader's own song toggle-off — notes off for
-    // the musicians, the leader-channel screen cleared (playing media
-    // survives server-side), observers told. Without this the tech console
-    // kept showing the verses of a song that is no longer on the list.
+    // switch its notes off (notes_only — screens untouched). Without this
+    // the tech console kept showing the verses of a song that is no longer
+    // on the list.
     function songOffIfActive(imageName) {
         if (!$scope.activeSongImage || imageName !== $scope.activeSongImage) return;
         $scope.activeSongImage = '';
-        $http({ method: "POST", url: "/ajax", data: { command: 'clear_image', channel: 'leader' } });
-        observerOff();
+        $http({ method: "POST", url: "/ajax", data: { command: 'clear_image', channel: 'leader', notes_only: 1 } });
     }
 
     function favoriteByFid(fid) {
@@ -1008,6 +1010,83 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
         }
         return null;
     }
+
+    // Click on a song row: the musicians' notes of this song on / off
+    // (notes_only — no screen change; the tech console follows via
+    // leader_song_changed / notes_update). Another song's click switches
+    // the notes over to it.
+    $scope.toggleSongNotes = function(listItem) {
+        if (!listItem || $scope.isNote(listItem)) return;
+        if (favSwipe) favSwipe.close();
+        if ($scope.activeSongImage && listItem.imageName === $scope.activeSongImage) {
+            $scope.activeSongImage = '';
+            $http({ method: "POST", url: "/ajax",
+                    data: { command: 'clear_image', channel: 'leader', notes_only: 1 } });
+            return;
+        }
+        $scope.activeSongImage = listItem.imageName;
+        $http({ method: "POST", url: "/ajax",
+                data: { command: 'set_image',
+                        channel: 'leader',
+                        notes_only: 1,
+                        image_num: listItem.NUM,
+                        list_id: listItem.LISTID,
+                        song_id: listItem.SONGID } });
+    };
+
+    // ---- «Сообщение музыкантам» --------------------------------------
+    // send_musician_message -> WS musician_message to the own group: the
+    // musician pages slide the text in over the notes (MSG_SLIDE_MS in,
+    // MSG_HOLD_MS shown, MSG_SLIDE_MS out — same constants in musician.js);
+    // every leader page of the group shows "message on screen" meanwhile.
+    var MSG_SLIDE_MS = 600, MSG_HOLD_MS = 5000;
+    var msgLiveTimer = null;
+    $scope.musicianMsg = { text: '', sending: false, error: '', live: false };
+
+    function musicianMsgLive() {
+        $scope.musicianMsg.live = true;
+        if (msgLiveTimer) $timeout.cancel(msgLiveTimer);
+        msgLiveTimer = $timeout(function() {
+            msgLiveTimer = null;
+            $scope.musicianMsg.live = false;
+        }, 2 * MSG_SLIDE_MS + MSG_HOLD_MS);
+    }
+
+    $scope.openMusicianMsg = function() {
+        $scope.musicianMsg.error = '';
+        $scope.musicianMsg.sending = false;
+        jQuery('#musician-msg-dialog .modal').modal('show');
+    };
+    jQuery(document).on('shown.bs.modal', '#musician-msg-dialog .modal', function () {
+        var ta = document.getElementById('musicianMsgText');
+        if (ta) { ta.focus(); ta.select(); }
+    });
+    $scope.sendMusicianMsg = function() {
+        var m = $scope.musicianMsg;
+        var text = (m.text || '').trim();
+        if (!text || m.sending) return;
+        m.sending = true;
+        m.error = '';
+        $http({ method: 'POST', url: '/ajax', data: { command: 'send_musician_message', text: text } }).then(function(r) {
+            m.sending = false;
+            if (!r.data || r.data.status !== 'success') {
+                m.error = (r.data && r.data.message) || window.t('common.unknownError');
+                return;
+            }
+            jQuery('#musician-msg-dialog .modal').modal('hide');
+            musicianMsgLive();
+        }, function(e) {
+            m.sending = false;
+            m.error = 'HTTP ' + e.status;
+        });
+    };
+    // Enter sends, Shift+Enter is a line break.
+    $scope.musicianMsgKeydown = function(e) {
+        if (e.keyCode === 13 && !e.shiftKey) {
+            e.preventDefault();
+            $scope.sendMusicianMsg();
+        }
+    };
 
     $scope.clearFavorites = function(){
         if($scope.favorites.length > 0)
@@ -1291,6 +1370,13 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
                 // and its verse choice (inside a digest: the WS callback runs
                 // outside Angular).
                 $scope.$applyAsync(function() { syncFromScreen(); });
+            } else if (data.type === 'notes_update') {
+                // Notes switched without a screen change (a row click here or
+                // on another leader device, the tech console's song toggle):
+                // refresh the "on" highlight of the list.
+                $scope.$applyAsync(function() { syncFromScreen(); });
+            } else if (data.type === 'musician_message') {
+                $scope.$applyAsync(musicianMsgLive);
             } else if (data.type === 'tech_langs_changed') {
                 // The console's language toggles — the verse mode follows.
                 $scope.$applyAsync(function() {

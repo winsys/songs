@@ -28,7 +28,15 @@ app.controller('Settings', function ($scope, $http, $sce)
         sermon_msg_base_color:   '#6a1b9a',
         slide_bg_color:          '#1a237e',
         ui_lang:                 'ru',
-        leader_text_multilang:   0
+        leader_text_multilang:   0,
+        // «Сообщение музыкантам» overlay (transparency in %, 100 = invisible)
+        musician_msg_bg_color:          '#FFFFFF',
+        musician_msg_bg_transparency:   98,
+        musician_msg_height:            35,
+        musician_msg_font:              'Arial',
+        musician_msg_text_color:        '#E65100',
+        musician_msg_text_transparency: 80,
+        musician_msg_font_max:          160
     };
 
     // ui_lang at the time settings were loaded; used to decide whether to
@@ -162,6 +170,10 @@ app.controller('Settings', function ($scope, $http, $sce)
                     $scope.settings.sermon_notes_font_size = parseInt($scope.settings.sermon_notes_font_size, 10) || 100;
                     $scope.settings.sermon_scale_chips = parseInt($scope.settings.sermon_scale_chips) || 0;
                     $scope.settings.leader_text_multilang = parseInt($scope.settings.leader_text_multilang) || 0;
+                    ['musician_msg_bg_transparency', 'musician_msg_height',
+                     'musician_msg_text_transparency', 'musician_msg_font_max'].forEach(function(k) {
+                        $scope.settings[k] = parseInt($scope.settings[k], 10) || 0;
+                    });
                     if (!$scope.settings.ui_lang) $scope.settings.ui_lang = 'ru';
                     _initialUiLang = $scope.settings.ui_lang;
                     _settingsLoaded = true;
@@ -278,7 +290,17 @@ app.controller('Settings', function ($scope, $http, $sce)
         maindisplay: true,
         streaming:   true,
         sermon:      true,
-        leaderscreen: true
+        leaderscreen: true,
+        musicianmsg:  true
+    };
+
+    // '#RRGGBB' + transparency in percent -> rgba() (musician message preview;
+    // the same conversion as musician.js).
+    $scope.mmRgba = function(hex, transparency) {
+        var m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(String(hex || ''));
+        if (!m) return 'transparent';
+        var a = (100 - Math.max(0, Math.min(100, parseInt(transparency, 10) || 0))) / 100;
+        return 'rgba(' + parseInt(m[1], 16) + ',' + parseInt(m[2], 16) + ',' + parseInt(m[3], 16) + ',' + a + ')';
     };
     $scope.toggle = function(key) {
         $scope.collapsed[key] = !$scope.collapsed[key];

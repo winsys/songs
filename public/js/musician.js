@@ -189,7 +189,8 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
     };
 
     $scope.toggleFullscreen = function() {
-        var el = document.getElementById('img0');
+        // The wrapper, not the <img>: the message overlay must stay visible.
+        var el = document.getElementById('musFs');
         var fsEl = document.fullscreenElement || document.webkitFullscreenElement;
         if (!fsEl) {
             var req = el.requestFullscreen || el.webkitRequestFullscreen;
@@ -217,6 +218,87 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
     document.addEventListener('fullscreenchange', onFsChange);
     document.addEventListener('webkitfullscreenchange', onFsChange);
 
+    // ── «Сообщение музыкантам» ─────────────────────────────────
+    // Slide in (MSG_SLIDE_MS), stay MSG_HOLD_MS, slide out. The leader page
+    // shows "message on screen" for the same total time. A new message while
+    // one is shown replaces its text and restarts the hold.
+    var MSG_SLIDE_MS = 600, MSG_HOLD_MS = 5000;
+    var msgTimers = [];
+    $scope.msg = { on: false, in: false, text: '', boxStyle: {}, textStyle: {} };
+
+    function clearMsgTimers() {
+        msgTimers.forEach(function(t) { $timeout.cancel(t); });
+        msgTimers = [];
+    }
+
+    // '#RRGGBB' + transparency in percent (100 = invisible) -> rgba()
+    function rgba(hex, transparency) {
+        var m = /^#?([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})$/i.exec(String(hex || ''));
+        if (!m) m = ['', 'ff', 'ff', 'ff'];
+        var t = Math.max(0, Math.min(100, parseInt(transparency, 10) || 0));
+        var a = Math.round((100 - t)) / 100;
+        return 'rgba(' + parseInt(m[1], 16) + ',' + parseInt(m[2], 16) + ',' + parseInt(m[3], 16) + ',' + a + ')';
+    }
+
+    // Largest font size (<= maxPx) at which the text fits the box — the
+    // streaming screen's "maximum enlargement" rule, by bisection. Widths
+    // are floored and compared with 1px tolerance (vw/vh boxes are
+    // fractional, scrollWidth is an integer).
+    function fitMsgText(maxPx) {
+        var box = document.getElementById('musMsg');
+        var el  = document.getElementById('musMsgText');
+        if (!box || !el) return;
+        var cs = getComputedStyle(box);
+        var availW = Math.floor(box.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight));
+        var availH = Math.floor(box.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom));
+        el.style.maxHeight = 'none';
+        var lo = 8, hi = Math.max(8, maxPx), best = lo;
+        while (lo <= hi) {
+            var mid = (lo + hi) >> 1;
+            el.style.fontSize = mid + 'px';
+            if (el.scrollHeight <= availH + 1 && el.scrollWidth <= availW + 1) {
+                best = mid;
+                lo = mid + 1;
+            } else {
+                hi = mid - 1;
+            }
+        }
+        el.style.fontSize = best + 'px';
+        el.style.maxHeight = '';
+    }
+
+    function showMusicianMessage(d) {
+        if (!d || !d.text) return;
+        var st = d.style || {};
+        var wasShown = $scope.msg.in;
+        clearMsgTimers();
+        $scope.msg.text = d.text;
+        $scope.msg.boxStyle = {
+            height: (parseInt(st.musician_msg_height, 10) || 35) + 'vh',
+            'background-color': rgba(st.musician_msg_bg_color || '#FFFFFF', st.musician_msg_bg_transparency != null ? st.musician_msg_bg_transparency : 98)
+        };
+        $scope.msg.textStyle = {
+            color: rgba(st.musician_msg_text_color || '#E65100', st.musician_msg_text_transparency != null ? st.musician_msg_text_transparency : 80),
+            'font-family': st.musician_msg_font || 'Arial'
+        };
+        $scope.msg.on = true;
+        // After the digest has put the text and the box height into the DOM:
+        // size the text while the box is still below the screen, then slide.
+        msgTimers.push($timeout(function() {
+            fitMsgText(parseInt(st.musician_msg_font_max, 10) || 160);
+            if (!wasShown) {
+                // one frame at the start position so the transition runs
+                requestAnimationFrame(function() {
+                    $scope.$applyAsync(function() { $scope.msg.in = true; });
+                });
+            }
+            msgTimers.push($timeout(function() {
+                $scope.msg.in = false;
+                msgTimers.push($timeout(function() { $scope.msg.on = false; }, MSG_SLIDE_MS));
+            }, (wasShown ? 0 : MSG_SLIDE_MS) + MSG_HOLD_MS));
+        }, 0));
+    }
+
     function initSocket() {
         // [SECURITY] Use authenticated WebSocket connection
         // URL is auto-detected (wss:// for HTTPS, ws:// for HTTP)
@@ -227,6 +309,8 @@ app.controller('Musician', ['$scope', '$http', '$timeout', function ($scope, $ht
                     $scope.$apply(function() {
                         $scope.checkNotes();
                     });
+                } else if (data.type === 'musician_message') {
+                    $scope.$applyAsync(function() { showMusicianMessage(data.data); });
                 }
             },
             null,
