@@ -123,6 +123,7 @@ CREATE TABLE IF NOT EXISTS `favorites` (
   `ID` int(11) NOT NULL AUTO_INCREMENT,
   `SONGID` varchar(15) NOT NULL,
   `sort_order` int(11) NOT NULL DEFAULT '0',
+  `NOTE` text CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci COMMENT 'Leader note text; NULL = song row',
   PRIMARY KEY (`ID`),
   UNIQUE KEY `Index 1` (`groupId`,`SONGID`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8083 DEFAULT CHARSET=utf8;

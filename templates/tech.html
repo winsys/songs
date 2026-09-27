@@ -871,7 +871,32 @@
     }
     .drag-handle:active { cursor: grabbing; color: #17212B; }
     .fav-row.drag-active .song-name,
-    .fav-row.drag-active .media-fav-card { background: #E6F1F4; box-shadow: 0 6px 18px rgba(23,33,43,0.25); z-index: 10; }
+    .fav-row.drag-active .media-fav-card,
+    .fav-row.drag-active .note-fav-card { background: #E6F1F4; box-shadow: 0 6px 18px rgba(23,33,43,0.25); z-index: 10; }
+    /* Leader note: same row rhythm as a song, amber text, not clickable */
+    .note-fav-card {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-height: 44px;
+        padding: 4px 8px 4px 0;
+        border-left: 3px solid #E0A526;
+        background: #FFFBF0;
+        position: relative;
+        user-select: none;
+    }
+    .nfc-icon { width: 28px; text-align: center; font-size: 16px; flex-shrink: 0; }
+    .nfc-text {
+        flex: 1 1 0;
+        min-width: 0;
+        font-size: 14px;
+        font-weight: 600;
+        font-style: italic;
+        color: #8A5A00;
+        line-height: 1.3;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+    }
     body.drag-reorder-busy { user-select: none; -webkit-user-select: none; }
 
     .btn-edit, .song-del, .mfc-del, .mfc-wallpaper-btn {
@@ -1112,7 +1137,7 @@
                         title="<?php echo T::s('sermon.requestAccessTitle'); ?>"
                         aria-label="<?php echo T::s('sermon.requestAccessTitle'); ?>">+</button>
                 <button class="cx-btn cx-btn-danger-solid btn-disable-screen"
-                        ng-show="externalContentActive"
+                        ng-show="screenHasContent"
                         ng-click="disableExternalDisplay()">
                     <?php echo T::s('tech.button.disableScreen'); ?>
                 </button>
@@ -1193,13 +1218,13 @@
                         title="<?php echo T::s('tech.songs.addNew'); ?>{{ currentListName() ? ': ' + currentListName() : '' }}">
                     <?php echo T::s('tech.songs.addShort'); ?>
                 </button>
-                <button class="cx-btn"
+                <button class="cx-btn tc-pop-toggle"
                         ng-click="toggleMediaAddPanel()"
                         ng-class="showMediaAddPanel ? 'is-active' : ''"
                         title="<?php echo T::s('tech.button.photosMedia'); ?>">
                     <?php echo T::s('tech.button.mediaShort'); ?>
                 </button>
-                <button class="cx-btn"
+                <button class="cx-btn tc-pop-toggle"
                         ng-click="toggleWallpapersPanel()"
                         ng-class="showWallpapersPanel ? 'is-active' : ''"
                         title="<?php echo T::s('tech.button.standardWallpapers'); ?>">
@@ -1465,6 +1490,20 @@
                                      ng-src="{{ listItem.imageSrc || listItem.imageName }}" />
                                 <span class="song-image song-image-empty" aria-hidden="true"
                                       ng-if="(listItem.imageSrc || '').slice(-4) === '?v=0'">♪</span>
+                            </div>
+
+                            <!-- ── Leader note (free text between the songs; edited on
+                                 the leader page, never shown on screens) ── -->
+                            <div ng-if="listItem.itemType === 'note'" class="note-fav-card">
+                                <button class="drag-handle" type="button"
+                                        title="<?php echo T::s('common.dragReorder'); ?>"
+                                        aria-label="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
+                                <span class="nfc-icon" aria-hidden="true">📝</span>
+                                <div class="nfc-text">{{ listItem.NOTE }}</div>
+                                <button class="mfc-del"
+                                        ng-click="$event.stopPropagation(); deleteFavoriteItem(listItem.FID, listItem.NOTE, 'note')"
+                                        title="<?php echo T::s('tech.tooltip.removeFromPlaylist'); ?>"
+                                        aria-label="<?php echo T::s('tech.tooltip.removeFromPlaylist'); ?>">✕</button>
                             </div>
 
                             <!-- ── Media row (image, video or audio) ── -->
@@ -1943,5 +1982,5 @@
 <script src="/js/cx_scroll.min.js?v=1" type="text/javascript"></script>
 <script src="/js/pdf_page_image.min.js?v=1" type="text/javascript"></script>
 <script src="/js/song_editor.min.js?v=1" type="text/javascript"></script>
-<script src="/js/tech.min.js?v=56" type="text/javascript"></script>
+<script src="/js/tech.min.js?v=57" type="text/javascript"></script>
 

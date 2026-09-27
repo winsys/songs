@@ -847,6 +847,78 @@
         padding: 10px 16px 12px; flex-shrink: 0;
         border-top: 1px solid #f0f2f5;
     }
+
+    /* ---- "＋" menu: new song / note ---------------------------- */
+    .ld-add-wrap { position: relative; flex-shrink: 0; }
+    .ld-add.is-active { border-color: #176B87; color: #176B87; background: #E6F1F4; }
+    .ld-add-menu {
+        position: absolute;
+        top: calc(100% + 6px);
+        right: 0;
+        z-index: 120;
+        width: 260px;
+        max-width: calc(100vw - 24px);
+        padding: 6px;
+        background: #fff;
+        border: 1px solid #DCE3E8;
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(23,33,43,0.22);
+    }
+    .ld-add-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        min-height: 52px;
+        padding: 6px 10px;
+        border: none;
+        border-radius: 6px;
+        background: transparent;
+        text-align: left;
+        font-size: 15px;
+        font-weight: 600;
+        color: #17212B;
+        cursor: pointer;
+    }
+    .ld-add-item:hover, .ld-add-item:active { background: #E6F1F4; }
+    .ld-add-ico { font-size: 20px; width: 26px; text-align: center; flex-shrink: 0; }
+    .ld-add-txt { display: flex; flex-direction: column; min-width: 0; }
+    .ld-add-sub { font-size: 12px; font-weight: 400; color: #6E7883; line-height: 1.3; overflow-wrap: anywhere; }
+    @media (min-width: 900px) {
+        .ld-add-wrap .ld-add { width: 100%; }
+        .ld-add-menu { left: 0; right: auto; width: 100%; }
+    }
+
+    /* ---- Leader note row: the song title's type, amber colour ---- */
+    .prod-list-item.ld-note {
+        min-height: 56px;
+        background: #FFFBF0;
+        box-shadow: inset 3px 0 0 #E0A526;
+    }
+    .ld-note-ico { display: block; font-size: 15px; text-align: center; }
+    .ld-note-text {
+        display: block;
+        font-size: 15px;
+        font-weight: 600;
+        font-style: italic;
+        color: #8A5A00;
+        line-height: 1.3;
+        white-space: pre-line;
+        overflow-wrap: anywhere;
+    }
+    @media (min-width: 541px) { .ld-note-text { font-size: 16px; } }
+    .prod-list-item.ld-note.drag-active { background: #FFF3D6; }
+
+    /* ---- Note dialog -------------------------------------------- */
+    #note-dialog .note-dlg-head { padding: 14px 20px; border-bottom: 1px solid #f0f2f5; }
+    #note-dialog .note-dlg-head .modal-title { font-size: 16px; font-weight: 600; color: #17212B; }
+    #note-dialog .note-dlg-body { padding: 14px 20px; }
+    #note-dialog textarea { font-size: 16px; resize: vertical; min-height: 110px; }
+    .note-dlg-hint { margin-top: 6px; font-size: 12px; color: #6E7883; }
+    .note-dlg-error { margin-top: 6px; font-size: 13px; color: #C4473A; }
+    #note-dialog .note-dlg-foot { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 20px; border-top: 1px solid #f0f2f5; }
+    #note-dialog .note-dlg-foot::before,
+    #note-dialog .note-dlg-foot::after { display: none; }
 </style>
 
 <div ng-controller="Leader" class="cx-page">
@@ -928,11 +1000,33 @@
                         title="<?php echo T::s('leader.button.showAll'); ?>{{ currentListName() ? ': ' + currentListName() : '' }}">
                     <?php echo T::s('leader.button.allSongs'); ?>
                 </button>
-                <button class="cx-btn ld-add" ng-click="addNewSong()"
-                        title="<?php echo T::s('tech.songs.addNew'); ?>{{ currentListName() ? ': ' + currentListName() : '' }}"
-                        aria-label="<?php echo T::s('tech.songs.addNew'); ?>">
-                    <span class="ld-full"><?php echo T::s('tech.songs.addShort'); ?></span><span class="ld-short">＋</span>
-                </button>
+                <!-- "＋": a small menu — a new song in the selected collection,
+                     or a note (free text between the songs of the list) -->
+                <div class="ld-add-wrap">
+                    <button class="cx-btn ld-add" ng-click="toggleAddMenu()"
+                            ng-class="addMenu.open ? 'is-active' : ''"
+                            aria-haspopup="true" aria-expanded="{{ addMenu.open }}"
+                            title="<?php echo T::s('leader.add.menuTitle'); ?>"
+                            aria-label="<?php echo T::s('leader.add.menuTitle'); ?>">
+                        <span class="ld-full"><?php echo T::s('tech.songs.addShort'); ?></span><span class="ld-short">＋</span>
+                    </button>
+                    <div class="ld-add-menu" ng-show="addMenu.open" role="menu">
+                        <button type="button" class="ld-add-item" role="menuitem" ng-click="addMenuSong()">
+                            <span class="ld-add-ico" aria-hidden="true">🎵</span>
+                            <span class="ld-add-txt">
+                                <span><?php echo T::s('leader.add.song'); ?></span>
+                                <span class="ld-add-sub" ng-if="currentListName()">{{ currentListName() }}</span>
+                            </span>
+                        </button>
+                        <button type="button" class="ld-add-item" role="menuitem" ng-click="addMenuNote()">
+                            <span class="ld-add-ico" aria-hidden="true">📝</span>
+                            <span class="ld-add-txt">
+                                <span><?php echo T::s('leader.add.note'); ?></span>
+                                <span class="ld-add-sub"><?php echo T::s('leader.add.noteHint'); ?></span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
             </div>
 
             <div class="ld-search">
@@ -999,7 +1093,7 @@
             <div class="ld-list-head">
                 <span class="ld-h-default"><?php echo T::s('leader.section.selected'); ?></span>
                 <span class="ld-h-large"><?php echo T::s('leader.section.order'); ?></span>
-                <span class="ld-count" ng-if="favorites.length > 0">{{ favorites.length }}</span>
+                <span class="ld-count" ng-if="songCount() > 0">{{ songCount() }}</span>
                 <span class="cx-spacer"></span>
                 <button class="cx-btn cx-btn-danger btn-clear" ng-if="favorites.length > 0" ng-click="clearFavorites()">
                     <?php echo T::s('leader.button.clear'); ?>
@@ -1028,7 +1122,24 @@
                     <button class="swipe-action swipe-action-r" type="button" tabindex="-1"
                             ng-click="deleteFavoriteNow(listItem.FID)"><?php echo T::s('leader.button.delete'); ?></button>
 
+                    <!-- Leader note: free text between the songs (edit / delete via
+                         the swipe tray, ✏️ on desktop; moved by the handle like a song) -->
+                    <div class="prod-list-item ld-note" ng-if="isNote(listItem)">
+                        <button class="drag-handle" type="button"
+                                title="<?php echo T::s('common.dragReorder'); ?>"
+                                aria-label="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
+                        <span class="ld-seq ld-note-ico" aria-hidden="true">📝</span>
+                        <span class="ld-info">
+                            <span class="ld-note-text">{{ listItem.NOTE }}</span>
+                        </span>
+                        <div class="song-text-btn ld-edit-btn" role="button"
+                             ng-click="editFavoriteRow(listItem)"
+                             title="<?php echo T::s('leader.note.edit'); ?>"
+                             aria-label="<?php echo T::s('leader.note.edit'); ?>">✏️</div>
+                    </div>
+
                     <div class="prod-list-item"
+                         ng-if="!isNote(listItem)"
                          ng-class="{'song-on': activeSongImage && listItem.imageName === activeSongImage}">
 
                         <!-- Drag handle: reorder the list (drag_reorder.js) -->
@@ -1036,7 +1147,7 @@
                                 title="<?php echo T::s('common.dragReorder'); ?>"
                                 aria-label="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
 
-                        <span class="ld-seq" aria-hidden="true">{{ $index + 1 }}</span>
+                        <span class="ld-seq" aria-hidden="true">{{ songSeq($index) }}</span>
 
                         <!-- Song info -->
                         <span class="ld-info">
@@ -1128,6 +1239,37 @@
                                 style="background:#fdecea; color:#c0392b; border:1.5px solid #fad7d4;">
                             &nbsp;&nbsp;&nbsp;{{ button.label }}&nbsp;&nbsp;&nbsp;
                         </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================================
+         Modal: leader note (add / edit)
+         ============================================================ -->
+    <div id="note-dialog">
+        <div class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header note-dlg-head">
+                        <h4 class="modal-title" ng-if="!noteEditor.fid"><?php echo T::s('leader.note.newTitle'); ?></h4>
+                        <h4 class="modal-title" ng-if="noteEditor.fid"><?php echo T::s('leader.note.editTitle'); ?></h4>
+                    </div>
+                    <div class="modal-body note-dlg-body">
+                        <textarea id="noteText" class="form-control" rows="4" maxlength="2000"
+                                  ng-model="noteEditor.text"
+                                  ng-keydown="noteKeydown($event)"
+                                  placeholder="<?php echo T::s('leader.note.placeholder'); ?>"></textarea>
+                        <div class="note-dlg-hint"><?php echo T::s('leader.note.hint'); ?></div>
+                        <div class="note-dlg-error" ng-if="noteEditor.error">{{ noteEditor.error }}</div>
+                    </div>
+                    <div class="modal-footer note-dlg-foot">
+                        <button type="button" class="cx-btn" data-dismiss="modal"><?php echo T::s('common.button.cancel'); ?></button>
+                        <button type="button" class="cx-btn cx-btn-primary"
+                                ng-disabled="!(noteEditor.text || '').trim() || noteEditor.saving"
+                                ng-click="saveNote()"><?php echo T::s('common.button.save'); ?></button>
                     </div>
                 </div>
             </div>
@@ -1285,7 +1427,7 @@
 <script src="/js/swipe_delete.min.js?v=2" type="text/javascript"></script>
 <script src="/js/pdf_page_image.min.js?v=1" type="text/javascript"></script>
 <script src="/js/song_editor.min.js?v=1" type="text/javascript"></script>
-<script src="/js/leader.min.js?v=46" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=47" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}

@@ -216,6 +216,29 @@ app.controller('Piano', ['$scope', '$http', 'SongsService', '$timeout', function
         });
     };
 
+    // ---- Drag-n-drop reorder (drag_reorder.js), same as on the leader page ----
+    // The handle drags a row, the array is reordered live, the final order
+    // goes to piano_reorder_favorites (the session list; nothing is shared).
+    var favDrag = (window.createDragReorder && document.querySelector('.favorites-list'))
+        ? window.createDragReorder({
+            container: document.querySelector('.favorites-list'),
+            rowSelector: '.prod-list-item',
+            onMove: function (from, to) {
+                $scope.$apply(function () {
+                    var it = $scope.favorites.splice(from, 1)[0];
+                    $scope.favorites.splice(to, 0, it);
+                });
+            },
+            onDrop: function (moved) {
+                if (!moved) return;
+                $http({ method: 'POST', url: '/ajax', data: {
+                        command: 'piano_reorder_favorites',
+                        ids: $scope.favorites.map(function (f) { return f.FID; })
+                    }}).then(null, function () { $scope.reloadFavorites(); });
+            }
+        })
+        : null;
+
     // ---- Swipe-to-delete (swipe_delete.js), same as on the leader page ----
     // A row swiped sideways uncovers a red "delete" button; that button is
     // the confirmation (deleteFavoriteNow), so no dialog is involved.

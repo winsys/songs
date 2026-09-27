@@ -128,11 +128,11 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.techVideoPlaying   = false;
     var techVideoSrc          = '';
 
-    // ── External display override ─────────────────────────────
-    // True when the main display shows content that did not originate from
-    // this tech's UI (typically a preacher's sermon push). Drives a hidden
-    // override button that clears the screen and notifies the source.
-    $scope.externalContentActive = false;
+    // ── "Disable screen" button ───────────────────────────────
+    // True while the main display shows anything (see screenShowsContent),
+    // whoever put it there. Drives the button that clears the screen and
+    // notifies a preacher's sermon page (disableExternalDisplay).
+    $scope.screenHasContent = false;
 
     // ── Access Request state ──────────────────────────────────
     $scope.currentAccessRequest = null;  // Currently shown access request
@@ -171,6 +171,33 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.messagesMode = function() {
         $scope.pageMode = 'messages';
     };
+
+    // ---- Context-bar popovers (media / wallpapers) ----
+    // They float over the work area, so nothing else hides them: close them
+    // on every mode change (buttons or a state restore), on a press outside
+    // the popover and its toggle buttons, on Escape and when the tab is left.
+    function closeContextPopovers() {
+        $scope.showMediaAddPanel   = false;
+        $scope.showWallpapersPanel = false;
+    }
+    $scope.$watch('pageMode', function (mode, prev) {
+        if (mode !== prev) closeContextPopovers();
+    });
+    function closePopoversAsync() {
+        if (!$scope.showMediaAddPanel && !$scope.showWallpapersPanel) return;
+        $scope.$applyAsync(closeContextPopovers);
+    }
+    document.addEventListener('pointerdown', function (e) {
+        var t = e.target;
+        if (t && t.closest && t.closest('.tc-pop-anchor, .tc-pop-toggle')) return;
+        closePopoversAsync();
+    }, true);
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closePopoversAsync();
+    });
+    document.addEventListener('visibilitychange', function () {
+        if (document.hidden) closePopoversAsync();
+    });
 
     // ==========================================================
     // LANGUAGE TOGGLE (shared between modes)
@@ -577,10 +604,12 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
 
                 // Restore showingSong state after reload
                 var audioStillListed = false;
+                var songStillListed  = false;
                 angular.forEach($scope.favorites, function (item) {
                     if (item.itemType === 'song' &&
                         $scope.showingSong && item.FID === $scope.showingSong.FID) {
                         $scope.showingSong = item;
+                        songStillListed = true;
                     }
                     // Restore activeMediaItem for images and videos
                     if ((item.itemType === 'image' || item.itemType === 'video') &&
@@ -602,6 +631,17 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 if ($scope.activeAudioItem && !audioStillListed) {
                     pauseTechAudio();
                     $scope.activeAudioItem = null;
+                }
+
+                // Selected song vanished from the playlist (list cleared or
+                // the song deleted — here or on the leader page): its verse
+                // list must go too. restoreCurrentState can only SELECT songs
+                // that are in the list, never drop a stale selection.
+                if ($scope.showingSong && !songStillListed) {
+                    $scope.showingSong      = null;
+                    $scope.preparedChapters = [];
+                    $scope.showingChapter   = null;
+                    $scope.selectedChapters = [];
                 }
 
                 // Call callback after favorites are loaded (for state restoration)
@@ -2265,6 +2305,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // [SECURITY] Use authenticated WebSocket connection
     $scope.wsConnected = null; // null = not yet connected, true/false after first connection
     var wsDisconnectTimer = null;
+    var wsWasDown = false;   // a reconnect must re-sync the console
 
     // URL is auto-detected (wss:// for HTTPS, ws:// for HTTP)
     window.createAuthenticatedWebSocket(
@@ -2289,7 +2330,18 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             if (connected) {
                 if (wsDisconnectTimer) { clearTimeout(wsDisconnectTimer); wsDisconnectTimer = null; }
                 $scope.$applyAsync(function() { $scope.wsConnected = true; });
+                // Back after a drop (tablet asleep, network hiccup): the
+                // update_needed events of the gap are lost — re-read the
+                // playlist and the screen state, or the console (verse list,
+                // "disable screen" button) stays stale until the next event.
+                if (wsWasDown) {
+                    wsWasDown = false;
+                    if (!(favDrag && favDrag.isDragging())) {
+                        $scope.$applyAsync(function() { $scope.reloadFavorites(restoreCurrentState); });
+                    }
+                }
             } else {
+                wsWasDown = true;
                 // Show banner only if disconnect lasts more than 5 seconds
                 wsDisconnectTimer = setTimeout(function() {
                     wsDisconnectTimer = null;
@@ -2908,13 +2960,11 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 }
 
                 // Restore image if state.image is a media item (not a song image)
-                var mediaFromFavorites = false;
                 if (state.image && !state.image.match(/\/images\/\d+\/\d+\.jpg/)) {
                     // This is a media image, not a song image
                     for (var i = 0; i < $scope.favorites.length; i++) {
                         if ($scope.favorites[i].itemType === 'image' && $scope.favorites[i].src === state.image) {
                             $scope.activeMediaItem = $scope.favorites[i];
-                            mediaFromFavorites = true;
                             break;
                         }
                     }
@@ -2926,7 +2976,6 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     for (var i = 0; i < $scope.favorites.length; i++) {
                         if ($scope.favorites[i].itemType === 'video' && $scope.favorites[i].src === state.video_src) {
                             $scope.activeMediaItem = $scope.favorites[i];
-                            mediaFromFavorites = true;
                             break;
                         }
                     }
@@ -2936,42 +2985,30 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     }
                 }
 
-                // Detect content that didn't originate from this technician's UI
-                // (typical case: preacher pushed a sermon item to this display).
-                $scope.externalContentActive = computeExternalContent(state, mediaFromFavorites);
+                // "Disable screen" is offered whenever the main display shows
+                // anything, whoever put it there (this console, the leader,
+                // a preacher's sermon or quote).
+                $scope.screenHasContent = screenShowsContent(state);
             }
         );
     }
 
-    // External = something is on the main display that this tech's UI did not
-    // produce. Sermon-only markers (__slide__, /sermon_images/, sermon_videos,
-    // YouTube videos) are unconditional. Bible/message/song/media count as
-    // external only when no local anchor matched during restoreCurrentState.
-    function computeExternalContent(state, mediaFromFavorites) {
-        var hasContent = !!(state.image || state.text || state.video_src);
-        if (!hasContent) return false;
-
-        if (state.image === '__slide__') return true;
-        if (state.image && state.image.indexOf('/sermon_images/') === 0) return true;
-        if (state.video_src && state.video_src.indexOf('/sermon_videos/') === 0) return true;
-        if (state.video_src && /youtube\.com|youtu\.be/.test(state.video_src)) return true;
-
-        if (state.text && state.song_name) {
-            if (state.song_name.match(/\d+:\d+/)) {
-                return !$scope.showingBibleVerse;
-            }
-            return !$scope.showingMessagePara;
-        }
-
-        if (state.image && state.image.match(/\/images\/\d+\/.+\.jpg/)) {
-            return !$scope.showingSong;
-        }
-
-        if (state.image || state.video_src) {
-            return !mediaFromFavorites;
-        }
-
-        return false;
+    // True when the main display (text_layout.html) renders something for
+    // this row: a video, a slide, an overlay image or text. A song row
+    // without verse text is the musicians' notes only — the screen is blank.
+    // It used to guess whether the content came from THIS console (matching
+    // Bible verse / message paragraph / media against local selections); the
+    // guess failed e.g. for a preacher's quote from the message the console
+    // had loaded (image '__bible__' never matched the message branch), so the
+    // button went missing while a quote was on the screen.
+    function screenShowsContent(state) {
+        if ((state.video_src || '').trim()) return true;
+        var img = (state.image || '').trim();
+        if (img === '__slide__') return true;
+        if (img.indexOf('/sermon_images/') === 0 ||
+            img.indexOf('/sermon_slides/') === 0 ||
+            img.indexOf('/tech_media/')    === 0) return true;
+        return !!(state.text || '').trim();
     }
 
     // Tech-side override that clears whatever is currently shown on this
@@ -2980,7 +3017,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // chip reset, mirroring a second click on the displayed element.
     $scope.disableExternalDisplay = function () {
         $http({ method: 'POST', url: '/ajax', data: { command: 'disable_external_display' } });
-        $scope.externalContentActive = false;
+        $scope.screenHasContent = false;
         // The screen goes blank: drop every active-content highlight on the
         // console. showingSong stays — the musician's notes survive the clear.
         $scope.showingChapter      = null;
