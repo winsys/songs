@@ -513,6 +513,11 @@ trait Ajax_Common
         if (!empty(self::$args['notes_only'])) {
             return '';
         }
+        // «Отключать слова с главного экрана» off: the leader's song open
+        // leaves the main screen to the technicians.
+        if ($channel === 'leader' && !self::leaderClearsScreen($userId)) {
+            return '';
+        }
 
         if ($targetGroupId === null) {
             return ''; // broadcast disabled for this channel — leave screens alone
@@ -698,6 +703,11 @@ trait Ajax_Common
 
         // notes_only: the leader's row-click toggle-off — no screen change.
         if (!empty(self::$args['notes_only'])) {
+            return '';
+        }
+        // «Отключать слова с главного экрана» off: closing a leader view does
+        // not clear the main screen (the technicians manage it).
+        if ($channel === 'leader' && !self::leaderClearsScreen($userId)) {
             return '';
         }
 
@@ -971,6 +981,8 @@ trait Ajax_Common
         // Musician message style: stored as JSON, exposed as flat fields.
         $settings = array_merge($settings, self::loadMusicianMsgStyle($userId));
         unset($settings['musician_msg_style']);
+        $settings['leader_clear_screen'] = isset($settings['leader_clear_screen'])
+            ? (int)$settings['leader_clear_screen'] : 1;
 
         return json_encode($settings);
     }

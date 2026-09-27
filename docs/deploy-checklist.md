@@ -75,6 +75,10 @@ scenario re-checked.
   change); a song leaving the list is switched off the same way. The tech
   console's song toggle is unchanged (`set_tech_image` / `clear_notes:1`).
   Leader pages also listen to `notes_update` (list "on" highlight).
+  Group setting `user_settings.leader_clear_screen` = 0 («Отключать слова с
+  главного экрана» off): every leader-channel `set_image` / `clear_image`
+  becomes notes-only server-side (`leaderClearsScreen()`); `set_leader_text`
+  is not affected.
 - **Readers:** `get_notes` → musician page; `get_current_state.notes_image`
   → tech console restore (selected song survives any screen content; the
   screen row is NEVER a fallback for the selected song — with shared
@@ -327,6 +331,11 @@ Setup: one browser as ведущий, one as техник (same group), one scre
    пульсирует «На экране»; клик по строке песни у ведущего выключает ноты,
    клик по другой песне — переключает; главный экран от клика по строке не
    меняется; у техника клик по песне включает/выключает ноты, как раньше.
+   **Галочка «Отключать слова с главного экрана» (Sept 2026):** включена —
+   открытие/закрытие песни у ведущего убирает слова с главного экрана, как
+   раньше; выключена — техник выводит куплет или стих, ведущий открывает и
+   закрывает песню — на экране остаётся то, что вывел техник (ноты у
+   музыкантов при этом переключаются).
    **Сообщение музыкантам (Sept 2026):** у ведущего под списком кнопка
    «💬 Сообщение музыкантам» → текст → Enter: у музыканта (и в полноэкранном
    режиме нот) снизу выезжает крупный текст, держится 5 с и уезжает; на

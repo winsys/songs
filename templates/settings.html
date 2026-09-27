@@ -1218,10 +1218,21 @@
                     </label>
                 </div>
             </div>
+            <div class="settings-field">
+                <label class="settings-label">22. <?php echo T::s('settings.leaderClearScreen'); ?></label>
+                <div class="scale-row">
+                    <input type="checkbox" id="leaderClearScreenCheck"
+                           ng-model="settings.leader_clear_screen"
+                           ng-true-value="1" ng-false-value="0">
+                    <label for="leaderClearScreenCheck" style="cursor:pointer; margin:0; font-size:13px; color:#34495e; font-weight:normal;">
+                        <?php echo T::s('settings.hint.leaderClearScreen'); ?>
+                    </label>
+                </div>
+            </div>
             </div>
         </div>
 
-        <!-- 22-28. «Сообщение музыкантам» (leader page button -> overlay over the notes) -->
+        <!-- 23-29. «Сообщение музыкантам» (leader page button -> overlay over the notes) -->
         <div class="settings-card" ng-show="(permissions.canEditFavoritesOrder || permissions.canEditAllSettings) && setUi.cat === 'leader'">
             <span class="settings-card-title collapsible" ng-click="toggle('musicianmsg')">
                 <span><?php echo T::s('settings.card.musicianMsg'); ?></span>
@@ -1242,7 +1253,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">22. <?php echo T::s('settings.field.bgColor'); ?></label>
+                <label class="settings-label">23. <?php echo T::s('settings.field.bgColor'); ?></label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.musician_msg_bg_color">
@@ -1253,19 +1264,19 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">{{ ('23. ' + ('<?php echo T::s('settings.mm.bgTransparency'); ?>'.replace('{pct}', settings.musician_msg_bg_transparency))) }}</label>
+                <label class="settings-label">{{ ('24. ' + ('<?php echo T::s('settings.mm.bgTransparency'); ?>'.replace('{pct}', settings.musician_msg_bg_transparency))) }}</label>
                 <input type="range" min="0" max="100" ng-model="settings.musician_msg_bg_transparency"
                        class="settings-input" style="cursor:pointer;">
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">{{ ('24. ' + ('<?php echo T::s('settings.mm.height'); ?>'.replace('{pct}', settings.musician_msg_height))) }}</label>
+                <label class="settings-label">{{ ('25. ' + ('<?php echo T::s('settings.mm.height'); ?>'.replace('{pct}', settings.musician_msg_height))) }}</label>
                 <input type="range" min="10" max="100" ng-model="settings.musician_msg_height"
                        class="settings-input" style="cursor:pointer;">
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">25. <?php echo T::s('settings.field.font'); ?></label>
+                <label class="settings-label">26. <?php echo T::s('settings.field.font'); ?></label>
                 <select class="settings-input" ng-model="settings.musician_msg_font">
                     <option value="Arial">Arial</option>
                     <option value="Verdana">Verdana</option>
@@ -1277,7 +1288,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">26. <?php echo T::s('settings.field.fontColor'); ?></label>
+                <label class="settings-label">27. <?php echo T::s('settings.field.fontColor'); ?></label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.musician_msg_text_color">
@@ -1288,13 +1299,13 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">{{ ('27. ' + ('<?php echo T::s('settings.mm.textTransparency'); ?>'.replace('{pct}', settings.musician_msg_text_transparency))) }}</label>
+                <label class="settings-label">{{ ('28. ' + ('<?php echo T::s('settings.mm.textTransparency'); ?>'.replace('{pct}', settings.musician_msg_text_transparency))) }}</label>
                 <input type="range" min="0" max="100" ng-model="settings.musician_msg_text_transparency"
                        class="settings-input" style="cursor:pointer;">
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">{{ ('28. ' + ('<?php echo T::s('settings.field.maxFontSize'); ?>'.replace('{size}', settings.musician_msg_font_max))) }}</label>
+                <label class="settings-label">{{ ('29. ' + ('<?php echo T::s('settings.field.maxFontSize'); ?>'.replace('{size}', settings.musician_msg_font_max))) }}</label>
                 <input type="range" min="20" max="400" step="5" ng-model="settings.musician_msg_font_max"
                        class="settings-input" style="cursor:pointer;">
                 <span class="settings-hint"><?php echo T::s('settings.mm.fontMaxHint'); ?></span>
@@ -1417,4 +1428,4 @@
 </div>
 
 <script src="/js/vendor/qrcode.min.js?v=1" type="text/javascript"></script>
-<script src="/js/settings.js?v=21" type="text/javascript"></script>
+<script src="/js/settings.js?v=22" type="text/javascript"></script>
