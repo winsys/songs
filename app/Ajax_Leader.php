@@ -6,6 +6,41 @@
 trait Ajax_Leader
 {
     /**
+     * «Сообщение музыкантам» (Sept 2026): a short text the leader sends to
+     * the musician pages of the OWN group. Transient — a group-routed WS
+     * event `musician_message` {text, id, style}, nothing stored; the
+     * musician page slides it in over the notes for a few seconds, leader
+     * pages show "message on screen" meanwhile. The style (colours,
+     * transparency, height, font, max font size) comes from the group's
+     * settings at send time, so open musician pages need no reload.
+     *
+     * Args: text (at most 300 characters).
+     */
+    private static function send_musician_message()
+    {
+        if (!in_array(Security::getRole(), ['leader', 'tech', 'admin'], true)) {
+            return json_encode(['status' => 'error', 'message' => 'Access denied']);
+        }
+        $text = trim(str_replace("\r\n", "\n", (string)(self::$args['text'] ?? '')));
+        if (function_exists('mb_substr')) {
+            $text = mb_substr($text, 0, 300, 'UTF-8');
+        }
+        if ($text === '') {
+            return json_encode(['status' => 'error', 'message' => T::s('ajax.error.messageEmpty')]);
+        }
+        $groupId = (int)$_SESSION['curGroupId'];
+        self::broadcastToGroup($groupId, [
+            'type' => 'musician_message',
+            'data' => [
+                'text'  => $text,
+                'id'    => bin2hex(random_bytes(4)),
+                'style' => self::loadMusicianMsgStyle($groupId),
+            ],
+        ]);
+        return json_encode(['status' => 'success']);
+    }
+
+    /**
      * Verse broadcast from the leader's split-screen verse mode.
      *
      * Same UPSERT semantics as Ajax_Tech::set_text (update the row keyed by

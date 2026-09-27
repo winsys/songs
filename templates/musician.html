@@ -51,15 +51,58 @@
     .mg-btn.mg-sel { background: #1a6db5; }
     .mg-btn.mg-shown { box-shadow: inset 0 0 0 2px #fff; }
     .mg-btn.mg-empty { color: rgba(255,255,255,0.55); }
+
+    /* Fullscreen wraps the image AND the message overlay (the image alone
+       used to go fullscreen, which would hide the message). */
+    #musFs:fullscreen { background: #000; }
+    #musFs:-webkit-full-screen { background: #000; width: 100%; height: 100%; }
+
+    /* «Сообщение музыкантам»: slides up from the bottom over the notes,
+       colours / transparency / height / font from the group settings (sent
+       with the message). Taps go through to the notes. */
+    .mm-box {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 20;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        padding: 1.5vh 3vw;
+        transform: translateY(105%);
+        transition: transform 0.6s ease;
+        pointer-events: none;
+        visibility: hidden;
+    }
+    .mm-box.mm-on { visibility: visible; }
+    .mm-box.mm-in { transform: translateY(0); }
+    .mm-text {
+        width: 100%;
+        max-height: 100%;
+        text-align: center;
+        font-weight: 700;
+        line-height: 1.15;
+        white-space: pre-line;
+        overflow: hidden;
+    }
 </style>
 <div ng-controller="Musician" class="container">
 
-    <div>
+    <div id="musFs">
         <img id="img0"
              class="fs"
              ng-click="toggleFullscreen()"
              onerror="angular.element(this).scope().onImageError()"
              ng-src="{{imgName}}"/>
+
+        <!-- Leader's message to the musicians (musician_message WS event) -->
+        <div id="musMsg" class="mm-box" role="status" aria-live="polite"
+             ng-class="{'mm-on': msg.on, 'mm-in': msg.in}"
+             ng-style="msg.boxStyle">
+            <div id="musMsgText" class="mm-text" ng-style="msg.textStyle">{{ msg.text }}</div>
+        </div>
     </div>
 
     <div class="mg-bar" ng-if="!fullScreen && notes.groups.length">
@@ -73,4 +116,4 @@
 
 </div>
 
-<script src="/js/musician.min.js?v=10031" type="text/javascript"></script>
+<script src="/js/musician.min.js?v=10032" type="text/javascript"></script>

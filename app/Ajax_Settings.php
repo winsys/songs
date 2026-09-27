@@ -6,6 +6,82 @@
  */
 trait Ajax_Settings
 {
+    // ─── «Сообщение музыкантам» style (Sept 2026) ───────────────────
+    // Stored as JSON in user_settings.musician_msg_style (self-migrating
+    // column); get_user_settings / save_user_settings expose it as the flat
+    // musician_msg_* fields. Transparency is in percent (100 = invisible).
+
+    /** Default style of the musicians' message overlay. */
+    private static function musicianMsgDefaults()
+    {
+        return [
+            'musician_msg_bg_color'          => '#FFFFFF',
+            'musician_msg_bg_transparency'   => 98,
+            'musician_msg_height'            => 35,
+            'musician_msg_font'              => 'Arial',
+            'musician_msg_text_color'        => '#E65100',
+            'musician_msg_text_transparency' => 80,
+            'musician_msg_font_max'          => 160,
+        ];
+    }
+
+    /** Merge stored / submitted values over the defaults, sanitized. */
+    private static function musicianMsgSanitize($src)
+    {
+        $out = self::musicianMsgDefaults();
+        if (!is_array($src)) {
+            return $out;
+        }
+        foreach (['musician_msg_bg_color', 'musician_msg_text_color'] as $k) {
+            if (isset($src[$k]) && preg_match('/^#[0-9a-fA-F]{6}$/', (string)$src[$k])) {
+                $out[$k] = strtoupper((string)$src[$k]);
+            }
+        }
+        $ranges = [
+            'musician_msg_bg_transparency'   => [0, 100],
+            'musician_msg_text_transparency' => [0, 100],
+            'musician_msg_height'            => [10, 100],
+            'musician_msg_font_max'          => [20, 400],
+        ];
+        foreach ($ranges as $k => $r) {
+            if (isset($src[$k]) && is_numeric($src[$k])) {
+                $out[$k] = max($r[0], min($r[1], (int)$src[$k]));
+            }
+        }
+        $fonts = ['Arial', 'Verdana', 'Times New Roman', 'Georgia', 'Courier New', 'Tahoma'];
+        if (isset($src['musician_msg_font']) && in_array($src['musician_msg_font'], $fonts, true)) {
+            $out['musician_msg_font'] = $src['musician_msg_font'];
+        }
+        return $out;
+    }
+
+    /** Adds user_settings.musician_msg_style on first use (self-migration). */
+    private static function ensureMusicianMsgColumn()
+    {
+        static $checked = false;
+        if ($checked) {
+            return;
+        }
+        $checked = true;
+        if (!Info::get('db')->get("SHOW COLUMNS FROM user_settings LIKE 'musician_msg_style'")) {
+            Info::get('db')->exec(
+                "ALTER TABLE user_settings
+                 ADD COLUMN musician_msg_style text NULL
+                 COMMENT 'JSON: style of the leader message overlay on the musician page'"
+            );
+        }
+    }
+
+    /** The group's sanitized message style (defaults when unset). */
+    private static function loadMusicianMsgStyle($groupId)
+    {
+        self::ensureMusicianMsgColumn();
+        $raw = Info::get('db')->getValue(
+            "SELECT musician_msg_style FROM user_settings WHERE group_id = " . (int)$groupId
+        );
+        return self::musicianMsgSanitize($raw ? json_decode($raw, true) : null);
+    }
+
     private static function get_settings_permissions()
     {
         return json_encode(Security::getSettingsPermissions());
@@ -48,6 +124,9 @@ trait Ajax_Settings
         $uiLang = isset($settings['ui_lang']) ? (string)$settings['ui_lang'] : 'ru';
         if (!in_array($uiLang, ['ru', 'de', 'en', 'lt', 'pl'], true)) $uiLang = 'ru';
         $leaderTextMultilang = !empty($settings['leader_text_multilang']) ? 1 : 0;
+        self::ensureMusicianMsgColumn();
+        $musicianMsgStyle = mysqli_escape_string(Info::get('dbh'),
+            json_encode(self::musicianMsgSanitize($settings)));
 
         $existing = Info::get('db')->get("SELECT group_id FROM user_settings WHERE group_id = {$userId}");
 
@@ -77,7 +156,8 @@ trait Ajax_Settings
                     main_font_max_size       = {$mainFontMaxSize},
                     slide_font_max_size      = {$slideFontMaxSize},
                     ui_lang                  = '{$uiLang}',
-                    leader_text_multilang    = {$leaderTextMultilang}
+                    leader_text_multilang    = {$leaderTextMultilang},
+                    musician_msg_style       = '{$musicianMsgStyle}'
                 WHERE group_id = {$userId}
             ");
         } else {
@@ -88,14 +168,16 @@ trait Ajax_Settings
                     streaming_bg_color, streaming_font, streaming_font_color, streaming_height_percent, streaming_font_max_size,
                     sermon_notes_bg_color, sermon_bible_base_color, sermon_msg_base_color,
                     sermon_prep_font_size, sermon_notes_font_size, sermon_scale_chips,
-                    slide_bg_color, main_font_max_size, slide_font_max_size, ui_lang, leader_text_multilang
+                    slide_bg_color, main_font_max_size, slide_font_max_size, ui_lang, leader_text_multilang,
+                    musician_msg_style
                 ) VALUES (
                     {$userId}, '{$displayName}', '{$favoritesOrder}', '{$availableLists}', " . ($availableLanguages === null ? 'NULL' : "'{$availableLanguages}'") . ", '{$placeholderImage}',
                     '{$mainBgColor}', '{$mainFont}', '{$mainFontColor}',
                     '{$streamingBgColor}', '{$streamingFont}', '{$streamingFontColor}', {$streamingHeightPercent}, {$streamingFontMaxSize},
                     '{$sermonNotesBgColor}', '{$sermonBibleBaseColor}', '{$sermonMsgBaseColor}',
                     {$sermonPrepFontSize}, {$sermonNotesFontSize}, {$sermonScaleChips},
-                    '{$slideBgColor}', {$mainFontMaxSize}, {$slideFontMaxSize}, '{$uiLang}', {$leaderTextMultilang}
+                    '{$slideBgColor}', {$mainFontMaxSize}, {$slideFontMaxSize}, '{$uiLang}', {$leaderTextMultilang},
+                    '{$musicianMsgStyle}'
                 )
             ");
         }

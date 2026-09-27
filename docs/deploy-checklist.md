@@ -67,6 +67,14 @@ scenario re-checked.
   `clearNotes()` from `clear_image` with `channel:'leader'` OR
   `clear_notes:1` (tech song toggle-off, playlist clear, active-song
   delete). These four paths are THE ONLY notes off/on switches.
+- **Notes stay on (Sept 2026):** the leader leaving a song view (notes /
+  text fullscreen, verse mode) sends `clear_image` `channel:'leader'`
+  `keep_notes:1` — screen cleared as before, notes untouched. The leader
+  switches notes by clicking a list row: `set_image` / `clear_image` with
+  `notes_only:1` (notes channel + `leader_song_changed` only, NO screen
+  change); a song leaving the list is switched off the same way. The tech
+  console's song toggle is unchanged (`set_tech_image` / `clear_notes:1`).
+  Leader pages also listen to `notes_update` (list "on" highlight).
 - **Readers:** `get_notes` → musician page; `get_current_state.notes_image`
   → tech console restore (selected song survives any screen content; the
   screen row is NEVER a fallback for the selected song — with shared
@@ -155,7 +163,8 @@ scenario re-checked.
 | Type | Producers | Consumers |
 |---|---|---|
 | `update_needed` | `updateSocket()` after most writes | both screens (refetch), tech console (reload+restore), leader (favorites) — musician IGNORES it since Aug 2026 |
-| `notes_update` | `setNotes()`/`clearNotes()`, `upload_song_image` | musician page (refetch `get_notes`); tech console (sync song highlight with the notes channel) |
+| `notes_update` | `setNotes()`/`clearNotes()`, `upload_song_image` | musician page (refetch `get_notes`); tech console (sync song highlight with the notes channel); leader page (refresh the "on" row) |
+| `musician_message` | `send_musician_message` (leader page button «Сообщение музыкантам»; own group; payload `{text, id, style}` — style = the group's `musician_msg_*` settings at send time) | musician page (slide-in overlay over the notes, 0.6 s in + 5 s + 0.6 s out, text fitted up to `musician_msg_font_max`); leader page ("message on screen" label for the same 6.2 s) |
 | `display_transform` | `set_display_transform` (sermon pinch zoom/pan, ~10Hz during gesture) | main screen (applies CSS transform directly, no refetch); streaming ignores |
 | `video_seek` | `video_seek` (sermon page: slider seek, seek made inside its YouTube player, periodic position sync every 5 s while playing; dropped server-side when `current.video_src` differs) | main screen (seeks its YouTube iframe via `yt_bridge.js` / `<video>`; explicit seeks always, periodic ones only to catch up when lagging > 2.5 s — never rewinds); streaming ignores |
 | `leader_song_changed` | `set_image` channel `'leader'` | tech console (follow song, prepare verses) |
@@ -313,6 +322,17 @@ Setup: one browser as ведущий, one as техник (same group), one scre
    **Удаление включённой песни (Sept 2026):** ведущий или техник очищает
    список / удаляет включённую песню — у техника пропадают её куплеты, у
    музыканта — ноты.
+   **Ноты остаются (Sept 2026):** ведущий открывает ноты / «Аа» / ¶ песни и
+   выходит из просмотра — у музыканта ноты остаются, строка у ведущего
+   пульсирует «На экране»; клик по строке песни у ведущего выключает ноты,
+   клик по другой песне — переключает; главный экран от клика по строке не
+   меняется; у техника клик по песне включает/выключает ноты, как раньше.
+   **Сообщение музыкантам (Sept 2026):** у ведущего под списком кнопка
+   «💬 Сообщение музыкантам» → текст → Enter: у музыканта (и в полноэкранном
+   режиме нот) снизу выезжает крупный текст, держится 5 с и уезжает; на
+   кнопке ведущего всё это время «Сообщение отображается»; в настройках
+   «Экран ведущего → Сообщение музыкантам» меняются цвета, прозрачность,
+   высота, шрифт, макс. размер — новое сообщение идёт уже с ними.
    **Меню «Медиа» / «Заставки» у техника:** открытое меню закрывается при
    переключении Песни/Библия/Послание, клике мимо него, Esc и уходе со
    вкладки.

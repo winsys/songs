@@ -910,15 +910,41 @@
     .prod-list-item.ld-note.drag-active { background: #FFF3D6; }
 
     /* ---- Note dialog -------------------------------------------- */
-    #note-dialog .note-dlg-head { padding: 14px 20px; border-bottom: 1px solid #f0f2f5; }
-    #note-dialog .note-dlg-head .modal-title { font-size: 16px; font-weight: 600; color: #17212B; }
-    #note-dialog .note-dlg-body { padding: 14px 20px; }
-    #note-dialog textarea { font-size: 16px; resize: vertical; min-height: 110px; }
+    .note-dlg-head { padding: 14px 20px; border-bottom: 1px solid #f0f2f5; }
+    .note-dlg-head .modal-title { font-size: 16px; font-weight: 600; color: #17212B; }
+    .note-dlg-body { padding: 14px 20px; }
+    #note-dialog textarea, #musician-msg-dialog textarea { font-size: 16px; resize: vertical; min-height: 110px; }
     .note-dlg-hint { margin-top: 6px; font-size: 12px; color: #6E7883; }
     .note-dlg-error { margin-top: 6px; font-size: 13px; color: #C4473A; }
-    #note-dialog .note-dlg-foot { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 20px; border-top: 1px solid #f0f2f5; }
-    #note-dialog .note-dlg-foot::before,
-    #note-dialog .note-dlg-foot::after { display: none; }
+    .note-dlg-foot { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 20px; border-top: 1px solid #f0f2f5; }
+    .note-dlg-foot::before,
+    .note-dlg-foot::after { display: none; }
+
+    /* ---- Song row click = notes on / off --------------------------- */
+    .ld-info-song { cursor: pointer; align-self: stretch; display: flex; flex-direction: column; justify-content: center; }
+
+    /* ---- «Сообщение музыкантам»: full-width button under the list ---- */
+    .ld-msg-btn {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 2px;
+        width: 100%;
+        min-height: 64px;
+        margin-top: 14px;
+        padding: 10px 16px;
+        border: 1px solid #176B87;
+        border-radius: 8px;
+        background: #fff;
+        color: #176B87;
+        font-size: 17px;
+        font-weight: 700;
+        cursor: pointer;
+    }
+    .ld-msg-btn:hover, .ld-msg-btn:active { background: #E6F1F4; }
+    .ld-msg-btn.is-live { border-color: #1E7E34; background: #E7F4EA; color: #1E7E34; }
+    .ld-msg-live { font-size: 13px; font-weight: 600; }
 </style>
 
 <div ng-controller="Leader" class="cx-page">
@@ -1149,8 +1175,11 @@
 
                         <span class="ld-seq" aria-hidden="true">{{ songSeq($index) }}</span>
 
-                        <!-- Song info -->
-                        <span class="ld-info">
+                        <!-- Song info: a click switches the musicians' notes of this
+                             song on / off (toggleSongNotes, no screen change) -->
+                        <span class="ld-info ld-info-song" role="button"
+                              ng-click="toggleSongNotes(listItem)"
+                              title="<?php echo T::s('leader.notesToggleHint'); ?>">
                             <span class="item-text">{{ listItem.dispName }}</span>
                             <span class="song-meta">
                                 <span class="ld-onscreen"
@@ -1202,7 +1231,15 @@
                 </div>
             </div>
 
-            <div class="ld-hint" ng-if="favorites.length > 0"><?php echo T::s('leader.swipeHint'); ?></div>
+            <div class="ld-hint" ng-if="favorites.length > 0"><?php echo T::s('leader.notesToggleHint'); ?> <?php echo T::s('leader.swipeHint'); ?></div>
+
+            <!-- «Сообщение музыкантам»: a short text sliding over the notes on
+                 the musician pages (send_musician_message) -->
+            <button type="button" class="ld-msg-btn" ng-click="openMusicianMsg()"
+                    ng-class="{'is-live': musicianMsg.live}">
+                <span class="ld-msg-main">💬 <?php echo T::s('leader.msg.button'); ?></span>
+                <span class="ld-msg-live" ng-if="musicianMsg.live"><?php echo T::s('leader.msg.live'); ?></span>
+            </button>
         </section>
 
         </div><!-- /ld-body -->
@@ -1270,6 +1307,36 @@
                         <button type="button" class="cx-btn cx-btn-primary"
                                 ng-disabled="!(noteEditor.text || '').trim() || noteEditor.saving"
                                 ng-click="saveNote()"><?php echo T::s('common.button.save'); ?></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- ============================================================
+         Modal: message to the musicians
+         ============================================================ -->
+    <div id="musician-msg-dialog">
+        <div class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header note-dlg-head">
+                        <h4 class="modal-title"><?php echo T::s('leader.msg.title'); ?></h4>
+                    </div>
+                    <div class="modal-body note-dlg-body">
+                        <textarea id="musicianMsgText" class="form-control" rows="3" maxlength="300"
+                                  ng-model="musicianMsg.text"
+                                  ng-keydown="musicianMsgKeydown($event)"
+                                  placeholder="<?php echo T::s('leader.msg.placeholder'); ?>"></textarea>
+                        <div class="note-dlg-hint"><?php echo T::s('leader.msg.hint'); ?></div>
+                        <div class="note-dlg-error" ng-if="musicianMsg.error">{{ musicianMsg.error }}</div>
+                    </div>
+                    <div class="modal-footer note-dlg-foot">
+                        <button type="button" class="cx-btn" data-dismiss="modal"><?php echo T::s('common.button.cancel'); ?></button>
+                        <button type="button" class="cx-btn cx-btn-primary"
+                                ng-disabled="!(musicianMsg.text || '').trim() || musicianMsg.sending"
+                                ng-click="sendMusicianMsg()"><?php echo T::s('leader.msg.send'); ?></button>
                     </div>
                 </div>
             </div>
@@ -1427,7 +1494,7 @@
 <script src="/js/swipe_delete.min.js?v=2" type="text/javascript"></script>
 <script src="/js/pdf_page_image.min.js?v=1" type="text/javascript"></script>
 <script src="/js/song_editor.min.js?v=1" type="text/javascript"></script>
-<script src="/js/leader.min.js?v=47" type="text/javascript"></script>
+<script src="/js/leader.min.js?v=48" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}

@@ -507,6 +507,13 @@ trait Ajax_Common
         $imageNumRaw = trim(preg_replace('#[/\\\\\x00-\x1F]#', '', (string)self::$args['image_num']));
         self::setNotes($userId, "/images/{$listIdRaw}/{$imageNumRaw}.jpg");
 
+        // notes_only: the leader's click on a list row switches the
+        // musicians' notes (and the console follow above) without touching
+        // any screen.
+        if (!empty(self::$args['notes_only'])) {
+            return '';
+        }
+
         if ($targetGroupId === null) {
             return ''; // broadcast disabled for this channel — leave screens alone
         }
@@ -680,8 +687,18 @@ trait Ajax_Common
         // console's explicit clear_notes flag (song toggle-off, playlist
         // clear, active-song delete). Notes always belong to the caller's OWN
         // group — the display target only routes screens.
-        if ($channel === 'leader' || !empty(self::$args['clear_notes'])) {
+        // keep_notes (Sept 2026): the leader leaving a song view (fullscreen
+        // notes / text, verse mode) clears the screen only — the musicians'
+        // notes stay until the leader switches them off (row click) or on
+        // for another song.
+        $keepNotes = !empty(self::$args['keep_notes']);
+        if (($channel === 'leader' && !$keepNotes) || !empty(self::$args['clear_notes'])) {
             self::clearNotes($userId);
+        }
+
+        // notes_only: the leader's row-click toggle-off — no screen change.
+        if (!empty(self::$args['notes_only'])) {
+            return '';
         }
 
         $targetGroupId = self::resolveDisplayTarget($userId);
@@ -950,6 +967,10 @@ trait Ajax_Common
         if (empty($settings['main_font_max_size'])  || $settings['main_font_max_size']  < 20) $settings['main_font_max_size']  = 64;
         if (empty($settings['slide_font_max_size']) || $settings['slide_font_max_size'] < 20) $settings['slide_font_max_size'] = 64;
         if (empty($settings['streaming_font_max_size']) || $settings['streaming_font_max_size'] < 20) $settings['streaming_font_max_size'] = 64;
+
+        // Musician message style: stored as JSON, exposed as flat fields.
+        $settings = array_merge($settings, self::loadMusicianMsgStyle($userId));
+        unset($settings['musician_msg_style']);
 
         return json_encode($settings);
     }

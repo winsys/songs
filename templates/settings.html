@@ -701,6 +701,42 @@
     }
     .set-preview-text { font-size: 20px; font-weight: 600; line-height: 1.25; }
 
+    /* Musician message preview: a sheet of paper with staff lines, the
+       message box at the bottom (height in % of the sheet) */
+    .mm-card-hint { display: block; margin: 0 0 10px; }
+    .mm-preview {
+        position: relative;
+        width: 100%;
+        max-width: 420px;
+        aspect-ratio: 4 / 3;
+        margin: 0 0 12px auto;
+        overflow: hidden;
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        background-color: #fff;
+        /* five-line staves every 64px */
+        background-image: linear-gradient(to bottom,
+            #555 0, #555 1px, transparent 1px, transparent 8px,
+            #555 8px, #555 9px, transparent 9px, transparent 16px,
+            #555 16px, #555 17px, transparent 17px, transparent 24px,
+            #555 24px, #555 25px, transparent 25px, transparent 32px,
+            #555 32px, #555 33px, transparent 33px, transparent 64px);
+        background-size: 100% 64px;
+        background-position: 0 18px;
+    }
+    .mm-preview-box {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 4px 10px;
+        text-align: center;
+    }
+    .mm-preview-text { font-size: 44px; font-weight: 700; line-height: 1.1; }
+
     /* Radio / checkbox groups inside the grid */
     .set-surface .radio-row, .set-surface .checkbox-list, .set-surface .scale-row { margin: 0; }
     .set-surface .checkbox-item, .set-surface .radio-row label { min-height: 36px; }
@@ -1185,6 +1221,87 @@
             </div>
         </div>
 
+        <!-- 22-28. «Сообщение музыкантам» (leader page button -> overlay over the notes) -->
+        <div class="settings-card" ng-show="(permissions.canEditFavoritesOrder || permissions.canEditAllSettings) && setUi.cat === 'leader'">
+            <span class="settings-card-title collapsible" ng-click="toggle('musicianmsg')">
+                <span><?php echo T::s('settings.card.musicianMsg'); ?></span>
+                <span class="collapse-caret">{{ collapsed.musicianmsg ? '▸' : '▾' }}</span>
+            </span>
+            <div ng-show="!collapsed.musicianmsg">
+            <span class="settings-hint mm-card-hint"><?php echo T::s('settings.mm.hint'); ?></span>
+
+            <!-- Live preview: sheet-like background with the message box at the bottom -->
+            <div class="mm-preview" aria-hidden="true">
+                <div class="mm-preview-box"
+                     ng-style="{'height': settings.musician_msg_height + '%',
+                                'background-color': mmRgba(settings.musician_msg_bg_color, settings.musician_msg_bg_transparency)}">
+                    <span class="mm-preview-text"
+                          ng-style="{'color': mmRgba(settings.musician_msg_text_color, settings.musician_msg_text_transparency),
+                                     'font-family': settings.musician_msg_font}"><?php echo T::s('settings.mm.sample'); ?></span>
+                </div>
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">22. <?php echo T::s('settings.field.bgColor'); ?></label>
+                <div class="color-row">
+                    <div class="color-input-wrap">
+                        <input type="color" ng-model="settings.musician_msg_bg_color">
+                        <span class="color-hex-label">{{settings.musician_msg_bg_color}}</span>
+                    </div>
+                    <div class="color-preview" ng-style="{'background-color': settings.musician_msg_bg_color}"></div>
+                </div>
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">{{ ('23. ' + ('<?php echo T::s('settings.mm.bgTransparency'); ?>'.replace('{pct}', settings.musician_msg_bg_transparency))) }}</label>
+                <input type="range" min="0" max="100" ng-model="settings.musician_msg_bg_transparency"
+                       class="settings-input" style="cursor:pointer;">
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">{{ ('24. ' + ('<?php echo T::s('settings.mm.height'); ?>'.replace('{pct}', settings.musician_msg_height))) }}</label>
+                <input type="range" min="10" max="100" ng-model="settings.musician_msg_height"
+                       class="settings-input" style="cursor:pointer;">
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">25. <?php echo T::s('settings.field.font'); ?></label>
+                <select class="settings-input" ng-model="settings.musician_msg_font">
+                    <option value="Arial">Arial</option>
+                    <option value="Verdana">Verdana</option>
+                    <option value="Times New Roman">Times New Roman</option>
+                    <option value="Georgia">Georgia</option>
+                    <option value="Courier New">Courier New</option>
+                    <option value="Tahoma">Tahoma</option>
+                </select>
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">26. <?php echo T::s('settings.field.fontColor'); ?></label>
+                <div class="color-row">
+                    <div class="color-input-wrap">
+                        <input type="color" ng-model="settings.musician_msg_text_color">
+                        <span class="color-hex-label">{{settings.musician_msg_text_color}}</span>
+                    </div>
+                    <div class="color-preview" ng-style="{'background-color': settings.musician_msg_text_color}"></div>
+                </div>
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">{{ ('27. ' + ('<?php echo T::s('settings.mm.textTransparency'); ?>'.replace('{pct}', settings.musician_msg_text_transparency))) }}</label>
+                <input type="range" min="0" max="100" ng-model="settings.musician_msg_text_transparency"
+                       class="settings-input" style="cursor:pointer;">
+            </div>
+
+            <div class="settings-field">
+                <label class="settings-label">{{ ('28. ' + ('<?php echo T::s('settings.field.maxFontSize'); ?>'.replace('{size}', settings.musician_msg_font_max))) }}</label>
+                <input type="range" min="20" max="400" step="5" ng-model="settings.musician_msg_font_max"
+                       class="settings-input" style="cursor:pointer;">
+                <span class="settings-hint"><?php echo T::s('settings.mm.fontMaxHint'); ?></span>
+            </div>
+            </div>
+        </div>
+
         <!-- Group users -->
         <div class="settings-card" ng-show="setUi.cat === 'users'">
             <span class="settings-card-title"><?php echo T::s('settings.card.groupUsers'); ?></span>
@@ -1300,4 +1417,4 @@
 </div>
 
 <script src="/js/vendor/qrcode.min.js?v=1" type="text/javascript"></script>
-<script src="/js/settings.js?v=20" type="text/javascript"></script>
+<script src="/js/settings.js?v=21" type="text/javascript"></script>
