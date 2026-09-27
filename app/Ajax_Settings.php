@@ -20,7 +20,7 @@ trait Ajax_Settings
             'musician_msg_height'            => 35,
             'musician_msg_font'              => 'System',   // the device's UI font (see musician.js)
             'musician_msg_text_color'        => '#E65100',
-            'musician_msg_text_transparency' => 60,
+            'musician_msg_text_transparency' => 50,
             'musician_msg_font_max'          => 160,
         ];
     }

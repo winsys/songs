@@ -35,7 +35,7 @@ app.controller('Settings', function ($scope, $http, $sce)
         musician_msg_height:            35,
         musician_msg_font:              'System',
         musician_msg_text_color:        '#E65100',
-        musician_msg_text_transparency: 60,
+        musician_msg_text_transparency: 50,
         musician_msg_font_max:          160,
         leader_clear_screen:            1
     };
