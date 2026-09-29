@@ -1385,7 +1385,10 @@
                                 <div class="angucomplete-song-img-col"
                                      ng-click="$emit('song:previewSong', result.originalObject); $event.stopPropagation()"
                                      title="<?php echo T::s('leader.search.viewNotes'); ?>">
-                                    <img ng-src="{{result.image}}" class="angucomplete-song-thumb-sm"
+                                    <!-- No request without a sheet (?v=0); lazy (see leader.html) -->
+                                    <img ng-if="(result.image || '').slice(-4) !== '?v=0'"
+                                         ng-src="{{result.image}}" class="angucomplete-song-thumb-sm"
+                                         loading="lazy" decoding="async"
                                          onerror="this.style.display='none'">
                                 </div>
                                 <div class="angucomplete-song-text-col">
