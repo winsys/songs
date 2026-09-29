@@ -1086,11 +1086,17 @@
                                 </span>
                             </div>
                         </div>
-                        <!-- Sheet-music thumbnail: always the rightmost element -->
+                        <!-- Sheet-music thumbnail: always the rightmost element.
+                             No request for a song without a sheet (?v=0); lazy, so a
+                             long result list does not fetch every full-size sheet and
+                             starve the phone's connections (the add request queued
+                             behind them for seconds). -->
                         <div class="angucomplete-song-img-col"
                              ng-click="$emit('song:previewSong', result.originalObject); $event.stopPropagation()"
                              title="<?php echo T::s('leader.search.viewNotes'); ?>">
-                            <img ng-src="{{result.image}}" class="angucomplete-song-thumb-sm"
+                            <img ng-if="(result.image || '').slice(-4) !== '?v=0'"
+                                 ng-src="{{result.image}}" class="angucomplete-song-thumb-sm"
+                                 loading="lazy" decoding="async"
                                  onerror="this.style.display='none'">
                         </div>
                     </div>
@@ -1495,6 +1501,7 @@
 <script src="/js/pdf_page_image.min.js?v=1" type="text/javascript"></script>
 <script src="/js/song_editor.min.js?v=1" type="text/javascript"></script>
 <script src="/js/leader.min.js?v=48" type="text/javascript"></script>
+<script src="/js/wake_lock.min.js?v=1" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}

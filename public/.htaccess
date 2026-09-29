@@ -1,4 +1,10 @@
-RewriteEngine on 
+RewriteEngine on
+
+# A missing sheet-music file is a plain 404 from Apache, never the PHP app:
+# the app rendered a whole HTML page for it and, holding the user's session
+# lock, queued the page's own ajax calls behind every such image request.
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteRule ^images/ - [R=404,L]
 
 RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d

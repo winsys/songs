@@ -759,11 +759,14 @@
                                 </span>
                             </div>
                         </div>
-                        <!-- Sheet-music thumbnail: always the rightmost element -->
+                        <!-- Sheet-music thumbnail: always the rightmost element.
+                             No request without a sheet (?v=0); lazy (see leader.html). -->
                         <div class="angucomplete-song-img-col"
                              ng-click="$emit('song:previewSong', result.originalObject); $event.stopPropagation()"
                              title="<?php echo T::s('leader.search.viewNotes'); ?>">
-                            <img ng-src="{{result.image}}" class="angucomplete-song-thumb-sm"
+                            <img ng-if="(result.image || '').slice(-4) !== '?v=0'"
+                                 ng-src="{{result.image}}" class="angucomplete-song-thumb-sm"
+                                 loading="lazy" decoding="async"
                                  onerror="this.style.display='none'">
                         </div>
                     </div>
@@ -1015,6 +1018,7 @@
 <script src="/js/drag_reorder.min.js?v=1" type="text/javascript"></script>
 <script src="/js/swipe_delete.min.js?v=2" type="text/javascript"></script>
 <script src="/js/piano.min.js?v=6" type="text/javascript"></script>
+<script src="/js/wake_lock.min.js?v=1" type="text/javascript"></script>
 
 <script type="text/javascript">
     function forceFullScreen(){}
