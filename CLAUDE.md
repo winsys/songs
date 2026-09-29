@@ -52,6 +52,8 @@ Capabilities: synchronized setlist management, digital sheet music, sermon prepa
 
 All requests go through `public/index.php` via `.htaccess` rewrite (`?route=<path>`) — except a missing file under `/images/`, which is a plain Apache 404 (Sept 2026: search dropdowns requested dozens of absent sheets, each rendered a full PHP page under the user's session lock and the leader's add-song ajax queued behind them for seconds). Search dropdown thumbnails (leader / piano / tech `song-row-tmpl.html`) skip `?v=0` and load lazily for the same reason. Routing is handled in `app/App.php` by matching the route string. AJAX requests all hit `route=ajax` with a `command` JSON payload.
 
+`public/.htaccess` also carries the HTTP caching/compression fixes (Sept 2026): `FileETag None` for js/css/svg/json/html — prod Apache 2.4.29 mod_deflate rewrites ETags to `"...-gzip"` and never matches them in `If-None-Match`, so every browser revalidation re-downloaded whole gzipped files instead of a 304 (`If-Modified-Since` works). Its `AddOutputFilterByType DEFLATE` list REPLACES the server-wide one per directory (does not extend it) — keep the full type list there (text/html covers pages and the ajax JSON, which PHP sends as HTML), never add a single type alone.
+
 ---
 
 ## 5. AJAX Architecture
