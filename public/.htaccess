@@ -10,3 +10,23 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 
 RewriteRule ^(.*)$ index.php?route=$1 [L,QSA]
+
+# Apache 2.4 (prod: 2.4.29) mod_deflate turns a file's ETag into "...-gzip"
+# and then never matches it in If-None-Match: every browser revalidation of
+# a gzipped JS/CSS file got the whole file (200) instead of an empty 304.
+# Without ETags the browser revalidates by If-Modified-Since, which works.
+<FilesMatch "\.(js|css|svg|json|html?)$">
+    FileETag None
+</FilesMatch>
+
+# The server-wide deflate.conf compresses html/css/js only. A per-directory
+# AddOutputFilterByType REPLACES that list instead of extending it (checked
+# on prod: adding svg alone stopped js/css compression), so the full list is
+# repeated here — text/html covers the pages and the ajax JSON (sent as HTML).
+<IfModule mod_deflate.c>
+    <IfModule mod_filter.c>
+        AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+        AddOutputFilterByType DEFLATE application/javascript application/x-javascript application/ecmascript
+        AddOutputFilterByType DEFLATE application/json application/manifest+json application/xml image/svg+xml
+    </IfModule>
+</IfModule>
