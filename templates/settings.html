@@ -833,7 +833,7 @@
                 <div class="set-surface">
 
 
-        <!-- 0. UI language selector (title deliberately English-only, so it is
+        <!-- UI language selector (title deliberately English-only, so it is
              recognisable whatever language the user switched to) -->
         <div class="settings-card" ng-show="setUi.cat === 'basic'">
             <span class="settings-card-title">🌐 UI language</span>
@@ -852,9 +852,9 @@
             </div>
         </div>
 
-        <!-- 1. Display name -->
+        <!-- Display name -->
         <div class="settings-card" ng-show="setUi.cat === 'basic'">
-            <span class="settings-card-title">1. <?php echo T::s('settings.card.displayName'); ?></span>
+            <span class="settings-card-title"><?php echo T::s('settings.card.displayName'); ?></span>
             <div class="settings-field">
                 <input type="text" class="settings-input"
                        ng-model="settings.display_name"
@@ -862,9 +862,9 @@
             </div>
         </div>
 
-        <!-- 2. Favorites order -->
+        <!-- Favorites order -->
         <div class="settings-card" ng-show="(permissions.canEditFavoritesOrder) && setUi.cat === 'basic'">
-            <span class="settings-card-title">2. <?php echo T::s('settings.card.favoritesOrder'); ?></span>
+            <span class="settings-card-title"><?php echo T::s('settings.card.favoritesOrder'); ?></span>
             <div class="settings-field">
                 <select class="settings-input" ng-model="settings.favorites_order">
                     <option value="latest_bottom"><?php echo T::s('settings.option.favLatestBottom'); ?></option>
@@ -873,10 +873,10 @@
             </div>
         </div>
 
-        <!-- 3. Available song lists -->
+        <!-- Available song lists -->
         <div class="settings-card" ng-show="(permissions.canEditSongLists) && setUi.cat === 'content'">
             <span class="settings-card-title collapsible" ng-click="toggle('songlists')">
-                <span>3. <?php echo T::s('settings.card.availableLists'); ?></span>
+                <span><?php echo T::s('settings.card.availableLists'); ?></span>
                 <span class="collapse-caret">{{ collapsed.songlists ? '▸' : '▾' }}</span>
             </span>
             <div ng-show="!collapsed.songlists">
@@ -908,10 +908,10 @@
             </div>
         </div>
 
-        <!-- 4. Available languages -->
+        <!-- Available languages -->
         <div class="settings-card" ng-show="(permissions.canEditLanguages) && setUi.cat === 'content'">
             <span class="settings-card-title collapsible" ng-click="toggle('langs')">
-                <span>4. <?php echo T::s('settings.card.availableLangs'); ?></span>
+                <span><?php echo T::s('settings.card.availableLangs'); ?></span>
                 <span class="collapse-caret">{{ collapsed.langs ? '▸' : '▾' }}</span>
             </span>
             <div ng-show="!collapsed.langs">
@@ -943,10 +943,10 @@
             </div>
         </div>
 
-        <!-- 5. Background placeholder image -->
+        <!-- Background placeholder image -->
         <div class="settings-card" ng-show="(permissions.canEditAllSettings) && setUi.cat === 'screens'">
             <span class="settings-card-title collapsible" ng-click="toggle('placeholder')">
-                <span>5. <?php echo T::s('settings.card.placeholder'); ?></span>
+                <span><?php echo T::s('settings.card.placeholder'); ?></span>
                 <span class="collapse-caret">{{ collapsed.placeholder ? '▸' : '▾' }}</span>
             </span>
             <div ng-show="!collapsed.placeholder">
@@ -975,7 +975,7 @@
             </div>
         </div>
 
-        <!-- 5-7. Main display -->
+        <!-- Main display -->
         <div class="settings-card" ng-show="(permissions.canEditAllSettings) && setUi.cat === 'screens'">
             <span class="settings-card-title collapsible" ng-click="toggle('maindisplay')">
                 <span><?php echo T::s('settings.card.mainDisplay'); ?></span>
@@ -989,7 +989,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">5. <?php echo T::s('settings.field.bgColor'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.field.bgColor'); ?></label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.main_bg_color">
@@ -1000,7 +1000,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">6. <?php echo T::s('settings.field.font'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.field.font'); ?></label>
                 <select class="settings-input" ng-model="settings.main_font">
                     <option value="Arial">Arial</option>
                     <option value="Verdana">Verdana</option>
@@ -1012,7 +1012,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">7. <?php echo T::s('settings.field.fontColor'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.field.fontColor'); ?></label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.main_font_color">
@@ -1023,7 +1023,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">{{ ('8. ' + ('<?php echo T::s('settings.field.maxFontSize'); ?>'.replace('{size}', (settings.main_font_max_size || 64)))) }}</label>
+                <label class="settings-label">{{ ('<?php echo T::s('settings.field.maxFontSize'); ?>'.replace('{size}', (settings.main_font_max_size || 64))) }}</label>
                 <input type="range" min="20" max="200" step="2"
                        ng-model="settings.main_font_max_size"
                        class="settings-input" style="cursor:pointer;">
@@ -1032,7 +1032,7 @@
             </div>
         </div>
 
-        <!-- 9-13. Streaming display -->
+        <!-- Streaming display -->
         <div class="settings-card" ng-show="(permissions.canEditAllSettings) && setUi.cat === 'screens'">
             <span class="settings-card-title collapsible" ng-click="toggle('streaming')">
                 <span><?php echo T::s('settings.card.streamingDisplay'); ?></span>
@@ -1046,7 +1046,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">9. <?php echo T::s('settings.field.bgColor'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.field.bgColor'); ?></label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.streaming_bg_color">
@@ -1057,7 +1057,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">10. <?php echo T::s('settings.field.font'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.field.font'); ?></label>
                 <select class="settings-input" ng-model="settings.streaming_font">
                     <option value="Arial">Arial</option>
                     <option value="Verdana">Verdana</option>
@@ -1069,7 +1069,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">11. <?php echo T::s('settings.field.fontColor'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.field.fontColor'); ?></label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.streaming_font_color">
@@ -1080,7 +1080,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">{{ ('12. ' + ('<?php echo T::s('settings.field.streamingHeightPct'); ?>'.replace('{pct}', settings.streaming_height_percent))) }}</label>
+                <label class="settings-label">{{ ('<?php echo T::s('settings.field.streamingHeightPct'); ?>'.replace('{pct}', settings.streaming_height_percent)) }}</label>
                 <input type="range" min="20" max="100"
                        ng-model="settings.streaming_height_percent"
                        class="settings-input" style="cursor:pointer;">
@@ -1088,7 +1088,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">{{ ('13. ' + ('<?php echo T::s('settings.field.maxFontSize'); ?>'.replace('{size}', (settings.streaming_font_max_size || 64)))) }}</label>
+                <label class="settings-label">{{ ('<?php echo T::s('settings.field.maxFontSize'); ?>'.replace('{size}', (settings.streaming_font_max_size || 64))) }}</label>
                 <input type="range" min="20" max="200" step="2"
                        ng-model="settings.streaming_font_max_size"
                        class="settings-input" style="cursor:pointer;">
@@ -1097,7 +1097,7 @@
             </div>
         </div>
 
-        <!-- 14-20. Sermon mode -->
+        <!-- Sermon mode -->
         <div class="settings-card" ng-show="(permissions.canEditSermonSettings) && setUi.cat === 'sermon'">
             <span class="settings-card-title collapsible" ng-click="toggle('sermon')">
                 <span><?php echo T::s('settings.card.sermonDisplay'); ?></span>
@@ -1107,7 +1107,7 @@
             <p class="settings-card-subtitle"><?php echo T::s('settings.section.sermonHeading'); ?></p>
 
             <div class="settings-field">
-                <label class="settings-label">14. <?php echo T::s('settings.section.notesBg'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.section.notesBg'); ?></label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.sermon_notes_bg_color">
@@ -1119,7 +1119,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">15. <?php echo T::s('settings.section.sermonBibleColor'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.section.sermonBibleColor'); ?></label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.sermon_bible_base_color">
@@ -1139,7 +1139,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">16. <?php echo T::s('settings.section.sermonMsgColor'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.section.sermonMsgColor'); ?></label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.sermon_msg_base_color">
@@ -1159,7 +1159,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">{{ ('17. ' + ('<?php echo T::s('settings.notesFontSize'); ?>'.replace('{pct}', (settings.sermon_notes_font_size || 100)))) }}</label>
+                <label class="settings-label">{{ ('<?php echo T::s('settings.notesFontSize'); ?>'.replace('{pct}', (settings.sermon_notes_font_size || 100))) }}</label>
                 <input type="range" min="50" max="300" step="10"
                        ng-model="settings.sermon_notes_font_size"
                        class="settings-input" style="cursor:pointer;">
@@ -1167,7 +1167,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">18. <?php echo T::s('settings.scaleChipsLabel'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.scaleChipsLabel'); ?></label>
                 <div class="scale-row">
                     <input type="checkbox" id="scaleChipsCheck"
                            ng-model="settings.sermon_scale_chips"
@@ -1179,7 +1179,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">19. <?php echo T::s('settings.section.slideBg'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.section.slideBg'); ?></label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.slide_bg_color">
@@ -1191,7 +1191,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">{{ ('20. ' + ('<?php echo T::s('settings.section.slideMaxFont'); ?>'.replace('{size}', (settings.slide_font_max_size || 64)))) }}</label>
+                <label class="settings-label">{{ ('<?php echo T::s('settings.section.slideMaxFont'); ?>'.replace('{size}', (settings.slide_font_max_size || 64))) }}</label>
                 <input type="range" min="20" max="200" step="2"
                        ng-model="settings.slide_font_max_size"
                        class="settings-input" style="cursor:pointer;">
@@ -1208,7 +1208,7 @@
             </span>
             <div ng-show="!collapsed.leaderscreen">
             <div class="settings-field">
-                <label class="settings-label">21. <?php echo T::s('settings.leaderTextMultilang'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.leaderTextMultilang'); ?></label>
                 <div class="scale-row">
                     <input type="checkbox" id="leaderMultilangCheck"
                            ng-model="settings.leader_text_multilang"
@@ -1219,7 +1219,7 @@
                 </div>
             </div>
             <div class="settings-field">
-                <label class="settings-label">22. <?php echo T::s('settings.leaderClearScreen'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.leaderClearScreen'); ?></label>
                 <div class="scale-row">
                     <input type="checkbox" id="leaderClearScreenCheck"
                            ng-model="settings.leader_clear_screen"
@@ -1232,7 +1232,7 @@
             </div>
         </div>
 
-        <!-- 23-29. «Сообщение музыкантам» (leader page button -> overlay over the notes) -->
+        <!-- «Сообщение музыкантам» (leader page button -> overlay over the notes) -->
         <div class="settings-card" ng-show="(permissions.canEditFavoritesOrder || permissions.canEditAllSettings) && setUi.cat === 'leader'">
             <span class="settings-card-title collapsible" ng-click="toggle('musicianmsg')">
                 <span><?php echo T::s('settings.card.musicianMsg'); ?></span>
@@ -1253,7 +1253,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">23. <?php echo T::s('settings.field.bgColor'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.field.bgColor'); ?></label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.musician_msg_bg_color">
@@ -1264,19 +1264,19 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">{{ ('24. ' + ('<?php echo T::s('settings.mm.bgTransparency'); ?>'.replace('{pct}', settings.musician_msg_bg_transparency))) }}</label>
+                <label class="settings-label">{{ ('<?php echo T::s('settings.mm.bgTransparency'); ?>'.replace('{pct}', settings.musician_msg_bg_transparency)) }}</label>
                 <input type="range" min="0" max="100" ng-model="settings.musician_msg_bg_transparency"
                        class="settings-input" style="cursor:pointer;">
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">{{ ('25. ' + ('<?php echo T::s('settings.mm.height'); ?>'.replace('{pct}', settings.musician_msg_height))) }}</label>
+                <label class="settings-label">{{ ('<?php echo T::s('settings.mm.height'); ?>'.replace('{pct}', settings.musician_msg_height)) }}</label>
                 <input type="range" min="10" max="100" ng-model="settings.musician_msg_height"
                        class="settings-input" style="cursor:pointer;">
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">26. <?php echo T::s('settings.field.font'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.field.font'); ?></label>
                 <select class="settings-input" ng-model="settings.musician_msg_font">
                     <option value="System"><?php echo T::s('settings.mm.fontSystem'); ?></option>
                     <option value="Arial">Arial</option>
@@ -1289,7 +1289,7 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">27. <?php echo T::s('settings.field.fontColor'); ?></label>
+                <label class="settings-label"><?php echo T::s('settings.field.fontColor'); ?></label>
                 <div class="color-row">
                     <div class="color-input-wrap">
                         <input type="color" ng-model="settings.musician_msg_text_color">
@@ -1300,13 +1300,13 @@
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">{{ ('28. ' + ('<?php echo T::s('settings.mm.textTransparency'); ?>'.replace('{pct}', settings.musician_msg_text_transparency))) }}</label>
+                <label class="settings-label">{{ ('<?php echo T::s('settings.mm.textTransparency'); ?>'.replace('{pct}', settings.musician_msg_text_transparency)) }}</label>
                 <input type="range" min="0" max="100" ng-model="settings.musician_msg_text_transparency"
                        class="settings-input" style="cursor:pointer;">
             </div>
 
             <div class="settings-field">
-                <label class="settings-label">{{ ('29. ' + ('<?php echo T::s('settings.field.maxFontSize'); ?>'.replace('{size}', settings.musician_msg_font_max))) }}</label>
+                <label class="settings-label">{{ ('<?php echo T::s('settings.field.maxFontSize'); ?>'.replace('{size}', settings.musician_msg_font_max)) }}</label>
                 <input type="range" min="20" max="400" step="5" ng-model="settings.musician_msg_font_max"
                        class="settings-input" style="cursor:pointer;">
                 <span class="settings-hint"><?php echo T::s('settings.mm.fontMaxHint'); ?></span>

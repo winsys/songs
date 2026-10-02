@@ -747,7 +747,7 @@
         <!-- ===================== SONGS TAB ===================== -->
         <div ng-show="tab==='songs'">
 
-            <!-- 1. Collection selection -->
+            <!-- Collection selection -->
             <div class="import-section" ng-show="impUi.songs === 'list'">
                 <h4><?php echo T::s('import.section.songList'); ?></h4>
 
@@ -773,7 +773,7 @@
                 </div>
             </div>
 
-            <!-- 2. Language -->
+            <!-- Language -->
             <div class="import-section" ng-show="(songListId) && impUi.songs === 'texts'">
                 <h4><?php echo T::s('import.section.langImport'); ?></h4>
                 <select class="import-select" ng-model="songLang"
@@ -781,7 +781,7 @@
                 </select>
             </div>
 
-            <!-- 3. SOG lyrics -->
+            <!-- SOG lyrics -->
             <div class="import-section" ng-show="(songListId) && impUi.songs === 'texts'">
                 <h4><?php echo T::s('import.section.songTexts'); ?></h4>
                 <p><?php echo T::s('import.hint.songFormat'); ?></p>
@@ -803,7 +803,7 @@
                 </button>
             </div>
 
-            <!-- 4. Image groups + ZIP images -->
+            <!-- Image groups + ZIP images -->
             <div class="import-section" ng-show="(songListId) && impUi.songs === 'images'">
                 <h4><?php echo T::s('import.section.images'); ?></h4>
                 <p><?php echo T::s('import.hint.imageGroups'); ?></p>
@@ -925,7 +925,7 @@
         <!-- ===================== MESSAGES TAB ===================== -->
         <div ng-show="tab==='messages'">
 
-            <!-- 1. Language -->
+            <!-- Language -->
             <div class="import-section">
                 <h4><?php echo T::s('import.section.lang'); ?></h4>
                 <select class="import-select" ng-model="msgLang"
@@ -939,7 +939,7 @@
                 <button class="msg-sub-btn" ng-class="{active: msgSubTab==='manual'}" ng-click="msgSubTab='manual'"><?php echo T::s('import.msg.subManual'); ?></button>
             </div>
 
-            <!-- 2. SOG file -->
+            <!-- SOG file -->
             <div class="import-section" ng-show="msgSubTab==='sog'">
                 <h4><?php echo T::s('import.msg.title'); ?></h4>
                 <p><?php echo T::s('import.hint.msgFormat'); ?></p>
@@ -961,7 +961,7 @@
                 </button>
             </div>
 
-            <!-- 3. Manual entry -->
+            <!-- Manual entry -->
             <div class="import-section" ng-show="msgSubTab==='manual'">
                 <h4><?php echo T::s('import.msg.titleManual'); ?></h4>
                 <p><?php echo T::s('import.hint.txtManual'); ?></p>
