@@ -307,6 +307,7 @@
   "observer.more": "Rodomi pirmieji {count} — patikslinkite užklausą",
   "observer.noContent": "Ši giesmė kol kas neturi nei teksto, nei paveikslėlių",
   "observer.notFound": "Nieko nerasta",
+  "observer.pinchHint": "Teksto dydis: suglauskite arba išskėskite du pirštus",
   "observer.searching": "Ieškoma…",
   "observer.songs.allLists": "Visi rinkiniai",
   "observer.songs.hint": "Įveskite giesmės numerį, pavadinimą ar kelis žodžius iš teksto — arba pasirinkite rinkinį",

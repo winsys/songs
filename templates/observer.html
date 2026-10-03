@@ -388,17 +388,21 @@
         -webkit-overflow-scrolling: touch;
         cursor: pointer;
     }
+    /* The text is resized by a pinch (observer.js): it covers the whole box,
+       so two fingers anywhere land on it, and the browser keeps only the
+       vertical scroll there (no page zoom) */
     .obs-text {
+        min-height: 100%;
+        box-sizing: border-box;
         padding: 16px 16px 40px;
         line-height: 1.35;
         color: #f4f4f4;
         font-family: Arial, Helvetica, sans-serif;
+        touch-action: pan-y;
     }
     .obs-text-song { text-align: center; font-weight: 600; }
     /* Wide screens: the whole song text auto-fitted by fitSongText() fills the box and is centred */
     .obs-text-fit {
-        min-height: 100%;
-        box-sizing: border-box;
         display: flex;
         flex-direction: column;
         justify-content: center;
@@ -894,14 +898,13 @@
 
     <!-- ============================================================
          CONTENT VIEWER (song / Bible chapter / message), own screen only.
-         A tap on the content toggles fullscreen (bars hidden).
+         A tap on the content toggles fullscreen (bars hidden); a two-finger
+         pinch on the text changes its size (observer.js, "Pinch = text size").
          ============================================================ -->
     <div class="obs-viewer" id="obsViewer" ng-show="viewer.open">
         <div class="obs-vbar" ng-show="!viewer.fs">
             <button class="obs-vbtn" ng-click="closeViewer()">✕</button>
             <div class="obs-vtitle">{{ viewer.title }}</div>
-            <button class="obs-vbtn" ng-click="fontStep(-1)" title="<?php echo T::s('common.button.decrease'); ?>">A−</button>
-            <button class="obs-vbtn" ng-click="fontStep(1)" title="<?php echo T::s('common.button.increase'); ?>">A+</button>
         </div>
         <div class="obs-vmodes" ng-show="!viewer.fs && (viewer.langs.length + viewer.groups.length > 1 || viewer.kind === 'song')">
             <button class="obs-mode" ng-repeat="l in viewer.langs track by l.code"
@@ -914,8 +917,11 @@
                                empty: !g.image}"
                     ng-click="setView(viewer, 'image', g.id)">{{ g.name }}</button>
         </div>
-        <div class="obs-fshint" ng-show="!viewer.fs"><?php echo T::s('observer.fsHint'); ?></div>
-        <div class="obs-vcontent" ng-click="toggleFs(viewer, 'obsViewer')">
+        <div class="obs-fshint" ng-show="!viewer.fs">
+            <?php echo T::s('observer.fsHint'); ?>
+            <div ng-if="viewer.view.kind === 'text'"><?php echo T::s('observer.pinchHint'); ?></div>
+        </div>
+        <div class="obs-vcontent" id="obsVcontent" ng-click="toggleFs(viewer, 'obsViewer')">
             <div class="obs-text obs-text-song" id="obsVsong" ng-if="viewer.kind === 'song' && viewer.view.kind === 'text'"
                  ng-class="{'obs-text-fit': viewer.fitPx}" ng-style="{'font-size': (viewer.fitPx || fontPx) + 'px'}">
                 <div class="obs-verse-block" ng-repeat="b in viewer.blocks track by $index">{{ b }}</div>
@@ -947,8 +953,6 @@
         <div class="obs-vbar obs-vbar-group" ng-show="!group.fs">
             <button class="obs-vbtn" onclick="window.location.href='/index'"><?php echo T::s('common.button.back'); ?></button>
             <button class="obs-vbtn obs-vbtn-danger" ng-click="leaveGroup()"><?php echo T::s('observer.group.leave'); ?></button>
-            <button class="obs-vbtn" ng-click="fontStep(-1)" title="<?php echo T::s('common.button.decrease'); ?>">A−</button>
-            <button class="obs-vbtn" ng-click="fontStep(1)" title="<?php echo T::s('common.button.increase'); ?>">A+</button>
             <div class="obs-vtitle obs-vtitle-group">{{ group.text ? group.title : (group.song ? (group.song.NUM + ' — ' + group.song.NAME) : '') }}</div>
         </div>
         <div class="obs-vmodes" ng-show="!group.fs && group.song && !group.text">
@@ -962,8 +966,12 @@
                                empty: !g.image}"
                     ng-click="setView(group, 'image', g.id)">{{ g.name }}</button>
         </div>
-        <div class="obs-fshint" ng-show="!group.fs && (group.song || group.text)"><?php echo T::s('observer.fsHint'); ?></div>
-        <div class="obs-vcontent" ng-click="toggleFs(group, 'obsGroup')">
+        <div class="obs-fshint" ng-show="!group.fs && (group.song || group.text)">
+            <?php echo T::s('observer.fsHint'); ?>
+            <!-- same condition as #obsGsong below: the only text with a size of its own -->
+            <div ng-if="!group.text && group.song && group.view.kind === 'text' && !group.verseText"><?php echo T::s('observer.pinchHint'); ?></div>
+        </div>
+        <div class="obs-vcontent" id="obsGcontent" ng-click="toggleFs(group, 'obsGroup')">
             <!-- text overlay from the tech console: Bible verse / message paragraph, auto-fitted -->
             <div class="obs-gverse obs-gtext" ng-if="group.text">
                 <div id="obsGtextInner" class="obs-gverse-inner"></div>
@@ -997,5 +1005,5 @@
 
 </div><!-- /ng-controller -->
 
-<script src="/js/observer.min.js?v=6" type="text/javascript"></script>
+<script src="/js/observer.min.js?v=7" type="text/javascript"></script>
 <script src="/js/wake_lock.min.js?v=1" type="text/javascript"></script>

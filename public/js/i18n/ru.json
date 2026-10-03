@@ -307,6 +307,7 @@
   "observer.more": "Показаны первые {count} — уточните запрос",
   "observer.noContent": "Для этой песни пока нет ни текста, ни картинок",
   "observer.notFound": "Ничего не найдено",
+  "observer.pinchHint": "Размер текста — сведите или разведите два пальца",
   "observer.searching": "Ищем…",
   "observer.songs.allLists": "Все сборники",
   "observer.songs.hint": "Введите номер песни, название или несколько слов из текста — или выберите сборник",
