@@ -307,6 +307,7 @@
   "observer.more": "Die ersten {count} werden angezeigt – bitte Suche eingrenzen",
   "observer.noContent": "Für dieses Lied gibt es noch weder Text noch Bilder",
   "observer.notFound": "Nichts gefunden",
+  "observer.pinchHint": "Textgröße: zwei Finger zusammen- oder auseinanderziehen",
   "observer.searching": "Suche…",
   "observer.songs.allLists": "Alle Sammlungen",
   "observer.songs.hint": "Geben Sie die Liednummer, den Titel oder einige Wörter aus dem Text ein – oder wählen Sie eine Sammlung",

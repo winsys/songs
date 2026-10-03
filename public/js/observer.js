@@ -132,23 +132,21 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
     $scope.history = storageGet('observerHistory', []);
     if (!Array.isArray($scope.history)) $scope.history = [];
 
-    // Reading font size (px) for lyrics / chapters / messages.
-    $scope.fontPx = parseInt(storageGet('observerFontPx', 0)) || 22;
-    $scope.fontStep = function (dir) {
-        $scope.fontPx = Math.max(14, Math.min(44, $scope.fontPx + dir * 2));
-        storageSet('observerFontPx', $scope.fontPx);
-        refitAll();   // wide screens: A+ above the fitting size switches to the manual size
-    };
+    // Reading font size (px) for lyrics / chapters / messages, changed by a
+    // two-finger pinch on the text (see "Pinch = text size").
+    var FONT_MIN = 14, FONT_MAX = 44;
+    var pinchEndedAt = 0;   // toggleFs ignores the tap a finished pinch may leave behind
+    $scope.fontPx = Math.max(FONT_MIN, Math.min(FONT_MAX, parseInt(storageGet('observerFontPx', 0)) || 22));
 
     // Content viewer (search mode) and the group-mode screen share the song
     // view logic: .song, .langs (with text), .groups, .view, .blocks, .imageSrc.
     $scope.viewer = { open: false, fs: false, kind: '', title: '', hl: null,
                       song: null, langs: [], groups: [], view: { kind: 'none' },
-                      blocks: [], verses: [], paras: [], imageSrc: '', shownGroupId: null, loadedAt: 0, msg: null, fitPx: null };
+                      blocks: [], verses: [], paras: [], imageSrc: '', shownGroupId: null, loadedAt: 0, msg: null, fitPx: null, fitMax: null };
     $scope.group  = { on: false, fs: false, active: false, songId: 0, verseIdx: -1, leaderLangs: [],
                       song: null, langs: [], groups: [], view: { kind: 'none' },
                       blocks: [], imageSrc: '', shownGroupId: null, loadedAt: 0, verseText: '',
-                      text: '', title: '', fitPx: null };   // text overlay from the tech console (Bible verse / message paragraph)
+                      text: '', title: '', fitPx: null, fitMax: null };   // text overlay from the tech console (Bible verse / message paragraph)
 
     var langsReady = SongsService.getLanguages().then(function (langs) {
         $scope.langList = langs || [];
@@ -227,9 +225,10 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
 
     // Wide screens only (a computer / TV, a tablet in landscape): the whole
     // song text is scaled up to fill the content box and centred, the way
-    // the main screen shows a song. The manual A-/A+ size with scrolling
+    // the main screen shows a song. The manual (pinched) size with scrolling
     // stays for phones (untouched), for a text too long to fit even at the
-    // manual size, and when A+ was pushed above the fitting size.
+    // manual size, and when the manual size is above the fitting one.
+    // t.fitMax keeps the fitting size itself (null on phones) for the pinch.
     function wideScreen() {
         return !!(window.matchMedia && window.matchMedia('(min-width: 900px) and (min-height: 600px)').matches);
     }
@@ -238,7 +237,7 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
         $timeout(function () {
             var el = document.getElementById(elId);
             if (!el) return;                       // not rendered (verse / image / closed)
-            if (!wideScreen()) { t.fitPx = null; el.style.fontSize = $scope.fontPx + 'px'; return; }
+            if (!wideScreen()) { t.fitPx = null; t.fitMax = null; el.style.fontSize = $scope.fontPx + 'px'; return; }
             var box = el.parentElement;
             if (box.clientHeight <= 20 || box.clientWidth <= 20) {
                 if ((_retry || 0) < 10) fitSongText(t, (_retry || 0) + 1);
@@ -246,6 +245,7 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
             }
             // Measure as plain content: the fit class stretches the element
             // to the box (min-height:100%), which would hide the overflow.
+            var top = box.scrollTop;               // the tiny sizes tried below reset it
             el.style.minHeight = '0';
             var maxH = box.clientHeight;
             var lo = 8, hi = 300, best = 0;
@@ -256,8 +256,10 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
                 else { hi = mid; }
             }
             el.style.minHeight = '';
-            t.fitPx = (best >= $scope.fontPx) ? Math.floor(best) : null;
+            t.fitMax = Math.floor(best) || null;
+            t.fitPx = (best >= $scope.fontPx) ? t.fitMax : null;
             el.style.fontSize = (t.fitPx || $scope.fontPx) + 'px';
+            box.scrollTop = top;
         }, 30);
     }
 
@@ -285,6 +287,7 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
     // ─── Fullscreen (bars hidden + best-effort browser fullscreen) ─
     $scope.toggleFs = function (t, elId) {
         if (t === $scope.group && !t.song && !t.text) return;   // waiting screen keeps its buttons
+        if (Date.now() - pinchEndedAt < 400) return;            // not a tap: the fingers of a pinch lifting
         t.fs = !t.fs;
         if (t.fs) requestFs(document.getElementById(elId)); else exitFs();
         if (t === $scope.group) renderGroupVerse();
@@ -863,6 +866,147 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
     }
     window.addEventListener('resize', scheduleRefit);
     window.addEventListener('orientationchange', scheduleRefit);
+
+    // ─── Pinch = text size ──────────────────────────────────────
+    // The reading text of both dark screens (song lyrics, a Bible chapter,
+    // a message; the whole-song text in group mode) is resized with two
+    // fingers, with the bars shown and in fullscreen alike; a computer gets
+    // the same through the trackpad pinch / Ctrl + wheel. The size is the
+    // shared fontPx (FONT_MIN..FONT_MAX, remembered). The fitted verse, the
+    // text overlay and the pictures have no size of their own: nothing is
+    // intercepted there, the browser's gestures stay.
+    var PINCH_SLOP = 12;   // px the finger distance must change before the size follows it
+
+    // Top and height of the text lines inside the scrolled box (the element
+    // itself is padded and stretched to the box).
+    function linesSpan(el) {
+        var a = el.firstElementChild, b = el.lastElementChild;
+        if (!a) return { top: 0, h: 1 };
+        return { top: a.offsetTop, h: Math.max(1, b.offsetTop + b.offsetHeight - a.offsetTop) };
+    }
+
+    // t = $scope.viewer / $scope.group, the owner of the box.
+    function pinchBegin(box, t, clientY) {
+        var el = box.querySelector('.obs-text');
+        if (!el) return null;                      // picture / fitted verse / waiting screen
+        // Only a song text is ever fitted to the box (wide screens).
+        var song = el.classList.contains('obs-text-song');
+        var basePx = (song && t.fitPx) || $scope.fontPx;
+        var y = isFinite(clientY) ? clientY - box.getBoundingClientRect().top : box.clientHeight / 2;
+        var span = linesSpan(el);
+        return {
+            box: box, el: el, t: t,
+            startPx: $scope.fontPx,
+            basePx: basePx, shown: basePx,         // the size on the screen
+            fit: song ? t.fitMax : null,           // never shown smaller than the fitting size
+            fitted: !!(song && t.fitPx),
+            // where in the text the fingers are (0 = its top, 1 = its bottom)
+            y: y, pos: Math.max(0, Math.min(1, (box.scrollTop + y - span.top) / span.h)),
+            changed: false
+        };
+    }
+
+    // k = scale relative to the size the gesture started with.
+    function pinchScale(p, k) {
+        var px = Math.max(FONT_MIN, Math.min(FONT_MAX, Math.round(p.basePx * k)));
+        var fitted = !!(p.fit && px <= p.fit);
+        var shown = fitted ? p.fit : px;
+        if (shown === p.shown) return;
+        if (fitted) { $scope.fontPx = Math.min(p.startPx, p.fit); p.t.fitPx = p.fit; }
+        else {
+            $scope.fontPx = px;
+            if (p.fit) p.t.fitPx = null;
+        }
+        p.el.style.fontSize = shown + 'px';
+        var span = linesSpan(p.el);
+        p.box.scrollTop = span.top + p.pos * span.h - p.y;      // the lines under the fingers stay there
+        if (fitted !== p.fitted) $scope.$applyAsync();          // the centring class follows fitPx
+        p.shown = shown; p.fitted = fitted; p.changed = true;
+    }
+
+    function pinchEnd(p) {
+        if (!p.changed) return;
+        $scope.$applyAsync(function () {
+            storageSet('observerFontPx', $scope.fontPx);
+            refitAll();
+        });
+    }
+
+    function initPinch(boxId, t) {
+        var box = document.getElementById(boxId);
+        if (!box) return;
+        var touch = null;        // two fingers on the text
+        var fingers = 0, pinched = false;
+        var wheel = null, wheelTimer = null;
+        var trackpad = null;     // Safari on a Mac
+
+        function touchGap(e) {
+            return Math.hypot(e.touches[0].clientX - e.touches[1].clientX,
+                              e.touches[0].clientY - e.touches[1].clientY);
+        }
+        function touchStop() {
+            if (touch) { pinchEnd(touch); touch = null; }
+        }
+
+        box.addEventListener('touchstart', function (e) {
+            fingers = e.touches.length;
+            touchStop();                                   // a third finger ends the pinch
+            if (fingers !== 2) return;
+            touch = pinchBegin(box, t, (e.touches[0].clientY + e.touches[1].clientY) / 2);
+            if (touch) { touch.gap = touchGap(e); touch.armed = false; pinched = true; }
+        }, { passive: true });
+
+        box.addEventListener('touchmove', function (e) {
+            if (!touch || e.touches.length !== 2) return;
+            if (e.cancelable) e.preventDefault();          // neither the page zoom nor a two-finger scroll
+            var gap = touchGap(e);
+            if (!touch.armed) {
+                if (Math.abs(gap - touch.gap) < PINCH_SLOP) return;   // two fingers resting on the text
+                touch.armed = true;
+                touch.gap = Math.max(gap, 1);
+            }
+            pinchScale(touch, gap / touch.gap);
+        }, { passive: false });
+
+        function onTouchEnd(e) {
+            fingers = e.touches.length;
+            if (fingers < 2) touchStop();
+            if (fingers === 0 && pinched) { pinched = false; pinchEndedAt = Date.now(); }
+        }
+        box.addEventListener('touchend', onTouchEnd);
+        box.addEventListener('touchcancel', onTouchEnd);
+
+        // Chrome / Edge / Firefox deliver a trackpad pinch as Ctrl + wheel.
+        box.addEventListener('wheel', function (e) {
+            if (!e.ctrlKey) return;
+            if (!wheel) wheel = pinchBegin(box, t, e.clientY);
+            if (!wheel) return;
+            e.preventDefault();                            // instead of the browser's page zoom
+            // A pinch sends many small deltas, one notch of a mouse wheel ~100.
+            var d = Math.max(-12, Math.min(12, e.deltaY * (e.deltaMode === 1 ? 16 : 1)));
+            var k = (wheel.k || 1) * Math.exp(-d / 100);
+            wheel.k = Math.max(FONT_MIN / wheel.basePx, Math.min(FONT_MAX / wheel.basePx, k));
+            pinchScale(wheel, wheel.k);
+            if (wheelTimer) clearTimeout(wheelTimer);
+            wheelTimer = setTimeout(function () { wheelTimer = null; pinchEnd(wheel); wheel = null; }, 300);
+        }, { passive: false });
+
+        // Safari's own gesture events. iPhone / iPad: they zoom the whole
+        // page, and the fingers are already handled as touches above. Mac:
+        // they are the trackpad pinch (no touch events there).
+        ['gesturestart', 'gesturechange', 'gestureend'].forEach(function (type) {
+            box.addEventListener(type, function (e) {
+                if (!trackpad && !box.querySelector('.obs-text')) return;
+                e.preventDefault();
+                if (fingers) return;
+                if (type === 'gesturestart') trackpad = pinchBegin(box, t, e.clientY);
+                else if (trackpad && type === 'gesturechange') pinchScale(trackpad, e.scale);
+                else if (trackpad) { pinchEnd(trackpad); trackpad = null; }
+            });
+        });
+    }
+    initPinch('obsVcontent', $scope.viewer);
+    initPinch('obsGcontent', $scope.group);
 
     // ─── WebSocket ──────────────────────────────────────────────
     var wsDisconnectTimer = null;

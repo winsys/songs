@@ -307,6 +307,7 @@
   "observer.more": "Pokazano pierwsze {count} — doprecyzuj zapytanie",
   "observer.noContent": "Ta pieśń nie ma jeszcze ani tekstu, ani obrazów",
   "observer.notFound": "Nic nie znaleziono",
+  "observer.pinchHint": "Rozmiar tekstu: zsuń lub rozsuń dwa palce",
   "observer.searching": "Szukamy…",
   "observer.songs.allLists": "Wszystkie śpiewniki",
   "observer.songs.hint": "Wpisz numer pieśni, tytuł lub kilka słów z tekstu — albo wybierz śpiewnik",

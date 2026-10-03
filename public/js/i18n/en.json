@@ -307,6 +307,7 @@
   "observer.more": "Showing the first {count} — refine your search",
   "observer.noContent": "This song has no lyrics or pictures yet",
   "observer.notFound": "Nothing found",
+  "observer.pinchHint": "Text size: pinch with two fingers",
   "observer.searching": "Searching…",
   "observer.songs.allLists": "All collections",
   "observer.songs.hint": "Type a song number, a title or a few words from the lyrics — or pick a collection",

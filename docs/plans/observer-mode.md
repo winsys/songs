@@ -127,12 +127,15 @@ default UI language, fallback to the leader's); history in `sessionStorage`
 - Messages: title/code filter over `observer_list_messages` + word search
   returning paragraphs (`search_message_paragraphs`) → message viewer with
   language buttons, scrolled to the paragraph.
-- Viewer (dark, full viewport): ✕, title, A−/A+ (font size remembered),
-  language / image-type buttons for songs; a tap on the content toggles
-  fullscreen (bars hidden + best-effort browser fullscreen; iPhone Safari
-  has no element fullscreen — the fixed overlay is the fullscreen). Image
-  type choice remembered by name (`observerSongView` in sessionStorage),
-  the musician's «selected stays, first with image shown» rule.
+- Viewer (dark, full viewport): ✕, title, language / image-type buttons for
+  songs; the text size (remembered) is a two-finger pinch on the text — also
+  in fullscreen and on the group screen's whole-song text; trackpad pinch /
+  Ctrl + wheel on a computer; no A−/A+ buttons since Oct 2026. A tap on the
+  content toggles fullscreen (bars hidden + best-effort browser fullscreen;
+  iPhone Safari has no element fullscreen — the fixed overlay is the
+  fullscreen). Image type choice remembered by name (`observerSongView` in
+  sessionStorage), the musician's «selected stays, first with image shown»
+  rule.
 - History: `sessionStorage.observerHistory` (40 items, songs / chapters /
   messages, reopen by tap, clear button).
 - Group mode: `observer_get_state` on enter / reconnect / song change;
