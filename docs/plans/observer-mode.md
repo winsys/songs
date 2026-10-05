@@ -35,7 +35,8 @@ default UI language, fallback to the leader's); history in `sessionStorage`
   `get_user_settings`, `get_languages`, `get_all_song_lists`,
   `get_songs_for_search`, `get_song_list`, `get_song_images`, `get_bible_*`,
   `search_bible_verses`, `search_messages`, `search_message_paragraphs`,
-  `get_message`, `observer_get_state`, `observer_list_messages`); everything
+  `get_message`, `observer_get_state`, `observer_list_messages`,
+  `observer_join_link` — the «📱 QR» button, Oct 2026); everything
   else → 403. Other roles are not affected.
 - Settings page: the role slot «Наблюдатель» (create / share like the other
   roles) — `Ajax_Settings` allowed roles + labels, `settings.js` ALL_ROLES +
@@ -73,6 +74,29 @@ default UI language, fallback to the leader's); history in `sessionStorage`
   `{status:'none'}` when the group has no observer account → alert
   `leader.joinQr.noAccount`. `leader.html` loads `vendor/qrcode.min.js`
   (`leader.min.js` v=36).
+- **Observer page (added 2026-10-05, Pavel's follow-up):** whoever opened
+  the page through the QR code can show the same code to a neighbour, who
+  shows it to the next one. «📱 QR-код» in the header of the search screen
+  (short «📱 QR» and an arrow-only Back at ≤ 540 px) and «📱 QR» in the
+  group-mode bar (its title now really wraps onto a line of its own) →
+  dialog: «Покажите этот код соседу», group name, the code as large as the
+  phone allows (beside the texts when the phone is held sideways),
+  «Отправить ссылку» (`navigator.share`; clipboard + «Ссылка скопирована»
+  where there is no share sheet), «Закрыть». No link field, no print, no
+  «Новая ссылка». Server: the same `observer_join_link`, now also in the
+  observer whitelist and allowed to everyone who can open `/observer`
+  (`Security::canAccess('observer')`: admin, preacher, observer); the
+  observer role gets the link of ITS OWN account (`curUserId` — a group may
+  have several observer accounts), the others the group's first one as
+  before. The link is asked on every opening (the admin may have replaced
+  it); without a connection the code shown before is shown again.
+  Trade-off: a phone that is already logged in can read a re-issued token,
+  so «Новая ссылка» alone no longer keeps such a phone from inviting others.
+  The dialog CSS is the shared `.cx-qr-*` block of `compact.css` (v=4), also
+  used by the leader page — its `.qr-*` rules had been dropped by the
+  compact redesign (9ab48ab), the dialog there was unstyled since.
+  `observer.html` loads `vendor/qrcode.min.js` (`observer.min.js` v=8);
+  i18n `observer.qr.*` ×5.
 
 ### Observer channel (group mode)
 - Table `current_observer` (groupId PK, active, song_id, verse_idx, langs,

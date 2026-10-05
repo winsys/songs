@@ -16,8 +16,12 @@
  * text language or image type on the own screen; a verse from the leader's
  * verse mode is shown alone, auto-fitted to the screen. Nothing on this page
  * ever writes shared state: all Ajax calls are read-only.
+ *
+ * Join QR code: the «QR» button (search screen and group mode) shows the
+ * group's observer join link as a QR code, so a phone that got in through
+ * the leader's code hands the same code on to a neighbour.
  */
-app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService', function ($scope, $http, $q, $timeout, SongsService)
+app.controller('Observer', ['$scope', '$http', '$q', '$timeout', '$sce', 'SongsService', function ($scope, $http, $q, $timeout, $sce, SongsService)
 {
     var uiLang = String(window.UI_LANG || 'ru').toLowerCase();
     var NO_IMAGE_LANGS = ['ru', 'de', 'en', 'lt', 'pl'];
@@ -1007,6 +1011,80 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', 'SongsService',
     }
     initPinch('obsVcontent', $scope.viewer);
     initPinch('obsGcontent', $scope.group);
+
+    // ─── Join QR code (show it to a neighbour) ──────────────────
+    // /join/<token> logs a phone in as the group's shared observer account
+    // without a password and opens this page — the same link the leader's
+    // «QR» button shows. observer_join_link returns the token of the account
+    // this page is logged in with (issues it on first use, never replaces it).
+    $scope.joinQr = { visible: false, loading: false, url: '', svg: '', groupName: '', note: '' };
+    var joinQrNoteTimer = null;
+
+    function joinQrSvg(url) {
+        if (typeof qrcode !== 'function') return '';
+        var code = qrcode(0, 'M');
+        code.addData(url);
+        code.make();
+        return code.createSvgTag({ cellSize: 4, margin: 2, scalable: true });
+    }
+
+    function joinQrNote(text) {
+        var q = $scope.joinQr;
+        q.note = text;
+        if (joinQrNoteTimer) $timeout.cancel(joinQrNoteTimer);
+        joinQrNoteTimer = $timeout(function () { joinQrNoteTimer = null; q.note = ''; }, 2500);
+    }
+
+    $scope.showJoinQr = function () {
+        var q = $scope.joinQr;
+        if (q.loading) return;
+        q.note = '';
+        q.loading = true;
+        // Asked every time: the admin may have replaced the link meanwhile.
+        $http({ method: 'POST', url: '/ajax', data: { command: 'observer_join_link' } }).then(function (r) {
+            var d = r.data || {};
+            q.loading = false;
+            if (d.status === 'none') { alert(window.t('leader.joinQr.noAccount')); return; }
+            if (d.status !== 'ok' || !d.token) { alert(window.t('settings.joinQr.error')); return; }
+            var url = window.location.origin + '/join/' + d.token;
+            if (url !== q.url) {
+                q.url = url;
+                q.svg = $sce.trustAsHtml(joinQrSvg(url));
+            }
+            q.groupName = d.group_name || '';
+            q.visible = true;
+        }, function () {
+            q.loading = false;
+            if (q.url) { q.visible = true; return; }   // no connection: the code shown before still works
+            alert(window.t('settings.joinQr.error'));
+        });
+    };
+
+    $scope.closeJoinQr = function () { $scope.joinQr.visible = false; };
+
+    // For those who are not next to the phone: the system share sheet
+    // (messengers) where the browser has one, the clipboard otherwise.
+    $scope.shareJoinLink = function () {
+        var url = $scope.joinQr.url;
+        if (!url) return;
+        var copy = function () {
+            var manual = function () { prompt(window.t('settings.share.copyPrompt'), url); };
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(function () {
+                    $scope.$applyAsync(function () { joinQrNote(window.t('settings.joinQr.copied')); });
+                }, manual);
+            } else {
+                manual();
+            }
+        };
+        if (navigator.share) {
+            navigator.share({ title: window.t('settings.joinQr.printTitle'), url: url }).catch(function (e) {
+                if (!e || e.name !== 'AbortError') copy();   // closed by the user: nothing to do
+            });
+        } else {
+            copy();
+        }
+    };
 
     // ─── WebSocket ──────────────────────────────────────────────
     var wsDisconnectTimer = null;

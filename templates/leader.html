@@ -951,17 +951,17 @@
 
     <!-- Observer join link / QR code: the phone logs in as the group's
          observer account without a password and lands on /observer -->
-    <div class="qr-overlay" ng-if="joinQr.visible" ng-click="closeJoinQr()">
-        <div class="qr-modal" ng-click="$event.stopPropagation()">
-            <div class="qr-title"><?php echo T::s('settings.joinQr.title'); ?></div>
-            <div class="qr-user" ng-if="joinQr.groupName">{{ joinQr.groupName }}</div>
-            <div class="qr-code" ng-bind-html="joinQr.svg"></div>
-            <div class="qr-hint"><?php echo T::s('settings.joinQr.hint'); ?></div>
-            <input class="qr-link" type="text" readonly ng-value="joinQr.url" onclick="this.select()">
-            <div class="qr-actions">
-                <button ng-click="copyJoinLink()"><?php echo T::s('settings.joinQr.copy'); ?></button>
-                <button ng-click="printJoinQr()"><?php echo T::s('settings.joinQr.print'); ?></button>
-                <button ng-click="closeJoinQr()"><?php echo T::s('common.button.close'); ?></button>
+    <div class="cx-qr-overlay" ng-if="joinQr.visible" ng-click="closeJoinQr()">
+        <div class="cx-qr-modal" ng-click="$event.stopPropagation()">
+            <div class="cx-qr-title"><?php echo T::s('settings.joinQr.title'); ?></div>
+            <div class="cx-qr-sub" ng-if="joinQr.groupName">{{ joinQr.groupName }}</div>
+            <div class="cx-qr-code" ng-bind-html="joinQr.svg"></div>
+            <div class="cx-qr-hint"><?php echo T::s('settings.joinQr.hint'); ?></div>
+            <input class="cx-qr-link" type="text" readonly ng-value="joinQr.url" onclick="this.select()">
+            <div class="cx-qr-actions">
+                <button class="cx-btn" ng-click="copyJoinLink()"><?php echo T::s('settings.joinQr.copy'); ?></button>
+                <button class="cx-btn" ng-click="printJoinQr()"><?php echo T::s('settings.joinQr.print'); ?></button>
+                <button class="cx-btn" ng-click="closeJoinQr()"><?php echo T::s('common.button.close'); ?></button>
             </div>
         </div>
     </div>
