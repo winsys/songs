@@ -43,6 +43,7 @@ trait Ajax_Observer
         'get_bible_verses', 'search_bible_verses',
         'search_messages', 'search_message_paragraphs', 'get_message',
         'observer_get_state', 'observer_list_messages',
+        'observer_join_link',   // the observer shows the group's join QR code to a neighbour
     ];
 
     private static function observerCommandAllowed($command)
@@ -247,24 +248,32 @@ trait Ajax_Observer
     }
 
     /**
-     * Join link of the group's shared observer account, for the leader page:
-     * the QR code shown to the congregation while the broadcast is on.
+     * Join link of the group's shared observer account: the QR code the
+     * leader page shows to the congregation while the broadcast is on, and
+     * the one every observer page can show to a neighbour (Oct 2026) — a
+     * phone that got in through the code hands the same code on.
      * Read-only counterpart of Ajax_Settings::get_join_link — finds the
      * account itself, issues the token when the account has none yet and
      * never replaces an existing one (that stays with the admin's
-     * «Новая ссылка» in the settings). Leader / tech / admin.
+     * «Новая ссылка» in the settings). Leader / tech / admin and everyone
+     * who can open /observer; the observer login gets the link of its own
+     * account (a group may have several), which grants nothing beyond the
+     * read-only access that login already has.
      * Returns {status: 'ok', token, group_name} or {status: 'none'} when the
      * group has no observer account yet.
      */
     private static function observer_join_link()
     {
-        if (!self::observerCanBroadcast()) {
+        if (!self::observerCanBroadcast() && !Security::canAccess('observer')) {
             return json_encode(['status' => 'error', 'message' => 'Access denied']);
         }
         $groupId = (int)$_SESSION['curGroupId'];
+        $account = Security::isObserver()
+            ? 'ID = ' . (int)$_SESSION['curUserId']
+            : "(GROUP_ID = {$groupId} OR ID = {$groupId})";
         $user = Info::get('db')->get(
             "SELECT ID, JOIN_TOKEN FROM users
-             WHERE ROLE = 'observer' AND (GROUP_ID = {$groupId} OR ID = {$groupId})
+             WHERE ROLE = 'observer' AND {$account}
              ORDER BY ID LIMIT 1"
         );
         if (!$user) {

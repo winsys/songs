@@ -335,7 +335,8 @@
     .obs-vbtn:hover, .obs-vbtn:focus { background: #3b5368; color: #fff; text-decoration: none; outline: none; }
     .obs-vbtn.obs-vbtn-danger { background: #7a2a2a; }
     .obs-vbar-group { flex-wrap: wrap; }
-    .obs-vtitle-group { flex: 1 1 140px; }   /* wraps to its own line when the buttons fill the row */
+    /* wraps to its own line when the buttons fill the row (two classes: must outweigh .obs-vtitle's flex below) */
+    .obs-vbar-group .obs-vtitle-group { flex: 1 1 140px; }
     .obs-vtitle {
         flex: 1;
         min-width: 0;
@@ -528,6 +529,33 @@
     /* Group mode = the broadcast: broadcast green */
     .obs-group-enter { border-radius: 6px; background: #1E7E34; }
     .obs-group-enter:hover { background: #176a2b; }
+    /* «QR» — the join code of this login, to show to a neighbour (dialog: .cx-qr-* in compact.css) */
+    .obs-qr-btn {
+        flex-shrink: 0;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        height: 44px;
+        min-width: 44px;
+        padding: 0 12px;
+        border: 1px solid #DCE3E8;
+        border-radius: 6px;
+        background: #fff;
+        color: #17212B;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        white-space: nowrap;
+    }
+    .obs-qr-btn:hover { border-color: #176B87; color: #176B87; }
+    .obs-short { display: none; }
+    /* Phones: Back is an arrow and the QR label is short, so the title keeps some room */
+    @media (max-width: 540px) {
+        .obs-header { gap: 8px; }
+        .obs-header .obs-full { display: none; }
+        .obs-header .obs-short { display: inline; }
+        .obs-header .btn-back { width: 44px; padding: 0; justify-content: center; font-size: 18px; }
+    }
 
     .obs-tab { border-radius: 6px; border: 1px solid #DCE3E8; color: #6E7883; }
     .obs-tab.on { background: #E6F1F4; border-color: #176B87; color: #176B87; }
@@ -689,13 +717,20 @@
         </div>
 
         <div class="obs-header">
-            <button class="btn-back" onclick="window.location.href='/index'">
-                <?php echo T::s('common.button.back'); ?>
+            <button class="btn-back" onclick="window.location.href='/index'"
+                    aria-label="<?php echo T::s('common.button.back'); ?>">
+                <span class="obs-short" aria-hidden="true">←</span>
+                <span class="obs-full"><?php echo T::s('common.button.back'); ?></span>
             </button>
             <div class="obs-title-block">
                 <div class="obs-title"><?php echo T::s('observer.title'); ?></div>
                 <div class="obs-subtitle"><?php echo T::s('observer.subtitle'); ?></div>
             </div>
+            <!-- Join QR code of this observer login: whoever got in shows it to a neighbour -->
+            <button class="obs-qr-btn" ng-click="showJoinQr()" title="<?php echo T::s('observer.qr.hint'); ?>">
+                <span class="obs-full"><?php echo T::s('leader.observer.qr'); ?></span>
+                <span class="obs-short"><?php echo T::s('leader.observer.qrShort'); ?></span>
+            </button>
             <button class="obs-group-enter" ng-click="enterGroup()" title="<?php echo T::s('observer.group.hint'); ?>">
                 <span class="obs-dot" ng-class="{on: group.active}"></span>📡 <?php echo T::s('observer.group.button'); ?>
             </button>
@@ -953,6 +988,7 @@
         <div class="obs-vbar obs-vbar-group" ng-show="!group.fs">
             <button class="obs-vbtn" onclick="window.location.href='/index'"><?php echo T::s('common.button.back'); ?></button>
             <button class="obs-vbtn obs-vbtn-danger" ng-click="leaveGroup()"><?php echo T::s('observer.group.leave'); ?></button>
+            <button class="obs-vbtn" ng-click="showJoinQr()" title="<?php echo T::s('observer.qr.hint'); ?>"><?php echo T::s('leader.observer.qrShort'); ?></button>
             <div class="obs-vtitle obs-vtitle-group">{{ group.text ? group.title : (group.song ? (group.song.NUM + ' — ' + group.song.NAME) : '') }}</div>
         </div>
         <div class="obs-vmodes" ng-show="!group.fs && group.song && !group.text">
@@ -1003,7 +1039,27 @@
         </div>
     </div>
 
+    <!-- ============================================================
+         JOIN QR CODE — /join/<token> of this observer login, shown to a
+         neighbour: the phone that scans it lands on this same page and can
+         show the code on. Over the search screen and over group mode.
+         ============================================================ -->
+    <div class="cx-qr-overlay" ng-if="joinQr.visible" ng-click="closeJoinQr()">
+        <div class="cx-qr-modal" ng-click="$event.stopPropagation()">
+            <div class="cx-qr-title"><?php echo T::s('observer.qr.title'); ?></div>
+            <div class="cx-qr-sub" ng-if="joinQr.groupName">{{ joinQr.groupName }}</div>
+            <div class="cx-qr-code" ng-bind-html="joinQr.svg"></div>
+            <div class="cx-qr-hint"><?php echo T::s('observer.qr.text'); ?></div>
+            <div class="cx-qr-actions">
+                <button class="cx-btn" ng-click="shareJoinLink()"><?php echo T::s('observer.qr.share'); ?></button>
+                <button class="cx-btn cx-btn-primary" ng-click="closeJoinQr()"><?php echo T::s('common.button.close'); ?></button>
+            </div>
+            <div class="cx-qr-note" ng-if="joinQr.note">{{ joinQr.note }}</div>
+        </div>
+    </div>
+
 </div><!-- /ng-controller -->
 
-<script src="/js/observer.min.js?v=7" type="text/javascript"></script>
+<script src="/js/vendor/qrcode.min.js?v=1" type="text/javascript"></script>
+<script src="/js/observer.min.js?v=8" type="text/javascript"></script>
 <script src="/js/wake_lock.min.js?v=1" type="text/javascript"></script>
