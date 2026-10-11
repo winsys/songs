@@ -1,0 +1,180 @@
+/* ============================================================
+   Dark theme (Oct 2026). html[data-theme="dark"] is set by the inline
+   script in templates/layout.html before the first paint: forced by the
+   device choice (localStorage ui_theme = light | dark, settings page) or
+   following the browser (prefers-color-scheme). Everything keys on that
+   attribute — there is no @media (prefers-color-scheme) here on purpose.
+
+   1. Dark values of the --cx-* tokens (light values: compact.css).
+   2. Bootstrap 3 / angucomplete widgets that the pages do not restyle.
+   3. Shared page components whose colour is not a plain token.
+
+   NOT themed by design: the display screens (text_layout*.html, no
+   layout.html), the sermon display (sermon_layout.html, its own dark
+   palette from the group settings), the display previews on the settings
+   page, sheet-music images, the observer's dark viewers.
+   ============================================================ */
+
+html[data-theme="dark"] {
+    color-scheme: dark;              /* native scrollbars, selects, date pickers */
+
+    --cx-canvas:    #10161C;
+    --cx-surface:   #1A222B;
+    --cx-surface-2: #212B35;
+    --cx-surface-3: #2A3540;
+    --cx-ink:       #E4E9EE;
+    --cx-secondary: #9BA7B3;
+    --cx-muted:     #6B7784;
+    --cx-divider:   #2F3A46;
+    --cx-divider-strong: #3D4A57;
+    --cx-divider-soft:   #27313B;
+
+    --cx-active:    #5CB3D3;
+    --cx-active-fill: #1F7D9D;
+    --cx-active-fill-hover: #2691B5;
+    --cx-active-tint: #16303B;
+    --cx-active-tint-2: #1D3E4C;
+    --cx-active-line: #2A5567;
+    --cx-broadcast: #5CC775;
+    --cx-broadcast-fill: #238A3B;
+    --cx-broadcast-fill-hover: #2A9C45;
+    --cx-broadcast-tint: #16301D;
+    --cx-broadcast-line: #2A4F35;
+    --cx-danger:    #F08A7E;
+    --cx-danger-fill: #B8433A;
+    --cx-danger-fill-hover: #CC5146;
+    --cx-danger-tint: #3A2220;
+    --cx-danger-tint-2: #4A2A27;
+    --cx-danger-line: #5A312C;
+    --cx-message:   #C9A0C9;
+    --cx-message-fill: #7E5A7E;
+    --cx-message-tint: #312634;
+    --cx-message-tint-2: #3D2F41;
+    --cx-message-line: #6A4C6E;
+    --cx-warn:      #F2C94C;
+    --cx-warn-tint: #3A3218;
+    --cx-warn-line: #8A6D1A;
+    --cx-warm-bg:   #2A2416;
+    --cx-warm-line: #4A3D28;
+    --cx-note-ink:  #F0C56A;
+    --cx-note-line: #D9A030;
+    --cx-note-bg:   #2A2416;
+    --cx-note-bg-active: #3A3220;
+    --cx-orange:    #F0A25A;
+    --cx-orange-ink: #F5B57A;
+    --cx-purple:    #C08BE0;
+    --cx-hl-bg:     #6B5A00;
+    --cx-lang-ru-bg: #1D3650; --cx-lang-ru-fg: #8FC3F0;
+    --cx-lang-lt-bg: #1E3A1E; --cx-lang-lt-fg: #8FD08F;
+    --cx-lang-en-bg: #3E3312; --cx-lang-en-fg: #F0CF70;
+    --cx-focus-ring: rgba(92,179,211,0.28);
+    --cx-overlay:   rgba(0,0,0,0.75);
+}
+
+/* ---- Bootstrap 3 defaults the pages rely on -------------------- */
+html[data-theme="dark"] body { background-color: var(--cx-canvas); color: var(--cx-ink); }
+html[data-theme="dark"] a { color: var(--cx-active); }
+html[data-theme="dark"] a:hover, html[data-theme="dark"] a:focus { color: var(--cx-active-fill-hover); }
+html[data-theme="dark"] hr { border-color: var(--cx-divider); }
+html[data-theme="dark"] .text-muted, html[data-theme="dark"] .help-block { color: var(--cx-secondary); }
+html[data-theme="dark"] label { color: inherit; }
+html[data-theme="dark"] ::placeholder { color: var(--cx-muted); opacity: 1; }
+html[data-theme="dark"] ::selection { background: var(--cx-active-fill); color: #fff; }
+html[data-theme="dark"] mark { background: var(--cx-hl-bg); color: inherit; }
+
+html[data-theme="dark"] .form-control {
+    background-color: var(--cx-surface);
+    color: var(--cx-ink);
+    border-color: var(--cx-divider);
+    box-shadow: none;
+}
+html[data-theme="dark"] .form-control:focus { border-color: var(--cx-active); box-shadow: 0 0 0 3px var(--cx-focus-ring); }
+html[data-theme="dark"] .form-control[disabled], html[data-theme="dark"] .form-control[readonly] { background-color: var(--cx-surface-2); color: var(--cx-secondary); }
+html[data-theme="dark"] .input-group-addon { background: var(--cx-surface-2); color: var(--cx-ink); border-color: var(--cx-divider); }
+html[data-theme="dark"] select, html[data-theme="dark"] option { background-color: var(--cx-surface); color: var(--cx-ink); }
+
+html[data-theme="dark"] .btn-default { background: var(--cx-surface-2); color: var(--cx-ink); border-color: var(--cx-divider); text-shadow: none; }
+html[data-theme="dark"] .btn-default:hover, html[data-theme="dark"] .btn-default:focus { background: var(--cx-surface-3); color: var(--cx-ink); border-color: var(--cx-divider-strong); }
+html[data-theme="dark"] .btn-primary { background: var(--cx-active-fill); border-color: var(--cx-active-fill); }
+html[data-theme="dark"] .btn-primary:hover, html[data-theme="dark"] .btn-primary:focus { background: var(--cx-active-fill-hover); border-color: var(--cx-active-fill-hover); }
+html[data-theme="dark"] .btn-danger { background: var(--cx-danger-fill); border-color: var(--cx-danger-fill); }
+html[data-theme="dark"] .btn-danger:hover, html[data-theme="dark"] .btn-danger:focus { background: var(--cx-danger-fill-hover); border-color: var(--cx-danger-fill-hover); }
+html[data-theme="dark"] .btn-success { background: var(--cx-broadcast-fill); border-color: var(--cx-broadcast-fill); }
+html[data-theme="dark"] .btn-link { color: var(--cx-active); }
+html[data-theme="dark"] .close { color: var(--cx-ink); text-shadow: none; opacity: 0.55; }
+html[data-theme="dark"] .close:hover, html[data-theme="dark"] .close:focus { color: var(--cx-ink); opacity: 1; }
+
+html[data-theme="dark"] .modal-content { background: var(--cx-surface); color: var(--cx-ink); border-color: var(--cx-divider); box-shadow: 0 8px 40px rgba(0,0,0,0.6); }
+html[data-theme="dark"] .modal-header { border-bottom-color: var(--cx-divider); }
+html[data-theme="dark"] .modal-footer { border-top-color: var(--cx-divider); }
+html[data-theme="dark"] .modal-title { color: var(--cx-ink); }
+
+html[data-theme="dark"] .dropdown-menu { background: var(--cx-surface); border-color: var(--cx-divider); box-shadow: 0 6px 20px rgba(0,0,0,0.55); }
+html[data-theme="dark"] .dropdown-menu > li > a { color: var(--cx-ink); }
+html[data-theme="dark"] .dropdown-menu > li > a:hover, html[data-theme="dark"] .dropdown-menu > li > a:focus { background: var(--cx-surface-2); color: var(--cx-ink); }
+html[data-theme="dark"] .dropdown-menu .divider { background: var(--cx-divider); }
+html[data-theme="dark"] .dropdown-header { color: var(--cx-secondary); }
+
+html[data-theme="dark"] .panel { background: var(--cx-surface); border-color: var(--cx-divider); box-shadow: none; }
+html[data-theme="dark"] .panel-default > .panel-heading { background: var(--cx-surface-2); color: var(--cx-ink); border-color: var(--cx-divider); }
+html[data-theme="dark"] .panel-title { color: var(--cx-ink); }
+html[data-theme="dark"] .well { background: var(--cx-surface-2); border-color: var(--cx-divider); box-shadow: none; }
+html[data-theme="dark"] .list-group-item { background: var(--cx-surface); color: var(--cx-ink); border-color: var(--cx-divider); }
+html[data-theme="dark"] .table > tbody > tr > td, html[data-theme="dark"] .table > thead > tr > th { border-color: var(--cx-divider); }
+html[data-theme="dark"] .alert-warning { background: var(--cx-warn-tint); color: var(--cx-warn); border-color: var(--cx-warn-line); }
+html[data-theme="dark"] .alert-danger { background: var(--cx-danger-tint); color: var(--cx-danger); border-color: var(--cx-danger-line); }
+html[data-theme="dark"] .alert-success { background: var(--cx-broadcast-tint); color: var(--cx-broadcast); border-color: var(--cx-broadcast-line); }
+html[data-theme="dark"] .alert-info { background: var(--cx-active-tint); color: var(--cx-active); border-color: var(--cx-active-line); }
+html[data-theme="dark"] .label-default { background: var(--cx-secondary); }
+html[data-theme="dark"] .badge { background: var(--cx-secondary); color: #fff; }
+html[data-theme="dark"] .popover { background: var(--cx-surface); color: var(--cx-ink); border-color: var(--cx-divider); }
+html[data-theme="dark"] .popover-title { background: var(--cx-surface-2); border-color: var(--cx-divider); }
+html[data-theme="dark"] .popover > .arrow::after { border-top-color: var(--cx-surface); border-bottom-color: var(--cx-surface); }
+
+/* angucomplete search dropdowns (base look; the pages add their own rules) */
+html[data-theme="dark"] .angucomplete-dropdown { background-color: var(--cx-surface); border-color: var(--cx-divider); }
+html[data-theme="dark"] .angucomplete-row { color: var(--cx-ink); }
+html[data-theme="dark"] .angucomplete-selected-row { background-color: var(--cx-active-tint); color: var(--cx-active); }
+
+/* ---- Shared page components ---------------------------------- */
+/* Dialog shadows are invisible on a dark page: a thin edge keeps the box readable */
+html[data-theme="dark"] .modal-content,
+html[data-theme="dark"] .song-preview-modal,
+html[data-theme="dark"] .cx-qr-modal,
+html[data-theme="dark"] .dt-modal-content,
+html[data-theme="dark"] .arm-inner,
+html[data-theme="dark"] .ld-add-menu,
+html[data-theme="dark"] .sp-sermons-pop,
+html[data-theme="dark"] .sp-quick-results,
+html[data-theme="dark"] .msg-quick-results,
+html[data-theme="dark"] .code-suggest-dropdown,
+html[data-theme="dark"] .video-insert-panel,
+html[data-theme="dark"] .color-dropdown,
+html[data-theme="dark"] .access-request-popup,
+html[data-theme="dark"] .tc-pop-anchor .media-add-panel,
+html[data-theme="dark"] .tc-pop-anchor .wallpapers-panel { border: 1px solid var(--cx-divider-strong); }
+
+/* Sheet-music thumbnails and song images are white paper: tone them down a
+   little so they do not glare next to the dark rows (not in fullscreen views) */
+html[data-theme="dark"] .song-thumb,
+html[data-theme="dark"] .angucomplete-song-thumb-sm,
+html[data-theme="dark"] .song-image,
+html[data-theme="dark"] .mfc-thumb,
+html[data-theme="dark"] .esp-image-thumb,
+html[data-theme="dark"] .esp-page-thumb,
+html[data-theme="dark"] .notes-song-img,
+html[data-theme="dark"] .placeholder-preview { filter: brightness(0.88); }
+
+/* Streaming / main display previews on the settings page keep the screen's own colours (no rule here) */
+
+/* Sermon prep: the document surface and the chips (chip colours themselves are
+   derived by sermon_prep.js from the group's base colours, dark variant) */
+html[data-theme="dark"] #sermon-editor img { filter: brightness(0.9); }
+html[data-theme="dark"] .sermon-slide { border-color: rgba(255,255,255,0.18); }
+
+/* Range sliders and checkboxes follow the accent */
+html[data-theme="dark"] input[type=range] { accent-color: var(--cx-active); }
+html[data-theme="dark"] input[type=checkbox], html[data-theme="dark"] input[type=radio] { accent-color: var(--cx-active); }
+html[data-theme="dark"] input[type=color] { background: var(--cx-surface); }
+
+/* The offline / reconnect banner (net_status.js) keeps its own red / green. */

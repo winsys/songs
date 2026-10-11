@@ -18,6 +18,45 @@
     </script>
     <link rel="manifest" href="/manifest.json" />
     <meta name="theme-color" content="#ffffff" />
+    <script type="text/javascript">
+        // [THEME] Light / dark colour scheme, resolved BEFORE the first paint so
+        // the page never flashes. The device choice is localStorage ui_theme =
+        // 'light' | 'dark' (settings page, this browser only); anything else
+        // follows the browser (prefers-color-scheme). The resolved value is
+        // html[data-theme], the hook of /css/theme.css. window.uiTheme is the
+        // API for the settings page; the 'ui_theme' window event tells the
+        // pages that derive colours in JS (sermon prep chips) to recompute.
+        (function () {
+            var KEY = 'ui_theme';
+            var mq = window.matchMedia ? window.matchMedia('(prefers-color-scheme: dark)') : null;
+            function choice() {
+                try { var v = localStorage.getItem(KEY); return (v === 'light' || v === 'dark') ? v : 'auto'; }
+                catch (e) { return 'auto'; }
+            }
+            function resolved() {
+                var c = choice();
+                return c === 'auto' ? ((mq && mq.matches) ? 'dark' : 'light') : c;
+            }
+            function apply() {
+                var t = resolved(), root = document.documentElement;
+                if (root.getAttribute('data-theme') === t) return;
+                root.setAttribute('data-theme', t);
+                var meta = document.querySelector('meta[name="theme-color"]');
+                if (meta) meta.setAttribute('content', t === 'dark' ? '#1A222B' : '#ffffff');
+                try { window.dispatchEvent(new CustomEvent('ui_theme', { detail: { theme: t, choice: choice() } })); } catch (e) {}
+            }
+            window.uiTheme = {
+                choice: choice,
+                resolved: resolved,
+                set: function (c) {
+                    try { if (c === 'light' || c === 'dark') localStorage.setItem(KEY, c); else localStorage.removeItem(KEY); } catch (e) {}
+                    apply();
+                }
+            };
+            apply();
+            if (mq) { if (mq.addEventListener) mq.addEventListener('change', apply); else if (mq.addListener) mq.addListener(apply); }
+        })();
+    </script>
     <link href="/a-icon-120.png?v=2" rel="apple-touch-icon" />
     <link href="/a-icon-152.png?v=2" rel="apple-touch-icon" sizes="152x152" />
     <link href="/a-icon-167.png?v=2" rel="apple-touch-icon" sizes="167x167" />
@@ -25,8 +64,9 @@
     <link href="/favicon.ico?v=2" rel="icon" sizes="32x32" />
     <link href="/favicon.svg?v=2" rel="icon" type="image/svg+xml" />
     <link href="/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="/css/angucomplete-alt.css" rel="stylesheet" media="all" type="text/css" />
-    <link href="/css/compact.css?v=4" rel="stylesheet" />
+    <link href="/css/angucomplete-alt.css?v=2" rel="stylesheet" media="all" type="text/css" />
+    <link href="/css/compact.css?v=5" rel="stylesheet" />
+    <link href="/css/theme.css?v=1" rel="stylesheet" />
     <script src="/js/jquery.min.js" type="text/javascript"></script>
     <script src="/js/bootstrap.min.js" type="text/javascript"></script>
     <script src="/js/angular.min.js" type="text/javascript"></script>

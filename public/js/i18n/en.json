@@ -661,5 +661,10 @@
   "tech.tooltip.removeFromWallpapers": "Remove from standard wallpapers",
   "tech.tooltip.rewind": "Rewind playback by 2 seconds",
   "tech.tooltip.stopMarker": "Stop marker: play up to and including this paragraph, then stop",
-  "tech.video.stop": "⏹ Stop"
+  "tech.video.stop": "⏹ Stop",
+  "settings.card.theme": "🌗 Colour theme",
+  "settings.theme.auto": "Follow the system",
+  "settings.theme.light": "Light",
+  "settings.theme.dark": "Dark",
+  "settings.hint.theme": "Applies at once and is remembered in this browser (not in the group settings). «Follow the system» turns dark together with the dark theme of the device or browser."
 }

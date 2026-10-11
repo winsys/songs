@@ -3,7 +3,7 @@
 }
 
 .angucomplete-dropdown {
-    border-color: #009acf;
+    border-color: var(--cx-active);
     border-width: 1px;
     border-style: solid;
     border-radius: 2px;
@@ -16,11 +16,11 @@
     left: 0px;
     */
     margin-top: -3px;
-    background-color: #efefef;
+    background-color: var(--cx-canvas);
 }
 
 .angucomplete-searching {
-    color: #acacac;
+    color: var(--cx-muted);
     font-size: 14px;
 }
 
@@ -36,7 +36,7 @@
 }
 
 .angucomplete-selected-row {
-    background-color: #bfbfbf;
+    background-color: var(--cx-surface-3);
     color: #000000;
 }
 
@@ -51,7 +51,7 @@
     height: 34px;
     width: 34px;
     border-radius: 50%;
-    border-color: #ececec;
+    border-color: var(--cx-divider);
     border-style: solid;
     border-width: 1px;
 }

@@ -3,7 +3,7 @@
        IMPORT — design system matching tech.html / sermon_prep.html
        ============================================================ */
     body {
-        background: #f0f2f5;
+        background: var(--cx-canvas);
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     }
 
@@ -28,19 +28,19 @@
         border-radius: 8px;
         font-size: 13px;
         font-weight: 500;
-        color: #5a6272;
-        background: #f4f5f7;
+        color: var(--cx-secondary);
+        background: var(--cx-surface-2);
         border: none;
         cursor: pointer;
         transition: all 0.15s;
         flex-shrink: 0;
         text-decoration: none;
     }
-    .btn-back:hover { background: #e8eaed; color: #2c3e50; transform: translateX(-1px); }
+    .btn-back:hover { background: var(--cx-surface-3); color: var(--cx-ink); transform: translateX(-1px); }
     .import-page-title {
         font-size: 18px;
         font-weight: 600;
-        color: #2c3e50;
+        color: var(--cx-ink);
         margin: 0;
     }
 
@@ -55,25 +55,25 @@
         padding: 10px 16px;
         font-size: 13px;
         font-weight: 600;
-        border: 1.5px solid #dee2e6;
+        border: 1.5px solid var(--cx-divider);
         border-radius: 10px;
         cursor: pointer;
-        background: #f8f9fa;
-        color: #7f8c8d;
+        background: var(--cx-surface-2);
+        color: var(--cx-muted);
         transition: all 0.15s;
         text-align: center;
     }
-    .tab-btn:hover { border-color: #1a6db5; color: #1a6db5; background: #ebf3fb; }
+    .tab-btn:hover { border-color: var(--cx-active); color: var(--cx-active); background: var(--cx-active-tint); }
     .tab-btn.active {
-        background: #1a6db5;
+        background: var(--cx-active-fill);
         color: #fff;
-        border-color: #1a6db5;
+        border-color: var(--cx-active-fill);
     }
 
     /* ── Section card ─────────────────────────────────────────── */
     .import-section {
-        background: #fff;
-        border: 1.5px solid #dee2e6;
+        background: var(--cx-surface);
+        border: 1.5px solid var(--cx-divider);
         border-radius: 12px;
         padding: 20px 22px;
         margin-bottom: 16px;
@@ -82,26 +82,26 @@
         margin: 0 0 14px;
         font-size: 13px;
         font-weight: 700;
-        color: #2c3e50;
+        color: var(--cx-ink);
     }
     .import-section p {
         font-size: 12px;
-        color: #95a5a6;
+        color: var(--cx-muted);
         margin-bottom: 14px;
     }
     .import-section p code {
-        background: #f0f2f5;
+        background: var(--cx-canvas);
         padding: 1px 5px;
         border-radius: 4px;
         font-size: 11px;
-        color: #34495e;
+        color: var(--cx-ink);
     }
 
     /* ── Labels / inputs ─────────────────────────────────────── */
     .import-label {
         font-size: 11px;
         font-weight: 700;
-        color: #b0b8c1;
+        color: var(--cx-muted);
         text-transform: uppercase;
         letter-spacing: 0.6px;
         margin-bottom: 6px;
@@ -110,11 +110,11 @@
     .import-input, .import-select {
         width: 100%;
         padding: 9px 14px;
-        border: 1.5px solid #dee2e6;
+        border: 1.5px solid var(--cx-divider);
         border-radius: 10px;
         font-size: 13px;
-        color: #2c3e50;
-        background: #fff;
+        color: var(--cx-ink);
+        background: var(--cx-surface);
         box-sizing: border-box;
         transition: border-color 0.15s, box-shadow 0.15s;
         outline: none;
@@ -122,8 +122,8 @@
         margin-bottom: 14px;
     }
     .import-input:focus, .import-select:focus {
-        border-color: #3498db;
-        box-shadow: 0 0 0 3px rgba(52,152,219,0.12);
+        border-color: var(--cx-active);
+        box-shadow: 0 0 0 3px var(--cx-focus-ring);
     }
     select.import-select { cursor: pointer; }
     textarea.import-input { resize: vertical; line-height: 1.5; }
@@ -151,12 +151,12 @@
         font-size: 13px;
         font-weight: 600;
         border: none;
-        background: #1a6db5;
+        background: var(--cx-active-fill);
         color: #fff;
         cursor: pointer;
         transition: all 0.15s;
     }
-    .btn-import-primary:hover:not([disabled]) { background: #155a99; transform: translateY(-1px); box-shadow: 0 3px 12px rgba(26,109,181,0.3); }
+    .btn-import-primary:hover:not([disabled]) { background: var(--cx-active-fill-hover); transform: translateY(-1px); box-shadow: 0 3px 12px rgba(26,109,181,0.3); }
     .btn-import-primary[disabled] { opacity: 0.45; cursor: not-allowed; }
 
     .btn-import-success {
@@ -168,12 +168,12 @@
         font-size: 13px;
         font-weight: 600;
         border: none;
-        background: #27ae60;
+        background: var(--cx-broadcast-fill);
         color: #fff;
         cursor: pointer;
         transition: all 0.15s;
     }
-    .btn-import-success:hover:not([disabled]) { background: #219150; transform: translateY(-1px); }
+    .btn-import-success:hover:not([disabled]) { background: var(--cx-broadcast-fill-hover); transform: translateY(-1px); }
     .btn-import-success[disabled] { opacity: 0.45; cursor: not-allowed; }
 
     .btn-import-sm {
@@ -182,30 +182,30 @@
         font-size: 12px;
         font-weight: 600;
         border: none;
-        background: #ebf3fb;
-        color: #1a6db5;
+        background: var(--cx-active-tint);
+        color: var(--cx-active);
         cursor: pointer;
         transition: all 0.15s;
         white-space: nowrap;
     }
-    .btn-import-sm:hover:not([disabled]) { background: #d6e9f8; }
+    .btn-import-sm:hover:not([disabled]) { background: var(--cx-active-tint-2); }
     .btn-import-sm[disabled] { opacity: 0.45; cursor: not-allowed; }
 
     /* ── Status banner ───────────────────────────────────────── */
     .status-ok {
-        background: #eaf6ec;
-        border: 1.5px solid #4caf50;
+        background: var(--cx-broadcast-tint);
+        border: 1.5px solid var(--cx-broadcast);
         border-radius: 8px;
         padding: 7px 14px;
         font-size: 12px;
-        color: #1e7e34;
+        color: var(--cx-broadcast);
         margin-top: 8px;
         margin-bottom: 0;
     }
 
     /* ── Progress bar ────────────────────────────────────────── */
     .progress-bar-wrap {
-        background: #e8ecf0;
+        background: var(--cx-surface-3);
         border-radius: 8px;
         height: 14px;
         margin-bottom: 12px;
@@ -215,7 +215,7 @@
     .progress-bar-wrap.visible { display: block; }
     .progress-bar-inner {
         height: 100%;
-        background: #1a6db5;
+        background: var(--cx-active-fill);
         transition: width 0.3s;
         font-size: 9px;
         color: #fff;
@@ -227,7 +227,7 @@
     .or-divider {
         font-size: 11px;
         font-weight: 700;
-        color: #b0b8c1;
+        color: var(--cx-muted);
         text-transform: uppercase;
         letter-spacing: 0.5px;
         margin: 0 0 10px;
@@ -247,10 +247,10 @@
         gap: 6px;
         cursor: pointer;
         font-size: 13px;
-        color: #34495e;
+        color: var(--cx-ink);
     }
     .radio-group input[type="radio"] {
-        accent-color: #1a6db5;
+        accent-color: var(--cx-active);
         cursor: pointer;
     }
 
@@ -258,8 +258,8 @@
     .code-suggest-dropdown {
         position: absolute;
         z-index: 1000;
-        background: #fff;
-        border: 1.5px solid #dee2e6;
+        background: var(--cx-surface);
+        border: 1.5px solid var(--cx-divider);
         border-radius: 10px;
         width: 100%;
         box-shadow: 0 6px 20px rgba(0,0,0,0.12);
@@ -269,15 +269,15 @@
     .code-suggest-item {
         padding: 8px 14px;
         cursor: pointer;
-        border-bottom: 1px solid #f5f6f8;
+        border-bottom: 1px solid var(--cx-divider-soft);
         font-size: 12px;
         line-height: 1.4;
         transition: background 0.1s;
     }
-    .code-suggest-item:hover { background: #f0f4f8; }
+    .code-suggest-item:hover { background: var(--cx-surface-2); }
     .code-suggest-item:last-child { border-bottom: none; }
-    .code-suggest-code { font-family: monospace; font-weight: 700; color: #1a6db5; }
-    .code-suggest-city { color: #95a5a6; }
+    .code-suggest-code { font-family: monospace; font-weight: 700; color: var(--cx-active); }
+    .code-suggest-city { color: var(--cx-muted); }
 
     /* ── Import log ──────────────────────────────────────────── */
     .import-log {
@@ -298,7 +298,7 @@
     .import-log .log-ok    { color: #b9f6ca; }
 
     /* ── Char counter ────────────────────────────────────────── */
-    .char-counter { font-size: 11px; color: #aab; margin-top: -10px; margin-bottom: 10px; }
+    .char-counter { font-size: 11px; color: var(--cx-muted); margin-top: -10px; margin-bottom: 10px; }
 
     /* ── Message sub-tabs ────────────────────────────────────── */
     .msg-sub-tabs {
@@ -311,19 +311,19 @@
         padding: 8px 12px;
         font-size: 12px;
         font-weight: 600;
-        border: 1.5px solid #dee2e6;
+        border: 1.5px solid var(--cx-divider);
         border-radius: 8px;
         cursor: pointer;
-        background: #f8f9fa;
-        color: #7f8c8d;
+        background: var(--cx-surface-2);
+        color: var(--cx-muted);
         transition: all 0.15s;
         text-align: center;
     }
-    .msg-sub-btn:hover { border-color: #1a6db5; color: #1a6db5; background: #ebf3fb; }
+    .msg-sub-btn:hover { border-color: var(--cx-active); color: var(--cx-active); background: var(--cx-active-tint); }
     .msg-sub-btn.active {
-        background: #1a6db5;
+        background: var(--cx-active-fill);
         color: #fff;
-        border-color: #1a6db5;
+        border-color: var(--cx-active-fill);
     }
 
     /* ── Languages tab ───────────────────────────────────────── */
@@ -337,8 +337,8 @@
         display: flex;
         align-items: center;
         gap: 10px;
-        background: #f8f9fa;
-        border: 1.5px solid #dee2e6;
+        background: var(--cx-surface-2);
+        border: 1.5px solid var(--cx-divider);
         border-radius: 10px;
         padding: 10px 14px;
     }
@@ -346,7 +346,7 @@
         display: inline-block;
         min-width: 38px;
         padding: 4px 10px;
-        background: #1a6db5;
+        background: var(--cx-active-fill);
         color: #fff;
         font-size: 12px;
         font-weight: 700;
@@ -356,14 +356,14 @@
     }
     .lang-badge-default {
         font-size: 10px;
-        color: #27ae60;
+        color: var(--cx-broadcast);
         font-weight: 600;
         margin-left: 4px;
     }
     .lang-col-hint {
         flex: 1;
         font-size: 11px;
-        color: #aab;
+        color: var(--cx-muted);
         font-family: monospace;
     }
     .btn-lang-delete {
@@ -371,18 +371,18 @@
         border-radius: 7px;
         font-size: 11px;
         font-weight: 600;
-        border: 1.5px solid #e74c3c;
-        background: #fff5f5;
-        color: #c0392b;
+        border: 1.5px solid var(--cx-danger);
+        background: var(--cx-danger-tint);
+        color: var(--cx-danger);
         cursor: pointer;
         transition: all 0.15s;
     }
-    .btn-lang-delete:hover { background: #fde8e8; }
+    .btn-lang-delete:hover { background: var(--cx-danger-tint); }
     .btn-lang-delete:disabled { opacity: 0.4; cursor: default; }
 
     .lang-delete-panel {
-        background: #fff5f5;
-        border: 1.5px solid #f5c6c6;
+        background: var(--cx-danger-tint);
+        border: 1.5px solid var(--cx-danger-line);
         border-radius: 10px;
         padding: 14px 16px;
         margin-top: -4px;
@@ -390,7 +390,7 @@
     }
     .lang-delete-panel p {
         font-size: 12px;
-        color: #7f3030;
+        color: var(--cx-danger);
         margin: 0 0 10px;
     }
     .lang-delete-confirm-row {
@@ -422,15 +422,15 @@
         padding: 6px 10px;
         font-weight: 600;
     }
-    .group-row .btn-import-sm.active { background: #1a6db5; color: #fff; }
+    .group-row .btn-import-sm.active { background: var(--cx-active-fill); color: #fff; }
     .group-names-panel {
-        background: #f8f9fa;
-        border: 1.5px solid #dee2e6;
+        background: var(--cx-surface-2);
+        border: 1.5px solid var(--cx-divider);
         border-radius: 10px;
         padding: 12px 14px;
         margin: -4px 0 6px;
     }
-    .group-names-panel p { font-size: 12px; color: #7f8c8d; margin: 0 0 10px; }
+    .group-names-panel p { font-size: 12px; color: var(--cx-muted); margin: 0 0 10px; }
     .group-names-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
@@ -449,34 +449,34 @@
     .import-help .help-format {
         margin: 12px 0;
         padding: 10px 12px;
-        background: #f8f9fa;
-        border: 1px solid #eef0f3;
+        background: var(--cx-surface-2);
+        border: 1px solid var(--cx-divider-soft);
         border-radius: 8px;
     }
     .import-help .help-format-title {
         font-weight: 600;
         font-size: 13px;
-        color: #2c3e50;
+        color: var(--cx-ink);
         margin-bottom: 4px;
     }
     .import-help .help-format p { margin: 0 0 8px; }
     .sample-dl {
         display: inline-block;
         padding: 6px 12px;
-        border: 1.5px solid #cfe3f7;
-        background: #ebf3fb;
-        color: #1a6db5;
+        border: 1.5px solid var(--cx-active-line);
+        background: var(--cx-active-tint);
+        color: var(--cx-active);
         border-radius: 8px;
         font-size: 12px;
         font-weight: 600;
         text-decoration: none;
     }
-    .sample-dl:hover, .sample-dl:focus { background: #d6e9f8; color: #155a99; text-decoration: none; }
+    .sample-dl:hover, .sample-dl:focus { background: var(--cx-active-tint-2); color: var(--cx-active); text-decoration: none; }
     .help-warn {
         font-size: 12px;
-        color: #8a6d3b;
-        background: #fcf8e3;
-        border: 1px solid #faebcc;
+        color: var(--cx-warn);
+        background: var(--cx-warn-tint);
+        border: 1px solid var(--cx-warn-line);
         border-radius: 8px;
         padding: 8px 12px;
         margin-top: 10px;
@@ -489,17 +489,17 @@
        it restyles the components defined above, the markup is unchanged
        except for the sticky application bar.
        ============================================================ */
-    body { background: #EDF1F4; font-family: "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif; color: #17212B; }
+    body { background: var(--cx-canvas); font-family: "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif; color: var(--cx-ink); }
     .import-wrapper { padding-top: 16px; }
 
     /* Tabs: one segmented switch */
     .tab-bar {
         display: inline-flex;
         gap: 0;
-        border: 1px solid #DCE3E8;
+        border: 1px solid var(--cx-divider);
         border-radius: 6px;
         overflow: hidden;
-        background: #fff;
+        background: var(--cx-surface);
         padding: 0;
         margin-bottom: 16px;
         max-width: 100%;
@@ -509,44 +509,44 @@
         height: 38px;
         padding: 0 18px;
         border: none;
-        border-right: 1px solid #DCE3E8;
+        border-right: 1px solid var(--cx-divider);
         border-radius: 0;
         background: transparent;
-        color: #6E7883;
+        color: var(--cx-secondary);
         font-size: 13px;
         font-weight: 600;
         box-shadow: none;
     }
     .tab-btn:last-child { border-right: none; }
-    .tab-btn:hover { color: #176B87; background: transparent; }
-    .tab-btn.active { background: #176B87; color: #fff; box-shadow: none; }
+    .tab-btn:hover { color: var(--cx-active); background: transparent; }
+    .tab-btn.active { background: var(--cx-active-fill); color: #fff; box-shadow: none; }
     .msg-sub-tabs { gap: 6px; }
-    .msg-sub-btn { border: 1px solid #DCE3E8; border-radius: 6px; background: #fff; color: #17212B; }
-    .msg-sub-btn.active { background: #F3ECF3; border-color: #765276; color: #765276; }
+    .msg-sub-btn { border: 1px solid var(--cx-divider); border-radius: 6px; background: var(--cx-surface); color: var(--cx-ink); }
+    .msg-sub-btn.active { background: var(--cx-message-tint); border-color: var(--cx-message); color: var(--cx-message); }
 
-    .import-section { border: 1px solid #DCE3E8; border-radius: 8px; box-shadow: none; }
-    .import-label { color: #6E7883; text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 600; }
-    .import-input { border: 1px solid #DCE3E8; border-radius: 6px; background: #fff; color: #17212B; box-shadow: none; }
-    .import-input:focus { border-color: #176B87; box-shadow: 0 0 0 3px rgba(23,107,135,0.14); outline: none; }
+    .import-section { border: 1px solid var(--cx-divider); border-radius: 8px; box-shadow: none; }
+    .import-label { color: var(--cx-secondary); text-transform: none; letter-spacing: 0; font-size: 12px; font-weight: 600; }
+    .import-input { border: 1px solid var(--cx-divider); border-radius: 6px; background: var(--cx-surface); color: var(--cx-ink); box-shadow: none; }
+    .import-input:focus { border-color: var(--cx-active); box-shadow: 0 0 0 3px var(--cx-focus-ring); outline: none; }
 
     .btn-import-primary, .btn-import-success, .btn-import-sm, .btn-lang-delete { border-radius: 6px; box-shadow: none; transform: none; font-weight: 600; }
-    .btn-import-primary { background: #176B87; border-color: #176B87; color: #fff; }
-    .btn-import-primary:hover:not([disabled]) { background: #125a72; transform: none; box-shadow: none; }
-    .btn-import-success { background: #1E7E34; border-color: #1E7E34; color: #fff; }
-    .btn-import-success:hover:not([disabled]) { background: #176a2b; transform: none; box-shadow: none; }
-    .btn-lang-delete { background: #FBECEA; border: 1px solid transparent; color: #C4473A; }
-    .btn-lang-delete:hover { border-color: #C4473A; }
+    .btn-import-primary { background: var(--cx-active-fill); border-color: var(--cx-active-fill); color: #fff; }
+    .btn-import-primary:hover:not([disabled]) { background: var(--cx-active-fill-hover); transform: none; box-shadow: none; }
+    .btn-import-success { background: var(--cx-broadcast-fill); border-color: var(--cx-broadcast-fill); color: #fff; }
+    .btn-import-success:hover:not([disabled]) { background: var(--cx-broadcast-fill-hover); transform: none; box-shadow: none; }
+    .btn-lang-delete { background: var(--cx-danger-tint); border: 1px solid transparent; color: var(--cx-danger); }
+    .btn-lang-delete:hover { border-color: var(--cx-danger); }
 
     .status-ok { border-radius: 6px; }
-    .progress-bar-wrap { border-radius: 4px; background: #EDF1F4; }
-    .progress-bar-inner { background: #176B87; border-radius: 4px; }
-    .import-log { border: 1px solid #DCE3E8; border-radius: 6px; }
-    .code-suggest-dropdown { border: 1px solid #DCE3E8; border-radius: 6px; box-shadow: 0 10px 30px rgba(23,33,43,0.22); }
+    .progress-bar-wrap { border-radius: 4px; background: var(--cx-canvas); }
+    .progress-bar-inner { background: var(--cx-active-fill); border-radius: 4px; }
+    .import-log { border: 1px solid var(--cx-divider); border-radius: 6px; }
+    .code-suggest-dropdown { border: 1px solid var(--cx-divider); border-radius: 6px; box-shadow: 0 10px 30px rgba(23,33,43,0.22); }
     .lang-row, .group-row, .group-names-panel, .lang-delete-panel { border-radius: 6px; }
-    .sample-dl { color: #176B87; }
-    .help-warn { color: #C4473A; }
+    .sample-dl { color: var(--cx-active); }
+    .help-warn { color: var(--cx-danger); }
     .import-wrapper button:focus-visible, .import-wrapper input:focus-visible, .import-wrapper select:focus-visible {
-        outline: 2px solid #176B87; outline-offset: 2px;
+        outline: 2px solid var(--cx-active); outline-offset: 2px;
     }
 
     /* ---- Workbench layout (docs/ui-redesign-main-observer-settings-import.md) ----
@@ -566,18 +566,18 @@
         border-left: 3px solid transparent;
         border-radius: 6px;
         background: transparent;
-        color: #17212B;
+        color: var(--cx-ink);
         font-size: 14px;
         font-weight: 600;
         line-height: 1.25;
         text-align: left;
         cursor: pointer;
     }
-    .imp-task:hover:not([disabled]) { background: #fff; }
-    .imp-task.on { background: #E6F1F4; border-left-color: #176B87; color: #176B87; }
-    .imp-task[disabled] { color: #6E7883; opacity: 0.6; cursor: default; }
-    .imp-task:focus-visible { outline: 2px solid #176B87; outline-offset: 2px; }
-    .imp-rail-hint { padding: 8px 12px; font-size: 12px; color: #6E7883; line-height: 1.4; }
+    .imp-task:hover:not([disabled]) { background: var(--cx-surface); }
+    .imp-task.on { background: var(--cx-active-tint); border-left-color: var(--cx-active); color: var(--cx-active); }
+    .imp-task[disabled] { color: var(--cx-secondary); opacity: 0.6; cursor: default; }
+    .imp-task:focus-visible { outline: 2px solid var(--cx-active); outline-offset: 2px; }
+    .imp-rail-hint { padding: 8px 12px; font-size: 12px; color: var(--cx-secondary); line-height: 1.4; }
     .imp-main { min-width: 0; max-width: 860px; }
     .imp-main .import-section:last-child { margin-bottom: 0; }
 
@@ -585,7 +585,7 @@
     .imp-aside-head, .imp-drawer-btn, .imp-backdrop { display: none; }
     .imp-aside .import-section { margin-bottom: 12px; }
     .imp-aside .import-log { max-height: 40vh; }
-    .imp-aside-empty { padding: 12px; font-size: 12px; color: #6E7883; }
+    .imp-aside-empty { padding: 12px; font-size: 12px; color: var(--cx-secondary); }
 
     @media (max-width: 1199px) {
         .imp-bench { grid-template-columns: 210px minmax(0, 1fr); }
@@ -597,8 +597,8 @@
             width: min(360px, 92vw);
             max-height: none;
             padding: 0 12px 16px;
-            background: #EDF1F4;
-            border-left: 1px solid #DCE3E8;
+            background: var(--cx-canvas);
+            border-left: 1px solid var(--cx-divider);
             box-shadow: -10px 0 30px rgba(23,33,43,0.22);
             transform: translateX(105%);
             transition: transform 0.18s ease-out;
@@ -614,8 +614,8 @@
             min-height: 52px;
             margin: 0 -12px 8px;
             padding: 0 12px;
-            background: #fff;
-            border-bottom: 1px solid #DCE3E8;
+            background: var(--cx-surface);
+            border-bottom: 1px solid var(--cx-divider);
             font-size: 15px;
             font-weight: 600;
         }
@@ -628,15 +628,15 @@
         .imp-rail { position: static; }
         .imp-rail > div { flex-direction: row; gap: 6px; overflow-x: auto; scrollbar-width: none; }
         .imp-rail > div::-webkit-scrollbar { display: none; }
-        .imp-task { flex-shrink: 0; border: 1px solid #DCE3E8; border-radius: 6px; background: #fff; padding: 0 14px; white-space: nowrap; }
-        .imp-task.on { border-color: #176B87; }
+        .imp-task { flex-shrink: 0; border: 1px solid var(--cx-divider); border-radius: 6px; background: var(--cx-surface); padding: 0 14px; white-space: nowrap; }
+        .imp-task.on { border-color: var(--cx-active); }
         .imp-rail-hint { display: none; }
         .imp-drawer-txt { display: none; }
         .imp-drawer-btn { width: 44px; height: 44px; padding: 0; font-size: 18px; }
     }
     @media (prefers-reduced-motion: reduce) { .imp-aside { transition: none; } }
     .or-divider, .import-section h4 { text-transform: none; letter-spacing: 0; }
-    .tab-btn.active { box-shadow: inset 0 -3px 0 #0f4a5e; }   /* state is not colour-only */
+    .tab-btn.active { box-shadow: inset 0 -3px 0 var(--cx-active-fill-hover); }   /* state is not colour-only */
 
     /* ---- Form content (docs/ui-redesign-main-observer-settings-import.md) ----
        Aligned, compact fields: every form is a two-column grid — label column +
@@ -653,11 +653,11 @@
     .imp-main .import-section { padding: 18px 20px; }
     .imp-main .import-section > *,
     .imp-main .import-section > .imp-fields > * { grid-column: 1 / -1; min-width: 0; margin: 0; }
-    .imp-main .import-section .import-label { grid-column: 1; align-self: center; font-size: 13px; color: #17212B; line-height: 1.35; }
+    .imp-main .import-section .import-label { grid-column: 1; align-self: center; font-size: 13px; color: var(--cx-ink); line-height: 1.35; }
     .imp-main .import-section .import-label + * { grid-column: 2; }
-    .imp-main .import-section > h4 { font-size: 15px; font-weight: 600; color: #17212B; padding-bottom: 10px; border-bottom: 1px solid #DCE3E8; }
+    .imp-main .import-section > h4 { font-size: 15px; font-weight: 600; color: var(--cx-ink); padding-bottom: 10px; border-bottom: 1px solid var(--cx-divider); }
     .imp-main .import-section > p,
-    .imp-main .import-section > .imp-fields > p { font-size: 13px; color: #6E7883; line-height: 1.45; }
+    .imp-main .import-section > .imp-fields > p { font-size: 13px; color: var(--cx-secondary); line-height: 1.45; }
 
     .imp-main .import-input { width: 100%; min-height: 40px; margin: 0; }
     .imp-main select.import-input, .imp-main input.import-input { height: 40px; }
@@ -667,8 +667,8 @@
     .imp-main .radio-group label { display: inline-flex; align-items: center; gap: 6px; min-height: 36px; margin: 0; font-weight: 500; }
     .imp-main .new-list-row { display: flex; gap: 8px; align-items: center; }
     .imp-main .new-list-row .import-input { flex: 1 1 0; }
-    .imp-main .or-divider { color: #6E7883; font-size: 12px; margin: 2px 0; }
-    .imp-main .char-counter { justify-self: end; font-size: 12px; color: #6E7883; }
+    .imp-main .or-divider { color: var(--cx-secondary); font-size: 12px; margin: 2px 0; }
+    .imp-main .char-counter { justify-self: end; font-size: 12px; color: var(--cx-secondary); }
     .imp-main .progress-bar-wrap { margin: 0; }
     .imp-main .status-ok { margin: 0; }
 
@@ -835,7 +835,7 @@
                                 <?php echo T::s('import.button.delete'); ?>
                             </button>
                             <span ng-if="g.IS_MAIN == 1"
-                                  style="font-size:11px; color:#aab; padding: 5px 12px;"><?php echo T::s('import.lang.protected'); ?></span>
+                                  style="font-size:11px; color:var(--cx-muted); padding: 5px 12px;"><?php echo T::s('import.lang.protected'); ?></span>
                         </div>
 
                         <!-- Translations of the group name (one per UI language; empty = original NAME) -->
@@ -857,7 +857,7 @@
                             <p>{{ ('<?php echo T::s('import.groups.deleteWarning'); ?>').replace('{name}', g.NAME).replace('{count}', g.image_count) }}</p>
                             <div class="lang-delete-confirm-row">
                                 <button class="btn-import-primary"
-                                        style="background:#e74c3c; border-color:#c0392b; white-space:nowrap;"
+                                        style="background:var(--cx-danger-fill); border-color:var(--cx-danger-fill); white-space:nowrap;"
                                         ng-click="deleteImageGroup(g)"
                                         ng-disabled="groupBusy">
                                     <?php echo T::s('import.button.confirmDelete'); ?>
@@ -987,7 +987,7 @@
                            ng-change="onTxtCodeInput()"
                            ng-blur="clearCodeSuggestions()" />
                     <span ng-show="txtCodeSearching"
-                          style="position:absolute; right:14px; top:10px; color:#aab; font-size:12px;">⏳</span>
+                          style="position:absolute; right:14px; top:10px; color:var(--cx-muted); font-size:12px;">⏳</span>
 
                     <!-- Suggestions dropdown -->
                     <div class="code-suggest-dropdown"
@@ -997,7 +997,7 @@
                              ng-click="selectCodeSuggestion(msg)">
                             <span class="code-suggest-code">{{msg.CODE}}</span>
                             <span class="code-suggest-city" ng-show="msg.CITY"> · {{msg.CITY}}</span>
-                            <span style="display:block; color:#34495e;">{{msg.TITLE}}</span>
+                            <span style="display:block; color:var(--cx-ink);">{{msg.TITLE}}</span>
                         </div>
                     </div>
                 </div>
@@ -1014,7 +1014,7 @@
 
                 <!-- Loading indicator in edit mode -->
                 <div ng-show="txtEditLoading"
-                     style="color:#1a6db5; font-size:12px; margin-bottom:12px;">
+                     style="color:var(--cx-active); font-size:12px; margin-bottom:12px;">
                     <?php echo T::s('import.loading.txtLoad'); ?>
                 </div>
 
@@ -1039,7 +1039,7 @@
                 <div class="char-counter" ng-show="txtTimecodes">
                     {{ ('<?php echo T::s('import.timecodes.count'); ?>').replace('{count}', countTimecodes()) }}
                     <span ng-show="txtBody && countTimecodes() !== countParagraphs()"
-                          style="color:#e67e22; margin-left:8px;">
+                          style="color:var(--cx-orange); margin-left:8px;">
                         {{ ('<?php echo T::s('import.timecodeMismatch'); ?>').replace('{paragraphs}', countParagraphs()) }}
                     </span>
                 </div>
@@ -1062,7 +1062,7 @@
             <div class="import-section" ng-show="impUi.langs === 'list'">
                 <h4><?php echo T::s('import.langs.title'); ?></h4>
 
-                <div ng-if="langLoading" style="color:#aab; font-size:13px; padding:8px 0;"><?php echo T::s('import.langs.loading'); ?></div>
+                <div ng-if="langLoading" style="color:var(--cx-muted); font-size:13px; padding:8px 0;"><?php echo T::s('import.langs.loading'); ?></div>
 
                 <div class="lang-list" ng-if="!langLoading">
                     <div ng-repeat="lang in langList">
@@ -1070,7 +1070,7 @@
                         <!-- Language row -->
                         <div class="lang-row">
                             <span class="lang-badge-big">{{lang.label}}</span>
-                            <span style="font-size:13px; color:#2c3e50; font-weight:500;">{{lang.code}}</span>
+                            <span style="font-size:13px; color:var(--cx-ink); font-weight:500;">{{lang.code}}</span>
                             <span class="lang-badge-default" ng-if="lang.is_default == '1'"><?php echo T::s('import.langs.default'); ?></span>
                             <span class="lang-col-hint">TEXT{{lang.col_suffix}}</span>
                             <button class="btn-lang-delete"
@@ -1079,7 +1079,7 @@
                                 <?php echo T::s('import.button.delete'); ?>
                             </button>
                             <span ng-if="lang.is_default == '1'"
-                                  style="font-size:11px; color:#aab; padding: 5px 12px;"><?php echo T::s('import.lang.protected'); ?></span>
+                                  style="font-size:11px; color:var(--cx-muted); padding: 5px 12px;"><?php echo T::s('import.lang.protected'); ?></span>
                         </div>
 
                         <!-- Delete-confirmation panel -->
@@ -1092,7 +1092,7 @@
                                        placeholder="<?php echo T::s('import.delete.password'); ?>"
                                        style="margin-bottom:0;" />
                                 <button class="btn-import-primary"
-                                        style="background:#e74c3c; border-color:#c0392b; white-space:nowrap;"
+                                        style="background:var(--cx-danger-fill); border-color:var(--cx-danger-fill); white-space:nowrap;"
                                         ng-click="deleteLanguage(lang)"
                                         ng-disabled="!langDeletePassword || langDeleting">
                                     <span ng-if="!langDeleting"><?php echo T::s('import.button.confirmDelete'); ?></span>
@@ -1113,7 +1113,7 @@
             <!-- Add a language -->
             <div class="import-section" ng-show="impUi.langs === 'add'">
                 <h4><?php echo T::s('import.langs.add'); ?></h4>
-                <p style="font-size:12px; color:#7f8c8d; margin-bottom:14px;">
+                <p style="font-size:12px; color:var(--cx-muted); margin-bottom:14px;">
                     <?php echo T::s('import.hint.langAdd'); ?>
                 </p>
 
