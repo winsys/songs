@@ -174,15 +174,36 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             hoverBg: hexWithAlpha(baseHex, 0.18),
         };
     }
+    // Dark theme (html[data-theme="dark"], layout.html): the group's base
+    // colour is a DARK accent meant for white paper, so the chip text is the
+    // same hue lifted to a readable lightness and the tint is a bit stronger.
+    function deriveChipColorsDark(baseHex) {
+        var rgb = _hexToRgb(baseHex), hsl = _rgbToHsl(rgb[0], rgb[1], rgb[2]);
+        var h = hsl[0], s = Math.min(hsl[1], 70);
+        function hex(l) { var c = _hslToRgb(h, s, l); return _rgbToHex(c[0], c[1], c[2]); }
+        return {
+            bg:      hexWithAlpha(baseHex, 0.22),
+            border:  hex(42),
+            ref:     hex(72),
+            verse:   hex(64),
+            hoverBg: hexWithAlpha(baseHex, 0.34),
+        };
+    }
+    var _chipBases = null;   // the group's base colours, re-derived when the theme flips
+    window.addEventListener('ui_theme', function () {
+        if (_chipBases) applyPrepChipColors(_chipBases[0], _chipBases[1]);
+    });
     function applyPrepChipColors(bibleBase, msgBase) {
         var root = document.documentElement;
-        var bc = deriveChipColorsLight(bibleBase);
+        _chipBases = [bibleBase, msgBase];
+        var derive = root.getAttribute('data-theme') === 'dark' ? deriveChipColorsDark : deriveChipColorsLight;
+        var bc = derive(bibleBase);
         root.style.setProperty('--sp-bible-bg',       bc.bg);
         root.style.setProperty('--sp-bible-border',   bc.border);
         root.style.setProperty('--sp-bible-ref',      bc.ref);
         root.style.setProperty('--sp-bible-verse',    bc.verse);
         root.style.setProperty('--sp-bible-hover-bg', bc.hoverBg);
-        var mc = deriveChipColorsLight(msgBase);
+        var mc = derive(msgBase);
         root.style.setProperty('--sp-msg-bg',         mc.bg);
         root.style.setProperty('--sp-msg-border',     mc.border);
         root.style.setProperty('--sp-msg-color',      mc.ref);

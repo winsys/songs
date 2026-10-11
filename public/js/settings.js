@@ -44,6 +44,13 @@ app.controller('Settings', function ($scope, $http, $sce)
     // reload the page after save so PHP-rendered chrome (UI_DICT) refreshes.
     var _initialUiLang = null;
 
+    // Colour theme: a choice of THIS browser (localStorage), not a group
+    // setting — window.uiTheme (layout.html) applies it at once, no save.
+    $scope.uiTheme = (window.uiTheme && window.uiTheme.choice()) || 'auto';
+    $scope.setUiTheme = function () {
+        if (window.uiTheme) window.uiTheme.set($scope.uiTheme);
+    };
+
     $scope.availableLists = [];
     $scope.selectedLists = {};
     $scope.sortedLists = [];    // ordered list of {LIST_ID, LIST_NAME, selected}
@@ -262,6 +269,34 @@ app.controller('Settings', function ($scope, $http, $sce)
             return 'rgba(' + r + ',' + g + ',' + b + ',' + alpha + ')';
         } catch(e) { return 'transparent'; }
     };
+
+    // Chip preview colours follow the page theme like sermon_prep.js does: on
+    // the dark theme the base colour is lifted to a readable lightness (text)
+    // and used darker for the border; the tint is a little stronger.
+    function isDarkTheme() { return document.documentElement.getAttribute('data-theme') === 'dark'; }
+    function withLightness(hex, l) {
+        try {
+            var n = parseInt(hex.replace(/^#/, ''), 16);
+            var r = ((n >> 16) & 255) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+            var max = Math.max(r, g, b), min = Math.min(r, g, b), h = 0, sat = 0, lum = (max + min) / 2;
+            if (max !== min) {
+                var d = max - min;
+                sat = lum > 0.5 ? d / (2 - max - min) : d / (max + min);
+                if (max === r) h = ((g - b) / d + (g < b ? 6 : 0)) / 6;
+                else if (max === g) h = ((b - r) / d + 2) / 6;
+                else h = ((r - g) / d + 4) / 6;
+            }
+            sat = Math.min(sat, 0.7); lum = l / 100;
+            var hue2rgb = function(p, q, t) { if (t < 0) t += 1; if (t > 1) t -= 1; if (t < 1/6) return p + (q - p) * 6 * t; if (t < 1/2) return q; if (t < 2/3) return p + (q - p) * (2/3 - t) * 6; return p; };
+            var q = lum < 0.5 ? lum * (1 + sat) : lum + sat - lum * sat, pp = 2 * lum - q;
+            var out = [hue2rgb(pp, q, h + 1/3), hue2rgb(pp, q, h), hue2rgb(pp, q, h - 1/3)];
+            return '#' + out.map(function(v) { return Math.round(v * 255).toString(16).padStart(2, '0'); }).join('');
+        } catch(e) { return hex; }
+    }
+    $scope.chipFgColor = function(hex) { return isDarkTheme() ? withLightness(hex, 72) : hex; };
+    $scope.chipBorderColor = function(hex) { return isDarkTheme() ? withLightness(hex, 42) : $scope.shadeColor(hex, -28); };
+    $scope.chipTint = function(hex) { return $scope.chipBgColor(hex, isDarkTheme() ? 0.22 : 0.13); };
+    window.addEventListener('ui_theme', function () { $scope.$applyAsync(); });
 
     $scope.loadAvailableLists();
     $scope.loadAllLanguages();

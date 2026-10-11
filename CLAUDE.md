@@ -112,6 +112,12 @@ All AJAX responses are JSON. CSRF token is validated from `X-CSRF-Token` header 
 - Sermon prep source panel (544px): book filter + Bible full-text search (`search_bible_verses`) and message quick paragraph results (`search_message_paragraphs`, PARA_IDX = position among non-empty paragraphs) — same modes as the tech console. The verses panel title is ALWAYS rendered: a title appearing on the first click shifts the list and kills the double-click insertion.
 - Two-language Bible chips (sermon prep «Второй язык чипа», `bibleSecond` in localStorage `prep_bible_second`): second text via `get_bible_parallel`; the chip carries `data-display-text` / `data-display-title` (language blocks joined with `- - - - - - - -`), and `sermon.js` shows that ready-made text through `set_message_text` instead of re-fetching one verse. Single-language chips are unchanged.
 
+### Colour themes: light / dark (Oct 2026)
+- Every page colour is a `--cx-*` token (light values in `public/css/compact.css` `:root`, dark values in `public/css/theme.css` under `html[data-theme="dark"]`). A new CSS rule uses the tokens, never a hex — the only exceptions are the display mirrors (the two screens, `.set-preview` / `.mm-preview` on the settings page, the black fullscreen viewers of the leader / piano / observer pages, sheet-music images). Token families: `canvas` / `surface` / `surface-2` / `surface-3` (page → card → toolbar → pressed), `ink` / `secondary` / `muted` (text), `divider` / `-strong` / `-soft`, and per accent `active` / `broadcast` / `danger` / `message` the trio `<accent>` (text, border), `<accent>-fill` + `-fill-hover` (solid button, white text) and `<accent>-tint` (+ `-tint-2`, `-line`); plus `warn`, `warm`, `note` (amber leader notes), `orange`, `purple`, `hl-bg`, `lang-{ru,lt,en}-bg/-fg`, `focus-ring`, `overlay`.
+- Resolution: an inline script in `templates/layout.html` `<head>` (before the stylesheets, so no flash) sets `html[data-theme="light"|"dark"]`: forced by `localStorage.ui_theme` (`light` | `dark`, a choice of THAT browser — not a group setting, nothing on the server) or, without it, following `prefers-color-scheme` (live, `matchMedia` change). `window.uiTheme = { choice(), resolved(), set(choice) }`; every switch fires the `ui_theme` window event (sermon prep re-derives the chip colours — `deriveChipColorsDark` next to `deriveChipColorsLight`; the settings page re-renders its chip previews). `<meta name="theme-color">` follows. Selector: settings page, category «Основное», card «Тема оформления» (`uiTheme` / `setUiTheme()` in `settings.js`, applies at once without «Сохранить»). The observer login has no settings page: it follows the browser.
+- `theme.css` also restyles the Bootstrap 3 / angucomplete widgets the pages do not override (modals, form-control, btn-default, dropdown-menu, panels, close) and sets `color-scheme: dark` (native selects, scrollbars). The chip editor (`sermon_chip_editor.js`) carries its own `html[data-theme="dark"]` block inside the CSS it injects. NOT themed: `text_layout*.html` and `sermon_layout.html` (own `<head>`, no `layout.html` → no theme.css; the sermon display is dark by itself, its notes colours come from the group settings).
+- Checking a page: the harness recipe of [the UI stub harness] + `localStorage.setItem('ui_theme','dark')` in `Page.addScriptToEvaluateOnNewDocument` before navigating.
+
 ### Routing & rendering
 - `app/App.php` is the front controller. Views live in `templates/` as `<view>.html`.
 - Page rendering: view file is captured into `$pageContent`, then injected into `templates/layout.html`.
@@ -193,6 +199,10 @@ database/
   database_full.sql          # full schema (source of truth)
   migrations/
     add_indexes.sql          # indexes added April 2026
+
+public/css/
+  compact.css              # shared tokens (light values) + chrome components (.cx-*)
+  theme.css                # dark values of the tokens + dark overrides of Bootstrap / shared widgets
 
 public/js/
   csrf_interceptor.js        # AngularJS $http CSRF header

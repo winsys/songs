@@ -661,5 +661,10 @@
   "tech.tooltip.removeFromWallpapers": "Usuń ze standardowych teł",
   "tech.tooltip.rewind": "Cofnij odtwarzanie o 2 sekundy",
   "tech.tooltip.stopMarker": "Znacznik końca: odtwarzaj do tego akapitu włącznie, potem zatrzymaj",
-  "tech.video.stop": "⏹ Stop"
+  "tech.video.stop": "⏹ Stop",
+  "settings.card.theme": "🌗 Motyw kolorystyczny",
+  "settings.theme.auto": "Jak w systemie",
+  "settings.theme.light": "Jasny",
+  "settings.theme.dark": "Ciemny",
+  "settings.hint.theme": "Stosowany od razu i zapamiętywany w tej przeglądarce (nie w ustawieniach grupy). «Jak w systemie» — ciemny motyw włącza się razem z ciemnym motywem urządzenia lub przeglądarki."
 }

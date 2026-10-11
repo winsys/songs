@@ -772,4 +772,33 @@ function _cemModalCSS() { return `
 
 /* verse-comment on the display screen (sermon_layout) */
 .verse-comment { border-radius: 3px; padding: 0 2px; }
+
+/* ── Dark theme (html[data-theme="dark"], see /css/theme.css) ──── */
+html[data-theme="dark"] #chip-editor-modal { background: var(--cx-surface); color: var(--cx-ink); border: 1px solid var(--cx-divider-strong); }
+html[data-theme="dark"] .cem-header, html[data-theme="dark"] .cem-toolbar, html[data-theme="dark"] .cem-footer { background: var(--cx-surface-2); border-color: var(--cx-divider); }
+html[data-theme="dark"] .cem-title { color: var(--cx-ink); }
+html[data-theme="dark"] .cem-close { color: var(--cx-secondary); }
+html[data-theme="dark"] .cem-close:hover { background: var(--cx-surface-3); color: var(--cx-ink); }
+html[data-theme="dark"] .cem-btn, html[data-theme="dark"] .cem-swatch-btn, html[data-theme="dark"] .cem-fontsize, html[data-theme="dark"] .cem-ci-can, html[data-theme="dark"] .cem-cancel-btn {
+    background: var(--cx-surface); color: var(--cx-ink); border-color: var(--cx-divider);
+}
+html[data-theme="dark"] .cem-btn:hover, html[data-theme="dark"] .cem-swatch-btn:hover, html[data-theme="dark"] .cem-ci-can:hover, html[data-theme="dark"] .cem-cancel-btn:hover { background: var(--cx-surface-3); border-color: var(--cx-divider-strong); }
+html[data-theme="dark"] .cem-btn.cem-active { background: var(--cx-active-fill); color: #fff; border-color: var(--cx-active-fill); }
+html[data-theme="dark"] .cem-sep { background: var(--cx-divider); }
+html[data-theme="dark"] .cem-label, html[data-theme="dark"] .cem-comments-hdr, html[data-theme="dark"] .cem-c-hl { color: var(--cx-secondary); }
+html[data-theme="dark"] .cem-color-dd { background: var(--cx-surface); border-color: var(--cx-divider-strong); }
+html[data-theme="dark"] .cem-color-dot:hover { border-color: var(--cx-ink); }
+html[data-theme="dark"] #cem-comment-input-wrap { background: var(--cx-warn-tint); border-color: var(--cx-warn-line); }
+html[data-theme="dark"] .cem-ci-label { color: var(--cx-warn); }
+html[data-theme="dark"] #cem-ci-text { background: var(--cx-surface); color: var(--cx-ink); border-color: var(--cx-warn-line); }
+html[data-theme="dark"] #cem-edit-area { color: var(--cx-ink); border-color: var(--cx-divider); }
+html[data-theme="dark"] .cem-comments { background: var(--cx-surface-2); border-color: var(--cx-divider); }
+html[data-theme="dark"] .cem-add-c-btn { background: var(--cx-active-tint); color: var(--cx-active); border-color: var(--cx-active); }
+html[data-theme="dark"] .cem-add-c-btn:hover { background: var(--cx-active-tint-2); }
+html[data-theme="dark"] .cem-no-c, html[data-theme="dark"] .cem-c-del { color: var(--cx-muted); }
+html[data-theme="dark"] .cem-c-item { background: var(--cx-surface); border-color: var(--cx-divider); }
+html[data-theme="dark"] .cem-c-txt { color: var(--cx-ink); }
+html[data-theme="dark"] .cem-c-del:hover { color: var(--cx-danger); }
+html[data-theme="dark"] .cem-save-btn { background: var(--cx-active-fill); box-shadow: none; }
+html[data-theme="dark"] .cem-save-btn:hover { background: var(--cx-active-fill-hover); }
 `; }

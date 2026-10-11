@@ -4,7 +4,7 @@
        ============================================================ */
 
     body {
-        background: #f0f2f5;
+        background: var(--cx-canvas);
         min-height: 100vh;
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     }
@@ -37,7 +37,7 @@
     .section-label {
         font-size: 11px;
         font-weight: 600;
-        color: #b0b8c1;
+        color: var(--cx-muted);
         text-transform: uppercase;
         letter-spacing: 0.8px;
         margin: 0 0 6px;
@@ -48,7 +48,7 @@
     .prep-field-label {
         font-size: 11px;
         font-weight: 600;
-        color: #b0b8c1;
+        color: var(--cx-muted);
         text-transform: uppercase;
         letter-spacing: 0.8px;
         margin-bottom: 6px;
@@ -57,19 +57,19 @@
     .prep-input {
         width: 100%;
         padding: 9px 14px;
-        border: 1.5px solid #dee2e6;
+        border: 1.5px solid var(--cx-divider);
         border-radius: 10px;
         font-size: 14px;
-        color: #2c3e50;
-        background: #fff;
+        color: var(--cx-ink);
+        background: var(--cx-surface);
         box-shadow: none;
         transition: border-color 0.15s, box-shadow 0.15s;
         -webkit-appearance: none;
         box-sizing: border-box;
     }
     .prep-input:focus {
-        border-color: #3498db;
-        box-shadow: 0 0 0 3px rgba(52,152,219,0.12);
+        border-color: var(--cx-active);
+        box-shadow: 0 0 0 3px var(--cx-focus-ring);
         outline: none;
     }
     .prep-input.prep-title-input { font-size: 16px; font-weight: 600; }
@@ -108,9 +108,9 @@
         padding: 8px 6px;
         font-size: 12px;
         font-weight: 600;
-        border: 1.5px solid #dee2e6;
-        background: #f4f5f7;
-        color: #95a5a6;
+        border: 1.5px solid var(--cx-divider);
+        background: var(--cx-surface-2);
+        color: var(--cx-muted);
         cursor: pointer;
         transition: background 0.15s, color 0.15s;
         outline: none;
@@ -120,26 +120,26 @@
     .left-tab-btn:first-child { border-radius: 10px 0 0 0; }
     .left-tab-btn:last-child  { border-radius: 0 10px 0 0; border-left: none; }
     .left-tab-btn.active-tab {
-        background: #fff;
-        color: #1a6db5;
-        border-color: #dee2e6;
+        background: var(--cx-surface);
+        color: var(--cx-active);
+        border-color: var(--cx-divider);
         border-bottom: 2px solid #fff;
         z-index: 1;
         position: relative;
     }
     .left-tab-btn.active-tab-msg {
-        background: #fff;
-        color: #6a1b9a;
-        border-color: #dee2e6;
+        background: var(--cx-surface);
+        color: var(--cx-message);
+        border-color: var(--cx-divider);
         border-bottom: 2px solid #fff;
         z-index: 1;
         position: relative;
     }
     .left-tab-content {
-        border: 1.5px solid #dee2e6;
+        border: 1.5px solid var(--cx-divider);
         border-radius: 0 0 10px 10px;
         padding: 10px 8px 10px;
-        background: #fff;
+        background: var(--cx-surface);
         /* Bound the citation column to the viewport so its tall list panel
            (verses / message paragraphs) ends at the bottom edge instead of
            running off-screen. */
@@ -161,10 +161,10 @@
     .prep-msg-inner   > *:not(#prep-msg-para-panel) { flex-shrink: 0; }
 
     #sermon-editor blockquote {
-        border-left: 4px solid #ccc;
+        border-left: 4px solid var(--cx-divider);
         margin-left: 0;
         padding-left: 15px;
-        color: #666;
+        color: var(--cx-secondary);
         font-style: italic;
     }
 
@@ -174,19 +174,19 @@
         font-weight: 600;
         padding: 4px 12px;
         border-radius: 7px;
-        border: 1.5px solid #dee2e6;
-        background: #f8f9fa;
-        color: #5a6272;
+        border: 1.5px solid var(--cx-divider);
+        background: var(--cx-surface-2);
+        color: var(--cx-secondary);
         cursor: pointer;
         transition: all 0.15s;
         margin-right: 4px;
         margin-bottom: 4px;
     }
-    .tr-btn:hover { border-color: #1a6db5; color: #1a6db5; }
+    .tr-btn:hover { border-color: var(--cx-active); color: var(--cx-active); }
     .tr-btn.active-tr {
-        background: #1a6db5;
+        background: var(--cx-active-fill);
         color: #fff;
-        border-color: #1a6db5;
+        border-color: var(--cx-active-fill);
     }
 
     /* ── Language toggle checkboxes ──────────────────────────────── */
@@ -196,29 +196,29 @@
         font-size: 10px;
         font-weight: 700;
         border-radius: 6px;
-        border: 1.5px solid #dee2e6;
-        background: #f8f9fa;
-        color: #95a5a6;
+        border: 1.5px solid var(--cx-divider);
+        background: var(--cx-surface-2);
+        color: var(--cx-muted);
         cursor: pointer;
         transition: all 0.15s;
         padding: 0;
         letter-spacing: 0.3px;
     }
-    .lang-toggle-btn:hover { border-color: #1a6db5; color: #1a6db5; }
+    .lang-toggle-btn:hover { border-color: var(--cx-active); color: var(--cx-active); }
     .lang-toggle-btn.lang-active {
-        background: #e8f4fd;
-        border-color: #1a6db5;
-        color: #1a6db5;
-        box-shadow: inset 0 0 0 1.5px #1a6db5;
+        background: var(--cx-active-tint);
+        border-color: var(--cx-active);
+        color: var(--cx-active);
+        box-shadow: inset 0 0 0 1.5px var(--cx-active);
     }
 
     .lang-toggle-btn[disabled],
     .lang-toggle-btn.lang-disabled {
         opacity: 0.35;
         cursor: not-allowed;
-        border-color: #dee2e6;
-        color: #b0b8c1;
-        background: #f4f5f7;
+        border-color: var(--cx-divider);
+        color: var(--cx-muted);
+        background: var(--cx-surface-2);
         pointer-events: none;
     }
 
@@ -227,39 +227,39 @@
         width: 100%;
         height: 44px;                 /* search fields: 44px on every page, peach bg like .btn-action-orange, grey border (Aug 2026) */
         padding: 7px 12px;
-        border: 1.5px solid #dee2e6;
+        border: 1.5px solid var(--cx-divider);
         border-radius: 8px;
         font-size: 13px;
-        color: #2c3e50;
-        background: #fff5e6;
+        color: var(--cx-ink);
+        background: var(--cx-warm-bg);
         margin-bottom: 6px;
         box-sizing: border-box;
         transition: border-color 0.15s, box-shadow 0.15s;
         outline: none;
     }
     .prep-bible-search:focus {
-        border-color: #3498db;
-        box-shadow: 0 0 0 3px rgba(52,152,219,0.12);
+        border-color: var(--cx-active);
+        box-shadow: 0 0 0 3px var(--cx-focus-ring);
     }
-    .prep-bible-search::placeholder { color: #aab; font-size: 12px; }
+    .prep-bible-search::placeholder { color: var(--cx-muted); font-size: 12px; }
 
     /* ── Bible / Messages panels ─────────────────────────────────── */
     .prep-panel {
-        border: 1.5px solid #dee2e6;
+        border: 1.5px solid var(--cx-divider);
         border-radius: 10px;
         padding: 0;
         overflow-y: auto;
-        background: #fff;
+        background: var(--cx-surface);
     }
     .prep-panel-title {
         font-size: 11px;
         font-weight: 700;
-        color: #7f8c8d;
+        color: var(--cx-muted);
         text-transform: uppercase;
         letter-spacing: 0.6px;
         padding: 8px 12px 7px;
-        border-bottom: 1px solid #f0f2f5;
-        background: #fafbfc;
+        border-bottom: 1px solid var(--cx-divider-soft);
+        background: var(--cx-surface-2);
         border-radius: 10px 10px 0 0;
         position: sticky;
         top: 0;
@@ -269,45 +269,45 @@
         padding: 8px 12px;
         cursor: pointer;
         font-size: 12px;
-        color: #34495e;
-        border-bottom: 1px solid #f5f6f8;
+        color: var(--cx-ink);
+        border-bottom: 1px solid var(--cx-divider-soft);
         transition: background-color 0.12s;
         user-select: none;
         line-height: 1.4;
     }
-    .prep-list-item:hover { background-color: #f0f4f8; }
+    .prep-list-item:hover { background-color: var(--cx-surface-2); }
     .prep-list-item.selected {
-        background-color: #eaf6ec;
+        background-color: var(--cx-broadcast-tint);
         font-weight: 700;
-        color: #1e7e34;
+        color: var(--cx-broadcast);
     }
     .prep-verse-item {
         display: block;
         box-sizing: border-box;
         width: calc(100% - 16px);
         padding: 8px 12px;
-        border: 1.5px solid #dee2e6;
+        border: 1.5px solid var(--cx-divider);
         border-radius: 8px;
         margin: 5px 8px;
         cursor: pointer;
         font-size: 12px;
-        color: #2c3e50;
+        color: var(--cx-ink);
         white-space: pre-wrap;
         word-break: break-word;
         transition: all 0.15s;
         user-select: none;
         line-height: 1.5;
     }
-    .prep-verse-item:hover { background-color: #f0f4f8; border-color: #c8d0db; }
+    .prep-verse-item:hover { background-color: var(--cx-surface-2); border-color: var(--cx-divider-strong); }
     .prep-verse-item.verse-selected {
-        background-color: #eaf6ec;
-        border-color: #4caf50;
+        background-color: var(--cx-broadcast-tint);
+        border-color: var(--cx-broadcast);
         font-weight: 600;
-        color: #1e7e34;
+        color: var(--cx-broadcast);
     }
 
     mark.search-hl {
-        background: #fff176;
+        background: var(--cx-hl-bg);
         color: inherit;
         border-radius: 2px;
         padding: 0 1px;
@@ -318,16 +318,16 @@
         padding: 2px 5px;
         border-radius: 6px;
         font-size: 12px;
-        border: 1.5px solid #dee2e6;
-        background: #f8f9fa;
-        color: #5a6272;
+        border: 1.5px solid var(--cx-divider);
+        background: var(--cx-surface-2);
+        color: var(--cx-secondary);
         cursor: pointer;
         transition: all 0.15s;
     }
-    .prep-chapter-btn:hover { border-color: #1a6db5; color: #1a6db5; }
+    .prep-chapter-btn:hover { border-color: var(--cx-active); color: var(--cx-active); }
     .prep-chapter-btn.btn-success {
-        background: #1a6db5;
-        border-color: #1a6db5;
+        background: var(--cx-active-fill);
+        border-color: var(--cx-active-fill);
         color: #fff;
     }
 
@@ -340,12 +340,12 @@
         font-size: 12px;
         font-weight: 600;
         border: none;
-        background: #ebf3fb;
-        color: #1a6db5;
+        background: var(--cx-active-tint);
+        color: var(--cx-active);
         cursor: pointer;
         transition: all 0.15s;
     }
-    .btn-insert-bible:hover:not([disabled]) { background: #d6e9f8; transform: translateY(-1px); }
+    .btn-insert-bible:hover:not([disabled]) { background: var(--cx-active-tint-2); transform: translateY(-1px); }
     .btn-insert-bible[disabled] { opacity: 0.45; cursor: not-allowed; }
 
     .btn-insert-msg {
@@ -355,13 +355,13 @@
         border-radius: 8px;
         font-size: 12px;
         font-weight: 600;
-        border: 1.5px solid #ce93d8;
-        background: #f3e5f5;
-        color: #6a1b9a;
+        border: 1.5px solid var(--cx-message-line);
+        background: var(--cx-message-tint);
+        color: var(--cx-message);
         cursor: pointer;
         transition: all 0.15s;
     }
-    .btn-insert-msg:hover { background: #e8d5f5; transform: translateY(-1px); }
+    .btn-insert-msg:hover { background: var(--cx-message-tint-2); transform: translateY(-1px); }
 
     /* ── Toolbar ─────────────────────────────────────────────────── */
     .editor-toolbar {
@@ -369,39 +369,39 @@
         flex-wrap: wrap;
         gap: 5px;
         padding: 8px 10px;
-        background: #f8f9fa;
-        border: 1.5px solid #dee2e6;
+        background: var(--cx-surface-2);
+        border: 1.5px solid var(--cx-divider);
         border-radius: 10px 10px 0 0;
         align-items: center;
         flex-shrink: 0;
     }
     .toolbar-btn {
         padding: 5px 12px;
-        border: 1.5px solid #dee2e6;
-        background: #fff;
+        border: 1.5px solid var(--cx-divider);
+        background: var(--cx-surface);
         border-radius: 7px;
         cursor: pointer;
         font-size: 13px;
         line-height: 1.4;
         transition: all 0.12s;
-        color: #2c3e50;
+        color: var(--cx-ink);
     }
-    .toolbar-btn:hover { background: #f0f4f8; border-color: #c8d0db; }
-    .toolbar-btn.active { background: #1a6db5; color: #fff; border-color: #1a6db5; }
+    .toolbar-btn:hover { background: var(--cx-surface-2); border-color: var(--cx-divider-strong); }
+    .toolbar-btn.active { background: var(--cx-active-fill); color: #fff; border-color: var(--cx-active-fill); }
     /* ── Style/heading dropdown ───────────────────────────────── */
     .toolbar-select {
         height: 30px;
         box-sizing: border-box;
         padding: 0 6px;
         font-size: 12px;
-        border: 1.5px solid #dee2e6;
+        border: 1.5px solid var(--cx-divider);
         border-radius: 7px;
-        background: #fff;
-        color: #2c3e50;
+        background: var(--cx-surface);
+        color: var(--cx-ink);
         cursor: pointer;
         line-height: 1;
     }
-    .toolbar-select:hover { border-color: #c8d0db; }
+    .toolbar-select:hover { border-color: var(--cx-divider-strong); }
 
     /* ── Heading sizes scale with A−/A+ (em relative to --sp-base-font) ── */
     #sermon-editor h1 { font-size: 2.0em;  font-weight: 700; margin: 0.55em 0 0.25em; line-height: 1.2; }
@@ -409,18 +409,18 @@
     #sermon-editor h3 { font-size: 1.35em; font-weight: 600; margin: 0.4em  0 0.18em; line-height: 1.3; }
     #sermon-editor h4 { font-size: 1.15em; font-weight: 600; margin: 0.3em  0 0.15em; }
     #sermon-editor h5 { font-size: 1.0em;  font-weight: 600; margin: 0.25em 0 0.1em;  }
-    #sermon-editor h6 { font-size: 0.9em;  font-weight: 600; margin: 0.2em  0 0.1em;  color: #555; }
+    #sermon-editor h6 { font-size: 0.9em;  font-weight: 600; margin: 0.2em  0 0.1em;  color: var(--cx-secondary); }
     #sermon-editor blockquote {
-        border-left: 3px solid #dee2e6;
+        border-left: 3px solid var(--cx-divider);
         padding-left: 12px;
         margin: 0.5em 0 0.5em 8px;
-        color: #6c757d;
+        color: var(--cx-secondary);
         font-style: italic;
     }
     .toolbar-sep {
         width: 1px;
         height: 24px;
-        background: #dee2e6;
+        background: var(--cx-divider);
         margin: 0 2px;
         flex-shrink: 0;
     }
@@ -428,12 +428,12 @@
         width: 22px;
         height: 22px;
         border-radius: 4px;
-        border: 2px solid #dee2e6;
+        border: 2px solid var(--cx-divider);
         cursor: pointer;
         display: inline-block;
         flex-shrink: 0;
     }
-    .color-swatch:hover { border-color: #1a6db5; }
+    .color-swatch:hover { border-color: var(--cx-active); }
     .color-picker-wrap {
         position: relative;
         display: inline-flex;
@@ -444,8 +444,8 @@
         position: absolute;
         top: 32px;
         left: 0;
-        background: #fff;
-        border: 1.5px solid #dee2e6;
+        background: var(--cx-surface);
+        border: 1.5px solid var(--cx-divider);
         border-radius: 8px;
         padding: 8px;
         display: flex;
@@ -461,7 +461,7 @@
         flex: 1 1 auto;
         min-height: 0;
         overflow-y: auto;
-        border: 1.5px solid #dee2e6;
+        border: 1.5px solid var(--cx-divider);
         border-top: none;
         border-radius: 0 0 10px 10px;
         padding: 14px 16px;
@@ -470,11 +470,11 @@
         outline: none;
         white-space: pre-wrap;
         word-break: break-word;
-        background: #fff;
+        background: var(--cx-surface);
     }
     #sermon-editor:empty::before {
         content: <?php echo json_encode(T::s('prep.placeholder.notes'), JSON_UNESCAPED_UNICODE); ?>;
-        color: #c5ccd4;
+        color: var(--cx-muted);
         pointer-events: none;
     }
 
@@ -518,14 +518,14 @@
         display: inline-block;
         flex-shrink: 0;
         margin-left: 2px;
-        color: #999;
+        color: var(--cx-muted);
         font-size: 11pt;
         font-weight: 400;
         cursor: pointer;
         line-height: 1;
         padding-top: 2px;
     }
-    .bible-cite .cite-remove:hover { color: #e53935; }
+    .bible-cite .cite-remove:hover { color: var(--cx-danger); }
 
     /* ── Message panel back button ───────────────────────────────── */
     .msg-back-btn {
@@ -533,10 +533,10 @@
         width: 24px;
         height: 24px;
         padding: 0;
-        border: 1.5px solid #ce93d8;
+        border: 1.5px solid var(--cx-message-line);
         border-radius: 6px;
-        background: #f3e5f5;
-        color: #6a1b9a;
+        background: var(--cx-message-tint);
+        color: var(--cx-message);
         font-size: 16px;
         font-weight: 700;
         line-height: 1;
@@ -547,7 +547,7 @@
         transition: background 0.15s, transform 0.15s;
     }
     .msg-back-btn:hover {
-        background: #e8d5f5;
+        background: var(--cx-message-tint-2);
         transform: translateX(-1px);
     }
     /* ── Message citation chip ───────────────────────────────────── */
@@ -576,13 +576,13 @@
         position: absolute;
         top: 3px;
         right: 5px;
-        color: #999;
+        color: var(--cx-muted);
         font-size: 11pt;
         font-weight: 400;
         cursor: pointer;
         line-height: 1;
     }
-    .message-cite .cite-remove:hover { color: #e53935; }
+    .message-cite .cite-remove:hover { color: var(--cx-danger); }
 
     /* ── Sermon image wrap ───────────────────────────────────────── */
     .sermon-img-wrap {
@@ -591,13 +591,13 @@
         margin: 4px 2px;
         vertical-align: middle;
         cursor: pointer;
-        border: 2px solid #dee2e6;
+        border: 2px solid var(--cx-divider);
         border-radius: 8px;
         overflow: hidden;
-        background: #fafafa;
+        background: var(--cx-surface-2);
         box-sizing: border-box;
     }
-    .sermon-img-wrap:hover { border-color: #1a6db5; }
+    .sermon-img-wrap:hover { border-color: var(--cx-active); }
     .sermon-img-thumb {
         display: block;
         width: 100%;
@@ -642,13 +642,13 @@
         display: block;
         position: relative;
         margin: 8px 0;
-        border: 2px solid #dee2e6;
+        border: 2px solid var(--cx-divider);
         border-radius: 6px;
         overflow: hidden;
         background: #000;
         cursor: default;
     }
-    .sermon-ppt-slide:hover { border-color: #1a6db5; }
+    .sermon-ppt-slide:hover { border-color: var(--cx-active); }
     .sermon-ppt-slide:hover .sermon-img-remove { display: block; }
 
     /* ── Bottom panel ────────────────────────────────────────────── */
@@ -665,65 +665,65 @@
         font-size: 13px;
         font-weight: 600;
         border: none;
-        background: #1a6db5;
+        background: var(--cx-active-fill);
         color: #fff;
         cursor: pointer;
         transition: all 0.15s;
     }
-    .btn-save:hover { background: #155a99; transform: translateY(-1px); box-shadow: 0 3px 10px rgba(26,109,181,0.28); }
+    .btn-save:hover { background: var(--cx-active-fill-hover); transform: translateY(-1px); box-shadow: 0 3px 10px rgba(26,109,181,0.28); }
 
     .btn-list-toggle {
         padding: 7px 14px;
         border-radius: 8px;
         font-size: 12px;
         font-weight: 500;
-        border: 1.5px solid #dee2e6;
-        background: #f8f9fa;
-        color: #5a6272;
+        border: 1.5px solid var(--cx-divider);
+        background: var(--cx-surface-2);
+        color: var(--cx-secondary);
         cursor: pointer;
         transition: all 0.15s;
     }
-    .btn-list-toggle:hover { border-color: #1a6db5; color: #1a6db5; background: #ebf3fb; }
+    .btn-list-toggle:hover { border-color: var(--cx-active); color: var(--cx-active); background: var(--cx-active-tint); }
 
-    .save-status { font-size: 11px; color: #95a5a6; margin-left: 4px; }
-    .save-status.saved  { color: #27ae60; }
-    .save-status.saving { color: #e67e22; }
+    .save-status { font-size: 11px; color: var(--cx-muted); margin-left: 4px; }
+    .save-status.saved  { color: var(--cx-broadcast); }
+    .save-status.saving { color: var(--cx-orange); }
 
     /* ── Sermons sidebar ─────────────────────────────────────────── */
     .sermons-sidebar {
         margin-top: 10px;
-        border: 1.5px solid #dee2e6;
+        border: 1.5px solid var(--cx-divider);
         border-radius: 10px;
         overflow: hidden;
-        background: #fff;
+        background: var(--cx-surface);
     }
     .sermons-sidebar-title {
-        background: #fafbfc;
+        background: var(--cx-surface-2);
         padding: 8px 12px;
         font-size: 11px;
         font-weight: 700;
-        color: #7f8c8d;
+        color: var(--cx-muted);
         text-transform: uppercase;
         letter-spacing: 0.6px;
-        border-bottom: 1px solid #f0f2f5;
+        border-bottom: 1px solid var(--cx-divider-soft);
         display: flex;
         justify-content: space-between;
         align-items: center;
     }
     .sermon-list-item {
         padding: 9px 14px;
-        border-bottom: 1px solid #f5f6f8;
+        border-bottom: 1px solid var(--cx-divider-soft);
         cursor: pointer;
         display: flex;
         justify-content: space-between;
         align-items: center;
         font-size: 12px;
-        color: #34495e;
+        color: var(--cx-ink);
         transition: background 0.12s;
     }
-    .sermon-list-item:hover { background: #f0f4f8; }
-    .sermon-list-item.active { background: #ebf3fb; font-weight: 700; color: #1a6db5; }
-    .sermon-list-date { color: #95a5a6; font-size: 11px; margin-left: 8px; flex-shrink: 0; }
+    .sermon-list-item:hover { background: var(--cx-surface-2); }
+    .sermon-list-item.active { background: var(--cx-active-tint); font-weight: 700; color: var(--cx-active); }
+    .sermon-list-date { color: var(--cx-muted); font-size: 11px; margin-left: 8px; flex-shrink: 0; }
 
     /* ── Fullscreen modal ────────────────────────────────────────── */
     #sermon-img-modal {
@@ -761,7 +761,7 @@
         border-radius: 50%;
         border: none;
         background: transparent;
-        color: #c0c8d0;
+        color: var(--cx-muted);
         font-size: 14px;
         line-height: 1;
         cursor: pointer;
@@ -772,8 +772,8 @@
         transition: background 0.12s, color 0.12s;
     }
     .btn-sermon-delete:hover {
-        background: #fde8e8;
-        color: #e53935;
+        background: var(--cx-danger-tint);
+        color: var(--cx-danger);
     }
 
     /* ── Video chip in editor ────────────────────────────────────── */
@@ -808,7 +808,7 @@
     .svw-del {
         position: absolute;
         top: 2px; right: 5px;
-        color: #888;
+        color: var(--cx-muted);
         font-size: 11pt;
         line-height: 1;
         cursor: pointer;
@@ -881,8 +881,8 @@
         top: calc(100% + 6px);
         left: 0;
         z-index: 500;
-        background: #fff;
-        border: 1.5px solid #dee2e6;
+        background: var(--cx-surface);
+        border: 1.5px solid var(--cx-divider);
         border-radius: 10px;
         padding: 12px 14px;
         box-shadow: 0 4px 18px rgba(0,0,0,.13);
@@ -894,7 +894,7 @@
     .vip-title {
         font-size: 11px;
         font-weight: 700;
-        color: #5a6272;
+        color: var(--cx-secondary);
         text-transform: uppercase;
         letter-spacing: .5px;
     }
@@ -905,35 +905,35 @@
     .vip-row input {
         flex: 1;
         padding: 7px 10px;
-        border: 1.5px solid #dee2e6;
+        border: 1.5px solid var(--cx-divider);
         border-radius: 7px;
         font-size: 12px;
         outline: none;
     }
-    .vip-row input:focus { border-color: #3498db; }
+    .vip-row input:focus { border-color: var(--cx-active); }
     .vip-btn-add {
         padding: 7px 12px;
         border-radius: 7px;
-        border: 1.5px solid #3498db;
-        background: #3498db;
+        border: 1.5px solid var(--cx-active-fill);
+        background: var(--cx-active-fill);
         color: #fff;
         font-size: 12px;
         cursor: pointer;
         white-space: nowrap;
     }
-    .vip-btn-add:hover { background: #2980b9; }
-    .vip-sep { text-align: center; color: #b0b8c1; font-size: 11px; }
+    .vip-btn-add:hover { background: var(--cx-active-fill); }
+    .vip-sep { text-align: center; color: var(--cx-muted); font-size: 11px; }
     .vip-btn-file {
         padding: 8px 12px;
         border-radius: 7px;
-        border: 1.5px solid #27ae60;
-        background: #27ae60;
+        border: 1.5px solid var(--cx-broadcast-fill);
+        background: var(--cx-broadcast-fill);
         color: #fff;
         font-size: 12px;
         cursor: pointer;
         text-align: center;
     }
-    .vip-btn-file:hover { background: #219a52; }
+    .vip-btn-file:hover { background: var(--cx-broadcast-fill-hover); }
 
     /* ── Upload loading spinner ────────────────────────────────────── */
     @keyframes spin {
@@ -945,7 +945,7 @@
         width: 12px;
         height: 12px;
         border: 2px solid rgba(39, 174, 96, 0.2);
-        border-top-color: #27ae60;
+        border-top-color: var(--cx-broadcast);
         border-radius: 50%;
         animation: spin 0.8s linear infinite;
         margin-right: 6px;
@@ -969,7 +969,7 @@
     }
     .access-request-modal.open { display: flex; }
     .arm-inner {
-        background: #fff;
+        background: var(--cx-surface);
         border-radius: 10px;
         padding: 24px;
         width: 90%;
@@ -979,7 +979,7 @@
     .arm-title {
         font-size: 18px;
         font-weight: 600;
-        color: #2c3e50;
+        color: var(--cx-ink);
         margin-bottom: 16px;
     }
     .arm-groups-list {
@@ -989,21 +989,21 @@
     }
     .arm-group-item {
         padding: 12px;
-        border: 1px solid #e0e0e0;
+        border: 1px solid var(--cx-divider);
         border-radius: 6px;
         margin-bottom: 8px;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        background: #f9f9f9;
+        background: var(--cx-surface-2);
     }
     .arm-group-name {
         font-size: 14px;
-        color: #34495e;
+        color: var(--cx-ink);
     }
     .arm-request-btn {
         padding: 6px 14px;
-        background: #3498db;
+        background: var(--cx-active-fill);
         color: #fff;
         border: none;
         border-radius: 5px;
@@ -1011,9 +1011,9 @@
         cursor: pointer;
         transition: background 0.2s;
     }
-    .arm-request-btn:hover { background: #2980b9; }
+    .arm-request-btn:hover { background: var(--cx-active-fill); }
     .arm-request-btn.requested {
-        background: #95a5a6;
+        background: var(--cx-muted);
         cursor: default;
     }
     .arm-buttons {
@@ -1023,16 +1023,16 @@
     }
     .arm-btn-close {
         padding: 8px 16px;
-        background: #95a5a6;
+        background: var(--cx-muted);
         color: #fff;
         border: none;
         border-radius: 5px;
         cursor: pointer;
     }
-    .arm-btn-close:hover { background: #7f8c8d; }
+    .arm-btn-close:hover { background: var(--cx-secondary); }
     .arm-empty {
         text-align: center;
-        color: #7f8c8d;
+        color: var(--cx-muted);
         padding: 20px;
         font-size: 14px;
     }
@@ -1084,9 +1084,9 @@
         left:          50%;
         transform:     translateX(-50%);
         z-index:       9999;
-        background:    #fff3cd;
-        border:        1px solid #ffc107;
-        color:         #856404;
+        background:    var(--cx-warn-tint);
+        border:        1px solid var(--cx-warn-line);
+        color:         var(--cx-warn);
         padding:       7px 20px;
         font-size:     13px;
         font-weight:   600;
@@ -1109,7 +1109,7 @@
        editor scroll on their own. Shared tokens: /css/compact.css (.cx-*).
        This block comes last on purpose: it restyles the components above.
        ============================================================ */
-    body { background: #EDF1F4; overflow: hidden; }
+    body { background: var(--cx-canvas); overflow: hidden; }
 
     .prep-page-wrapper.sp-shell {
         height: 100vh;
@@ -1124,16 +1124,16 @@
     /* ---- Application bar --------------------------------------- */
     .sp-bar { gap: 8px; }
     .sp-titles { min-width: 0; flex: 0 1 auto; display: flex; flex-direction: column; justify-content: center; }
-    .sp-bar .prep-input { height: 34px; margin: 0; padding: 0 10px; border: 1px solid #DCE3E8; border-radius: 6px; background: #fff; box-shadow: none; }
+    .sp-bar .prep-input { height: 34px; margin: 0; padding: 0 10px; border: 1px solid var(--cx-divider); border-radius: 6px; background: var(--cx-surface); box-shadow: none; }
     .sp-bar .sp-title-input { flex: 1 1 0; min-width: 160px; font-size: 15px; font-weight: 600; }
     .sp-bar .sp-date-input { flex: 0 0 120px; width: 120px; font-size: 13px; }
     .sp-status { flex: 0 0 auto; min-width: 84px; text-align: right; font-size: 12px; margin: 0; }
     .sp-rel { position: relative; flex-shrink: 0; }
     .sp-bar .btn-list-toggle, .sp-bar .btn-save { width: auto; margin: 0; }
-    .sp-bar .btn-list-toggle { background: #fff; border: 1px solid #DCE3E8; color: #17212B; border-radius: 6px; padding: 0 12px; height: 32px; font-size: 13px; }
-    .sp-bar .btn-list-toggle:hover, .sp-bar .btn-list-toggle.is-active { border-color: #176B87; color: #176B87; background: #fff; }
-    .sp-bar .btn-save { background: #176B87; border-color: #176B87; height: 32px; padding: 0 14px; font-size: 13px; transform: none; box-shadow: none; }
-    .sp-bar .btn-save:hover { background: #125a72; }
+    .sp-bar .btn-list-toggle { background: var(--cx-surface); border: 1px solid var(--cx-divider); color: var(--cx-ink); border-radius: 6px; padding: 0 12px; height: 32px; font-size: 13px; }
+    .sp-bar .btn-list-toggle:hover, .sp-bar .btn-list-toggle.is-active { border-color: var(--cx-active); color: var(--cx-active); background: var(--cx-surface); }
+    .sp-bar .btn-save { background: var(--cx-active-fill); border-color: var(--cx-active-fill); height: 32px; padding: 0 14px; font-size: 13px; transform: none; box-shadow: none; }
+    .sp-bar .btn-save:hover { background: var(--cx-active-fill-hover); }
     /* The print header is filled by the export code only; its empty h1/p
        margins must not push the 100vh shell down. */
     #sermon-print-header { display: none; }
@@ -1146,9 +1146,9 @@
         max-height: 60vh;
         overflow-y: auto;
         z-index: 200;
-        border: 1px solid #DCE3E8;
+        border: 1px solid var(--cx-divider);
         border-radius: 8px;
-        background: #fff;
+        background: var(--cx-surface);
         box-shadow: 0 10px 30px rgba(23,33,43,0.22);
     }
     .sp-save { display: flex; flex-shrink: 0; }
@@ -1174,14 +1174,14 @@
         display: flex;
         flex-direction: column;
         min-height: 0;
-        background: #fff;
-        border-right: 1px solid #DCE3E8;
+        background: var(--cx-surface);
+        border-right: 1px solid var(--cx-divider);
     }
     .prep-bible-col.collapsed { display: none; }
     .prep-editor-col { flex: 1 1 0; min-width: 0; min-height: 0; height: auto; display: flex; flex-direction: column; }
 
     /* ---- Source panel ---------------------------------------------- */
-    .left-panel-tabs { flex-shrink: 0; border-bottom: 1px solid #DCE3E8; }
+    .left-panel-tabs { flex-shrink: 0; border-bottom: 1px solid var(--cx-divider); }
     .left-tab-btn,
     .left-tab-btn:first-child,
     .left-tab-btn:last-child {
@@ -1190,14 +1190,14 @@
         border: none;
         border-bottom: 2px solid transparent;
         border-radius: 0;
-        background: #fff;
-        color: #6E7883;
+        background: var(--cx-surface);
+        color: var(--cx-secondary);
         font-size: 13px;
         font-weight: 600;
         letter-spacing: 0;
     }
-    .left-tab-btn.active-tab     { color: #176B87; border: none; border-bottom: 2px solid #176B87; }
-    .left-tab-btn.active-tab-msg { color: #765276; border: none; border-bottom: 2px solid #765276; }
+    .left-tab-btn.active-tab     { color: var(--cx-active); border: none; border-bottom: 2px solid var(--cx-active); }
+    .left-tab-btn.active-tab-msg { color: var(--cx-message); border: none; border-bottom: 2px solid var(--cx-message); }
     .left-tab-content {
         flex: 1 1 0;
         min-height: 0;
@@ -1209,14 +1209,14 @@
     .sp-tr-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin-bottom: 8px; }
     .sp-lang-row { display: flex; gap: 3px; flex-shrink: 0; }
     .tr-btn, .lang-toggle-btn { border-radius: 6px; }
-    .tr-btn.active-tr, .lang-toggle-btn.lang-active { background: #E6F1F4; border-color: #176B87; color: #176B87; }
+    .tr-btn.active-tr, .lang-toggle-btn.lang-active { background: var(--cx-active-tint); border-color: var(--cx-active); color: var(--cx-active); }
 
     /* Breadcrumb: one level per line, small type, long book names wrap */
     .sp-crumbs { display: flex; flex-direction: column; align-items: flex-start; gap: 0; margin-bottom: 6px; font-size: 12px; min-width: 0; }
     .sp-crumb {
         border: none;
         background: transparent;
-        color: #176B87;
+        color: var(--cx-active);
         padding: 2px 6px;
         border-radius: 6px;
         cursor: pointer;
@@ -1227,12 +1227,12 @@
     }
     .sp-crumb-l2 { margin-left: 10px; }
     .sp-crumb-l3 { margin-left: 20px; }
-    .sp-crumb:hover { background: #E6F1F4; }
-    .sp-crumb.sp-crumb-current { color: #17212B; font-weight: 600; }
+    .sp-crumb:hover { background: var(--cx-active-tint); }
+    .sp-crumb.sp-crumb-current { color: var(--cx-ink); font-weight: 600; }
 
     /* Second citation language */
     .sp-second-row { margin-top: -2px; }
-    .sp-second-label { font-size: 12px; color: #6E7883; margin-right: 4px; }
+    .sp-second-label { font-size: 12px; color: var(--cx-secondary); margin-right: 4px; }
     .sp-second-item { display: inline-flex; align-items: center; gap: 4px; }
     .sp-second-select { height: 26px; font-size: 12px; max-width: 220px; }
     .cite-lang2 { opacity: 0.85; font-style: italic; }
@@ -1240,10 +1240,10 @@
     /* Search row: book filter + full-text search, side by side */
     .sp-search-row { display: grid; grid-template-columns: 2fr 3fr; gap: 6px; flex-shrink: 0; }
     .sp-search-row .prep-bible-search { width: 100%; margin: 0; }
-    .sp-selected-count { color: #176B87; font-weight: 400; margin-left: 6px; }
-    .sp-bible-result { padding: 7px 12px; border-bottom: 1px solid #EDF1F4; font-size: 13px; line-height: 1.4; cursor: pointer; color: #17212B; }
-    .sp-bible-result:hover { background: #F6F8FA; }
-    .sp-bible-result-ref { display: block; font-size: 11px; font-weight: 600; color: #176B87; }
+    .sp-selected-count { color: var(--cx-active); font-weight: 400; margin-left: 6px; }
+    .sp-bible-result { padding: 7px 12px; border-bottom: 1px solid var(--cx-divider-soft); font-size: 13px; line-height: 1.4; cursor: pointer; color: var(--cx-ink); }
+    .sp-bible-result:hover { background: var(--cx-surface-2); }
+    .sp-bible-result-ref { display: block; font-size: 11px; font-weight: 600; color: var(--cx-active); }
     .sp-quick-results {
         position: absolute;
         z-index: 50;
@@ -1251,17 +1251,17 @@
         left: 0; right: 0;
         max-height: 320px;
         overflow-y: auto;
-        background: #fff;
-        border: 1px solid #DCE3E8;
+        background: var(--cx-surface);
+        border: 1px solid var(--cx-divider);
         border-radius: 6px;
         box-shadow: 0 10px 30px rgba(23,33,43,0.22);
     }
-    .sp-quick-item { padding: 7px 10px; border-bottom: 1px solid #EDF1F4; font-size: 12px; line-height: 1.4; cursor: pointer; color: #17212B; }
+    .sp-quick-item { padding: 7px 10px; border-bottom: 1px solid var(--cx-divider-soft); font-size: 12px; line-height: 1.4; cursor: pointer; color: var(--cx-ink); }
     .sp-quick-item:last-child { border-bottom: none; }
-    .sp-quick-item:hover { background: #F3ECF3; }
+    .sp-quick-item:hover { background: var(--cx-message-tint); }
     /* Books in two columns: Old Testament | New Testament */
     .sp-testaments { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; }
-    .sp-testament + .sp-testament { border-left: 1px solid #DCE3E8; }
+    .sp-testament + .sp-testament { border-left: 1px solid var(--cx-divider); }
     .sp-testament-title {
         position: sticky;
         top: 0;
@@ -1269,17 +1269,17 @@
         padding: 6px 12px;
         font-size: 11px;
         font-weight: 700;
-        color: #6E7883;
+        color: var(--cx-secondary);
         text-transform: uppercase;
         letter-spacing: 0.4px;
-        background: #F6F8FA;
-        border-bottom: 1px solid #DCE3E8;
+        background: var(--cx-surface-2);
+        border-bottom: 1px solid var(--cx-divider);
     }
 
-    .prep-bible-search { border: 1px solid #DCE3E8; border-radius: 6px; height: 34px; }
-    .prep-bible-search:focus { border-color: #176B87; box-shadow: 0 0 0 3px rgba(23,107,135,0.14); outline: none; }
-    .prep-panel { border: 1px solid #DCE3E8; border-radius: 6px; }
-    .prep-panel-title { border-radius: 0; text-transform: none; letter-spacing: 0; font-size: 12px; color: #6E7883; background: #fff; border-bottom: 1px solid #DCE3E8; }
+    .prep-bible-search { border: 1px solid var(--cx-divider); border-radius: 6px; height: 34px; }
+    .prep-bible-search:focus { border-color: var(--cx-active); box-shadow: 0 0 0 3px var(--cx-focus-ring); outline: none; }
+    .prep-panel { border: 1px solid var(--cx-divider); border-radius: 6px; }
+    .prep-panel-title { border-radius: 0; text-transform: none; letter-spacing: 0; font-size: 12px; color: var(--cx-secondary); background: var(--cx-surface); border-bottom: 1px solid var(--cx-divider); }
     /* One navigation level at a time, each using the whole panel height.
        (The ids are needed to outrank the ":not(#prep-verses-panel)" rule above.) */
     .prep-bible-inner > #prep-books-panel,
@@ -1287,33 +1287,33 @@
     .prep-bible-inner > #prep-verses-panel,
     .prep-bible-inner > #prep-bible-results-panel { flex: 1 1 0; min-height: 0; height: auto; margin-top: 6px; }
     .sp-chapter-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(38px, 1fr)); gap: 4px; padding: 8px; }
-    .sp-chapter-grid .prep-chapter-btn { height: 32px; margin: 0; border: 1px solid #DCE3E8; border-radius: 6px; background: #fff; color: #17212B; }
-    .sp-chapter-grid .prep-chapter-btn.btn-success { background: #176B87; border-color: #176B87; color: #fff; }
+    .sp-chapter-grid .prep-chapter-btn { height: 32px; margin: 0; border: 1px solid var(--cx-divider); border-radius: 6px; background: var(--cx-surface); color: var(--cx-ink); }
+    .sp-chapter-grid .prep-chapter-btn.btn-success { background: var(--cx-active-fill); border-color: var(--cx-active-fill); color: #fff; }
     .prep-list-item { border-left: 3px solid transparent; }
-    .prep-list-item.selected { background: #E6F1F4; border-left-color: #176B87; color: #176B87; font-weight: 600; }
+    .prep-list-item.selected { background: var(--cx-active-tint); border-left-color: var(--cx-active); color: var(--cx-active); font-weight: 600; }
     /* Verses / paragraphs: a continuous list with thin separators */
     .prep-verse-item {
         width: auto;
         margin: 0;
         border: none;
         border-left: 3px solid transparent;
-        border-bottom: 1px solid #EDF1F4;
+        border-bottom: 1px solid var(--cx-divider-soft);
         border-radius: 0;
         font-size: 13px;
         line-height: 1.45;
     }
-    .prep-verse-item.verse-selected { background: #E6F1F4; border-left-color: #176B87; color: #17212B; }
+    .prep-verse-item.verse-selected { background: var(--cx-active-tint); border-left-color: var(--cx-active); color: var(--cx-ink); }
     /* Message sources: message accent instead of the active blue */
-    .sp-msg-code { display: block; font-size: 10px; font-weight: 700; color: #765276; }
-    .prep-list-item.sp-msg-result.selected { background: #F3ECF3; border-left-color: #765276; color: #17212B; }
-    .prep-verse-item.sp-para-item { color: #17212B; }
-    .prep-verse-item.sp-para-item.verse-selected { background: #F3ECF3; border-left-color: #765276; }
-    .prep-panel-title.sp-msg-title { display: flex; align-items: center; gap: 6px; color: #765276; font-weight: 600; }
+    .sp-msg-code { display: block; font-size: 10px; font-weight: 700; color: var(--cx-message); }
+    .prep-list-item.sp-msg-result.selected { background: var(--cx-message-tint); border-left-color: var(--cx-message); color: var(--cx-ink); }
+    .prep-verse-item.sp-para-item { color: var(--cx-ink); }
+    .prep-verse-item.sp-para-item.verse-selected { background: var(--cx-message-tint); border-left-color: var(--cx-message); }
+    .prep-panel-title.sp-msg-title { display: flex; align-items: center; gap: 6px; color: var(--cx-message); font-weight: 600; }
     .btn-insert-bible, .btn-insert-msg { flex-shrink: 0; margin-top: 8px; border-radius: 6px; }
-    .btn-insert-bible { background: #176B87; border-color: #176B87; color: #fff; }
-    .btn-insert-bible[disabled] { background: #EDF1F4; color: #6E7883; }
-    .btn-insert-bible:hover:not([disabled]) { background: #125a72; }
-    .btn-insert-msg { background: #765276; border-color: #765276; color: #fff; }
+    .btn-insert-bible { background: var(--cx-active-fill); border-color: var(--cx-active-fill); color: #fff; }
+    .btn-insert-bible[disabled] { background: var(--cx-canvas); color: var(--cx-secondary); }
+    .btn-insert-bible:hover:not([disabled]) { background: var(--cx-active-fill-hover); }
+    .btn-insert-msg { background: var(--cx-message-fill); border-color: var(--cx-message-fill); color: #fff; }
 
     /* ---- Toolbar: one 40px row -------------------------------------- */
     .editor-toolbar {
@@ -1321,9 +1321,9 @@
         gap: 4px;
         height: 40px;
         padding: 0 12px;
-        background: #EDF1F4;
+        background: var(--cx-canvas);
         border: none;
-        border-bottom: 1px solid #DCE3E8;
+        border-bottom: 1px solid var(--cx-divider);
         border-radius: 0;
         overflow: visible;
     }
@@ -1331,24 +1331,24 @@
         height: 30px;
         min-width: 30px;
         padding: 0 8px;
-        border: 1px solid #DCE3E8;
+        border: 1px solid var(--cx-divider);
         border-radius: 6px;
-        background: #fff;
-        color: #17212B;
+        background: var(--cx-surface);
+        color: var(--cx-ink);
         font-size: 13px;
         line-height: 1;
         white-space: nowrap;
         flex-shrink: 0;
     }
-    .toolbar-btn:hover { background: #fff; border-color: #176B87; color: #176B87; }
-    .toolbar-select { height: 30px; border: 1px solid #DCE3E8; border-radius: 6px; flex-shrink: 0; }
+    .toolbar-btn:hover { background: var(--cx-surface); border-color: var(--cx-active); color: var(--cx-active); }
+    .toolbar-select { height: 30px; border: 1px solid var(--cx-divider); border-radius: 6px; flex-shrink: 0; }
     .toolbar-sep { flex-shrink: 0; }
-    .sp-fontsize { font-size: 11px; color: #6E7883; min-width: 30px; text-align: center; flex-shrink: 0; }
-    .sp-color-label { font-size: 12px; color: #6E7883; }
+    .sp-fontsize { font-size: 11px; color: var(--cx-secondary); min-width: 30px; text-align: center; flex-shrink: 0; }
+    .sp-color-label { font-size: 12px; color: var(--cx-secondary); }
     .color-picker-wrap { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
     .sp-insert { position: relative; flex-shrink: 0; }
     .sp-insert-toggle { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
-    .sp-insert-menu { min-width: 200px; border-radius: 8px; border: 1px solid #DCE3E8; box-shadow: 0 10px 30px rgba(23,33,43,0.22); }
+    .sp-insert-menu { min-width: 200px; border-radius: 8px; border: 1px solid var(--cx-divider); box-shadow: 0 10px 30px rgba(23,33,43,0.22); }
     .sp-insert-menu > li > a { padding: 7px 14px; font-size: 13px; cursor: pointer; }
 
     /* ---- Document surface --------------------------------------------- */
@@ -1357,7 +1357,7 @@
         border-radius: 0;
         padding: 24px max(28px, calc((100% - 860px) / 2)) 80px;   /* ~860px readable column, centred */
         font-family: Georgia, "Times New Roman", serif;
-        color: #17212B;
+        color: var(--cx-ink);
     }
     /* Application chrome inside the document stays sans serif */
     #sermon-editor .bible-cite,
@@ -1413,9 +1413,9 @@
                 <div class="sermons-sidebar sp-sermons-pop" ng-show="showSermonList">
                     <div class="sermons-sidebar-title">
                         <span><?php echo T::s('prep.panel.sermonsTitle'); ?></span>
-                        <span ng-click="showSermonList=false" style="cursor:pointer; font-size:16px; color:#95a5a6; line-height:1;">×</span>
+                        <span ng-click="showSermonList=false" style="cursor:pointer; font-size:16px; color:var(--cx-muted); line-height:1;">×</span>
                     </div>
-                    <div ng-show="sermonList.length === 0" style="padding:10px; color:#b0b8c1; font-size:11px;">
+                    <div ng-show="sermonList.length === 0" style="padding:10px; color:var(--cx-muted); font-size:11px;">
                         <?php echo T::s('prep.empty.sermons'); ?>
                     </div>
                     <div class="sermon-list-item"
@@ -1424,10 +1424,10 @@
                          ng-click="loadSermon(s.ID)">
                         <div style="flex: 1; min-width: 0;">
                             <div>{{ s.TITLE || ('<?php echo T::s('sermon.untitled'); ?>') }}</div>
-                            <div style="font-size: 10px; color: #95a5a6; margin-top: 2px;">
-                                <span ng-if="s.OWNER_NAME" style="color: #e67e22; font-weight: 600;">{{ s.OWNER_NAME }} · </span>
+                            <div style="font-size: 10px; color: var(--cx-muted); margin-top: 2px;">
+                                <span ng-if="s.OWNER_NAME" style="color: var(--cx-orange); font-weight: 600;">{{ s.OWNER_NAME }} · </span>
                                 <span ng-if="s.SERMON_DATE && s.SERMON_DATE !== '0000-00-00'">{{ s.SERMON_DATE }}</span>
-                                <span ng-if="s.UPDATED_AT" style="color: #b0b8c1;">{{ ('<?php echo T::s('prep.modifiedPrefix'); ?>').replace('{date}', s.UPDATED_AT.substring(0, 16).replace('T', ' ')) }}</span>
+                                <span ng-if="s.UPDATED_AT" style="color: var(--cx-muted);">{{ ('<?php echo T::s('prep.modifiedPrefix'); ?>').replace('{date}', s.UPDATED_AT.substring(0, 16).replace('T', ' ')) }}</span>
                             </div>
                         </div>
                         <button class="btn-sermon-delete"
@@ -1568,7 +1568,7 @@
                                 {{ getBibleVerseDisplayPrep(r) }}
                             </div>
                             <div ng-show="prepBibleSearchResults.length === 0"
-                                 style="padding:10px; color:#6E7883; font-size:11px;">
+                                 style="padding:10px; color:var(--cx-secondary); font-size:11px;">
                                 <?php echo T::s('prep.empty.results'); ?>
                             </div>
                         </div>
@@ -1602,7 +1602,7 @@
                                          ng-click="nav.up = 0; selectBook(book)">{{ getBookName(book) }}</div>
                                 </div>
                             </div>
-                            <div ng-show="!bibleTranslationId" style="padding:10px; color:#b0b8c1; font-size:11px;">
+                            <div ng-show="!bibleTranslationId" style="padding:10px; color:var(--cx-muted); font-size:11px;">
                                 <?php echo T::s('prep.choosTranslation'); ?>
                             </div>
                         </div>
@@ -1636,7 +1636,7 @@
                                   ng-dblclick="toggleVerse(v, $event); insertBibleCitation()"
                                   ng-bind-html="highlightPrepVerse(v.display)"></span>
                             <div ng-show="preparedVerses.length === 0 && selectedChapter"
-                                 style="padding:10px; color:#b0b8c1; font-size:11px;">
+                                 style="padding:10px; color:var(--cx-muted); font-size:11px;">
                                 <?php echo T::s('common.loading'); ?>
                             </div>
                         </div>
@@ -1689,7 +1689,7 @@
                                 </span>
                             </div>
 
-                            <div style="color:#6E7883; font-size:11px; padding: 4px 2px 6px;"
+                            <div style="color:var(--cx-secondary); font-size:11px; padding: 4px 2px 6px;"
                                  ng-show="prepMsgTitleQuery.length < 2 && prepMsgTextQuery.length < 2">
                                 <?php echo T::s('prep.hint.minChars'); ?>
                             </div>
@@ -1705,10 +1705,10 @@
                                      ng-click="selectMessagePrep(msg)">
                                     <span class="sp-msg-code">{{ msg.CODE }}</span>
                                     <span style="display:block; line-height:1.3; font-size:12px;">{{ msg.TITLE }}</span>
-                                    <span ng-if="msg.CITY" style="color:#6E7883; font-size:10px; display:block; margin-top:1px;">{{ msg.CITY }}</span>
+                                    <span ng-if="msg.CITY" style="color:var(--cx-secondary); font-size:10px; display:block; margin-top:1px;">{{ msg.CITY }}</span>
                                 </div>
                                 <div ng-show="prepMsgResults.length === 0"
-                                     style="padding:10px; color:#b0b8c1; font-size:11px;">
+                                     style="padding:10px; color:var(--cx-muted); font-size:11px;">
                                     <?php echo T::s('prep.empty.results'); ?>
                                 </div>
                             </div>
@@ -1734,7 +1734,7 @@
                                   ng-dblclick="togglePrepPara(para); insertMessageCitation()"
                                   ng-bind-html="highlightPrepMsg(para.text)"></span>
                             <div ng-show="prepMsgParagraphs.length === 0"
-                                 style="padding:10px; color:#b0b8c1; font-size:11px;">
+                                 style="padding:10px; color:var(--cx-muted); font-size:11px;">
                                 <?php echo T::s('common.loading'); ?>
                             </div>
                         </div>
@@ -1948,6 +1948,6 @@
 
 <!-- Turndown 7.2.1, self-hosted (SHA-512 verified against the former cdnjs SRI) so MD export works without internet -->
 <script src="/js/vendor/turndown.min.js?v=1"></script>
-<script src="/js/sermon_chip_editor.min.js?v=15"></script>
+<script src="/js/sermon_chip_editor.min.js?v=16"></script>
 <script src="/js/drawio_import.min.js?v=1"></script>
-<script src="/js/sermon_prep.min.js?v=30" type="text/javascript"></script>
+<script src="/js/sermon_prep.min.js?v=31" type="text/javascript"></script>

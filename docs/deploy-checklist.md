@@ -207,6 +207,11 @@ scenario re-checked.
   template.
 - Any UI string: keys in ALL FIVE dictionaries (ru/de/en/lt/pl), rendered via
   `window.t()` / `T::s()`.
+- Any page colour: a `--cx-*` token (compact.css = light, theme.css = dark),
+  never a hex — a hex is invisible or glaring on the other theme. After a CSS
+  change open the page in BOTH themes (settings → «Тема оформления», or
+  `localStorage.ui_theme = 'dark'`); the screens / previews / fullscreen
+  viewers must stay black-on-user-colours in both.
 
 ### 2.5 Bible translations (one row per translation)
 - Storage: `bible_translations` (NAME, LANG, SORT_ORDER) → own `bible_books`

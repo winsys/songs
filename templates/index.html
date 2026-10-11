@@ -9,7 +9,7 @@
        icon · label · chevron, two columns on tablets, one on phones.
        Tokens: /css/compact.css (--cx-*).
        ============================================================ */
-    body { background: #EDF1F4; min-height: 100vh; }
+    body { background: var(--cx-canvas); min-height: 100vh; }
 
     .home-bar .home-logo  { font-size: 24px; line-height: 1; flex-shrink: 0; }
     .home-bar .home-title { font-size: 17px; font-weight: 600; white-space: nowrap; }
@@ -17,7 +17,7 @@
         margin-left: auto;
         min-width: 0;
         font-size: 13px;
-        color: #6E7883;
+        color: var(--cx-secondary);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -38,7 +38,7 @@
         padding: 0 2px 2px;
         font-size: 13px;
         font-weight: 600;
-        color: #6E7883;
+        color: var(--cx-secondary);
     }
 
     .btn-home {
@@ -49,11 +49,11 @@
         min-height: 56px;
         margin: 0;
         padding: 6px 12px 6px 11px;
-        border: 1px solid #DCE3E8;
-        border-left: 3px solid #176B87;
+        border: 1px solid var(--cx-divider);
+        border-left: 3px solid var(--cx-active);
         border-radius: 6px;
-        background: #fff;
-        color: #17212B;
+        background: var(--cx-surface);
+        color: var(--cx-ink);
         font-size: 15px;
         font-weight: 600;
         line-height: 1.25;
@@ -68,32 +68,32 @@
         padding-left: 8px;
         font-size: 20px;
         line-height: 1;
-        color: #6E7883;
+        color: var(--cx-secondary);
         flex-shrink: 0;
     }
-    .btn-home:hover, .btn-home:focus { background: #E6F1F4; border-color: #176B87; outline: none; }
-    .btn-home:focus-visible, .btn-logout:focus-visible { outline: 2px solid #176B87; outline-offset: 2px; }
+    .btn-home:hover, .btn-home:focus { background: var(--cx-active-tint); border-color: var(--cx-active); outline: none; }
+    .btn-home:focus-visible, .btn-logout:focus-visible { outline: 2px solid var(--cx-active); outline-offset: 2px; }
     .btn-icon { font-size: 22px; line-height: 1; width: 28px; text-align: center; flex-shrink: 0; }
 
     /* Narrow accents per group only — rows are never filled with colour */
-    .btn-home.btn-green  { border-left-color: #1E7E34; }
-    .btn-home.btn-gray   { border-left-color: #6E7883; }
-    .btn-home.btn-purple { border-left-color: #765276; }
-    .btn-home.btn-red    { border-left-color: #C4473A; }
+    .btn-home.btn-green  { border-left-color: var(--cx-broadcast); }
+    .btn-home.btn-gray   { border-left-color: var(--cx-secondary); }
+    .btn-home.btn-purple { border-left-color: var(--cx-message); }
+    .btn-home.btn-red    { border-left-color: var(--cx-danger); }
 
     .home-logout-row { display: flex; justify-content: flex-end; margin-top: 18px; }
     .btn-logout {
         height: 44px;
         padding: 0 18px;
-        border: 1px solid #DCE3E8;
+        border: 1px solid var(--cx-divider);
         border-radius: 6px;
         background: transparent;
-        color: #6E7883;
+        color: var(--cx-secondary);
         font-size: 14px;
         font-weight: 500;
         cursor: pointer;
     }
-    .btn-logout:hover { border-color: #C4473A; color: #C4473A; background: #fff; }
+    .btn-logout:hover { border-color: var(--cx-danger); color: var(--cx-danger); background: var(--cx-surface); }
 
     @media (max-width: 599px) {
         .home-wrapper { padding: 4px 10px 32px; }

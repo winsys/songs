@@ -6,19 +6,61 @@
    ============================================================ */
 
 :root {
-    --cx-canvas:    #EDF1F4;
-    --cx-surface:   #FFFFFF;
-    --cx-ink:       #17212B;
-    --cx-secondary: #6E7883;
+    /* ---- Colour tokens, LIGHT values. The dark values live in theme.css
+       (html[data-theme="dark"]); every page colour comes from these tokens,
+       so a new rule must use them too, never a hex (the display mirrors
+       — screens, previews of the screens, sheet music — are the exception). */
+    --cx-canvas:    #EDF1F4;   /* page background */
+    --cx-surface:   #FFFFFF;   /* cards, rows, inputs, dialogs */
+    --cx-surface-2: #F6F8FA;   /* toolbars, hover rows, panel headers */
+    --cx-surface-3: #E8ECF0;   /* pressed state, stronger hover */
+    --cx-ink:       #17212B;   /* primary text */
+    --cx-secondary: #6E7883;   /* secondary text, labels */
+    --cx-muted:     #9AA7B1;   /* hints, placeholders, disabled */
+    --cx-divider:   #DCE3E8;   /* borders */
+    --cx-divider-strong: #B9C4CD;
+    --cx-divider-soft:   #F0F2F5;   /* hairlines inside a surface */
+    /* accent: text / border / icon, solid fill (white text on it), tint (background of a selected row / chip) */
     --cx-active:    #176B87;
+    --cx-active-fill: #176B87;
+    --cx-active-fill-hover: #125A72;
     --cx-active-tint: #E6F1F4;
+    --cx-active-tint-2: #D6E9F8;
+    --cx-active-line: #B8D9F5;
     --cx-broadcast: #1E7E34;
+    --cx-broadcast-fill: #1E7E34;
+    --cx-broadcast-fill-hover: #176A2B;
     --cx-broadcast-tint: #E7F4EA;
+    --cx-broadcast-line: #CFE6D4;
     --cx-danger:    #C4473A;
+    --cx-danger-fill: #C4473A;
+    --cx-danger-fill-hover: #A93A2F;
     --cx-danger-tint: #FBECEA;
+    --cx-danger-tint-2: #FAD7D4;
+    --cx-danger-line: #F3CFCA;
     --cx-message:   #765276;
+    --cx-message-fill: #765276;
     --cx-message-tint: #F3ECF3;
-    --cx-divider:   #DCE3E8;
+    --cx-message-tint-2: #E8D5F5;
+    --cx-message-line: #CE93D8;
+    --cx-warn:      #856404;   /* connection banner */
+    --cx-warn-tint: #FFF3CD;
+    --cx-warn-line: #FFC107;
+    --cx-warm-bg:   #FFF8EE;   /* wallpapers panel, peach search field */
+    --cx-warm-line: #F0DBB5;
+    --cx-note-ink:  #8A5A00;   /* leader note rows (amber) */
+    --cx-note-line: #E0A526;
+    --cx-note-bg:   #FFFBF0;
+    --cx-note-bg-active: #FFF3D6;
+    --cx-orange:    #E67E22;   /* audio media, "saving" state */
+    --cx-orange-ink: #C0580A;
+    --cx-purple:    #8E44AD;   /* video media */
+    --cx-hl-bg:     #FFF176;   /* search highlight (mark) */
+    --cx-lang-ru-bg: #D0E8FF; --cx-lang-ru-fg: #1A5A99;
+    --cx-lang-lt-bg: #D4F0D4; --cx-lang-lt-fg: #2A6A2A;
+    --cx-lang-en-bg: #FFF0CC; --cx-lang-en-fg: #7A5A00;
+    --cx-focus-ring: rgba(23,107,135,0.14);
+    --cx-overlay:   rgba(23,33,43,0.72);   /* dialog backdrop */
     --cx-radius:    6px;
     --cx-font: "Segoe UI Variable Text", "Segoe UI", Arial, sans-serif;
 }
@@ -154,12 +196,12 @@
 .cx-btn:hover { border-color: var(--cx-active); color: var(--cx-active); text-decoration: none; }
 .cx-btn[disabled] { opacity: 0.45; cursor: default; pointer-events: none; }
 .cx-btn-quiet { border-color: transparent; background: transparent; color: var(--cx-secondary); }
-.cx-btn-primary { background: var(--cx-active); border-color: var(--cx-active); color: #fff; }
-.cx-btn-primary:hover { background: #125a72; border-color: #125a72; color: #fff; }
+.cx-btn-primary { background: var(--cx-active-fill); border-color: var(--cx-active-fill); color: #fff; }
+.cx-btn-primary:hover { background: var(--cx-active-fill-hover); border-color: var(--cx-active-fill-hover); color: #fff; }
 .cx-btn-danger { background: var(--cx-danger-tint); border-color: transparent; color: var(--cx-danger); }
 .cx-btn-danger:hover { border-color: var(--cx-danger); color: var(--cx-danger); }
-.cx-btn-danger-solid { background: var(--cx-danger); border-color: var(--cx-danger); color: #fff; }
-.cx-btn-danger-solid:hover { background: #a93a2f; border-color: #a93a2f; color: #fff; }
+.cx-btn-danger-solid { background: var(--cx-danger-fill); border-color: var(--cx-danger-fill); color: #fff; }
+.cx-btn-danger-solid:hover { background: var(--cx-danger-fill-hover); border-color: var(--cx-danger-fill-hover); color: #fff; }
 .cx-btn-icon { width: 32px; padding: 0; }
 
 /* Selected chip / mode: thin active border + very light tint */
@@ -198,18 +240,18 @@
 .cx-seg > button:hover { color: var(--cx-active); }
 .cx-seg > button.is-active,
 .cx-seg > button.mode-btn-active,
-.cx-seg > button.lang-active { background: var(--cx-active); color: #fff; }
+.cx-seg > button.lang-active { background: var(--cx-active-fill); color: #fff; }
 .cx-seg > button[disabled] { opacity: 0.4; cursor: default; }
 
 /* Group broadcast (observer channel) toggle */
 .cx-broadcast.btn-observer-on,
 .cx-broadcast.is-on {
-    background: var(--cx-broadcast);
-    border-color: var(--cx-broadcast);
+    background: var(--cx-broadcast-fill);
+    border-color: var(--cx-broadcast-fill);
     color: #fff;
 }
 .cx-broadcast.btn-observer-on:hover,
-.cx-broadcast.is-on:hover { background: #176a2b; color: #fff; }
+.cx-broadcast.is-on:hover { background: var(--cx-broadcast-fill-hover); color: #fff; }
 
 /* ---- Inputs -------------------------------------------------- */
 .cx-input {
@@ -224,7 +266,7 @@
     box-shadow: none;
     -webkit-appearance: none;
 }
-.cx-input:focus { border-color: var(--cx-active); outline: none; box-shadow: 0 0 0 3px rgba(23,107,135,0.14); }
+.cx-input:focus { border-color: var(--cx-active); outline: none; box-shadow: 0 0 0 3px var(--cx-focus-ring); }
 .cx-select {
     height: 32px;
     padding: 0 8px;
@@ -298,7 +340,7 @@
     align-items: center;
     justify-content: center;
     padding: 12px;
-    background: rgba(23,33,43,0.72);
+    background: var(--cx-overlay);
     font-family: var(--cx-font);
 }
 .cx-qr-modal {
@@ -308,7 +350,7 @@
     overflow-y: auto;
     padding: 16px;
     border-radius: 10px;
-    background: #fff;
+    background: var(--cx-surface);
     color: var(--cx-ink);
     box-shadow: 0 8px 40px rgba(0,0,0,0.3);
     text-align: center;

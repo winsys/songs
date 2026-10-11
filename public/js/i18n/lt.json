@@ -661,5 +661,10 @@
   "tech.tooltip.removeFromWallpapers": "Pašalinti iš standartinių fonų",
   "tech.tooltip.rewind": "Atsukti atkūrimą 2 sekundėmis atgal",
   "tech.tooltip.stopMarker": "Pabaigos žymeklis: groti iki šios pastraipos imtinai, tada sustoti",
-  "tech.video.stop": "⏹ Stop"
+  "tech.video.stop": "⏹ Stop",
+  "settings.card.theme": "🌗 Spalvų tema",
+  "settings.theme.auto": "Kaip sistemoje",
+  "settings.theme.light": "Šviesi",
+  "settings.theme.dark": "Tamsi",
+  "settings.hint.theme": "Pritaikoma iš karto ir įsimenama šioje naršyklėje (ne grupės nustatymuose). «Kaip sistemoje» — tamsi tema įsijungia kartu su įrenginio ar naršyklės tamsia tema."
 }
