@@ -269,6 +269,57 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
         }, { passive: true });
 
         // ==========================================================
+        // SHORT TAP ON THE DISPLAY CLEARS THE QUOTE (group setting)
+        // ==========================================================
+        // «Снимать цитату касанием экрана» (user_settings.sermon_tap_clear,
+        // default off): while a Bible / Message quote is shown, a short
+        // single-pointer press without movement on the right pane takes it
+        // off — the same path as pressing the active chip again
+        // (clearDisplay). Swipes, pinches, long presses and presses on the
+        // pane's own buttons are not taps; slides, images and video are never
+        // affected (their zoom / double-tap gestures stay as they are).
+        var TAP_CLEAR_MS   = 400;  // max press duration of a short tap
+        var TAP_CLEAR_DIST = 10;   // max movement (px) still counted as a tap
+        var tapClear       = null; // {id, t, x, y} of the press being watched
+
+        function tapClearEnabled() {
+            return !!userSettings && parseInt(userSettings.sermon_tap_clear, 10) === 1;
+        }
+
+        function quoteShown() {
+            return !!($scope.displayText && !$scope.displayImageSrc
+                      && !$scope.displaySlideHtml && !$scope.displayVideoSrc);
+        }
+
+        displayPanel.addEventListener('pointerdown', function (e) {
+            tapClear = null;
+            if (!e.isPrimary) return;  // a second finger joined — not a tap
+            if (!tapClearEnabled() || !quoteShown()) return;
+            if (e.pointerType === 'mouse' && e.button !== 0) return;
+            if (e.target && e.target.closest && e.target.closest('button, a, input, select, #dz-badge')) return;
+            tapClear = { id: e.pointerId, t: Date.now(), x: e.clientX, y: e.clientY };
+        });
+
+        displayPanel.addEventListener('pointermove', function (e) {
+            if (tapClear && e.pointerId === tapClear.id
+                && Math.hypot(e.clientX - tapClear.x, e.clientY - tapClear.y) > TAP_CLEAR_DIST) {
+                tapClear = null;
+            }
+        });
+
+        displayPanel.addEventListener('pointerup', function (e) {
+            var tc = tapClear;
+            tapClear = null;
+            if (!tc || e.pointerId !== tc.id) return;
+            if (Date.now() - tc.t > TAP_CLEAR_MS) return;
+            if (Math.hypot(e.clientX - tc.x, e.clientY - tc.y) > TAP_CLEAR_DIST) return;
+            if (!tapClearEnabled() || !quoteShown()) return;
+            $scope.$apply(function () { $scope.clearDisplay(); });
+        });
+
+        displayPanel.addEventListener('pointercancel', function () { tapClear = null; });
+
+        // ==========================================================
         // TOUCH ZOOM
         // ==========================================================
 

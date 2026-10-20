@@ -983,6 +983,9 @@ trait Ajax_Common
         unset($settings['musician_msg_style']);
         $settings['leader_clear_screen'] = isset($settings['leader_clear_screen'])
             ? (int)$settings['leader_clear_screen'] : 1;
+        // The column self-migrates in loadMusicianMsgStyle() above, so the
+        // SELECT * of the very first call may not carry it yet.
+        $settings['sermon_tap_clear'] = !empty($settings['sermon_tap_clear']) ? 1 : 0;
 
         return json_encode($settings);
     }

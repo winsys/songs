@@ -27,6 +27,7 @@ app.controller('Settings', function ($scope, $http, $sce)
         sermon_bible_base_color: '#1565c0',
         sermon_msg_base_color:   '#6a1b9a',
         slide_bg_color:          '#1a237e',
+        sermon_tap_clear:        0,
         ui_lang:                 'ru',
         leader_text_multilang:   0,
         // «Сообщение музыкантам» overlay (transparency in %, 100 = invisible)
@@ -177,6 +178,7 @@ app.controller('Settings', function ($scope, $http, $sce)
                     if (!$scope.settings.slide_bg_color)           $scope.settings.slide_bg_color           = '#1a237e';
                     $scope.settings.sermon_notes_font_size = parseInt($scope.settings.sermon_notes_font_size, 10) || 100;
                     $scope.settings.sermon_scale_chips = parseInt($scope.settings.sermon_scale_chips) || 0;
+                    $scope.settings.sermon_tap_clear = parseInt($scope.settings.sermon_tap_clear, 10) === 1 ? 1 : 0;
                     $scope.settings.leader_text_multilang = parseInt($scope.settings.leader_text_multilang) || 0;
                     $scope.settings.leader_clear_screen = ($scope.settings.leader_clear_screen === undefined ||
                         parseInt($scope.settings.leader_clear_screen, 10) === 1) ? 1 : 0;

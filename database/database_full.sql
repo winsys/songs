@@ -307,6 +307,7 @@ CREATE TABLE IF NOT EXISTS `user_settings` (
   `sermon_prep_font_size` tinyint(4) NOT NULL DEFAULT '13' COMMENT 'Base font size in px for sermon prep editor (10-22)',
   `sermon_notes_font_size` smallint(6) NOT NULL DEFAULT '100',
   `sermon_scale_chips` tinyint(4) NOT NULL DEFAULT '0',
+  `sermon_tap_clear` tinyint(1) NOT NULL DEFAULT '0' COMMENT 'Sermon mode: 1 = a short tap on the display pane clears the shown quote',
   `slide_bg_color` varchar(20) NOT NULL DEFAULT '#1a237e' COMMENT 'Background colour for sermon slides on main screen',
   `main_font_max_size` tinyint(3) unsigned NOT NULL DEFAULT '64' COMMENT 'Max auto-fit font size px for main text display (20-200)',
   `slide_font_max_size` tinyint(3) unsigned NOT NULL DEFAULT '64' COMMENT 'Max auto-fit font size px for sermon slides (20-200)',

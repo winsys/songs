@@ -59,6 +59,8 @@ trait Ajax_Settings
      * Adds the Sept 2026 leader settings columns on first use (self-migration):
      * musician_msg_style (JSON) and leader_clear_screen (1 = the leader's song
      * open / close clears the main screen, 0 = only the technicians manage it).
+     * Oct 2026: sermon_tap_clear (1 = a short tap on the sermon page's display
+     * pane takes the shown Bible / Message quote off, default 0).
      */
     private static function ensureLeaderSettingsColumns()
     {
@@ -79,6 +81,13 @@ trait Ajax_Settings
                 "ALTER TABLE user_settings
                  ADD COLUMN leader_clear_screen tinyint(1) NOT NULL DEFAULT 1
                  COMMENT '1 = leader song open/close clears the main screen; 0 = screen left to the technicians'"
+            );
+        }
+        if (!Info::get('db')->get("SHOW COLUMNS FROM user_settings LIKE 'sermon_tap_clear'")) {
+            Info::get('db')->exec(
+                "ALTER TABLE user_settings
+                 ADD COLUMN sermon_tap_clear tinyint(1) NOT NULL DEFAULT 0
+                 COMMENT 'Sermon mode: 1 = a short tap on the display pane clears the shown quote'"
             );
         }
     }
@@ -152,6 +161,7 @@ trait Ajax_Settings
         $leaderTextMultilang = !empty($settings['leader_text_multilang']) ? 1 : 0;
         self::ensureLeaderSettingsColumns();
         $leaderClearScreen = (!isset($settings['leader_clear_screen']) || !empty($settings['leader_clear_screen'])) ? 1 : 0;
+        $sermonTapClear = !empty($settings['sermon_tap_clear']) ? 1 : 0;
         $musicianMsgStyle = mysqli_escape_string(Info::get('dbh'),
             json_encode(self::musicianMsgSanitize($settings)));
 
@@ -185,7 +195,8 @@ trait Ajax_Settings
                     ui_lang                  = '{$uiLang}',
                     leader_text_multilang    = {$leaderTextMultilang},
                     musician_msg_style       = '{$musicianMsgStyle}',
-                    leader_clear_screen      = {$leaderClearScreen}
+                    leader_clear_screen      = {$leaderClearScreen},
+                    sermon_tap_clear         = {$sermonTapClear}
                 WHERE group_id = {$userId}
             ");
         } else {
@@ -197,7 +208,7 @@ trait Ajax_Settings
                     sermon_notes_bg_color, sermon_bible_base_color, sermon_msg_base_color,
                     sermon_prep_font_size, sermon_notes_font_size, sermon_scale_chips,
                     slide_bg_color, main_font_max_size, slide_font_max_size, ui_lang, leader_text_multilang,
-                    musician_msg_style, leader_clear_screen
+                    musician_msg_style, leader_clear_screen, sermon_tap_clear
                 ) VALUES (
                     {$userId}, '{$displayName}', '{$favoritesOrder}', '{$availableLists}', " . ($availableLanguages === null ? 'NULL' : "'{$availableLanguages}'") . ", '{$placeholderImage}',
                     '{$mainBgColor}', '{$mainFont}', '{$mainFontColor}',
@@ -205,7 +216,7 @@ trait Ajax_Settings
                     '{$sermonNotesBgColor}', '{$sermonBibleBaseColor}', '{$sermonMsgBaseColor}',
                     {$sermonPrepFontSize}, {$sermonNotesFontSize}, {$sermonScaleChips},
                     '{$slideBgColor}', {$mainFontMaxSize}, {$slideFontMaxSize}, '{$uiLang}', {$leaderTextMultilang},
-                    '{$musicianMsgStyle}', {$leaderClearScreen}
+                    '{$musicianMsgStyle}', {$leaderClearScreen}, {$sermonTapClear}
                 )
             ");
         }
