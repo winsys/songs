@@ -43,11 +43,13 @@
             --sn-bible-hover-border: #2e72cc;
             --sn-bible-active-bdr:   #4d93e8;
             --sn-bible-active-verse: #ddeeff;
+            --sn-bible-active-ref:   #ffffff;
 
             --sn-msg-border:       #ce93d8;
             --sn-msg-color:        #6a1b9a;
             --sn-msg-hover-border: #8030b8;
             --sn-msg-active-bdr:   #b060e0;
+            --sn-msg-active-text:  #ffffff;
 
             --sn-notes-font:      13px;
             --sn-chip-font:       13px;
@@ -211,12 +213,12 @@
         #notes-body .bible-cite.active-cite {
             background: var(--sn-bible-active-bg);
             border-color: var(--sn-bible-active-bdr);
-            color: #fff;
+            color: var(--sn-bible-active-ref);
             box-shadow: 0 0 0 2px var(--sn-bible-shadow);
         }
         #notes-body .bible-cite .cite-body { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 0; }
         #notes-body .bible-cite .cite-ref { font-weight: 700; white-space: nowrap; color: var(--sn-bible-ref); }
-        #notes-body .bible-cite.active-cite .cite-ref { color: #fff; }
+        #notes-body .bible-cite.active-cite .cite-ref { color: var(--sn-bible-active-ref); }
         #notes-body .bible-cite .cite-verse-text { font-weight: 400; font-size: var(--sn-chip-verse-font); color: var(--sn-bible-verse); opacity: 0.9; line-height: 1.45; }
         #notes-body .bible-cite.active-cite .cite-verse-text { color: var(--sn-bible-active-verse); opacity: 1; }
 
@@ -242,7 +244,7 @@
         #notes-body .message-cite.active-cite {
             background: var(--sn-msg-active-bg);
             border-color: var(--sn-msg-active-bdr);
-            color: #fff;
+            color: var(--sn-msg-active-text);
             box-shadow: 0 0 0 2px var(--sn-msg-shadow);
         }
         #notes-body .cite-remove { display: none !important; }
@@ -912,7 +914,8 @@
 <script src="/js/websocket_auth.min.js?v=2"></script>
 <script src="/js/net_status.min.js?v=1"></script>
 <script src="/js/yt_bridge.min.js?v=1"></script>
-<script src="/js/sermon.min.js?v=23" type="text/javascript"></script>
+<script src="/js/sermon_colors.min.js?v=1" type="text/javascript"></script>
+<script src="/js/sermon.min.js?v=24" type="text/javascript"></script>
 <script src="/js/wake_lock.min.js?v=1" type="text/javascript"></script>
 </body>
 </html>

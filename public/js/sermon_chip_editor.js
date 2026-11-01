@@ -72,7 +72,9 @@ function openChipEditor(span) {
     var verseEl   = span.querySelector('.cite-verse-text');
     var htmlAttr  = isMsg ? 'data-para-html' : 'data-verse-html';
     var savedHtml = span.getAttribute(htmlAttr) || '';
-    if (!savedHtml && verseEl) savedHtml = verseEl.innerHTML;
+    // The verse as shown may carry colours fitted to the editor surface (sermon_colors.js):
+    // the chip stores the originals.
+    if (!savedHtml && verseEl) savedHtml = window.SermonColors ? SermonColors.originalHtml(verseEl) : verseEl.innerHTML;
     if (!savedHtml) savedHtml = span.getAttribute('data-verse-text') || span.getAttribute('data-para-text') || '';
     editArea.innerHTML = savedHtml;
 

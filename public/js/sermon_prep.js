@@ -192,6 +192,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     var _chipBases = null;   // the group's base colours, re-derived when the theme flips
     window.addEventListener('ui_theme', function () {
         if (_chipBases) applyPrepChipColors(_chipBases[0], _chipBases[1]);
+        fitEditorColors();
     });
     function applyPrepChipColors(bibleBase, msgBase) {
         var root = document.documentElement;
@@ -278,7 +279,10 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             var isUnderline = /text-decoration[^;]*underline/i.test(styleAttr)       || tag === 'u';
             var colorMatch  = styleAttr.match(/(?:^|;)\s*color\s*:\s*([^;]+)/i);
             var color = colorMatch ? colorMatch[1].trim() : null;
-            if (color && /^(#0{3,6}|rgb\(\s*0\s*,\s*0\s*,\s*0\s*\)|black|windowtext)$/i.test(color)) color = null;
+            // The source's text colour (black, rgb(44,44,43), white of a dark page …) is
+            // not a colour the author chose — only real colours are kept (sermon_colors.js).
+            if (color && (/^(#0{3,6}|rgb\(\s*0\s*,\s*0\s*,\s*0\s*\)|black|windowtext)$/i.test(color) ||
+                    (window.SermonColors && SermonColors.isNeutral(SermonColors.parse(color))))) color = null;
             var isBlock = /^(p|div|h[1-6]|blockquote|pre)$/.test(tag);
             var inner = '';
             node.childNodes.forEach(function (c) { inner += nodeToClean(c); });
@@ -309,8 +313,22 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
             e.preventDefault();
             var cleaned = cleanPastedHtml(html);
             document.execCommand('insertHTML', false, cleaned);
+            fitEditorColors();
             scheduleAutoSave();
         });
+    }
+
+    // Text colours (palette, pasted) were picked on white paper: on the dark theme
+    // they are shown with a readable lightness — display only, saving and the
+    // exports go through SermonColors.originalHtml() (sermon_colors.js).
+    function fitEditorColors() {
+        if (!editorEl || !window.SermonColors) return;
+        SermonColors.fitToBackground(editorEl,
+            SermonColors.parse(window.getComputedStyle(editorEl).backgroundColor) || [255, 255, 255, 1]);
+    }
+    function editorHtml() {
+        if (!editorEl) return '';
+        return window.SermonColors ? SermonColors.originalHtml(editorEl) : editorEl.innerHTML;
     }
 
     // ──────────────────────────────────────────────────────────
@@ -803,6 +821,11 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
                 $scope.sermon = { id: s.ID, title: s.TITLE, date: sermonDate };
                 if (editorEl) {
                     editorEl.innerHTML = s.CONTENT || '';
+                    // Older notes carry pasted text colours and Chrome's copies of the light
+                    // editor's look (white background, #17212B, Georgia) — unreadable on the
+                    // dark theme and on the sermon display; cleaned here, stored on next save.
+                    if (window.SermonColors) SermonColors.cleanArtifacts(editorEl);
+                    fitEditorColors();
                     attachEditorHandlers();
                 }
                 lastRange = null;
@@ -812,7 +835,10 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         );
     };
     $scope.saveSermon = function () {
-        var content = editorEl ? editorEl.innerHTML : '';
+        // Chrome bakes the editor's look into style="" when text is dragged or pasted
+        // natively; attribute-only cleanup, so the caret stays where it is.
+        if (editorEl && window.SermonColors) SermonColors.cleanArtifacts(editorEl);
+        var content = editorHtml();
         // Use current date if date is not set
         var sermonDate = $scope.sermon.date;
         if (!sermonDate) {
@@ -877,6 +903,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         $scope.showColorPicker = false;
         restoreRange();
         document.execCommand('foreColor', false, color);
+        fitEditorColors();
     };
 
 
@@ -885,7 +912,7 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
     // ──────────────────────────────────────────────────────────
 
     $scope.exportToMarkdown = function() {
-        var htmlContent = document.getElementById('sermon-editor').innerHTML;
+        var htmlContent = editorHtml();
 
         // Service initialization
         var turndownService = new TurndownService({
@@ -941,8 +968,9 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         var editor = document.getElementById('sermon-editor');
         if (!editor) return;
 
-        // Clone editor content, strip UI-only controls
+        // Clone editor content (original colours: the PDF is white paper), strip UI-only controls
         var clone = editor.cloneNode(true);
+        clone.innerHTML = editorHtml();
         clone.querySelectorAll([
             '.cite-remove',
             '.sermon-img-remove',

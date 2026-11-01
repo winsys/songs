@@ -536,7 +536,8 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
             root.style.setProperty('--sn-notes-text',     np.textColor);
             root.style.setProperty('--sn-notes-text-dim', np.textDim);
 
-            var bc = deriveChipColorsLight(userSettings.sermon_bible_base_color || '#1565c0');
+            var notesBg = userSettings.sermon_notes_bg_color || '#2b2b2b';
+            var bc = fitChipText(deriveChipColorsLight(userSettings.sermon_bible_base_color || '#1565c0'), notesBg);
             root.style.setProperty('--sn-bible-bg',           bc.bg);
             root.style.setProperty('--sn-bible-border',       bc.border);
             root.style.setProperty('--sn-bible-ref',          bc.ref);
@@ -546,9 +547,10 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
             root.style.setProperty('--sn-bible-active-bg',    bc.activeBg);
             root.style.setProperty('--sn-bible-active-bdr',   bc.activeBorder);
             root.style.setProperty('--sn-bible-active-verse', bc.activeVerse);
+            root.style.setProperty('--sn-bible-active-ref',   bc.activeRef);
             root.style.setProperty('--sn-bible-shadow',       bc.shadow);
 
-            var mc = deriveChipColorsLight(userSettings.sermon_msg_base_color || '#6a1b9a');
+            var mc = fitChipText(deriveChipColorsLight(userSettings.sermon_msg_base_color || '#6a1b9a'), notesBg);
             root.style.setProperty('--sn-msg-bg',           mc.bg);
             root.style.setProperty('--sn-msg-border',       mc.border);
             root.style.setProperty('--sn-msg-color',        mc.ref);
@@ -556,7 +558,39 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
             root.style.setProperty('--sn-msg-hover-border', mc.hoverBorder);
             root.style.setProperty('--sn-msg-active-bg',    mc.activeBg);
             root.style.setProperty('--sn-msg-active-bdr',   mc.activeBorder);
+            root.style.setProperty('--sn-msg-active-text',  mc.activeRef);
             root.style.setProperty('--sn-msg-shadow',       mc.shadow);
+
+            fitNotesColors();   // the sermon may have been rendered before the settings arrived
+        }
+
+        // Chip text on the notes panel: the light derivation above is kept, the text
+        // colours get the lightness that reads on the chip's tint over the panel
+        // (WCAG >= 4.5). The default dark panel with the default dark-blue base
+        // gave 1.3-2.3; a light base on a white panel 1.7-2.7 (Nov 2026).
+        function fitChipText(c, notesBgHex) {
+            var SC = window.SermonColors;
+            c.activeRef = '#ffffff';
+            if (!SC) return c;
+            var panel    = SC.parse(notesBgHex) || [43, 43, 43, 1];
+            var chipBg   = SC.over(SC.parse(c.bg), panel);
+            var activeBg = SC.over(SC.parse(c.activeBg), panel);
+            c.ref         = SC.toHex(SC.fit(SC.parse(c.ref), chipBg));
+            c.verse       = SC.toHex(SC.fit(SC.parse(c.verse), chipBg, 5));   // drawn at opacity .9
+            c.activeRef   = SC.toHex(SC.fit([255, 255, 255, 1], activeBg));
+            c.activeVerse = SC.toHex(SC.fit(SC.parse(c.activeVerse), activeBg, 5));
+            return c;
+        }
+
+        // Colours baked into the sermon HTML (pasted text, the editor's own look,
+        // palette colours picked on white paper) are fitted to the notes panel:
+        // see /js/sermon_colors.js. Needs both the settings and the rendered notes.
+        function fitNotesColors() {
+            if (!window.SermonColors || !userSettings) return;
+            var body = document.getElementById('notes-body');
+            if (!body || !body.firstChild) return;
+            SermonColors.fitToBackground(body,
+                SermonColors.parse(userSettings.sermon_notes_bg_color || '#2b2b2b') || [43, 43, 43, 1]);
         }
 
         // ==========================================================
@@ -581,6 +615,7 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                         attachNoteHandlers();
                         _storeBaseFontSizes();
                         applyNotesFontSize();
+                        fitNotesColors();
                     }, 100);
                     clearDisplayScope();
                     activeEl = null;
@@ -598,9 +633,11 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                     el.closest('.sermon-video-wrap') || el.closest('.sermon-img-wrap') ||
                     el.closest('.sermon-ppt-slide') ||
                     el.closest('.sermon-slide') || el.closest('.sermon-group-header')) return;
-                var fs = el.style.fontSize;
-                if (fs && !el.dataset.baseFontPx) {
-                    var px = parseFloat(fs);
+                // Absolute sizes only: em / % / rem follow the notes font by themselves
+                // ("2em" used to be stored as 2 px and shrank the text to a line).
+                var m = /^([\d.]+)(px|pt)$/.exec((el.style.fontSize || '').trim());
+                if (m && !el.dataset.baseFontPx) {
+                    var px = parseFloat(m[1]) * (m[2] === 'pt' ? 4 / 3 : 1);
                     if (!isNaN(px)) el.dataset.baseFontPx = String(px);
                 }
             });
