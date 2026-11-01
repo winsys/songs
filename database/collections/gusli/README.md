@@ -98,5 +98,13 @@ php database/collections/apply_collection.php gusli.json --images /tmp/gusli_not
 creates the collection with the image groups «НОТЫ» + «2-Й НАПЕВ» (names in all
 five UI languages), writes the songs, copies `<NUM>.jpg` / `tune2/<NUM>.jpg`
 into the groups and appends the collection to `available_lists` of the groups
-in `grant_groups` (1 = Riga). The JPEGs can be uploaded instead as two ZIPs on
+in `grant_groups` (1 = Riga).
+
+The first upload (NUM `001`…, `084а`, `084б`, `д001`) is moved to the `g`
+numbering in place by the one-off `renumber_prod.php` — dry run without
+`--apply`; IDs kept, sheets renamed, №508–510 inserted with their sheets:
+
+```
+php database/collections/gusli/renumber_prod.php --apply --images /tmp/gusli_new   # g508-510.jpg
+``` The JPEGs can be uploaded instead as two ZIPs on
 the import page (image ZIP into «НОТЫ», and `tune2` into «2-Й НАПЕВ»).
