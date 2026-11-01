@@ -25,3 +25,10 @@
 /database/translations/getbible_*.json
 /database/translations/lt_kjv_*.json
 /database/collections/*_module.json
+
+# «Гусли» build inputs/outputs (database/collections/gusli/README.md): the
+# word-form lexicon, the downloaded scans and the rendered sheet-music JPEGs
+# (they go to the server with apply_collection.php --images, not into git)
+/database/collections/gusli/russian.txt
+/database/collections/gusli/work/
+/database/collections/gusli_notes/

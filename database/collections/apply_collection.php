@@ -7,6 +7,7 @@
  * Run on the server:
  *   php database/collections/apply_collection.php <data.json>           # apply
  *   php database/collections/apply_collection.php --check <data.json>   # parse + stats only
+ *   php database/collections/apply_collection.php <data.json> --images <dir>
  *
  * The data file carries list_name and per-song texts keyed by content-
  * language code; codes are resolved to TEXT<col_suffix> columns through
@@ -14,20 +15,31 @@
  * collection with the same LIST_NAME keeps its LIST_ID (and image
  * groups); its song rows are replaced wholesale in one transaction.
  * A new collection gets MAX(LIST_ID)+1 and the default image groups
- * (SongImages::ensureDefaults). An optional top-level "images_from_list"
- * copies the sheet-music images of the same NUMs from that collection.
- * Visibility per group is NOT touched —
- * an admin enables the collection in settings (available_lists).
+ * (SongImages::ensureDefaults) — or, with a top-level "image_groups"
+ * ([{name, names: {ui_lang: name}, main, dir}]), exactly those groups
+ * (missing ones are added to an existing collection). An optional top-level
+ * "images_from_list" copies the sheet-music images of the same NUMs from that
+ * collection; --images <dir> copies <dir>/<NUM>.jpg into the main group and,
+ * per "image_groups" entry, <dir>/<entry dir>/<NUM>.jpg into that group (the
+ * same files can be uploaded instead as ZIPs on the import page, per group).
+ * Visibility per group: an optional top-level "grant_groups" (list of
+ * user_settings.group_id) appends the collection to those groups'
+ * available_lists (idempotent); other groups are not touched — an admin
+ * enables the collection in settings.
  */
 
-$check = false;
-$file  = null;
-foreach (array_slice($argv, 1) as $a) {
+$check  = false;
+$file   = null;
+$images = null;
+$args   = array_slice($argv, 1);
+for ($i = 0; $i < count($args); $i++) {
+    $a = $args[$i];
     if ($a === '--check') { $check = true; continue; }
+    if ($a === '--images') { $images = $args[++$i] ?? null; continue; }
     $file = $a;
 }
-if ($file === null) {
-    fwrite(STDERR, "usage: php apply_collection.php [--check] <data.json>\n");
+if ($file === null || ($images !== null && !is_dir($images))) {
+    fwrite(STDERR, "usage: php apply_collection.php [--check] <data.json> [--images <dir>]\n");
     exit(2);
 }
 if (!is_file($file) && is_file(__DIR__ . '/' . $file)) {
@@ -58,6 +70,25 @@ foreach ($songs as $s) {
 }
 printf("%s: %d songs, langs %s, %d verse lines\n",
     $listName, count($songs), json_encode($langs), $verses);
+$grant = array_map('intval', $json['grant_groups'] ?? []);
+if ($grant) {
+    echo "grant to groups: " . implode(', ', $grant) . "\n";
+}
+// Image groups of the collection: "image_groups" [{name, names, main, dir}]
+// or just the main group (sheets straight in the --images directory).
+$groupSpecs = $json['image_groups'] ?? [];
+$imageSpecs = $groupSpecs ?: [['main' => true, 'dir' => '']];
+if ($images !== null) {
+    foreach ($imageSpecs as $spec) {
+        $have = 0;
+        foreach ($songs as $s) {
+            if (is_file(specDir($images, $spec) . '/' . $s['num'] . '.jpg')) {
+                $have++;
+            }
+        }
+        echo "images " . specDir($images, $spec) . ": {$have} of " . count($songs) . " songs have <NUM>.jpg\n";
+    }
+}
 if ($check) {
     echo "--check: parsed only, nothing executed.\n";
     exit(0);
@@ -99,7 +130,11 @@ if ($row) {
     $db->exec("INSERT INTO list_names (LIST_ID, LIST_NAME, ADDEDBY) VALUES ({$listId}, '{$nameEsc}', 1)");
     echo "created collection: LIST_ID={$listId}\n";
 }
-SongImages::ensureDefaults($listId);
+if ($groupSpecs) {
+    ensureGroups($db, $dbh, $listId, $groupSpecs);
+} else {
+    SongImages::ensureDefaults($listId);
+}
 
 mysqli_query($dbh, 'START TRANSACTION');
 // Direct mysqli_query everywhere below: Database::exec() swallows errors
@@ -182,9 +217,119 @@ if (!empty($json['images_from_list'])) {
         . ($missing ? ", no image for NUM " . implode(', ', $missing) : '') . "\n";
 }
 
+// --images <dir>: <dir>[/<spec dir>]/<NUM>.jpg -> that song's image in the
+// group (replaced when present), chowned like the web uploads.
+if ($images !== null) {
+    $groups = SongImages::groups($listId);
+    foreach ($imageSpecs as $spec) {
+        $g = findGroup($groups, $spec);
+        if (!$g) {
+            fwrite(STDERR, "no image group for " . json_encode($spec, JSON_UNESCAPED_UNICODE) . "\n");
+            continue;
+        }
+        $srcDir  = specDir($images, $spec);
+        $copied  = 0;
+        $missing = [];
+        foreach ($songs as $s) {
+            $src = $srcDir . '/' . $s['num'] . '.jpg';
+            if (!is_file($src)) {
+                $missing[] = $s['num'];
+                continue;
+            }
+            list($dst) = SongImages::target($listId, $g, $s['num'], 'jpg');
+            foreach ([SongImages::listDir($listId), dirname($dst)] as $dir) {
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0775, true);
+                    @chown($dir, 'www-data');   // web uploads into this collection must stay possible
+                }
+            }
+            if (!copy($src, $dst)) {
+                fwrite(STDERR, "copy failed: {$src} -> {$dst}\n");
+                continue;
+            }
+            @chown($dst, 'www-data');
+            $copied++;
+        }
+        echo "images «{$g['NAME']}» from {$srcDir}: {$copied} files copied"
+            . ((int)$g['IS_MAIN'] === 1 && $missing ? ", no image for NUM " . implode(', ', $missing) : '') . "\n";
+    }
+}
+
+// "grant_groups": make the collection visible to those groups (appended to
+// the end of available_lists, the order the song pages list collections in).
+foreach ($grant as $gid) {
+    $row = $db->get("SELECT display_name, available_lists FROM user_settings WHERE group_id = {$gid}");
+    if (!$row) {
+        fwrite(STDERR, "group {$gid}: no user_settings row, not granted\n");
+        continue;
+    }
+    $ids = array_values(array_filter(array_map('trim', explode(',', (string)$row['available_lists'])), 'strlen'));
+    if (in_array((string)$listId, $ids, true)) {
+        echo "group {$gid} ({$row['display_name']}): already has LIST_ID={$listId}\n";
+        continue;
+    }
+    $ids[] = (string)$listId;
+    $csv   = mysqli_real_escape_string($dbh, implode(',', $ids));
+    if (!mysqli_query($dbh, "UPDATE user_settings SET available_lists = '{$csv}' WHERE group_id = {$gid}")) {
+        fwrite(STDERR, "group {$gid}: update failed: " . mysqli_error($dbh) . "\n");
+        continue;
+    }
+    echo "group {$gid} ({$row['display_name']}): available_lists = {$csv}\n";
+}
+
 $cnt = $db->getValue("SELECT COUNT(*) FROM song_list WHERE LISTID = {$listId}");
 $grp = $db->getValue("SELECT COUNT(*) FROM song_image_groups WHERE LISTID = {$listId}");
 echo "done: LIST_ID={$listId} now holds {$cnt} songs ({$insCols}), {$grp} image groups\n";
 foreach ($db->select("SELECT NUM, NAME FROM song_list WHERE LISTID = {$listId} ORDER BY NUM LIMIT 3") as $r) {
     echo "  {$r['NUM']}  {$r['NAME']}\n";
+}
+
+/** Source directory of an image-group spec under the --images directory. */
+function specDir($images, array $spec)
+{
+    $sub = trim((string)($spec['dir'] ?? ''), '/');
+    return rtrim($images, '/') . ($sub !== '' ? '/' . $sub : '');
+}
+
+/** The existing group a spec stands for: the main group, or a non-main one with the spec's NAME. */
+function findGroup(array $groups, array $spec)
+{
+    foreach ($groups as $g) {
+        if (!empty($spec['main']) ? (int)$g['IS_MAIN'] === 1
+                : ((int)$g['IS_MAIN'] === 0 && $g['NAME'] === $spec['name'])) {
+            return $g;
+        }
+    }
+    return null;
+}
+
+/**
+ * Create the spec'd image groups the collection lacks, in spec order after
+ * the existing ones. A new collection gets exactly these groups (instead of
+ * the defaults «НОТЫ» + «АККОРДЫ»), because SongImages seeds the defaults
+ * only for a collection without any group.
+ */
+function ensureGroups($db, $dbh, $listId, array $specs)
+{
+    $have  = $db->select("SELECT ID, NAME, IS_MAIN, SORT_ORDER FROM song_image_groups WHERE LISTID = {$listId}");
+    $order = 0;
+    foreach ($have as $g) {
+        $order = max($order, (int)$g['SORT_ORDER']);
+    }
+    foreach ($specs as $spec) {
+        if (findGroup($have, $spec)) {
+            continue;
+        }
+        $order++;
+        $main  = !empty($spec['main']) ? 1 : 0;
+        $name  = mysqli_real_escape_string($dbh, $spec['name']);
+        $names = SongImages::encodeNames($spec['names'] ?? []);
+        $namesSql = $names === null ? 'NULL' : "'" . mysqli_real_escape_string($dbh, $names) . "'";
+        if (!mysqli_query($dbh, "INSERT INTO song_image_groups (LISTID, NAME, NAMES, SORT_ORDER, IS_MAIN)
+                                 VALUES ({$listId}, '{$name}', {$namesSql}, {$order}, {$main})")) {
+            fwrite(STDERR, "image group {$spec['name']}: insert failed: " . mysqli_error($dbh) . "\n");
+            exit(1);
+        }
+        echo "image group created: {$spec['name']}" . ($main ? ' (main)' : '') . "\n";
+    }
 }
