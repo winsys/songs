@@ -1,5 +1,10 @@
 RewriteEngine on
 
+# Dot-files (.env, .git, editor leftovers …) are never served: a stray
+# public/.env was readable on prod (Nov 2026). 403 for any path segment that
+# starts with a dot, except .well-known (ACME certificate challenges).
+RewriteRule (^|/)\.(?!well-known(/|$)) - [F,L]
+
 # A missing sheet-music file is a plain 404 from Apache, never the PHP app:
 # the app rendered a whole HTML page for it and, holding the user's session
 # lock, queued the page's own ajax calls behind every such image request.
