@@ -32,4 +32,8 @@
 /database/collections/gusli/russian.txt
 /database/collections/gusli/work/
 /database/collections/gusli/__pycache__/
+# «Песнь Возрождения» (database/collections/pv/README.md): downloads and the rendered notes
+/database/collections/pv/work/
+/database/collections/pv/__pycache__/
+/database/collections/pv_notes/
 /database/collections/gusli_notes/

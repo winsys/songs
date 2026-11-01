@@ -85,6 +85,16 @@ trait Ajax_Common
         return $filtered;
     }
 
+    /**
+     * ORDER BY of song numbers (NUM is a string): numbers by value — "1, 2, 10"
+     * and "001, 002, 010" alike, "084а" next to "084" — then the NUMs that do not
+     * start with a digit («g015», «м431») as strings.
+     */
+    private static function songNumOrder()
+    {
+        return '(l.NUM+0 = 0), l.NUM+0, l.NUM';
+    }
+
     private static function get_song_list()
     {
         $listId = (int)self::$args['list_id'];
@@ -106,7 +116,7 @@ trait Ajax_Common
          FROM song_list l
          LEFT JOIN list_names n ON n.LIST_ID = l.LISTID
          WHERE l.LISTID = {$listId}
-         ORDER BY l.NUM"
+         ORDER BY " . self::songNumOrder()
         );
         return json_encode(SongImages::withImageSrc($list));
     }
@@ -125,8 +135,6 @@ trait Ajax_Common
             $hasTextFields .= ", (l.{$col} IS NOT NULL AND l.{$col} != '') AS {$alias}";
         }
 
-        // NUM+0 sorts plain numbers numerically; NUM breaks the ties of numbers with
-        // a letter prefix («g015», «м431» are all 0), which came in arbitrary order.
         $list = Info::get('db')->select(
             "SELECT l.*,
                 concat(l.NUM, '   ', l.NAME) as dispName,
@@ -136,7 +144,7 @@ trait Ajax_Common
          FROM song_list l
          LEFT JOIN list_names n ON n.LIST_ID = l.LISTID
          WHERE l.LISTID IN ({$rawIds})
-         ORDER BY l.LISTID, l.NUM+0, l.NUM"
+         ORDER BY l.LISTID, " . self::songNumOrder()
         );
         return json_encode(SongImages::withImageSrc($list));
     }
