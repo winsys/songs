@@ -97,6 +97,26 @@ for r in raw:
                   'source': 'ru.wikisource: %s/Гусли 1911 года (%s)' % (r['resolved'], kind)
                   if kind != 'base' else 'ru.wikisource: %s' % r['resolved']})
 
+# Songs added to the collection on request that are not in the book: NUM «д…»
+# (дополнение — the convention of the other collections), sorted after 507.
+SUPPLEMENT = [
+    {'num': 'д001', 'name': 'Возвожу очи мои к горам',
+     'texts': {'ru': '\r\n'.join([
+         '1. Возвожу очи мои к горам, Откуда придет помощь моя — От Господа, помощь моя, от Господа, '
+         'Сотворившего небо и землю, Помощь от Господа.',
+         'Припев: Не спит Хранящий тебя, Не спит Хранящий Израиля, Днем солнце не поразит, Ни ночью луна.',
+         '2. Возвожу очи мои к горам, Откуда придет помощь моя — От Господа, помощь моя, от Господа. '
+         'Господь сохранит от всякого зла, Господь сохранит душу твою, душу твою.',
+         '3. Возвожу очи мои к горам, Откуда придет помощь моя — От Господа, помощь моя, от Господа. '
+         'Господь сохранит хождение твое, Господь сохранит отныне и до века.',
+     ])},
+     # Pavel 2026-11-01 («хоровой гимн»); words of the version by Скиния Worship — its third
+     # verse follows Ps. 120:8, the other published copies repeat the second one
+     'source': 'Пс. 120; «Песнь Возрождения» №2675; текст: holychords.pro/9327 (Скиния Worship), '
+               'сверено с holychords.pro/26645 и /35325; нот в открытом доступе не найдено'},
+]
+songs += SUPPLEMENT
+
 data = {
     'list_name': 'Гусли',
     'source': 'И. С. Проханов, «Гусли». Сборник духовных песен. 3-е изд., 1911 (тексты: ru.wikisource.org, '
