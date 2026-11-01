@@ -27,25 +27,31 @@ with notes. Output: `../gusli.json` (tracked, applied with
 The 1927 edition keeps the 1911 numbering. Differences:
 
 - №84 is two songs: «84 а» «О люди, оживите!», «84 б» «Кто мне радость даст?»
-  → NUM `084а` / `084б`;
+  → NUM `g084a` / `g084b`;
 - 44 songs have a second tune: 39 printed right after the first («4 а» /
   «4 б» …) and 5 in the appendix «XIV. Дополнения» (34 б, 39 б, 68 б, 180 б,
   302 б). The first tune is the song's image in the group «НОТЫ», the second one
   in the group «2-Й НАПЕВ» (`gusli_notes/tune2/`);
-- №508–510 exist in 1927 only (not in the 1911 texts) — not part of the
-  collection;
+- №508–510 exist in 1927 only (choral pieces, not in the 1911 texts): their
+  words are taken from the underlay of the notes (`NOTES_1927` in
+  `build_texts.py`), so the collection holds every number of the notes;
 - the texts under the notes are the 1927 redaction and can differ from the 1911
   texts on screen (№485, a prayer for the Tsar in 1911, most of all).
 
 ## Format of the texts
 
-NUM is zero-padded (`001`…`507`, `084а`, `084б`) because the song list sorts NUM
-as a string; songs added on request that are not in the book are supplements
-`д001`… (the convention of the other collections; `SUPPLEMENT` in
-`build_texts.py`) — `д001` «Возвожу очи мои к горам» (Ps. 120, «Песнь
-Возрождения» №2675, no sheet music). On prod a new row is inserted alone:
-re-running `apply_collection.php` recreates every song row, and playlists
-(`favorites.SONGID`) point to `song_list.ID`; NAME is the Wikisource title (modern spelling). One line per
+NUM = Latin `g` + the number printed on the notes, zero-padded because the
+song list sorts NUM as a string: `g001`…`g510`, `g084a` / `g084b` (`nums.py`;
+no Cyrillic in NUM, Pavel 2026-11-01 — it is typed the same on any keyboard).
+Songs added on request that are in neither edition continue the numbering after
+the notes (`SUPPLEMENT` in `build_texts.py`): `g511` «Возвожу очи мои к горам»
+(Ps. 120, words of the Скиния Worship version, no sheet music; NOT in «Песнь
+Возрождения» — its №2675 is another psalm song with the refrain «Адонай,
+аллилуйя»). On prod a new row is inserted alone: re-running
+`apply_collection.php` recreates every song row, and playlists
+(`favorites.SONGID`) point to `song_list.ID`. The first upload (2026-11-01) had
+NUM `001`… / `084а` / `084б` / `д001`; prod was renumbered in place (UPDATE of
+NUM by ID + renamed JPEGs, IDs kept). NAME is the Wikisource title (modern spelling). One line per
 stanza: `N. …` for verses, `Припев: …` / `Хор: …` for refrains (printed once,
 where the source prints them); lines inside a stanza are joined with spaces;
 the repeat sign `:,:` is kept.
@@ -69,7 +75,6 @@ python render.py sheets work/full work/det.json work/labels.json work/sheets
 #   (555 headings); fix VARIANTS / FP / MISSING / EXPLICIT in make_labels.py and
 #   songs_map.ADDED_HEADINGS until they all match, then
 python render.py songs work/full work/det.json work/labels.json ../gusli_notes
-#   (drop 508-510.jpg — not in the collection)
 ```
 
 `detect.py`: staff lines → per-page deskew; staff bands (tolerant to page

@@ -31,4 +31,5 @@
 # (they go to the server with apply_collection.php --images, not into git)
 /database/collections/gusli/russian.txt
 /database/collections/gusli/work/
+/database/collections/gusli/__pycache__/
 /database/collections/gusli_notes/

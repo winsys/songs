@@ -6,6 +6,7 @@ label is the printed number ("15", "4а", "84б") or "FP" (not a heading).
 ADDED_HEADINGS: headings the detector missed, with their label.
 """
 import json, os, re
+from nums import gusli_num
 
 
 def key(sn, side, h):
@@ -31,14 +32,14 @@ def ordered_heads(det, adds=()):
 
 
 def song_num(label):
-    """Printed label -> (NUM, tune): '15' -> ('015', 1); '4а' -> ('004', 1), '4б' -> ('004', 2)
+    """Printed label -> (NUM, tune): '15' -> ('g015', 1); '4а' -> ('g004', 1), '4б' -> ('g004', 2)
     (two tunes of one song: the second goes to the second image group); '84а' / '84б' are
-    two different songs -> ('084а', 1) / ('084б', 1)."""
+    two different songs -> ('g084a', 1) / ('g084b', 1)."""
     m = re.match(r'^(\d+)([аб]?)$', label)
     n, v = int(m.group(1)), m.group(2)
     if n == 84:
-        return ('084' + v, 1)
-    return ('%03d' % n, 2 if v == 'б' else 1)
+        return (gusli_num(84, v), 1)
+    return (gusli_num(n), 2 if v == 'б' else 1)
 
 
 # Headings the detector misses (a short title of few glyphs looks like a row of note
@@ -49,7 +50,7 @@ ADDED_HEADINGS = [
 
 # Songs followed (mid-page) by a book section title («IV. ХВАЛА И БЛАГОДАРЕНИЕ» …):
 # their last part is cut at the first blank gap after its last staff.
-TRIM_TAIL = {('146', 1), ('218', 1), ('281', 1), ('500', 1)}
+TRIM_TAIL = {(gusli_num(146), 1), (gusli_num(218), 1), (gusli_num(281), 1), (gusli_num(500), 1)}
 
 
 def fragments(det, labels, adds=()):

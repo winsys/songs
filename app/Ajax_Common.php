@@ -125,6 +125,8 @@ trait Ajax_Common
             $hasTextFields .= ", (l.{$col} IS NOT NULL AND l.{$col} != '') AS {$alias}";
         }
 
+        // NUM+0 sorts plain numbers numerically; NUM breaks the ties of numbers with
+        // a letter prefix («g015», «м431» are all 0), which came in arbitrary order.
         $list = Info::get('db')->select(
             "SELECT l.*,
                 concat(l.NUM, '   ', l.NAME) as dispName,
@@ -134,7 +136,7 @@ trait Ajax_Common
          FROM song_list l
          LEFT JOIN list_names n ON n.LIST_ID = l.LISTID
          WHERE l.LISTID IN ({$rawIds})
-         ORDER BY l.LISTID, l.NUM+0"
+         ORDER BY l.LISTID, l.NUM+0, l.NUM"
         );
         return json_encode(SongImages::withImageSrc($list));
     }

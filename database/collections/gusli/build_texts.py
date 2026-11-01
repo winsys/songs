@@ -5,6 +5,7 @@ import html, io, json, re, sys
 from collections import Counter
 from parse_ws import poem_text, blocks, strip_header
 from ortho import modernize
+from nums import gusli_num
 
 sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8')
 raw = json.load(io.open(sys.argv[1], encoding='utf-8'))
@@ -38,10 +39,10 @@ unknown = []
 for r in raw:
     n = r['num']
     if n == 84:
-        num = '084' + ('а' if seen84 == 0 else 'б')
+        num = gusli_num(84, 'а' if seen84 == 0 else 'б')
         seen84 += 1
     else:
-        num = '%03d' % n
+        num = gusli_num(n)
     if r['do']:
         src, kind = r['do'], 'ДО'
     elif r['vt']:
@@ -99,8 +100,37 @@ for r in raw:
 
 # Songs added to the collection on request that are not in the book: NUM «д…»
 # (дополнение — the convention of the other collections), sorted after 507.
+# №508-510 are printed in the 1927 edition with notes only (choral pieces, not in the 1911
+# texts): words from the underlay of the notes, as the leading voice sings them.
+NOTES_1927 = [
+    {'num': gusli_num(508), 'name': 'Блаженны нищие духом',
+     'texts': {'ru': '\r\n'.join([
+         '1. Блаженны нищие духом, ибо их есть Царство Небесное; Блаженны плачущие, ибо они '
+         'утешатся; Блаженны кроткие, ибо они наследуют землю.',
+         '2. Блаженны алчущие и жаждущие правды, ибо они насытятся; Блаженны милостивые, ибо они '
+         'помилованы будут; Блаженны чистые сердцем, ибо они Бога узрят.',
+         '3. Блаженны миротворцы, ибо они будут наречены сынами Божиими; Блаженны изгнанные за '
+         'правду, ибо их есть Царство Небесное; Блаженны вы, когда будут поносить вас и гнать и '
+         'всячески неправедно злословить за Меня.',
+         '4. Радуйтесь и веселитесь, ибо велика ваша награда на небесах.',
+     ])},
+     # one stanza per section of the score (tempo changes at 4, 7 and 10)
+     'source': 'ноты 1927 г., слова по подстрочнику (Мф. 5:3-12, соло и хор), муз. «С. А.»'},
+    {'num': gusli_num(509), 'name': 'Да благословит тебя Господь!',
+     'texts': {'ru': '1. Да благословит тебя Господь и сохранит тебя! Да благословит тебя Господь и '
+                     'сохранит тебя! Да призрит на тебя Господь светлым лицем Своим и помилует тебя, '
+                     'и помилует тебя! Да обратит Господь лице Свое на тебя и даст, и даст тебе мир!'},
+     'source': 'ноты 1927 г., слова по подстрочнику (Чис. 6:22-26), муз. Max Bruch'},
+    {'num': gusli_num(510), 'name': 'Многие годы, много плодов',
+     'texts': {'ru': '1. Многие годы, многие годы, Многие, многие годы! Много плодов, много плодов! '
+                     'Многие годы, много плодов! Многие годы, много плодов, много плодов!'},
+     'source': 'ноты 1927 г. («Юбилейная»), слова по подстрочнику, муз. Г. А. Драненко'},
+]
+songs += NOTES_1927
+
+# Songs added on request that are in neither edition: numbered after the 1927 notes.
 SUPPLEMENT = [
-    {'num': 'д001', 'name': 'Возвожу очи мои к горам',
+    {'num': gusli_num(511), 'name': 'Возвожу очи мои к горам',
      'texts': {'ru': '\r\n'.join([
          '1. Возвожу очи мои к горам, Откуда придет помощь моя — От Господа, помощь моя, от Господа, '
          'Сотворившего небо и землю, Помощь от Господа.',
@@ -111,9 +141,11 @@ SUPPLEMENT = [
          'Господь сохранит хождение твое, Господь сохранит отныне и до века.',
      ])},
      # Pavel 2026-11-01 («хоровой гимн»); words of the version by Скиния Worship — its third
-     # verse follows Ps. 120:8, the other published copies repeat the second one
-     'source': 'Пс. 120; «Песнь Возрождения» №2675; текст: holychords.pro/9327 (Скиния Worship), '
-               'сверено с holychords.pro/26645 и /35325; нот в открытом доступе не найдено'},
+     # verse follows Ps. 120:8, the other published copies repeat the second one. Not in
+     # «Песнь Возрождения»: its №2675 (3055 ed.) is another psalm song, «К горам возвожу очи
+     # мои…» with the refrain «Адонай, аллилуйя».
+     'source': 'Пс. 120; текст: holychords.pro/9327 (Скиния Worship), сверено с holychords.pro/26645 '
+               'и /35325; нот в открытом доступе не найдено'},
 ]
 songs += SUPPLEMENT
 
