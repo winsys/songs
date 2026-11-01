@@ -40,7 +40,12 @@ The 1927 edition keeps the 1911 numbering. Differences:
 ## Format of the texts
 
 NUM is zero-padded (`001`…`507`, `084а`, `084б`) because the song list sorts NUM
-as a string; NAME is the Wikisource title (modern spelling). One line per
+as a string; songs added on request that are not in the book are supplements
+`д001`… (the convention of the other collections; `SUPPLEMENT` in
+`build_texts.py`) — `д001` «Возвожу очи мои к горам» (Ps. 120, «Песнь
+Возрождения» №2675, no sheet music). On prod a new row is inserted alone:
+re-running `apply_collection.php` recreates every song row, and playlists
+(`favorites.SONGID`) point to `song_list.ID`; NAME is the Wikisource title (modern spelling). One line per
 stanza: `N. …` for verses, `Припев: …` / `Хор: …` for refrains (printed once,
 where the source prints them); lines inside a stanza are joined with spaces;
 the repeat sign `:,:` is kept.
