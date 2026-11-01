@@ -194,17 +194,30 @@ app.controller('SermonPrep', function ($scope, $http, $timeout, $sce) {
         if (_chipBases) applyPrepChipColors(_chipBases[0], _chipBases[1]);
         fitEditorColors();
     });
+    // Chip text read on the chip's tint over the editor's paper, whatever the group's
+    // base colour: a light base (the Riga group's #7ec8f8) on white paper gave 1.7 —
+    // the text keeps its hue, the lightness reaches WCAG 4.5 (sermon_colors.js).
+    function fitPrepChipText(c) {
+        var SC = window.SermonColors;
+        if (!SC) return c;
+        var paper  = SC.parse(window.getComputedStyle(document.getElementById('sermon-editor') || document.body)
+                                  .backgroundColor) || [255, 255, 255, 1];
+        var chipBg = SC.over(SC.parse(c.bg) || [0, 0, 0, 0], paper);
+        c.ref   = SC.toHex(SC.fit(SC.parse(c.ref), chipBg));
+        c.verse = SC.toHex(SC.fit(SC.parse(c.verse), chipBg));
+        return c;
+    }
     function applyPrepChipColors(bibleBase, msgBase) {
         var root = document.documentElement;
         _chipBases = [bibleBase, msgBase];
         var derive = root.getAttribute('data-theme') === 'dark' ? deriveChipColorsDark : deriveChipColorsLight;
-        var bc = derive(bibleBase);
+        var bc = fitPrepChipText(derive(bibleBase));
         root.style.setProperty('--sp-bible-bg',       bc.bg);
         root.style.setProperty('--sp-bible-border',   bc.border);
         root.style.setProperty('--sp-bible-ref',      bc.ref);
         root.style.setProperty('--sp-bible-verse',    bc.verse);
         root.style.setProperty('--sp-bible-hover-bg', bc.hoverBg);
-        var mc = derive(msgBase);
+        var mc = fitPrepChipText(derive(msgBase));
         root.style.setProperty('--sp-msg-bg',         mc.bg);
         root.style.setProperty('--sp-msg-border',     mc.border);
         root.style.setProperty('--sp-msg-color',      mc.ref);

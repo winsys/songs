@@ -455,7 +455,7 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                 border:    hsl(h, s, Math.min(l + 12, 55)),
                 selectBg:  hsl(h, s, Math.min(l + 4,  50)),
                 textColor: dark ? hsl(h, Math.min(s, 12), 88) : hsl(h, Math.min(s, 12), 12),  // primary text
-                textDim:   dark ? hsl(h, Math.min(s, 12), 55) : hsl(h, Math.min(s, 12), 48)   // secondary text
+                textDim:   dark ? hsl(h, Math.min(s, 12), 55) : hsl(h, Math.min(s, 12), 40)   // secondary text (>= 4.5 on its panel)
             };
         }
 
@@ -560,6 +560,14 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
             root.style.setProperty('--sn-msg-active-bdr',   mc.activeBorder);
             root.style.setProperty('--sn-msg-active-text',  mc.activeRef);
             root.style.setProperty('--sn-msg-shadow',       mc.shadow);
+
+            // Video chip label: designed light-on-dark, fitted to its tint over the panel
+            if (window.SermonColors) {
+                var panelRgb = SermonColors.parse(notesBg) || [43, 43, 43, 1];
+                var videoBg  = SermonColors.over([50, 50, 100, 0.35], panelRgb);
+                root.style.setProperty('--sn-video-text',
+                    SermonColors.toHex(SermonColors.fit([192, 204, 255, 1], videoBg)));
+            }
 
             fitNotesColors();   // the sermon may have been rendered before the settings arrived
         }
@@ -757,7 +765,12 @@ angular.module('Songs', ['csrfModule', 'i18nModule'])
                 el.style.borderColor = (textColor === '#000000')
                     ? 'rgba(0,0,0,0.3)' : hexWithAlpha(bg, 0.4);
                 el.style.background  = bg;
-                if (header) header.style.background = shadeHex(bg, -30);
+                if (header) {
+                    header.style.background = shadeHex(bg, -30);
+                    // the label was always white: invisible on a light slide's header
+                    var label = header.querySelector('.sermon-slide-label');
+                    if (label) label.style.color = getContrastColor(shadeHex(bg, -30));
+                }
                 if (inner) {
                     inner.style.background = bg;
                     inner.style.color      = textColor;

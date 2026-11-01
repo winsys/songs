@@ -284,7 +284,7 @@
         #notes-body .sermon-video-wrap:hover        { border-color: rgba(106,127,255,.8); background: rgba(50,50,120,.5); }
         #notes-body .sermon-video-wrap.active-video { border-color: #6a7fff; background: rgba(50,50,160,.6); box-shadow: 0 0 0 2px rgba(106,127,255,.3); }
         #notes-body .svw-icon  { font-size: 13px; flex-shrink: 0; }
-        #notes-body .svw-label { font-size: 10pt; color: #c0ccff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
+        #notes-body .svw-label { font-size: 10pt; color: var(--sn-video-text, #c0ccff); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 150px; }
         #notes-body .svw-del   { display: none !important; }
 
         /* ── Slides in the left panel (sermon display mode) ── */
@@ -626,8 +626,11 @@
         /* ---- Tablet toolbar (notes pane only) ---- */
         #notes-header { height: 50px; padding: 0 10px; gap: 8px; background: var(--sn-notes-header); border-bottom: 1px solid var(--sd-divider); }
         #notes-title-wrap { flex: 1 1 0; min-width: 0; }
-        #notes-title { color: var(--sd-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        #notes-date { color: var(--sd-text-dim); }
+        /* The header is painted with the panel's colour (--sn-notes-header, group setting):
+           its text follows the panel too, not the dark toolbar tokens (Nov 2026 — the
+           title was light-on-light on a white notes panel). */
+        #notes-title { color: var(--sn-notes-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        #notes-date { color: var(--sn-notes-text-dim); }
         .btn-back, .font-size-btn {
             height: 44px;
             border: 1px solid var(--sd-divider);
@@ -656,10 +659,10 @@
             cursor: pointer;
         }
         #notes-title-text { flex: 0 1 auto; min-width: 0; display: flex; flex-direction: column; }
-        #notes-title-caret { flex-shrink: 0; color: var(--sd-text-dim); font-size: 13px; line-height: 1; }
+        #notes-title-caret { flex-shrink: 0; color: var(--sn-notes-text-dim); font-size: 13px; line-height: 1; }
         @media (hover: hover) {
-            #notes-title-wrap:hover { background: var(--sd-raised); border-color: var(--sd-divider); }
-            #notes-title-wrap:hover #notes-title-caret { color: var(--sd-text); }
+            #notes-title-wrap:hover { background: rgba(128,128,128,0.16); border-color: rgba(128,128,128,0.38); }
+            #notes-title-wrap:hover #notes-title-caret { color: var(--sn-notes-text); }
         }
         #sermon-select {
             position: absolute;
@@ -915,7 +918,7 @@
 <script src="/js/net_status.min.js?v=1"></script>
 <script src="/js/yt_bridge.min.js?v=1"></script>
 <script src="/js/sermon_colors.min.js?v=1" type="text/javascript"></script>
-<script src="/js/sermon.min.js?v=24" type="text/javascript"></script>
+<script src="/js/sermon.min.js?v=25" type="text/javascript"></script>
 <script src="/js/wake_lock.min.js?v=1" type="text/javascript"></script>
 </body>
 </html>
