@@ -8,8 +8,10 @@
  * song_list.ID never changes (playlists point to it): each row gets UPDATE
  * NUM, its sheet files (main group + the other groups) are renamed with it;
  * new songs are INSERTed alone, their sheets copied from --images <dir>
- * (<dir>/g508.jpg …, e.g. a copy of the local gusli_notes/). Re-runnable:
- * rows already in the "g" format are skipped.
+ * (<dir>/g508.jpg …, e.g. a copy of the local gusli_notes/). A renamed sheet
+ * that a screen or the musicians show right now (current / current_notes) is
+ * pointed at its new name. Re-runnable: rows already in the "g" format are
+ * skipped.
  *
  *   php database/collections/gusli/renumber_prod.php [--images <dir>]          # dry run
  *   php database/collections/gusli/renumber_prod.php --apply --images <dir>
@@ -90,6 +92,19 @@ foreach ($plan as $p) {
 }
 $ref = null;
 foreach (glob($dirs['main'] . '/*.jpg') as $f) { $ref = stat($f); break; }
+
+// Screens and musicians showing a sheet that is renamed: [table, old path, new path].
+$map = [];
+foreach ($plan as $p) $map[$p[1]] = $p[2];
+$shown = [];
+foreach (['current', 'current_notes'] as $t) {
+    foreach ($db->select("SELECT DISTINCT image FROM {$t} WHERE image LIKE '/images/{$L}/%'") as $r) {
+        if (preg_match('#^/images/' . $L . '/(g\d+/)?([^/?]+)\.jpg(\?.*)?$#u', $r['image'], $m) && isset($map[$m[2]])) {
+            $shown[] = [$t, $r['image'], "/images/{$L}/{$m[1]}{$map[$m[2]]}.jpg" . (isset($m[3]) ? $m[3] : '')];
+        }
+    }
+}
+foreach ($shown as $s) echo "   shown in {$s[0]}: {$s[1]} -> {$s[2]}\n";
 if (!$apply) exit(0);
 
 // 2. Renumber: the files of the row first, then the row itself.
@@ -107,6 +122,12 @@ foreach ($plan as list($id, $old, $new)) {
     }
 }
 echo "renumbered " . count($plan) . " rows, renamed files " . json_encode($renamed) . "\n";
+foreach ($shown as list($t, $old, $new)) {
+    $o = mysqli_real_escape_string($dbh, $old);
+    $n = mysqli_real_escape_string($dbh, $new);
+    if (!mysqli_query($dbh, "UPDATE {$t} SET image = '{$n}' WHERE image = '{$o}'")) fail("update {$t}: " . mysqli_error($dbh));
+    echo "{$t}: {$old} -> {$new}\n";
+}
 
 // 3. New songs: one INSERT each (existing rows untouched) + the main sheet.
 foreach ($insert as $num) {
