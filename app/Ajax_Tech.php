@@ -663,6 +663,56 @@ trait Ajax_Tech
     }
 
     /**
+     * Add a Scripture passage or a quote of the Message to the tech playlist
+     * (see ensureTechTextItems). The console composes everything exactly as
+     * it goes to the screen, so a click on the item later shows the same
+     * text in the same languages.
+     * Params: item_type ('bible'|'quote'), text, caption, name, src
+     */
+    private static function add_text_to_favorites()
+    {
+        if (!self::ensureTechTextItems()) {
+            return json_encode(['status' => 'error', 'message' => 'tech_media_favorites is not migrated']);
+        }
+        $type = (string)(self::$args['item_type'] ?? '');
+        if ($type !== 'bible' && $type !== 'quote') {
+            return json_encode(['status' => 'error', 'message' => 'Bad item_type']);
+        }
+        // Stored as composed (CRLF between verses kept) — only trimmed and capped.
+        $clip = function ($key, $max) {
+            $s = trim((string)(self::$args[$key] ?? ''));
+            return function_exists('mb_substr') ? mb_substr($s, 0, $max, 'UTF-8') : substr($s, 0, $max);
+        };
+        // Caps of the `current` row it is shown through (text: TEXT in utf8,
+        // song_name: varchar(255)), so the screen row matches the item 1:1.
+        $text = $clip('text', 20000);
+        if ($text === '') {
+            return json_encode(['status' => 'error', 'message' => 'Empty text']);
+        }
+        $caption = $clip('caption', 255);
+        $name    = $clip('name', 500);
+        if ($name === '') $name = $caption;
+
+        $dbh    = Info::get('dbh');
+        $userId = (int)$_SESSION['curGroupId'];
+        $maxSong  = Info::get('db')->get("SELECT IFNULL(MAX(sort_order),0) AS m FROM favorites WHERE groupId={$userId}");
+        $maxMedia = Info::get('db')->get("SELECT IFNULL(MAX(sort_order),0) AS m FROM tech_media_favorites WHERE group_id={$userId}");
+        $sortOrder = max((int)$maxSong['m'], (int)$maxMedia['m']) + 1;
+
+        Info::get('db')->exec(
+            "INSERT INTO tech_media_favorites (group_id, name, src, media_type, sort_order, `text`, caption)
+             VALUES ({$userId},
+                     '" . mysqli_real_escape_string($dbh, $name) . "',
+                     '" . mysqli_real_escape_string($dbh, $clip('src', 2000)) . "',
+                     '{$type}', {$sortOrder},
+                     '" . mysqli_real_escape_string($dbh, $text) . "',
+                     '" . mysqli_real_escape_string($dbh, $caption) . "')"
+        );
+        self::updateSocket();
+        return json_encode(['status' => 'ok', 'id' => $dbh->insert_id]);
+    }
+
+    /**
      * Remove a media file from the playlist.
      * Params: id
      */

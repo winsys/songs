@@ -259,9 +259,11 @@ CREATE TABLE IF NOT EXISTS `tech_media_favorites` (
   `group_id` int(11) NOT NULL,
   `name` varchar(500) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
   `src` varchar(2000) COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT '',
-  `media_type` enum('image','video','audio') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'image',
+  `media_type` enum('image','video','audio','bible','quote') COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'image',
   `sort_order` int(11) NOT NULL DEFAULT '0',
   `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `text` mediumtext COLLATE utf8mb4_unicode_ci NULL COMMENT 'Screen text of a bible / quote item',
+  `caption` varchar(500) COLLATE utf8mb4_unicode_ci NULL COMMENT 'Screen caption of a bible / quote item',
   PRIMARY KEY (`id`),
   KEY `idx_tmf_group` (`group_id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

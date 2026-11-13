@@ -150,13 +150,24 @@ scenario re-checked.
   self-migrates on first use (`ensureFavoriteNotes()` in `get_favorites`,
   `get_favorites_with_text`, `add_favorite_note`, `update_favorite_note`);
   manual DDL: `database/migrations/add_favorite_notes.sql`.
+- `tech_media_favorites` also holds the tech console's Scripture / quote items
+  (Nov 2026): `media_type` `'bible'` | `'quote'`, screen text in `text`, screen
+  caption in `caption` (self-migrating `ensureTechTextItems()` in
+  `get_favorites_with_text` / `add_text_to_favorites`; manual DDL
+  `database/migrations/add_tech_text_items.sql`). Only the tech console reads
+  this table — they must never reach the leader page.
 - **Writers:** `add_to_favorites`, `add_favorite_note`, `update_favorite_note`,
-  `reorder_favorites` (type `song` / `note` → `favorites`, media types →
-  `tech_media_favorites`), `delete_favorite_item`, `clear_favorites`, media
-  commands in Ajax_Tech.
+  `reorder_favorites` (type `song` / `note` → `favorites`, media and
+  `bible` / `quote` types → `tech_media_favorites`), `delete_favorite_item`,
+  `clear_favorites` (`with_texts:1` from the tech console also drops the
+  Scripture / quote items; media always stay), media commands and
+  `add_text_to_favorites` in Ajax_Tech.
 - **Readers:** `get_favorites` (leader page: note rows have `NOTE` non-null,
   `ID` / `imageName` null), `get_favorites_with_text` (tech console:
-  `itemType` `'note'`). Anything that walks the list looking for a song must
+  `itemType` `'note'`; `'bible'` / `'quote'` rows carry `itemText` /
+  `itemCaption` — a click sends them through `set_bible_text` /
+  `set_message_text`, and `restoreCurrentState` matches the screen row
+  against them before its Bible / message restore). Anything that walks the list looking for a song must
   skip note rows (they match no `LISTID` / `NUM` / `imageName`).
 - A song that leaves the list (delete / clear, on either page) is switched
   off if it was ON (notes channel): the leader sends `clear_image` channel

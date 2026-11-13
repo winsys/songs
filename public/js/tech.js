@@ -23,6 +23,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // Parallel chapter data from get_bible_parallel:
     // trId => {name, lang, book, verses: {primaryVerseNum: {c, v, t}}}
     $scope.bibleParallel        = {};
+    $scope.bibleParallelPending = false;  // get_bible_parallel in flight
     var bibleParallelSeq        = 0;
     $scope.bibleBooks           = [];
     $scope.selectedBibleBook    = null;
@@ -125,6 +126,8 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // ── Active media item (video controls) ────────────────────
     $scope.activeMediaItem    = null;    // { FID, itemType, name, src }
     $scope.activeAudioItem    = null;    // mp3 selected in playlist — local player only
+    $scope.activeTextItem     = null;    // Scripture / quote item of the playlist on the screen
+    $scope.textAddedFlash     = '';      // 'bible' | 'quote': short "added" note in the pane head
     $scope.techVideoPlaying   = false;
     var techVideoSrc          = '';
 
@@ -347,12 +350,16 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         var extras = bibleExtraActiveList();
 
         if (extras.length === 0 || !$scope.selectedBibleBook || !$scope.selectedBibleChapter) {
+            $scope.bibleParallelPending = false;
             var hadData = Object.keys($scope.bibleParallel).length > 0;
             $scope.bibleParallel = {};
             if (hadData) resendCurrentBibleSelection();
             return;
         }
 
+        // Until the parallel texts arrive, «＋ В список» would store the
+        // passage without them — the add buttons wait for this flag.
+        $scope.bibleParallelPending = true;
         $http({ method: "POST", url: "/ajax",
             data: { command: 'get_bible_parallel',
                 book_num: parseInt($scope.selectedBibleBook.BOOK_NUM),
@@ -361,10 +368,12 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 translation_ids: extras.map(function(e) { return e.trId; }) } }).then(
             function success(respond) {
                 if (seq !== bibleParallelSeq) return; // stale: chapter/extras changed
+                $scope.bibleParallelPending = false;
                 $scope.bibleParallel = (respond.data && respond.data.extras) || {};
                 resendCurrentBibleSelection();
             },
             function error(erespond) {
+                if (seq === bibleParallelSeq) $scope.bibleParallelPending = false;
                 console.log('get_bible_parallel error: ', erespond);
             });
     }
@@ -605,6 +614,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 // Restore showingSong state after reload
                 var audioStillListed = false;
                 var songStillListed  = false;
+                var textStillListed  = false;
                 angular.forEach($scope.favorites, function (item) {
                     if (item.itemType === 'song' &&
                         $scope.showingSong && item.FID === $scope.showingSong.FID) {
@@ -622,7 +632,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                         $scope.activeAudioItem = item;
                         audioStillListed = true;
                     }
+                    if ($scope.isTextItem(item) &&
+                        $scope.activeTextItem && item.FID === $scope.activeTextItem.FID) {
+                        $scope.activeTextItem = item;
+                        textStillListed = true;
+                    }
                 });
+                if (!textStillListed) $scope.activeTextItem = null;
 
                 // Selected mp3 vanished from the playlist (deleted elsewhere):
                 // pause NOW, while the <audio> element is still in the DOM —
@@ -855,10 +871,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.clearFavorites = function(){
         if($scope.favorites.length > 0)
             $scope.confirmationDialog(window.t('leader.confirm.clearTitle'), function() {
-                $http({method: "POST", url: "/ajax", data: {command: 'clear_favorites'}}).then(
+                // with_texts: the Scripture / quote items of the service go
+                // too; media (wallpapers, video, mp3) stay as before.
+                $http({method: "POST", url: "/ajax", data: {command: 'clear_favorites', with_texts: 1}}).then(
                     function success() {
                         $http({ method: "POST", url: "/ajax", data: { command: 'clear_image', clear_notes: 1 } });
                         observerOff();
+                        $scope.activeTextItem   = null;
                         $scope.preparedChapters = [];
                         pauseTechAudio();
                         $scope.activeAudioItem = null;
@@ -1216,6 +1235,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $scope.showingChapter   = null;
         $scope.selectedChapters = [];
 
+        $scope.activeTextItem  = null;
         $scope.activeMediaItem = item;
 
         if (item.itemType === 'image') {
@@ -1258,17 +1278,196 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $http({ method: "POST", url: "/ajax", data: { command: 'clear_image' }});
     };
 
+    // ─────────────────────────────────────────────────────────
+    // Scripture / quote items of the playlist (tech console only)
+    // ─────────────────────────────────────────────────────────
+    // A Bible passage or a paragraph of the Message, stored with its screen
+    // text and caption exactly as composed when it was added (parallel
+    // languages included), so a click shows it at once whatever the Bible /
+    // messages modes have selected now. Kept in tech_media_favorites — the
+    // leader page never sees them.
+
+    $scope.isTextItem = function (item) {
+        return !!item && (item.itemType === 'bible' || item.itemType === 'quote');
+    };
+
+    // The command of the item's own mode (Bible: set_bible_text, quote:
+    // set_message_text) plus the observer overlay; off = clear the screen.
+    function sendTextItem(item, off) {
+        var text    = off ? '' : (item.itemText || '');
+        var caption = off ? '' : (item.itemCaption || '');
+        if (item.itemType === 'bible') {
+            sendBibleText(text, caption);
+        } else {
+            $http({ method: 'POST', url: '/ajax', data: {
+                command: 'set_message_text', text: text, song_name: caption } });
+            observerText(text, caption);
+        }
+    }
+
+    $scope.activateTextItem = function (item) {
+        // Repeated click = off
+        if ($scope.activeTextItem && $scope.activeTextItem.FID === item.FID) {
+            $scope.activeTextItem = null;
+            sendTextItem(item, true);
+            return;
+        }
+        // The screen gets this text: drop the other on-screen highlights.
+        // The selected song and its notes stay, as with a Bible verse.
+        $scope.activeTextItem      = item;
+        $scope.activeMediaItem     = null;
+        $scope.techVideoPlaying    = false;
+        techVideoSrc               = '';
+        $scope.showingChapter      = null;
+        $scope.selectedChapters    = [];
+        $scope.showingBibleVerse   = null;
+        $scope.selectedBibleVerses = [];
+        $scope.showingMessagePara  = null;
+        $scope.showingMsgParaIdx   = null;
+        sendTextItem(item, false);
+    };
+
+    // The playlist item the screen row shows (same text and caption through
+    // set_bible_text / set_message_text), preferring the one clicked here.
+    function findShownTextItem(state) {
+        if (!state.text || state.image !== '__bible__') return null;
+        var found = null;
+        angular.forEach($scope.favorites, function (f) {
+            if (!$scope.isTextItem(f) || f.itemText !== state.text ||
+                (f.itemCaption || '') !== (state.song_name || '')) return;
+            if (!found || ($scope.activeTextItem && f.FID === $scope.activeTextItem.FID)) found = f;
+        });
+        return found;
+    }
+
+    // Adds a composed item. The playlist is not visible in the Bible /
+    // messages modes, so the pane head says "added" for a moment.
+    var textAddedTimer = null;
+    function addTextItem(type, data) {
+        if (!data || !data.text) return;
+        $http({ method: 'POST', url: '/ajax', data: {
+                command:   'add_text_to_favorites',
+                item_type: type,
+                text:      data.text,
+                caption:   data.caption,
+                name:      data.name,
+                src:       data.src
+            }}).then(
+            function (r) {
+                if (r.data && r.data.status === 'ok') {
+                    $scope.textAddedFlash = type;
+                    if (textAddedTimer) $timeout.cancel(textAddedTimer);
+                    textAddedTimer = $timeout(function () { $scope.textAddedFlash = ''; }, 1800);
+                    $scope.reloadFavorites();
+                } else {
+                    alert(window.t('sermon.errorPrefix', { message: (r.data && r.data.message) || window.t('common.unknownError') }));
+                }
+            },
+            function (e) { alert('HTTP error: ' + e.status); }
+        );
+    }
+
+    /** "16", "16–18", "16, 18, 20–21" */
+    function verseRangeLabel(nums) {
+        var s = nums.slice().sort(function (a, b) { return a - b; })
+            .filter(function (n, i, a) { return i === 0 || n !== a[i - 1]; });
+        var parts = [];
+        for (var i = 0; i < s.length; i++) {
+            var j = i;
+            while (j + 1 < s.length && s[j + 1] === s[j] + 1) j++;
+            parts.push(j > i ? s[i] + '–' + s[j] : String(s[i]));
+            i = j;
+        }
+        return parts.join(', ');
+    }
+
+    /**
+     * A Bible item for verse display strings of the current chapter: the
+     * text and caption the console would send for them right now (primary
+     * + active parallel languages), the label with the verse numbers and
+     * the translations as the source line.
+     */
+    function composeBibleItem(verseStrings) {
+        var text = buildBibleCombinedText(verseStrings);
+        if (!text) return null;
+        var nums = selectedVerseNums(verseStrings);
+        var sources = [];
+        angular.forEach($scope.bibleTranslations, function (tr) {
+            if (String(tr.ID) === String($scope.bibleTranslationId)) sources.push(tr.NAME);
+        });
+        bibleExtraActiveList().forEach(function (ex) {
+            var p = $scope.bibleParallel[ex.trId];
+            if (!p || !p.verses) return;
+            var has = nums.some(function (vn) { return p.verses[vn] && p.verses[vn].t; });
+            if (has) sources.push(p.name);
+        });
+        return {
+            text:    text,
+            caption: buildBibleRefLabel(verseStrings),
+            name:    $scope.getBibleBookName($scope.selectedBibleBook) + ' ' +
+                     $scope.selectedBibleChapter + ':' + verseRangeLabel(nums),
+            src:     sources.join(' · ')
+        };
+    }
+
+    // Selected (shown) verses → playlist
+    $scope.addBibleSelectionToPlaylist = function () {
+        if ($scope.bibleParallelPending) return;
+        addTextItem('bible', composeBibleItem($scope.selectedBibleVerses));
+    };
+
+    // ＋ of a verse row: the verses a click on it would show (verses per
+    // screen), added without touching the screen.
+    $scope.addBibleVerseToPlaylist = function (verseText, $event) {
+        if ($event) { $event.stopPropagation(); $event.preventDefault(); }
+        if ($scope.bibleParallelPending) return;
+        var start = $scope.biblePreparedVerses.indexOf(verseText);
+        if (start < 0) return;
+        var count = Math.max(1, $scope.bibleVerseCount || 1);
+        addTextItem('bible', composeBibleItem($scope.biblePreparedVerses.slice(start, start + count)));
+    };
+
+    // A paragraph of the open message, captioned like showMsgParagraph.
+    function composeQuoteItem(idx) {
+        var para = $scope.messageParagraphs[idx];
+        var msg  = $scope.selectedMessage;
+        if (para === undefined || !msg) return null;
+        var title = msg.TITLE || '';
+        return {
+            text:    para,
+            caption: title,
+            name:    title,
+            src:     [msg.CODE, msg.CITY].filter(function (s) { return s; }).join(' · ')
+        };
+    }
+
+    // ＋ of a paragraph row: added without touching the screen
+    $scope.addMsgParaToPlaylist = function (idx, $event) {
+        if ($event) { $event.stopPropagation(); $event.preventDefault(); }
+        addTextItem('quote', composeQuoteItem(idx));
+    };
+
+    // The paragraph on the screen → playlist
+    $scope.addShownMsgParaToPlaylist = function () {
+        if ($scope.showingMsgParaIdx === null) return;
+        addTextItem('quote', composeQuoteItem($scope.showingMsgParaIdx));
+    };
+
     $scope.deleteFavoriteItem = function (fav_id, fav_title, itemType) {
         $scope.confirmationDialog(fav_title || '?', function () {
 
-            var isMedia  = (itemType === 'image' || itemType === 'video' || itemType === 'audio');
+            // Scripture / quote items live in tech_media_favorites too
+            var isText   = (itemType === 'bible' || itemType === 'quote');
+            var isMedia  = (itemType === 'image' || itemType === 'video' || itemType === 'audio' || isText);
             var command  = isMedia ? 'delete_media_favorite' : 'delete_favorite_item';
 
             // If deleting active item — clear display
             var isDeletingActive = $scope.showingSong && $scope.showingSong.FID === fav_id &&
                 (!isMedia);
             var isDeletingActiveMedia = $scope.activeMediaItem &&
-                $scope.activeMediaItem.FID === fav_id && isMedia;
+                $scope.activeMediaItem.FID === fav_id && isMedia && !isText;
+            var deletingActiveText = (isText && $scope.activeTextItem &&
+                $scope.activeTextItem.FID === fav_id) ? $scope.activeTextItem : null;
             // Audio is local-only: stop the player, never touch the display
             var isDeletingActiveAudio = $scope.activeAudioItem &&
                 $scope.activeAudioItem.FID === fav_id && itemType === 'audio';
@@ -1292,6 +1491,10 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     if (isDeletingActiveAudio) {
                         pauseTechAudio();
                         $scope.activeAudioItem = null;
+                    }
+                    if (deletingActiveText) {
+                        sendTextItem(deletingActiveText, true);
+                        $scope.activeTextItem = null;
                     }
                     $scope.reloadFavorites();
                 }
@@ -2519,6 +2722,10 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
 
     // Turning the toggle on pushes what the console shows right now.
     function observerResend() {
+        if ($scope.activeTextItem) {
+            observerText($scope.activeTextItem.itemText, $scope.activeTextItem.itemCaption);
+            return;
+        }
         if ($scope.showingBibleVerse && $scope.pageMode === 'bible') {
             var text = buildBibleCombinedText($scope.selectedBibleVerses);
             observerText(text, buildBibleRefLabel($scope.selectedBibleVerses));
@@ -2810,12 +3017,19 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     ? state.notes_image
                     : '';
 
+                // A Scripture / quote item of the playlist on the screen:
+                // highlight it and stay in the current mode — the Bible /
+                // message restore below would switch the console away from
+                // the playlist. The modes keep their own selections.
+                var shownTextItem = findShownTextItem(state);
+                $scope.activeTextItem = shownTextItem;
+
                 // Determine what type of state we're restoring to avoid clearing it prematurely
-                var isRestoringBible = state.text && state.song_name &&
+                var isRestoringBible = !shownTextItem && state.text && state.song_name &&
                     state.song_name.match(/\d+:\d+/);
-                var isRestoringMessage = !isRestoringBible && state.text && state.song_name;
+                var isRestoringMessage = !shownTextItem && !isRestoringBible && state.text && state.song_name;
                 var isRestoringSong = !!songImg;   // notes coexist with any screen content
-                var isRestoringMedia = !isRestoringBible && !isRestoringMessage &&
+                var isRestoringMedia = !shownTextItem && !isRestoringBible && !isRestoringMessage &&
                     !!((state.image && !state.image.match(songImgRe)) || state.video_src);
 
                 // Clear previous state (but preserve message paragraph if we're restoring it)
@@ -2825,10 +3039,10 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     $scope.selectedChapters = [];
                     $scope.preparedChapters = [];
                 }
-                if (!isRestoringBible) {
+                if (!isRestoringBible && !shownTextItem) {
                     $scope.showingBibleVerse = null;
                 }
-                if (!isRestoringMessage) {
+                if (!isRestoringMessage && !shownTextItem) {
                     $scope.showingMessagePara = null;
                     $scope.showingMsgParaIdx  = null;
                 }
@@ -2879,7 +3093,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 }
 
                 // Restore Bible verse if text and song_name indicate Bible content
-                if (state.text && state.song_name && state.song_name.match(/\d+:\d+/)) {
+                if (isRestoringBible) {
                     // Find the matching prepared verse string (same format used by toggleBibleVerse)
                     var foundBibleVerse = null;
                     for (var bi = 0; bi < $scope.biblePreparedVerses.length; bi++) {
@@ -2903,7 +3117,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 // message title here, and quotes may now sit on top of a notes
                 // image — without this guard the console would flip into
                 // messages mode on a plain Bible verse click.
-                if (state.text && state.song_name && !state.song_name.match(/\d+:\d+/) && !state.image) {
+                if (isRestoringMessage && !state.image) {
                     // Switch to messages mode if needed
                     if ($scope.pageMode !== 'messages') {
                         $scope.pageMode = 'messages';
@@ -3027,6 +3241,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $scope.showingMessagePara  = null;
         $scope.showingMsgParaIdx   = null;
         $scope.activeMediaItem     = null;
+        $scope.activeTextItem      = null;
         $scope.techVideoPlaying    = false;
     };
 

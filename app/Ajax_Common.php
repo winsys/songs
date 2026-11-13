@@ -199,6 +199,48 @@ trait Ajax_Common
         }
     }
 
+    // ─── Scripture / quote items of the tech playlist (Nov 2026) ─────
+    // A Bible passage (one or several languages, composed by the tech
+    // console exactly as it goes to the screen) or a paragraph of the
+    // Message, kept in `tech_media_favorites` (media_type 'bible' | 'quote')
+    // — the table only the tech console reads, so the leader page never
+    // sees them. `text` = the screen text, `caption` = the screen caption
+    // (song_name of the `current` row), `name` = the playlist label,
+    // `src` = the source line (translations / message code).
+
+    /**
+     * Adds the 'bible' / 'quote' media types and the text / caption columns
+     * to tech_media_favorites on first use (self-migration, like
+     * ensureFavoriteNotes). Returns true when the columns are there.
+     */
+    private static function ensureTechTextItems()
+    {
+        static $ready = null;
+        if ($ready !== null) {
+            return $ready;
+        }
+        $db   = Info::get('db');
+        $type = $db->get("SHOW COLUMNS FROM tech_media_favorites LIKE 'media_type'");
+        if ($type && strpos((string)$type['Type'], "'quote'") === false) {
+            $db->exec(
+                "ALTER TABLE tech_media_favorites
+                 MODIFY media_type enum('image','video','audio','bible','quote')
+                     COLLATE utf8mb4_unicode_ci NOT NULL DEFAULT 'image'"
+            );
+        }
+        if (!$db->get("SHOW COLUMNS FROM tech_media_favorites LIKE 'caption'")) {
+            $db->exec(
+                "ALTER TABLE tech_media_favorites
+                 ADD COLUMN `text` mediumtext COLLATE utf8mb4_unicode_ci NULL
+                     COMMENT 'Screen text of a bible / quote item',
+                 ADD COLUMN `caption` varchar(500) COLLATE utf8mb4_unicode_ci NULL
+                     COMMENT 'Screen caption of a bible / quote item'"
+            );
+        }
+        $ready = (bool)$db->get("SHOW COLUMNS FROM tech_media_favorites LIKE 'caption'");
+        return $ready;
+    }
+
     /** Note text from the request: trimmed, CRLF-normalized, at most 2000 characters. */
     private static function noteTextArg()
     {
@@ -350,6 +392,9 @@ trait Ajax_Common
         $order = ($settings && $settings['favorites_order'] === 'latest_top') ? 'DESC' : 'ASC';
 
         self::ensureFavoriteNotes();
+        $textCols = self::ensureTechTextItems()
+            ? '`text` AS itemText, caption AS itemCaption'
+            : 'NULL AS itemText, NULL AS itemCaption';
         $langs = self::getLanguages();
         $hasTextFields = '';
         $mediaHasTextFields = '';
@@ -374,14 +419,16 @@ trait Ajax_Common
              f.SONGID
              {$hasTextFields},
              NULL AS src,
-             NULL AS media_type
+             NULL AS media_type,
+             NULL AS itemText,
+             NULL AS itemCaption
          FROM favorites f
          LEFT JOIN song_list l  ON l.ID      = f.SONGID
          LEFT JOIN list_names n ON n.LIST_ID = l.LISTID
          WHERE f.groupId = {$userId}"
         ));
 
-        // Media from tech_media_favorites
+        // Media and Scripture / quote items from tech_media_favorites
         $media = Info::get('db')->select(
             "SELECT
              id             AS FID,
@@ -394,7 +441,8 @@ trait Ajax_Common
              NULL           AS imageName,
              NULL           AS SONGID
              {$mediaHasTextFields},
-             src, media_type
+             src, media_type,
+             {$textCols}
          FROM tech_media_favorites
          WHERE group_id = {$userId}"
         );
@@ -423,10 +471,20 @@ trait Ajax_Common
         return json_encode($list);
     }
 
+    /**
+     * Params: with_texts (tech console) — also drops the Scripture / quote
+     * items; media (images, video, mp3) always stay, as before.
+     */
     private static function clear_favorites()
     {
-        $sql = "DELETE FROM favorites WHERE groupId={$_SESSION['curGroupId']}";
-        Info::get('db')->exec($sql);
+        $groupId = (int)$_SESSION['curGroupId'];
+        Info::get('db')->exec("DELETE FROM favorites WHERE groupId={$groupId}");
+        if (!empty(self::$args['with_texts'])) {
+            Info::get('db')->exec(
+                "DELETE FROM tech_media_favorites
+                 WHERE group_id = {$groupId} AND media_type IN ('bible', 'quote')"
+            );
+        }
         self::updateSocket();
         return '';
     }
