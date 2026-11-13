@@ -66,4 +66,72 @@ app.service('SongsService', function ($http, $q) {
             .then(function (r) { return r.data || []; });
     };
 
+    // ─── Song search (leader, tech console, piano) ──────────────────
+    // The search fields use it as angucomplete's local-search
+    // ("songLocalSearch" on the scope). The widget's own search found only
+    // an exact piece of the default-language TEXT: a skipped comma
+    // («Вот, настал»), е for ё, double spaces, words out of order and the
+    // lyrics in the other languages (TEXT_LT, TEXT_EN, …) all missed.
+    // Here every query word must occur in the number + name, or in the
+    // lyrics of any language. Ranked: exact number, number prefix, name,
+    // the query as a phrase in the lyrics, its words anywhere in the lyrics.
+
+    var SONG_SEARCH_LIMIT = 150;
+    // Punctuation / whitespace → one space (explicit list: \p{L} needs
+    // newer Safari than some church tablets run).
+    var SEARCH_SEP = /[\s.,;:!?¡¿"'`´«»„“”‘’‚‹›()\[\]{}\-‐‑–—―…*\/\\|_~@#$%^&+=<>·•]+/g;
+
+    function searchNorm(s) {
+        return String(s == null ? '' : s).toLowerCase().replace(/ё/g, 'е')
+            .replace(SEARCH_SEP, ' ').trim();
+    }
+
+    function stripZeros(n) { return n.replace(/^0+(?=\d)/, ''); }
+
+    // Normalized number / name / lyrics, cached on the song row (rows are
+    // replaced on every reload of the search list, so it never goes stale).
+    function songSearchIndex(song) {
+        if (song._sx) return song._sx;
+        var texts = [];
+        for (var k in song) {
+            if (/^TEXT(_[A-Z]+)?$/.test(k) && song[k]) texts.push(song[k]);
+        }
+        var num = searchNorm(song.NUM);
+        song._sx = {
+            num:  num,
+            bare: stripZeros(num),
+            head: ' ' + num + ' ' + searchNorm(song.NAME) + ' ',
+            text: ' ' + searchNorm(texts.join('\n')) + ' '
+        };
+        return song._sx;
+    }
+
+    function allIn(tokens, s) {
+        for (var i = 0; i < tokens.length; i++) {
+            if (s.indexOf(tokens[i]) === -1) return false;
+        }
+        return true;
+    }
+
+    /** angucomplete local-search: (query, songs) → matching songs, best first. */
+    this.songLocalSearch = function (query, songs) {
+        var q = searchNorm(query);
+        if (!q || !songs) return [];
+        var tokens = q.split(' ');
+        var qBare  = stripZeros(q);
+        var hits = [];
+        for (var i = 0; i < songs.length; i++) {
+            var x = songSearchIndex(songs[i]);
+            var score = -1;
+            if (x.num === q || x.bare === qBare)                         score = 0;
+            else if (x.num.indexOf(q) === 0 || x.bare.indexOf(qBare) === 0) score = 1;
+            else if (allIn(tokens, x.head))                              score = 2;
+            else if (x.text.indexOf(q) !== -1)                           score = 3;
+            else if (allIn(tokens, x.text))                              score = 4;
+            if (score >= 0) hits.push({ s: songs[i], score: score, i: i });
+        }
+        hits.sort(function (a, b) { return (a.score - b.score) || (a.i - b.i); });
+        return hits.slice(0, SONG_SEARCH_LIMIT).map(function (h) { return h.s; });
+    };
+
 });

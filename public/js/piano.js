@@ -19,6 +19,7 @@ app.controller('Piano', ['$scope', '$http', 'SongsService', '$timeout', function
     $scope.listId = 1;
     $scope.songList = [];
     $scope.searchSongList = [];
+    $scope.songLocalSearch = SongsService.songLocalSearch;   // search field (any language, ё/е, punctuation)
     $scope.favorites = [];
     $scope.visibleSongLists = [];
     $scope.langList = [];

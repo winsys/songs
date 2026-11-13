@@ -4,6 +4,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.listId = 1;
     $scope.songList = [];
     $scope.searchSongList = [];
+    $scope.songLocalSearch = SongsService.songLocalSearch;   // search field (any language, ё/е, punctuation)
     $scope.favorites = [];
     $scope.fullScreen = false;
     $scope.preparedChapters = [];

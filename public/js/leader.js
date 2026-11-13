@@ -3,6 +3,7 @@ app.controller('Leader', ['$scope', '$http', 'SongsService', '$timeout', '$sce',
     $scope.listId = 1;
     $scope.songList = [];
     $scope.searchSongList = [];
+    $scope.songLocalSearch = SongsService.songLocalSearch;   // search field (any language, ё/е, punctuation)
     $scope.favorites = [];
     $scope.fullScreen = false;
     $scope.visibleSongLists = [];
