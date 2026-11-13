@@ -1046,6 +1046,15 @@
     .bible-verse-item.tc-addable { position: relative; padding-right: max(48px, calc(100% - 95ch)); }
     .bible-verse-item.tc-addable > .tc-add-btn { position: absolute; top: 8px; right: 10px; }
     .bible-verse-item.tc-para > .tc-add-btn { margin-left: auto; }
+    /* Touch screens (tablet): finger-sized add buttons; a miss would land on
+       the verse / paragraph and put it on the screen instead */
+    @media (pointer: coarse) {
+        .tc-add-btn { min-width: 48px; height: 40px; font-size: 20px; border-radius: 8px; }
+        .bible-verse-item.tc-addable { padding-right: max(68px, calc(100% - 95ch)); }
+        .bible-verse-item.tc-addable > .tc-add-btn { top: 6px; }
+        .cx-pane-head .cx-btn.tc-add-head { height: 40px; padding: 0 16px; font-size: 14px; }
+        .cx-pane-head:has(.tc-add-head) { padding-top: 3px; padding-bottom: 3px; }
+    }
     .tc-added { font-size: 12px; font-weight: 600; color: var(--cx-broadcast); white-space: nowrap; }
 
     /* Scripture / quote in the playlist: label · source · start of the text */
@@ -1740,7 +1749,7 @@
                         <span class="cx-spacer"></span>
                         <span class="tc-added" ng-show="textAddedFlash === 'quote'"><?php echo T::s('tech.text.added'); ?></span>
                         <!-- The paragraph on the screen → playlist -->
-                        <button class="cx-btn" type="button"
+                        <button class="cx-btn tc-add-head" type="button"
                                 ng-show="showingMsgParaIdx !== null"
                                 ng-click="addShownMsgParaToPlaylist()"
                                 title="<?php echo T::s('tech.text.addHint'); ?>"><?php echo T::s('tech.text.add'); ?></button>
@@ -1887,7 +1896,7 @@
                         <span class="cx-spacer"></span>
                         <span class="tc-added" ng-show="textAddedFlash === 'bible'"><?php echo T::s('tech.text.added'); ?></span>
                         <!-- The verses on the screen → playlist (with the parallel languages) -->
-                        <button class="cx-btn" type="button"
+                        <button class="cx-btn tc-add-head" type="button"
                                 ng-show="selectedBibleVerses.length > 0"
                                 ng-disabled="bibleParallelPending"
                                 ng-click="addBibleSelectionToPlaylist()"
