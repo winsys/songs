@@ -127,8 +127,12 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     // ── Active media item (video controls) ────────────────────
     $scope.activeMediaItem    = null;    // { FID, itemType, name, src }
     $scope.activeAudioItem    = null;    // mp3 selected in playlist — local player only
-    $scope.activeTextItem     = null;    // Scripture / quote item of the playlist on the screen
-    $scope.textAddedFlash     = '';      // 'bible' | 'quote': short "added" note in the pane head
+    $scope.activeTextItem     = null;    // Bible / message favorite on the screen
+    $scope.textAddedFlash     = '';      // 'bible' | 'quote': short "added" note + badge pulse
+    // Favorites of the Bible / message modes: the 'bible' / 'quote' rows of
+    // get_favorites_with_text, moved out of the playlist by reloadFavorites.
+    $scope.textFavorites      = { bible: [], quote: [] };
+    $scope.textFavOpen        = '';      // '' | 'bible' | 'quote': the open favorites dropdown
     $scope.techVideoPlaying   = false;
     var techVideoSrc          = '';
 
@@ -176,24 +180,26 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         $scope.pageMode = 'messages';
     };
 
-    // ---- Context-bar popovers (media / wallpapers) ----
+    // ---- Context-bar popovers (media / wallpapers, Bible / message favorites) ----
     // They float over the work area, so nothing else hides them: close them
     // on every mode change (buttons or a state restore), on a press outside
     // the popover and its toggle buttons, on Escape and when the tab is left.
+    // A press in a dialog (delete / clear confirmation) keeps them open.
     function closeContextPopovers() {
         $scope.showMediaAddPanel   = false;
         $scope.showWallpapersPanel = false;
+        $scope.textFavOpen         = '';
     }
     $scope.$watch('pageMode', function (mode, prev) {
         if (mode !== prev) closeContextPopovers();
     });
     function closePopoversAsync() {
-        if (!$scope.showMediaAddPanel && !$scope.showWallpapersPanel) return;
+        if (!$scope.showMediaAddPanel && !$scope.showWallpapersPanel && !$scope.textFavOpen) return;
         $scope.$applyAsync(closeContextPopovers);
     }
     document.addEventListener('pointerdown', function (e) {
         var t = e.target;
-        if (t && t.closest && t.closest('.tc-pop-anchor, .tc-pop-toggle')) return;
+        if (t && t.closest && t.closest('.tc-pop-anchor, .tc-pop-toggle, .modal, .modal-backdrop')) return;
         closePopoversAsync();
     }, true);
     document.addEventListener('keydown', function (e) {
@@ -607,15 +613,74 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         })
         : null;
 
+    // The favorites lists of the Bible / message modes: their own order,
+    // persisted by reorder_text_favorites (ids top-to-bottom).
+    function createTextFavDrag(type, elementId) {
+        var el = document.getElementById(elementId);
+        if (!window.createDragReorder || !el) return null;
+        return window.createDragReorder({
+            container: el,
+            rowSelector: '.fav-row',
+            onMove: function (from, to) {
+                $scope.$apply(function () {
+                    var list = $scope.textFavorites[type];
+                    var it = list.splice(from, 1)[0];
+                    list.splice(to, 0, it);
+                });
+            },
+            onDrop: function (moved) {
+                if (!moved) return;
+                $http({ method: 'POST', url: '/ajax', data: {
+                        command:   'reorder_text_favorites',
+                        item_type: type,
+                        ids: $scope.textFavorites[type].map(function (f) { return f.FID; })
+                    }}).then(null, function () { $scope.reloadFavorites(); });
+            }
+        });
+    }
+    var textFavDrags = [
+        createTextFavDrag('bible', 'techBibleFavorites'),
+        createTextFavDrag('quote', 'techQuoteFavorites')
+    ];
+
+    // Mid-drag a reload would replace the array under the pointer.
+    function anyListDragging() {
+        if (favDrag && favDrag.isDragging()) return true;
+        return textFavDrags.some(function (d) { return d && d.isDragging(); });
+    }
+
     $scope.reloadFavorites = function (callback) {
         $http({ method: "POST", url: "/ajax", data: { command: 'get_favorites_with_text' }}).then(
             function success(respond) {
-                $scope.favorites = respond.data;
+                // Bible passages / message quotes are not part of the
+                // playlist: they go to the favorites of their own mode,
+                // always oldest first (own 1..n order per list).
+                var playlist = [];
+                var texts    = { bible: [], quote: [] };
+                angular.forEach(angular.isArray(respond.data) ? respond.data : [], function (item) {
+                    if ($scope.isTextItem(item)) texts[item.itemType].push(item);
+                    else playlist.push(item);
+                });
+                angular.forEach(texts, function (list) {
+                    list.sort(function (a, b) {
+                        return ((+a.sort_order) - (+b.sort_order)) || ((+a.FID) - (+b.FID));
+                    });
+                });
+                $scope.favorites     = playlist;
+                $scope.textFavorites = texts;
+
+                var textStillListed = false;
+                texts.bible.concat(texts.quote).forEach(function (item) {
+                    if ($scope.activeTextItem && item.FID === $scope.activeTextItem.FID) {
+                        $scope.activeTextItem = item;
+                        textStillListed = true;
+                    }
+                });
+                if (!textStillListed) $scope.activeTextItem = null;
 
                 // Restore showingSong state after reload
                 var audioStillListed = false;
                 var songStillListed  = false;
-                var textStillListed  = false;
                 angular.forEach($scope.favorites, function (item) {
                     if (item.itemType === 'song' &&
                         $scope.showingSong && item.FID === $scope.showingSong.FID) {
@@ -633,13 +698,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                         $scope.activeAudioItem = item;
                         audioStillListed = true;
                     }
-                    if ($scope.isTextItem(item) &&
-                        $scope.activeTextItem && item.FID === $scope.activeTextItem.FID) {
-                        $scope.activeTextItem = item;
-                        textStillListed = true;
-                    }
                 });
-                if (!textStillListed) $scope.activeTextItem = null;
 
                 // Selected mp3 vanished from the playlist (deleted elsewhere):
                 // pause NOW, while the <audio> element is still in the DOM —
@@ -872,9 +931,9 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     $scope.clearFavorites = function(){
         if($scope.favorites.length > 0)
             $scope.confirmationDialog(window.t('leader.confirm.clearTitle'), function() {
-                // with_texts: the Scripture / quote items of the service go
-                // too; media (wallpapers, video, mp3) stay as before.
-                $http({method: "POST", url: "/ajax", data: {command: 'clear_favorites', with_texts: 1}}).then(
+                // Songs and notes only: media (wallpapers, video, mp3) and
+                // the Bible / message favorites stay (they have their own clear).
+                $http({method: "POST", url: "/ajax", data: {command: 'clear_favorites'}}).then(
                     function success() {
                         $http({ method: "POST", url: "/ajax", data: { command: 'clear_image', clear_notes: 1 } });
                         observerOff();
@@ -1280,16 +1339,43 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     };
 
     // ─────────────────────────────────────────────────────────
-    // Scripture / quote items of the playlist (tech console only)
+    // Favorites of the Bible / message modes (tech console only)
     // ─────────────────────────────────────────────────────────
     // A Bible passage or a paragraph of the Message, stored with its screen
     // text and caption exactly as composed when it was added (parallel
-    // languages included), so a click shows it at once whatever the Bible /
-    // messages modes have selected now. Kept in tech_media_favorites — the
-    // leader page never sees them.
+    // languages included), so a click shows it at once whatever the mode has
+    // selected now. Each mode has its own list — a dropdown of the context
+    // bar with a count badge on its button; the song playlist never shows
+    // them. Kept in tech_media_favorites — the leader page never sees them.
 
     $scope.isTextItem = function (item) {
         return !!item && (item.itemType === 'bible' || item.itemType === 'quote');
+    };
+
+    $scope.toggleTextFavorites = function (type) {
+        var open = $scope.textFavOpen !== type;
+        closeContextPopovers();
+        $scope.textFavOpen = open ? type : '';
+    };
+
+    $scope.clearTextFavorites = function (type) {
+        if (!$scope.textFavorites[type].length) return;
+        var name = window.t(type === 'bible' ? 'tech.fav.clearBible' : 'tech.fav.clearQuote');
+        $scope.confirmationDialog(name, function () {
+            // The item on the screen goes with its list
+            var shown = ($scope.activeTextItem && $scope.activeTextItem.itemType === type)
+                ? $scope.activeTextItem : null;
+            $http({ method: 'POST', url: '/ajax', data: { command: 'clear_text_favorites', item_type: type } }).then(
+                function () {
+                    if (shown) {
+                        sendTextItem(shown, true);
+                        $scope.activeTextItem = null;
+                    }
+                    $scope.reloadFavorites();
+                }
+            );
+            $scope.showDialog(false);
+        });
     };
 
     // The command of the item's own mode (Bible: set_bible_text, quote:
@@ -1328,21 +1414,21 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         sendTextItem(item, false);
     };
 
-    // The playlist item the screen row shows (same text and caption through
+    // The favorite the screen row shows (same text and caption through
     // set_bible_text / set_message_text), preferring the one clicked here.
     function findShownTextItem(state) {
         if (!state.text || state.image !== '__bible__') return null;
         var found = null;
-        angular.forEach($scope.favorites, function (f) {
-            if (!$scope.isTextItem(f) || f.itemText !== state.text ||
+        $scope.textFavorites.bible.concat($scope.textFavorites.quote).forEach(function (f) {
+            if (f.itemText !== state.text ||
                 (f.itemCaption || '') !== (state.song_name || '')) return;
             if (!found || ($scope.activeTextItem && f.FID === $scope.activeTextItem.FID)) found = f;
         });
         return found;
     }
 
-    // Adds a composed item. The playlist is not visible in the Bible /
-    // messages modes, so the pane head says "added" for a moment.
+    // Adds a composed item. The list is usually closed while adding: the
+    // pane head says "added" for a moment and the count badge pulses.
     var textAddedTimer = null;
     function addTextItem(type, data) {
         if (!data || !data.text) return;
@@ -1411,15 +1497,15 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
         };
     }
 
-    // Selected (shown) verses → playlist
-    $scope.addBibleSelectionToPlaylist = function () {
+    // Selected (shown) verses → favorites
+    $scope.addBibleSelectionToFavorites = function () {
         if ($scope.bibleParallelPending) return;
         addTextItem('bible', composeBibleItem($scope.selectedBibleVerses));
     };
 
     // ＋ of a verse row: the verses a click on it would show (verses per
     // screen), added without touching the screen.
-    $scope.addBibleVerseToPlaylist = function (verseText, $event) {
+    $scope.addBibleVerseToFavorites = function (verseText, $event) {
         if ($event) { $event.stopPropagation(); $event.preventDefault(); }
         if ($scope.bibleParallelPending) return;
         var start = $scope.biblePreparedVerses.indexOf(verseText);
@@ -1443,13 +1529,13 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
     }
 
     // ＋ of a paragraph row: added without touching the screen
-    $scope.addMsgParaToPlaylist = function (idx, $event) {
+    $scope.addMsgParaToFavorites = function (idx, $event) {
         if ($event) { $event.stopPropagation(); $event.preventDefault(); }
         addTextItem('quote', composeQuoteItem(idx));
     };
 
-    // The paragraph on the screen → playlist
-    $scope.addShownMsgParaToPlaylist = function () {
+    // The paragraph on the screen → favorites
+    $scope.addShownMsgParaToFavorites = function () {
         if ($scope.showingMsgParaIdx === null) return;
         addTextItem('quote', composeQuoteItem($scope.showingMsgParaIdx));
     };
@@ -2518,7 +2604,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
             // Handle incoming messages (only after authentication)
             if (data.type === 'update_needed') {
                 // Mid-drag the reload would replace the array under the pointer.
-                if (favDrag && favDrag.isDragging()) return;
+                if (anyListDragging()) return;
                 $scope.$apply(function() {
                     // Restore state immediately after favorites are reloaded
                     $scope.reloadFavorites(function() {
@@ -2540,7 +2626,7 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                 // "disable screen" button) stays stale until the next event.
                 if (wsWasDown) {
                     wsWasDown = false;
-                    if (!(favDrag && favDrag.isDragging())) {
+                    if (!anyListDragging()) {
                         $scope.$applyAsync(function() { $scope.reloadFavorites(restoreCurrentState); });
                     }
                 }
@@ -3018,10 +3104,11 @@ app.controller('Tech', function ($scope, $http, $timeout, $interval, $sce, Songs
                     ? state.notes_image
                     : '';
 
-                // A Scripture / quote item of the playlist on the screen:
-                // highlight it and stay in the current mode — the Bible /
-                // message restore below would switch the console away from
-                // the playlist. The modes keep their own selections.
+                // A Bible / message favorite on the screen: highlight it in
+                // its list and stay in the current mode — the Bible / message
+                // restore below would jump to the passage's chapter (or the
+                // message) and drop the open list. The modes keep their own
+                // selections.
                 var shownTextItem = findShownTextItem(state);
                 $scope.activeTextItem = shownTextItem;
 

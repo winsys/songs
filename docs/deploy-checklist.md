@@ -155,17 +155,21 @@ scenario re-checked.
   caption in `caption` (self-migrating `ensureTechTextItems()` in
   `get_favorites_with_text` / `add_text_to_favorites`; manual DDL
   `database/migrations/add_tech_text_items.sql`). Only the tech console reads
-  this table — they must never reach the leader page.
+  this table — they must never reach the leader page. They are the favorites
+  of the console's Bible / message modes, not playlist rows: own order per type
+  (`reorder_text_favorites`, `sort_order` 1..n), own clear
+  (`clear_text_favorites`); `clear_favorites` never touches them.
 - **Writers:** `add_to_favorites`, `add_favorite_note`, `update_favorite_note`,
-  `reorder_favorites` (type `song` / `note` → `favorites`, media and
-  `bible` / `quote` types → `tech_media_favorites`), `delete_favorite_item`,
-  `clear_favorites` (`with_texts:1` from the tech console also drops the
-  Scripture / quote items; media always stay), media commands and
-  `add_text_to_favorites` in Ajax_Tech.
+  `reorder_favorites` (type `song` / `note` → `favorites`, media types →
+  `tech_media_favorites`), `delete_favorite_item`,
+  `clear_favorites` (songs + notes; media and the Bible / message favorites
+  always stay), media commands, `add_text_to_favorites`,
+  `reorder_text_favorites` and `clear_text_favorites` in Ajax_Tech.
 - **Readers:** `get_favorites` (leader page: note rows have `NOTE` non-null,
   `ID` / `imageName` null), `get_favorites_with_text` (tech console:
   `itemType` `'note'`; `'bible'` / `'quote'` rows carry `itemText` /
-  `itemCaption` — a click sends them through `set_bible_text` /
+  `itemCaption`, the console moves them out of the playlist into the
+  favorites of its Bible / message modes — a click sends them through `set_bible_text` /
   `set_message_text`, and `restoreCurrentState` matches the screen row
   against them before its Bible / message restore). Anything that walks the list looking for a song must
   skip note rows (they match no `LISTID` / `NUM` / `imageName`).

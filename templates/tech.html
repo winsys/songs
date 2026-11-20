@@ -730,6 +730,58 @@
         box-shadow: 0 10px 30px rgba(23,33,43,0.22);
     }
 
+    /* Bible / message favorites: context-bar button with a count badge,
+       dropdown list under it (head never scrolls, the list does) */
+    .tc-fav-toggle { gap: 6px; flex-shrink: 0; }
+    .tc-fav-badge {
+        display: inline-block;
+        min-width: 20px;
+        padding: 0 6px;
+        border-radius: 10px;
+        background: var(--cx-active-fill);
+        color: #fff;
+        font-size: 12px;
+        font-weight: 700;
+        line-height: 18px;
+        text-align: center;
+        font-variant-numeric: tabular-nums;
+    }
+    .tc-fav-badge.is-empty { background: var(--cx-surface-3); color: var(--cx-secondary); }
+    .tc-fav-badge.is-pulse { animation: tcFavPulse .5s ease-out 2; }
+    @keyframes tcFavPulse {
+        0%, 100% { transform: scale(1); }
+        40%      { transform: scale(1.35); }
+    }
+    .tc-fav-caret { font-size: 11px; color: var(--cx-secondary); }
+    .tc-pop-anchor .tc-fav-panel {
+        position: absolute;
+        top: 4px;
+        right: 12px;
+        width: 460px;
+        max-width: calc(100vw - 24px);
+        max-height: 72vh;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        background: var(--cx-surface);
+        border: 1px solid var(--cx-divider);
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(23,33,43,0.22);
+    }
+    .tc-fav-head {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-shrink: 0;
+        padding: 6px 8px 6px 12px;
+        border-bottom: 1px solid var(--cx-divider);
+    }
+    .tc-fav-title { font-size: 13px; font-weight: 700; color: var(--cx-ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+    .tc-fav-head .cx-btn { height: 28px; font-size: 12px; flex-shrink: 0; }
+    .tc-fav-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; }
+    .tc-fav-body .cx-empty { padding: 20px 18px; line-height: 1.45; }
+    .tc-fav-body .text-fav-card { padding-right: 10px; }
+
     /* ---- Work area -------------------------------------------- */
     .tc-work {
         flex: 1 1 0;
@@ -1282,6 +1334,20 @@
                     <?php echo T::s('tech.button.wallpapersShort'); ?>
                 </button>
             </div>
+
+            <!-- Bible / message: the favorites of the mode. Opens the dropdown
+                 below (.tc-pop-anchor); the badge = the number of items. -->
+            <?php foreach (['bible' => 'bible', 'quote' => 'messages'] as $favType => $favMode): ?>
+            <button class="cx-btn tc-pop-toggle tc-fav-toggle" type="button"
+                    ng-show="pageMode === '<?php echo $favMode; ?>'"
+                    ng-click="toggleTextFavorites('<?php echo $favType; ?>')"
+                    ng-class="{'is-active': textFavOpen === '<?php echo $favType; ?>'}"
+                    aria-expanded="{{ textFavOpen === '<?php echo $favType; ?>' ? 'true' : 'false' }}"
+                    title="<?php echo T::s('tech.fav.hint'); ?>"><?php echo T::s('tech.fav.button'); ?><span
+                    class="tc-fav-badge"
+                    ng-class="{'is-empty': !textFavorites.<?php echo $favType; ?>.length, 'is-pulse': textAddedFlash === '<?php echo $favType; ?>'}">{{ textFavorites.<?php echo $favType; ?>.length }}</span><span
+                    class="tc-fav-caret" aria-hidden="true">{{ textFavOpen === '<?php echo $favType; ?>' ? '▴' : '▾' }}</span></button>
+            <?php endforeach; ?>
         </div>
 
         <!-- ── Context bar, row 2 (Bible only): parallel languages, each with its
@@ -1392,6 +1458,55 @@
                         title="<?php echo T::s('tech.tooltip.removeFromWallpapers'); ?>">✕</button>
             </div>
         </div>
+
+        <!-- Favorites of the Bible / message mode (toggle: ★ in the context
+             bar). A click on an item shows its text and caption exactly as
+             added (parallel languages included), again = off; ⠿ drags it,
+             ✕ removes it, the head button empties the list. Never part of the
+             song playlist, never seen by the leader page. The list bodies
+             keep their ids: tech.js attaches the drag-n-drop to them. -->
+        <?php foreach ([
+            'bible' => ['id' => 'techBibleFavorites', 'title' => 'tech.fav.bibleTitle', 'empty' => 'tech.fav.emptyBible'],
+            'quote' => ['id' => 'techQuoteFavorites', 'title' => 'tech.fav.quoteTitle', 'empty' => 'tech.fav.emptyQuote'],
+        ] as $favType => $fav): ?>
+        <div class="tc-fav-panel" ng-show="textFavOpen === '<?php echo $favType; ?>'">
+            <div class="tc-fav-head">
+                <span class="tc-fav-title"><?php echo T::s($fav['title']); ?></span>
+                <span class="tc-count" ng-if="textFavorites.<?php echo $favType; ?>.length > 0">{{ textFavorites.<?php echo $favType; ?>.length }}</span>
+                <span class="cx-spacer"></span>
+                <button class="cx-btn cx-btn-danger btn-clear" type="button"
+                        ng-show="textFavorites.<?php echo $favType; ?>.length > 0"
+                        ng-click="clearTextFavorites('<?php echo $favType; ?>')"><?php echo T::s('leader.button.clear'); ?></button>
+                <button class="cx-btn cx-btn-icon" type="button"
+                        ng-click="toggleTextFavorites('<?php echo $favType; ?>')"
+                        title="<?php echo T::s('tech.fav.close'); ?>"
+                        aria-label="<?php echo T::s('tech.fav.close'); ?>">▴</button>
+            </div>
+            <div class="tc-fav-body" id="<?php echo $fav['id']; ?>">
+                <div class="cx-empty" ng-show="textFavorites.<?php echo $favType; ?>.length === 0"><?php echo T::s($fav['empty']); ?></div>
+                <div class="fav-row"
+                     ng-repeat="listItem in textFavorites.<?php echo $favType; ?> track by listItem.FID">
+                    <div class="media-fav-card text-fav-card"
+                         ng-class="{'mfc-active': activeTextItem && activeTextItem.FID === listItem.FID}"
+                         ng-click="activateTextItem(listItem)"
+                         title="{{ listItem.itemText }}">
+                        <button class="drag-handle" type="button"
+                                title="<?php echo T::s('common.dragReorder'); ?>"
+                                aria-label="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
+                        <div class="mfc-info">
+                            <div class="mfc-name">{{ listItem.NAME }}</div>
+                            <div class="mfc-src" ng-if="listItem.src">{{ listItem.src }}</div>
+                            <div class="tfc-snippet">{{ listItem.itemText }}</div>
+                        </div>
+                        <button class="mfc-del" type="button"
+                                ng-click="$event.stopPropagation(); deleteFavoriteItem(listItem.FID, listItem.NAME, listItem.itemType)"
+                                title="<?php echo T::s('tech.fav.remove'); ?>"
+                                aria-label="<?php echo T::s('tech.fav.remove'); ?>">✕</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <?php endforeach; ?>
 
         </div><!-- /tc-pop-anchor -->
 
@@ -1611,33 +1726,6 @@
                                      onerror="this.style.visibility='hidden'">
                             </div>
 
-                            <!-- ── Scripture passage / quote of the Message (tech
-                                 console only — the leader page never gets them).
-                                 A click shows the stored text and caption exactly
-                                 as added, languages included; again = off. ── -->
-                            <div ng-if="isTextItem(listItem)"
-                                 class="media-fav-card text-fav-card"
-                                 ng-class="{'mfc-active': activeTextItem && activeTextItem.FID === listItem.FID}"
-                                 ng-click="activateTextItem(listItem)"
-                                 title="{{ listItem.itemText }}">
-                                <button class="drag-handle" type="button"
-                                        title="<?php echo T::s('common.dragReorder'); ?>"
-                                        aria-label="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
-                                <span ng-if="listItem.itemType === 'bible'" class="mfc-icon"
-                                      title="<?php echo T::s('tech.text.typeBible'); ?>">📖</span>
-                                <span ng-if="listItem.itemType === 'quote'" class="mfc-icon"
-                                      title="<?php echo T::s('tech.text.typeQuote'); ?>">💬</span>
-                                <div class="mfc-info">
-                                    <div class="mfc-name">{{ listItem.NAME }}</div>
-                                    <div class="mfc-src" ng-if="listItem.src">{{ listItem.src }}</div>
-                                    <div class="tfc-snippet">{{ listItem.itemText }}</div>
-                                </div>
-                                <button class="mfc-del"
-                                        ng-click="$event.stopPropagation(); deleteFavoriteItem(listItem.FID, listItem.NAME, listItem.itemType)"
-                                        title="<?php echo T::s('tech.tooltip.removeFromPlaylist'); ?>"
-                                        aria-label="<?php echo T::s('tech.tooltip.removeFromPlaylist'); ?>">✕</button>
-                            </div>
-
                             <!-- Video controls under the active video row -->
                             <div ng-if="listItem.itemType === 'video' && activeMediaItem && activeMediaItem.FID === listItem.FID"
                                  class="tech-video-controls">
@@ -1749,10 +1837,10 @@
                         <strong class="tc-ellipsis" ng-show="selectedMessage">— {{ selectedMessage.TITLE }}</strong>
                         <span class="cx-spacer"></span>
                         <span class="tc-added" ng-show="textAddedFlash === 'quote'"><?php echo T::s('tech.text.added'); ?></span>
-                        <!-- The paragraph on the screen → playlist -->
+                        <!-- The paragraph on the screen → favorites of this mode -->
                         <button class="cx-btn tc-add-head" type="button"
                                 ng-show="showingMsgParaIdx !== null"
-                                ng-click="addShownMsgParaToPlaylist()"
+                                ng-click="addShownMsgParaToFavorites()"
                                 title="<?php echo T::s('tech.text.addHint'); ?>"><?php echo T::s('tech.text.add'); ?></button>
                         <!-- Audio controls: shown only when message has audio + timecodes -->
                         <span class="cx-group" ng-show="selectedMessage && selectedMessage.AUDIO_SRC && msgTimecodes.length > 0">
@@ -1788,7 +1876,7 @@
                                   ng-show="msgTimecodes.length > msgParaIdx"
                                   ng-class="{'tc-gutter-unset': msgTimecodes[msgParaIdx] === 0}">{{formatMsgTimecode(msgTimecodes[msgParaIdx])}}</span><span class="tc-para-text" ng-bind-html="highlightMsg(para)"></span><button
                                   type="button" class="tc-add-btn"
-                                  ng-click="addMsgParaToPlaylist(msgParaIdx, $event)"
+                                  ng-click="addMsgParaToFavorites(msgParaIdx, $event)"
                                   title="<?php echo T::s('tech.text.addRowHint'); ?>"
                                   aria-label="<?php echo T::s('tech.text.addRowHint'); ?>">＋</button><button
                                   class="tc-stop-btn"
@@ -1896,11 +1984,11 @@
                         <strong class="tc-ellipsis" ng-show="selectedBibleBook && selectedBibleChapter">— {{ getBibleBookName(selectedBibleBook) }} {{ selectedBibleChapter }}</strong>
                         <span class="cx-spacer"></span>
                         <span class="tc-added" ng-show="textAddedFlash === 'bible'"><?php echo T::s('tech.text.added'); ?></span>
-                        <!-- The verses on the screen → playlist (with the parallel languages) -->
+                        <!-- The verses on the screen → favorites of this mode (with the parallel languages) -->
                         <button class="cx-btn tc-add-head" type="button"
                                 ng-show="selectedBibleVerses.length > 0"
                                 ng-disabled="bibleParallelPending"
-                                ng-click="addBibleSelectionToPlaylist()"
+                                ng-click="addBibleSelectionToFavorites()"
                                 title="<?php echo T::s('tech.text.addHint'); ?>"><?php echo T::s('tech.text.add'); ?></button>
                     </div>
                     <div class="cx-pane-body bible-panel" id="bible-verses-panel">
@@ -1912,7 +2000,7 @@
                                   ng-bind-html="highlightBibleVerse(verse)"></span><button
                                   type="button" class="tc-add-btn"
                                   ng-class="{'is-wait': bibleParallelPending}"
-                                  ng-click="addBibleVerseToPlaylist(verse, $event)"
+                                  ng-click="addBibleVerseToFavorites(verse, $event)"
                                   title="<?php echo T::s('tech.text.addRowHint'); ?>"
                                   aria-label="<?php echo T::s('tech.text.addRowHint'); ?>">＋</button></div>
                         <div ng-show="biblePreparedVerses.length === 0 && selectedBibleChapter" class="cx-empty"><?php echo T::s('common.loading'); ?></div>
@@ -2088,5 +2176,5 @@
 <script src="/js/cx_scroll.min.js?v=1" type="text/javascript"></script>
 <script src="/js/pdf_page_image.min.js?v=1" type="text/javascript"></script>
 <script src="/js/song_editor.min.js?v=1" type="text/javascript"></script>
-<script src="/js/tech.min.js?v=59" type="text/javascript"></script>
+<script src="/js/tech.min.js?v=60" type="text/javascript"></script>
 

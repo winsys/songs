@@ -199,14 +199,18 @@ trait Ajax_Common
         }
     }
 
-    // ─── Scripture / quote items of the tech playlist (Nov 2026) ─────
+    // ─── Bible / message favorites of the tech console (Nov 2026) ─────
     // A Bible passage (one or several languages, composed by the tech
     // console exactly as it goes to the screen) or a paragraph of the
     // Message, kept in `tech_media_favorites` (media_type 'bible' | 'quote')
     // — the table only the tech console reads, so the leader page never
-    // sees them. `text` = the screen text, `caption` = the screen caption
-    // (song_name of the `current` row), `name` = the playlist label,
-    // `src` = the source line (translations / message code).
+    // sees them. They are NOT part of the song playlist: the console shows
+    // them in the favorites list of its Bible / message mode, each list
+    // with its own order (sort_order 1..n per type, oldest first) and its
+    // own clear (Ajax_Tech: add_text_to_favorites, reorder_text_favorites,
+    // clear_text_favorites). `text` = the screen text, `caption` = the
+    // screen caption (song_name of the `current` row), `name` = the list
+    // label, `src` = the source line (translations / message code).
 
     /**
      * Adds the 'bible' / 'quote' media types and the text / caption columns
@@ -428,7 +432,9 @@ trait Ajax_Common
          WHERE f.groupId = {$userId}"
         ));
 
-        // Media and Scripture / quote items from tech_media_favorites
+        // Media and the Bible / message favorites from tech_media_favorites
+        // (one request for the console: it moves the 'bible' / 'quote' rows
+        // out of the playlist into the favorites lists of those modes)
         $media = Info::get('db')->select(
             "SELECT
              id             AS FID,
@@ -472,19 +478,14 @@ trait Ajax_Common
     }
 
     /**
-     * Params: with_texts (tech console) — also drops the Scripture / quote
-     * items; media (images, video, mp3) always stay, as before.
+     * Songs and leader notes go; media (images, video, mp3) and the Bible /
+     * message favorites of the tech console stay (those have their own
+     * clear_text_favorites).
      */
     private static function clear_favorites()
     {
         $groupId = (int)$_SESSION['curGroupId'];
         Info::get('db')->exec("DELETE FROM favorites WHERE groupId={$groupId}");
-        if (!empty(self::$args['with_texts'])) {
-            Info::get('db')->exec(
-                "DELETE FROM tech_media_favorites
-                 WHERE group_id = {$groupId} AND media_type IN ('bible', 'quote')"
-            );
-        }
         self::updateSocket();
         return '';
     }

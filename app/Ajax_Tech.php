@@ -662,11 +662,19 @@ trait Ajax_Tech
         return json_encode(['status' => 'ok', 'id' => Info::get('dbh')->insert_id]);
     }
 
+    /** item_type of the request when it is 'bible' or 'quote', else null. */
+    private static function textItemTypeArg()
+    {
+        $type = (string)(self::$args['item_type'] ?? '');
+        return ($type === 'bible' || $type === 'quote') ? $type : null;
+    }
+
     /**
-     * Add a Scripture passage or a quote of the Message to the tech playlist
-     * (see ensureTechTextItems). The console composes everything exactly as
-     * it goes to the screen, so a click on the item later shows the same
-     * text in the same languages.
+     * Add a Scripture passage or a quote of the Message to the favorites of
+     * the console's Bible / message mode (see ensureTechTextItems). The
+     * console composes everything exactly as it goes to the screen, so a
+     * click on the item later shows the same text in the same languages.
+     * Each list has its own order, oldest first: the new item goes last.
      * Params: item_type ('bible'|'quote'), text, caption, name, src
      */
     private static function add_text_to_favorites()
@@ -674,8 +682,8 @@ trait Ajax_Tech
         if (!self::ensureTechTextItems()) {
             return json_encode(['status' => 'error', 'message' => 'tech_media_favorites is not migrated']);
         }
-        $type = (string)(self::$args['item_type'] ?? '');
-        if ($type !== 'bible' && $type !== 'quote') {
+        $type = self::textItemTypeArg();
+        if ($type === null) {
             return json_encode(['status' => 'error', 'message' => 'Bad item_type']);
         }
         // Stored as composed (CRLF between verses kept) — only trimmed and capped.
@@ -695,9 +703,11 @@ trait Ajax_Tech
 
         $dbh    = Info::get('dbh');
         $userId = (int)$_SESSION['curGroupId'];
-        $maxSong  = Info::get('db')->get("SELECT IFNULL(MAX(sort_order),0) AS m FROM favorites WHERE groupId={$userId}");
-        $maxMedia = Info::get('db')->get("SELECT IFNULL(MAX(sort_order),0) AS m FROM tech_media_favorites WHERE group_id={$userId}");
-        $sortOrder = max((int)$maxSong['m'], (int)$maxMedia['m']) + 1;
+        $max    = Info::get('db')->get(
+            "SELECT IFNULL(MAX(sort_order),0) AS m FROM tech_media_favorites
+             WHERE group_id = {$userId} AND media_type = '{$type}'"
+        );
+        $sortOrder = (int)$max['m'] + 1;
 
         Info::get('db')->exec(
             "INSERT INTO tech_media_favorites (group_id, name, src, media_type, sort_order, `text`, caption)
@@ -710,6 +720,54 @@ trait Ajax_Tech
         );
         self::updateSocket();
         return json_encode(['status' => 'ok', 'id' => $dbh->insert_id]);
+    }
+
+    /**
+     * Persist the dragged order of one favorites list of the console (Bible
+     * or message mode). Positions 1..n top-to-bottom — these lists are always
+     * shown oldest first, whatever favorites_order says about the songs.
+     * Params: item_type ('bible'|'quote'), ids — tech_media_favorites ids as displayed
+     */
+    private static function reorder_text_favorites()
+    {
+        $type = self::textItemTypeArg();
+        $ids  = self::$args['ids'] ?? [];
+        if ($type === null || !is_array($ids) || count($ids) === 0 || count($ids) > 500) {
+            return json_encode(['status' => 'error', 'message' => 'Bad arguments']);
+        }
+        $groupId = (int)$_SESSION['curGroupId'];
+        $pos = 1;
+        foreach ($ids as $id) {
+            $id = (int)$id;
+            if ($id > 0) {
+                Info::get('db')->exec(
+                    "UPDATE tech_media_favorites SET sort_order = {$pos}
+                     WHERE id = {$id} AND group_id = {$groupId} AND media_type = '{$type}'"
+                );
+            }
+            $pos++;
+        }
+        self::updateSocket();
+        return json_encode(['status' => 'ok']);
+    }
+
+    /**
+     * Empty one favorites list of the console (Bible or message mode). The
+     * song playlist and the other list stay.
+     * Params: item_type ('bible'|'quote')
+     */
+    private static function clear_text_favorites()
+    {
+        $type = self::textItemTypeArg();
+        if ($type === null) {
+            return json_encode(['status' => 'error', 'message' => 'Bad item_type']);
+        }
+        $groupId = (int)$_SESSION['curGroupId'];
+        Info::get('db')->exec(
+            "DELETE FROM tech_media_favorites WHERE group_id = {$groupId} AND media_type = '{$type}'"
+        );
+        self::updateSocket();
+        return json_encode(['status' => 'ok']);
     }
 
     /**
