@@ -12,14 +12,17 @@
  *       'password'   => '…',
  *       'encryption' => 'ssl',            // ssl | tls | ''
  *       'from_email' => 'support@winsys.lv',
- *       'from_name'  => 'Worship Songs',
  *   ]
+ * The sender name is fixed (FROM_NAME); a 'from_name' key is ignored.
  *
  * Fail-soft: when the smtp section or PHPMailer is missing, falls back to
  * PHP mail(); returns false on any failure (logged via error_log).
  */
 class Mailer
 {
+    /** Sender display name of every email (overrides smtp.from_name). */
+    const FROM_NAME = 'Worship Songs website';
+
     /** Send a plain-text UTF-8 email. Returns true when accepted for delivery. */
     public static function send(string $to, string $subject, string $body): bool
     {
@@ -57,7 +60,9 @@ class Mailer
                     $mail->SMTPAutoTLS = false;
                 }
 
-                $mail->setFrom($conf['from_email'], $conf['from_name'] ?? 'Worship Songs');
+                // Fixed display name: the shared SMTP mailbox config may carry another
+                // product's name, and recipients must see who is writing to them.
+                $mail->setFrom($conf['from_email'], self::FROM_NAME);
                 $mail->addAddress($to);
                 $mail->isHTML(false);
                 $mail->Subject = $subject;
@@ -75,7 +80,7 @@ class Mailer
         $headers = "MIME-Version: 1.0\r\n"
                  . "Content-Type: text/plain; charset=UTF-8\r\n"
                  . "Content-Transfer-Encoding: 8bit\r\n"
-                 . "From: Worship Songs <no-reply@winsys.lv>\r\n";
+                 . "From: " . self::FROM_NAME . " <no-reply@winsys.lv>\r\n";
         return @mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, $headers);
     }
 }
