@@ -14,9 +14,10 @@
         -webkit-tap-highlight-color: transparent;
     }
 
-    /* Image-type (group) bar: top of the screen, centred, 50% translucent.
-       Normal window only — the <img> itself goes fullscreen, so nothing else
-       is visible in fullscreen mode. */
+    /* Image-type (group) bar: top of the screen, 50% translucent. The first
+       group is pinned to the left edge and the last to the right one, so the
+       song title in the middle of the sheet stays readable. Normal window
+       only — fullscreen shows the notes alone. */
     .mg-bar {
         position: fixed;
         top: 0;
@@ -24,7 +25,7 @@
         right: 0;
         display: flex;
         flex-wrap: wrap;
-        justify-content: center;
+        justify-content: space-between;
         align-items: flex-start;
         gap: 12px;
         padding: 14px 12px;

@@ -216,6 +216,9 @@
     pl: 'Worship Songs — system zarządzania nabożeństwem'
   };
 
+  // Bump when a shot is replaced: the file names stay, browsers keep the old copy.
+  var SHOT_VERSION = { musician: 2, sermon: 2 };
+
   function setLanguage(lang) {
     var dict = COPY[lang] || COPY.ru;
     lang = COPY[lang] ? lang : 'ru';
@@ -245,7 +248,8 @@
       if (scene === 'outdoor-group') image.alt = dict.groupTitle;
     });
     document.querySelectorAll('[data-shot]').forEach(function (image) {
-      image.src = 'images/ui/' + lang + '/' + image.getAttribute('data-shot') + '.webp';
+      var shot = image.getAttribute('data-shot');
+      image.src = 'images/ui/' + lang + '/' + shot + '.webp' + (SHOT_VERSION[shot] ? '?v=' + SHOT_VERSION[shot] : '');
       var alt = dict[image.getAttribute('data-alt')];
       if (alt !== undefined) image.alt = alt;
     });
