@@ -81,9 +81,34 @@ app.service('SongsService', function ($http, $q) {
     // newer Safari than some church tablets run).
     var SEARCH_SEP = /[\s.,;:!?¡¿"'`´«»„“”‘’‚‹›()\[\]{}\-‐‑–—―…*\/\\|_~@#$%^&+=<>·•]+/g;
 
-    function searchNorm(s) {
+    // Latin letters with diacritics → the bare letter, one character for one
+    // (the observer page cuts its snippets at the positions found in the
+    // folded text): «viskas imanoma» finds «Viskas įmanoma», «sirdis» —
+    // «širdis» (Lithuanian, Polish, German, … typed without the marks).
+    // Cyrillic is left alone: й / и are different letters.
+    var FOLD_GROUPS = {
+        a: 'ąàáâãäåāă', c: 'ćčç', d: 'ďđ', e: 'ęėèéêëěē', i: 'įìíîïī',
+        l: 'łľĺ', n: 'ńňñ', o: 'óòôõöøőō', r: 'ŕř', s: 'śšş', t: 'ťţ',
+        u: 'ųūùúûüůű', y: 'ýÿ', z: 'źżž'
+    };
+    var FOLD_MAP = {}, foldChars = '';
+    Object.keys(FOLD_GROUPS).forEach(function (base) {
+        var g = FOLD_GROUPS[base];
+        for (var i = 0; i < g.length; i++) FOLD_MAP[g.charAt(i)] = base;
+        foldChars += g;
+    });
+    var FOLD_RE = new RegExp('[' + foldChars + ']', 'g');
+    function foldChar(c) { return FOLD_MAP[c]; }
+
+    /** Lowercase, ё → е, Latin diacritics dropped; the length never changes. */
+    function searchFold(s) {
         return String(s == null ? '' : s).toLowerCase().replace(/ё/g, 'е')
-            .replace(SEARCH_SEP, ' ').trim();
+            .replace(FOLD_RE, foldChar);
+    }
+    this.searchFold = searchFold;
+
+    function searchNorm(s) {
+        return searchFold(s).replace(SEARCH_SEP, ' ').trim();
     }
 
     function stripZeros(n) { return n.replace(/^0+(?=\d)/, ''); }

@@ -28,7 +28,10 @@ app.controller('Observer', ['$scope', '$http', '$q', '$timeout', '$sce', 'SongsS
     var noImageSrc = '/no_image/' + (NO_IMAGE_LANGS.indexOf(uiLang) !== -1 ? uiLang : 'ru') + '.png';
 
     // ─── Small helpers ──────────────────────────────────────────
-    function lower(s) { return String(s == null ? '' : s).toLowerCase().replace(/ё/g, 'е'); }
+    // Lowercase, ё → е, Latin diacritics dropped (SongsService.searchFold:
+    // «sirdis» finds «širdis»); the length stays, so snippet() can cut the
+    // original text at the positions found in the folded one.
+    function lower(s) { return SongsService.searchFold(s); }
     function norm(s)  { return lower(s).replace(/\s+/g, ' ').trim(); }
     function textCol(lang) { return 'TEXT' + (lang.col_suffix || ''); }
     function nameCol(lang) { return 'NAME' + (lang.col_suffix || ''); }
