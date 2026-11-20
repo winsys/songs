@@ -150,11 +150,12 @@
     .swipe-action:active { background: var(--cx-danger-fill-hover); }
 
     .prod-list-item {
+        --ld-gap: 8px;                  /* the drag handle absorbs this gap (see .drag-handle) */
         position: relative;
         z-index: 1;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: var(--ld-gap);
         min-height: 84px;
         padding: 8px 8px 8px 0;
         background: var(--cx-surface);
@@ -166,7 +167,9 @@
     .swipe-row.swipe-open .prod-list-item { box-shadow: 0 0 12px rgba(23,33,43,0.22); }
 
     /* Drag-n-drop reorder (drag_reorder.js), same as on the leader page: the
-       handle is the only place where touch starts a drag. */
+       handle is the only place where touch starts a drag. Its active zone is
+       the whole left column: the gap up to the title and the row's top /
+       bottom padding too (negative margins; the title does not move). */
     .drag-handle {
         touch-action: none;
         user-select: none;
@@ -178,9 +181,11 @@
         color: var(--cx-secondary);
         font-size: 18px;
         line-height: 1;
-        width: 36px;
-        min-height: 44px;
+        width: calc(36px + var(--ld-gap));
+        min-height: 60px;              /* 44px + the row padding it covers */
         align-self: stretch;
+        margin: -8px calc(-1 * var(--ld-gap)) -8px 0;
+        padding: 0 var(--ld-gap) 0 0;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -193,7 +198,7 @@
         z-index: 10;
     }
     body.drag-reorder-busy { user-select: none; -webkit-user-select: none; }
-    @media (min-width: 541px) { .drag-handle { width: 40px; } }
+    @media (min-width: 541px) { .drag-handle { width: calc(40px + var(--ld-gap)); } }
 
     .ld-info { flex: 1 1 0; min-width: 0; }
     .item-text {
@@ -286,7 +291,7 @@
 
     /* ---- Medium tablet, 9-11" portrait (541-899px) ------------- */
     @media (min-width: 541px) {
-        .prod-list-item { min-height: 76px; gap: 10px; padding-right: 10px; }
+        .prod-list-item { min-height: 76px; --ld-gap: 10px; padding-right: 10px; }
         .item-text { font-size: 16px; }
         .song-thumb-wrap { width: 60px; height: 64px; }
     }
@@ -316,7 +321,7 @@
         .ld-list-head { position: sticky; top: 0; z-index: 5; background: var(--cx-canvas); min-height: 52px; }
         .ld-h-default { display: none; }
         .ld-h-large { display: inline; }
-        .prod-list-item { min-height: 78px; gap: 12px; padding-right: 12px; }
+        .prod-list-item { min-height: 78px; --ld-gap: 12px; padding-right: 12px; }
         .song-thumb-wrap { width: 64px; height: 64px; }
     }
 

@@ -158,11 +158,12 @@
     .swipe-action.swipe-edit:active { background: var(--cx-active-fill-hover); }
 
     .prod-list-item {
+        --ld-gap: 8px;                  /* the drag handle absorbs this gap (see .drag-handle) */
         position: relative;
         z-index: 1;
         display: flex;
         align-items: center;
-        gap: 8px;
+        gap: var(--ld-gap);
         min-height: 84px;
         padding: 8px 8px 8px 0;
         background: var(--cx-surface);
@@ -174,7 +175,10 @@
     .swipe-row.swipe-open .prod-list-item { box-shadow: 0 0 12px rgba(23,33,43,0.22); }
 
     /* Drag-n-drop reorder (drag_reorder.js): the handle is the only place
-       where touch starts a drag — everywhere else the page scrolls. */
+       where touch starts a drag — everywhere else the page scrolls. It is the
+       whole left column of the row, so a finger does not have to hit the ⠿:
+       grip + sequence number (📝 of a note), the gap up to the title and the
+       row's top / bottom padding (negative margins; the title does not move). */
     .drag-handle {
         touch-action: none;
         user-select: none;
@@ -186,14 +190,16 @@
         color: var(--cx-secondary);
         font-size: 18px;
         line-height: 1;
-        width: 36px;
-        min-height: 44px;
+        min-height: 60px;              /* 44px + the row padding it covers */
         align-self: stretch;
+        margin: -8px calc(-1 * var(--ld-gap)) -8px 0;
+        padding: 0 var(--ld-gap) 0 0;
+        gap: var(--ld-gap);
         display: flex;
         align-items: center;
-        justify-content: center;
         flex-shrink: 0;
     }
+    .ld-grip { width: 36px; text-align: center; flex-shrink: 0; }
     .drag-handle:active { cursor: grabbing; color: var(--cx-ink); }
     .prod-list-item.drag-active {
         background: var(--cx-active-tint);
@@ -336,11 +342,11 @@
 
     /* ---- Medium tablet, 9-11" portrait (541-899px) ------------- */
     @media (min-width: 541px) {
-        .prod-list-item { min-height: 76px; gap: 10px; padding-right: 10px; }
+        .prod-list-item { min-height: 76px; --ld-gap: 10px; padding-right: 10px; }
         .ld-seq { display: block; }
         .item-text { font-size: 16px; }
         .favorites-list { --ld-act-w: 60px; --ld-act-space: 8px; }
-        .drag-handle { width: 40px; }
+        .ld-grip { width: 40px; }
     }
 
     /* Visible ✏️ only on a desktop (wide screen + mouse). Phones and tablets —
@@ -374,7 +380,7 @@
         .ld-list-head { position: sticky; top: 0; z-index: 5; background: var(--cx-canvas); min-height: 52px; }
         .ld-h-default { display: none; }
         .ld-h-large { display: inline; }
-        .prod-list-item { min-height: 78px; gap: 12px; padding-right: 12px; }
+        .prod-list-item { min-height: 78px; --ld-gap: 12px; padding-right: 12px; }
         .favorites-list { --ld-act-w: 64px; --ld-act-space: 10px; }
     }
     /* Leader's black full-text screen */
@@ -1160,8 +1166,9 @@
                     <div class="prod-list-item ld-note" ng-if="isNote(listItem)">
                         <button class="drag-handle" type="button"
                                 title="<?php echo T::s('common.dragReorder'); ?>"
-                                aria-label="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
-                        <span class="ld-seq ld-note-ico" aria-hidden="true">📝</span>
+                                aria-label="<?php echo T::s('common.dragReorder'); ?>"><span
+                                class="ld-grip" aria-hidden="true">⠿</span><span
+                                class="ld-seq ld-note-ico" aria-hidden="true">📝</span></button>
                         <span class="ld-info">
                             <span class="ld-note-text">{{ listItem.NOTE }}</span>
                         </span>
@@ -1175,12 +1182,13 @@
                          ng-if="!isNote(listItem)"
                          ng-class="{'song-on': activeSongImage && listItem.imageName === activeSongImage}">
 
-                        <!-- Drag handle: reorder the list (drag_reorder.js) -->
+                        <!-- Drag handle: reorder the list (drag_reorder.js). The whole
+                             left column — grip + sequence number — is the handle. -->
                         <button class="drag-handle" type="button"
                                 title="<?php echo T::s('common.dragReorder'); ?>"
-                                aria-label="<?php echo T::s('common.dragReorder'); ?>">⠿</button>
-
-                        <span class="ld-seq" aria-hidden="true">{{ songSeq($index) }}</span>
+                                aria-label="<?php echo T::s('common.dragReorder'); ?>"><span
+                                class="ld-grip" aria-hidden="true">⠿</span><span
+                                class="ld-seq" aria-hidden="true">{{ songSeq($index) }}</span></button>
 
                         <!-- Song info: a click switches the musicians' notes of this
                              song on / off (toggleSongNotes, no screen change) -->
